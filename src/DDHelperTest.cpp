@@ -130,8 +130,8 @@ void testMonsterDefence()
   monster.takeDamage(20, true);
   ASSERT_EQUALM("With two layers of corrosion, damage taken increases by 2", 6, monster.getHitPoints());
 
-  monster.crush();
-  monster.crush();
+  monster.crushResistances();
+  monster.crushResistances();
   ASSERT_EQUALM("Resistances can be crushed, 3 points at a time", 69, monster.getMagicalResistPercent());
 
   monster.takeDamage(100, false);

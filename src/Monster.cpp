@@ -118,7 +118,7 @@ void Monster::stun()
   status.setStunned(true);
 }
 
-void Monster::crush()
+void Monster::crushResistances()
 {
   defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() - 3);
   defence.setMagicalResistPercent(defence.getMagicalResistPercent() - 3);

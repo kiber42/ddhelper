@@ -29,7 +29,7 @@ public:
   void burnDown();
   void poison(int addedPoisonAmount);
   void stun();
-  void crush();
+  void crushResistances();
 
   bool isBurning() const;
   bool isPoisoned() const;
