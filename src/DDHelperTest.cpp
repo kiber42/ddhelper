@@ -110,71 +110,71 @@ go_bandit([] {
 
   describe("Monster", [] {
     Monster monster(makeGenericMonsterStats(2, 10, 3), Defence(), MonsterTraits());
-    it("can be created at level 2 with 10 HP", [&] {
+    it("used for test should have level 2 and 10 HP", [&] {
       AssertThat(monster.getLevel(), Equals(2));
       AssertThat(monster.getHitPoints(), Equals(10));
     });
-    it("with 10 HP survives a hit with 9 damage points and has 1 HP remaining", [&] {
+    it("with 10 HP should survive a hit with 9 damage points and has 1 HP remaining", [&] {
       monster.takeDamage(9, false);
       AssertThat(monster.isDefeated(), Equals(false));
       AssertThat(monster.getHitPoints(), Equals(1));
     });
-    it("at level 2 recovers at a rate of 2 HP per explored square", [&] {
+    it("at level 2 should recover at a rate of 2 HP per explored square", [&] {
       monster.recover(4);
       AssertThat(monster.getHitPoints(), Equals(9));
     });
-    it("does not recover beyond its max HP", [&] {
+    it("should not recover beyond its max HP", [&] {
       monster.recover(10);
       AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax()));
     });
-    it("does not recover HP while poisoned", [&] {
+    it("should not recover HP while poisoned", [&] {
       monster.takeDamage(1, false);
       monster.poison(3);
       monster.recover(1);
       AssertThat(monster.getHitPoints(), Equals(9));
       AssertThat(monster.getPoisonAmount(), Equals(1));
     });
-    it("reduces poison as it would usually recover HP", [&] {
+    it("should reduce poison as it would usually recover HP", [&] {
       monster.recover(1);
       AssertThat(monster.getHitPoints(), Equals(10));
       AssertThat(monster.isPoisoned(), Equals(false));
     });
-    it("loses 4 HP per caster level when hit by a fireball", [&] {
+    it("should lose 4 HP per caster level when hit by a fireball", [&] {
       monster.takeFireballDamage(2, false);
       AssertThat(monster.getHitPoints(), Equals(10 - 2 * 4));
     });
-    it("is burning after hit by a fireball", [&] {
+    it("should be burning after hit by a fireball", [&] {
       AssertThat(monster.isBurning(), Equals(true));
       // TODO: Special case: Wizard caster, burn stack size grows by 2 per fireball
       AssertThat(monster.getBurnStackSize(), Equals(1));
     });
-    it("recovers HP at a rate reduced by 1 when burning", [&] {
+    it("should recover HP at a rate reduced by 1 when burning", [&] {
       monster.recover(4);
       AssertThat(monster.getHitPoints(), Equals(6));
     });
-    it("takes additional fireball damage when already burning", [&] {
+    it("should take additional fireball damage when already burning", [&] {
       monster.takeFireballDamage(1, false);
       AssertThat(monster.getHitPoints(), Equals(6 - 1 * 4 - 1));
       AssertThat(monster.getBurnStackSize(), Equals(2));
     });
-    it("recovers HP at a rate reduced by 1 when burning, independent of burn stack size", [&] {
+    it("should recover HP at a rate reduced by 1 when burning, independent of burn stack size", [&] {
       monster.recover(5);
       AssertThat(monster.getHitPoints(), Equals(6));
     });
-    it("takes additional fireball damage per burn stack", [&] {
+    it("should take additional fireball damage per burn stack", [&] {
       monster.recover(10);
       monster.takeFireballDamage(1, false);
       AssertThat(monster.getHitPoints(), Equals(10 - 1 * 4 - 2));
     });
-    it("cannot have a burn stack size higher than twice the caster's level",
+    it("should not have a burn stack size higher than twice the caster's level",
        [&] { AssertThat(monster.getBurnStackSize(), Equals(2)); });
-    it("stops burning upon any physical damage, and takes damage equal to burn stack size", [&] {
+    it("should stop burning upon any physical damage, and take damage equal to burn stack size", [&] {
       AssertThat(monster.getHitPoints() - monster.getBurnStackSize(), Equals(2));
       monster.takeDamage(0, false);
       AssertThat(monster.isBurning(), Equals(false));
       AssertThat(monster.getHitPoints(), Equals(2));
     });
-    it("recovers from stun when taking damage", [&] {
+    it("should recover from stun when taking damage", [&] {
       monster.stun();
       AssertThat(monster.isStunned(), Equals(true));
       monster.takeDamage(1, false);
@@ -182,36 +182,36 @@ go_bandit([] {
     });
   });
 
-  describe("Monster takes damage", [] {
+  describe("Monster damage", [] {
     Monster monster(makeGenericMonsterStats(3, 30, 10, 1), Defence(50, 75), MonsterTraits());
-    it("adjusted for physical resistance", [&] {
+    it("should be adjusted for physical resistance", [&] {
       AssertThat(monster.getHitPoints(), Equals(30));
       AssertThat(monster.getPhysicalResistPercent(), Equals(50));
       monster.takeDamage(5 * 100 / (100 - 50), false);
       AssertThat(monster.getHitPoints(), Equals(30 - 5));
     });
-    it("adjusted for physical resistance, resisted damage is rounded down", [&] {
+    it("should be adjusted for physical resistance, resisted damage is rounded down", [&] {
       monster.takeDamage(1, false);
       AssertThat(monster.getHitPoints(), Equals(24));
     });
-    it("adjusted for magical damage, resisted damage is rounded down", [&] {
+    it("should be adjusted for magical damage, resisted damage is rounded down", [&] {
       AssertThat(monster.getMagicalResistPercent(), Equals(75));
       monster.takeDamage(5 * 100 / (100 - 75) + 1, true);
       AssertThat(monster.getHitPoints(), Equals(24 - 5 - 1));
     });
-    it("increased by corrosion", [&] {
+    it("should be increased by corrosion", [&] {
       AssertThat(monster.getHitPoints(), Equals(18));
       monster.corrode();
       monster.takeDamage(10, false);
       AssertThat(monster.getHitPoints(), Equals(18 - 5 - 1));
     });
-    it("increased by corrosion (2 levels -> 2 extra damage)", [&] {
+    it("should be increased by corrosion (2 levels -> 2 extra damage)", [&] {
       AssertThat(monster.getHitPoints(), Equals(12));
       monster.corrode();
       monster.takeDamage(20, true);
       AssertThat(monster.getHitPoints(), Equals(12 - 5 - 2));
     });
-    it("-- its resistances can be crushed, 3 percentage points at a time", [&] {
+    it("should work for crushed resistances (3 percentage points lost per crushing)", [&] {
       monster.crushResistances();
       AssertThat(monster.getPhysicalResistPercent(), Equals(47));
       AssertThat(monster.getMagicalResistPercent(), Equals(72));
@@ -226,7 +226,7 @@ go_bandit([] {
       // 35% resistance remaining -> no damage reduction
       AssertThat(monster.getHitPoints() + monster.getCorroded(), Equals(3));
     });
-    it("but cannot die when it has death protection, which wears off", [&] {
+    it("should account for death protection and have it wear off", [&] {
       AssertThat(monster.getDeathProtection(), Equals(1));
       monster.takeDamage(100, false);
       AssertThat(monster.isDefeated(), Equals(false));
@@ -236,69 +236,81 @@ go_bandit([] {
       AssertThat(monster.isDefeated(), Equals(true));
     });
   });
+
+  describe("Melee outcome prediction", [] {
+    Hero hero;
+    Monster monster(makeGenericMonsterStats(3, 15, 5), {}, {});
+    Melee melee(hero, monster);
+    it("should work for outcome 'safe' (simple case)",
+       [&] { AssertThat(melee.predictOutcome().summary, Equals(Outcome::Summary::Safe)); });
+    it("should work for outcome 'hero dies' (simple case)", [&] {
+      hero.loseHitPointsOutsideOfFight(5);
+      AssertThat(melee.predictOutcome().summary, Equals(Outcome::Summary::HeroDefeated));
+    });
+    it("should work for outcome 'hero wins' (one shot, monster has lower level)", [&] {
+      hero.gainExperience(30);
+      hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
+      AssertThat(melee.predictOutcome().summary, Equals(Outcome::Summary::HeroWins));
+    });
+
+    it("of hitpoint loss should work", [] {
+      Hero hero;
+      Monster monster(makeGenericMonsterStats(3, 15, 9), {}, {});
+      Melee melee(hero, monster);
+      const auto outcome = melee.predictOutcome();
+      AssertThat(hero.getHitPoints(), Equals(10));
+      AssertThat(monster.getHitPoints(), Equals(15));
+      AssertThat(outcome.hero->getHitPoints(), Equals(10 - monster.getDamage()));
+      AssertThat(outcome.monster->getHitPoints(), Equals(15 - hero.getDamage()));
+    });
+  });
+
+  describe("Dungeon", [] {
+    Dungeon dungeon(3, 3);
+    auto monster = std::make_shared<Monster>(makeGenericMonsterStats(3, 30, 10, 0), Defence(), MonsterTraits());
+    auto monster2 = std::make_shared<Monster>(*monster);
+    it("should allow adding monsters if there is space", [&] {
+      dungeon.add(monster, dungeon.randomFreePosition().value());
+      AssertThat(dungeon.getMonsters().size(), Equals(1));
+      for (unsigned n = 2; n <= 9; ++n)
+      {
+        AssertThat(dungeon.randomFreePosition().has_value(), Equals(true));
+        dungeon.add(monster2, dungeon.randomFreePosition().value());
+        AssertThat(dungeon.getMonsters().size(), Equals(n));
+      }
+      AssertThat(dungeon.randomFreePosition().has_value(), Equals(false));
+      AssertThat(dungeon.isFree({0, 0}), Equals(false));
+    });
+    it("should not be revealed initially", [&] { AssertThat(dungeon.isRevealed({1, 1}), Equals(false)); });
+    it("should consider a square with a defeated monster as free", [&] {
+      monster->takeDamage(100, false);
+      AssertThat(monster->isDefeated(), Equals(true));
+      dungeon.update();
+      AssertThat(dungeon.randomFreePosition().has_value(), Equals(true));
+    });
+    auto hero = std::make_shared<Hero>();
+    it("should consider the hero's square as occupied", [&] {
+      dungeon.setHero(hero, dungeon.randomFreePosition().value());
+      AssertThat(dungeon.randomFreePosition().has_value(), Equals(false));
+    });
+    it("should be revealed around the hero's position", [&] { AssertThat(dungeon.isRevealed({1, 1}), Equals(true)); });
+  });
+
+  describe("Pathfinding", [] {
+    Dungeon dungeon(10, 10);
+    auto hero = std::make_shared<Hero>();
+    dungeon.setHero(hero, Position(0, 0));
+    it("should find paths if there are no obstacles", [&] { AssertThat(dungeon.isConnected({9, 9}), Equals(true)); });
+    it("should consider squares inaccessible if there are no revealed paths to them", [&] {
+      AssertThat(dungeon.isAccessible({9, 9}), Equals(false));
+    });
+    it("should consider squares accessible if there is a revealed path", [&] {
+      for (int x = 2; x < 10; ++x)
+        dungeon.reveal({x, x});
+      AssertThat(dungeon.isAccessible({9, 9}), Equals(true));
+    });
+  });
 });
-
-/*
-void testFightBasic()
-{
-  {
-    Hero hero;
-    Monster monster(makeGenericMonsterStats(3, 15, 5), {}, {});
-    Melee melee(hero, monster);
-    ASSERTM("Outcome summary of fight predicted correctly (safe)",
-            Outcome::Summary::Safe == melee.predictOutcome().summary);
-    hero.loseHitPointsOutsideOfFight(5);
-    ASSERTM("Outcome summary of fight predicted correctly (hero dead)",
-            Outcome::Summary::HeroDefeated == melee.predictOutcome().summary);
-    hero.gainExperience(30);
-    hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
-    ASSERTM("Outcome summary of fight predicted correctly (hero wins)",
-            Outcome::Summary::HeroWins == melee.predictOutcome().summary);
-  }
-  {
-    Hero hero;
-    Monster monster(makeGenericMonsterStats(3, 15, 5), {}, {});
-    Melee melee(hero, monster);
-    ASSERT_EQUALM("Hero hitpoint loss predicted correctly", 5, melee.predictOutcome().hero->getHitPoints());
-    ASSERT_EQUALM("Monster hitpoint loss predicted correctly", 10, melee.predictOutcome().monster->getHitPoints());
-  }
-}
-
-void testDungeonBasic()
-{
-  Dungeon dungeon(3, 3);
-  auto monster = std::make_shared<Monster>(makeGenericMonsterStats(3, 30, 10, 0), Defence(), MonsterTraits());
-  auto monster2 = std::make_shared<Monster>(*monster);
-  dungeon.add(monster, dungeon.randomFreePosition().value());
-  ASSERT_EQUALM("Monsters can be added to dungeon", 1, dungeon.getMonsters().size());
-  for (int i = 0; i < 8; ++i)
-    dungeon.add(monster2, dungeon.randomFreePosition().value());
-  ASSERTM("Finding random free position works", !dungeon.randomFreePosition());
-  ASSERT_EQUALM("Finding random free position works", false, dungeon.isFree(Position(0, 0)));
-
-  ASSERT_EQUALM("Dungeon not revealed initially", false, dungeon.isRevealed(Position(1, 1)));
-
-  monster->takeDamage(100, false);
-  ASSERT(monster->isDefeated());
-  dungeon.update();
-  ASSERTM("Position freed if monster is defeated", dungeon.randomFreePosition());
-  auto hero = std::make_shared<Hero>();
-  dungeon.setHero(hero, dungeon.randomFreePosition().value());
-  ASSERTM("Hero position accounted for by randomFreePosition", !dungeon.randomFreePosition());
-  ASSERT_EQUALM("Positioning hero reveals tiles", true, dungeon.isRevealed(Position(1, 1)));
-}
-
-void testPathfinding()
-{
-  Dungeon dungeon(10, 10);
-  auto hero = std::make_shared<Hero>();
-  dungeon.setHero(hero, Position(0, 0));
-  ASSERT_EQUALM("Basic pathfinding (path must be revealed)", dungeon.isAccessible(Position(9, 9)), false);
-  ASSERT_EQUALM("Basic pathfinding (simple unrevealed path found)", dungeon.isConnected(Position(9, 9)), true);
-  for (int i = 2; i < 10; ++i)
-    dungeon.reveal(Position(i, i));
-  ASSERT_EQUALM("Basic pathfinding (simple revealed path found)", dungeon.isAccessible(Position(9, 9)), true);
-}
 
 // Missing:
 // - exploration
@@ -307,7 +319,6 @@ void testPathfinding()
 // - representations
 // - spells
 // - inventory
-*/
 
 int main(int argc, char* argv[])
 {
