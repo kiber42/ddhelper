@@ -1,7 +1,4 @@
-#include "cute.h"
-#include "cute_runner.h"
-#include "ide_listener.h"
-#include "xml_listener.h"
+#include "bandit/bandit.h"
 
 #include "Dungeon.hpp"
 #include "Experience.hpp"
@@ -10,139 +7,238 @@
 #include "Monster.hpp"
 #include "MonsterFactory.hpp"
 
-void testHeroExperienceBasic()
-{
-  Hero hero;
-  ASSERT_EQUALM("A hero is created with level 1", 1, hero.getLevel());
-  hero.gainExperience(5);
-  ASSERT_EQUALM("After receiving 5 XP the hero is level 2", 2, hero.getLevel());
-  hero.gainLevel();
-  ASSERT_EQUALM("Level gain triggered", 3, hero.getLevel());
-  hero.gainExperience(1000);
-  ASSERT_EQUALM("Hero level cannot exceed 10", 10, hero.getLevel());
-  ASSERT_EQUALM("Hero receives prestige instead", 10, hero.getPrestige());
-  hero.modifyLevelBy(-1);
-  ASSERT_EQUALM("A hero's level can be artificially reduced (boon)", 9, hero.getLevel());
-  ASSERT_EQUALM("Number of hero's prestige unaffected by boon", 10, hero.getPrestige());
-  hero.modifyLevelBy(-10);
-  ASSERT_EQUALM("A hero's level cannot be artificially reduced below 1", 1, hero.getLevel());
-  hero.modifyLevelBy(+10);
-  ASSERT_EQUALM("A hero's level cannot be artificially increased above 10", 10, hero.getLevel());
-}
+using namespace bandit;
+using namespace snowhouse;
 
-void testHeroExperienceAdvanced()
-{
-  {
+go_bandit([] {
+  describe("Hero's level", [] {
     Hero hero;
+    it("should initially be 1", [&] { AssertThat(hero.getLevel(), Equals(1)); });
+    it("should be 2 after receiving 5 XP", [&] {
+      hero.gainExperience(5);
+      AssertThat(hero.getLevel(), Equals(2));
+    });
+    it("should be 3 after gaining another level", [&] {
+      hero.gainLevel();
+      AssertThat(hero.getLevel(), Equals(3));
+    });
+    it("should never exceed 10 (prestige awarded instead)", [&] {
+      hero.gainExperience(1000);
+      AssertThat(hero.getLevel(), Equals(10));
+      AssertThat(hero.getPrestige(), Equals(10));
+    });
+    it("should be 9 after receiving a modifier of -1", [&] {
+      hero.modifyLevelBy(-1);
+      AssertThat(hero.getLevel(), Equals(9));
+      AssertThat(hero.getPrestige(), Equals(10));
+    });
+    it("should never be below 1", [&] {
+      hero.modifyLevelBy(-10);
+      AssertThat(hero.getLevel(), Equals(1));
+    });
+    it("should never be above 10", [&] {
+      hero.modifyLevelBy(+10);
+      AssertThat(hero.getLevel(), Equals(10));
+    });
+  });
+
+  describe("Level up (from XP)", [] {
+    Hero hero;
+    hero.gainLevel();
     hero.loseHitPointsOutsideOfFight(4);
+    hero.gainExperience(10);
+    it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
+    it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30)); });
+  });
+
+  describe("Level up (from item or boon)", [] {
+    Hero hero;
     hero.gainExperience(5);
-    ASSERT_EQUALM("Hit points refilled on level up (from XP)", hero.getHitPointsMax(), hero.getHitPoints());
-    ASSERT_EQUALM("Maximum hit points raised on level up (from XP)", 20, hero.getHitPointsMax());
     hero.loseHitPointsOutsideOfFight(1);
     hero.gainLevel();
-    ASSERT_EQUALM("Hit points raised and refilled on direct level up", 30, hero.getHitPoints());
-  }
-  {
-    Hero hero;
-    hero.addStatus(HeroStatus::Learning);
-    hero.gainExperience(1);
-    ASSERT_EQUALM("After receiving 1 XP a fresh hero with 'Learning' has 2 XP", 2, hero.getXP());
-    ASSERT_EQUALM("The 'Learning' status persists", 1, hero.hasStatus(HeroStatus::Learning));
-    hero.addStatus(HeroStatus::Learning);
-    ASSERT_EQUALM("Another level of 'Learning' can be added", 2, hero.hasStatus(HeroStatus::Learning));
-    hero.gainExperience(1);
-    ASSERT_EQUALM("After receiving another 1 XP the hero has leveled up (5 XP)", 2, hero.getLevel());
-  }
-  {
-    Hero hero;
-    hero.addStatus(HeroStatus::ExperienceBoost);
-    hero.gainExperience(2);
-    ASSERT_EQUALM("After receiving 2 XP a fresh hero with 'Experience Boost' has 3 XP", 3, hero.getXP());
-    hero.gainExperience(2);
-    ASSERT_EQUALM("The 'Experience Boost' status is automatically removed", 0,
-                  hero.hasStatus(HeroStatus::ExperienceBoost));
-    hero.gainLevel();
-    hero.addStatus(HeroStatus::ExperienceBoost);
-    hero.addStatus(HeroStatus::Learning);
-    hero.gainExperience(3); /* 150/100 * 3 + 1 rather than 150/100 * (3 + 1) */
-    ASSERT_EQUALM("Learning is applied after Experience Boost", 5, hero.getXP());
-  }
-  // Further traits that affect XP
-  // Alchemist's Pact (gain 3 XP on consuming potion)
-  // Veteran (Fighter trait)
-}
+    it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
+    it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30)); });
+  });
 
-void testMonsterHitPoints()
-{
-  Monster monster(makeGenericMonsterStats(2, 10, 3), Defence(), MonsterTraits());
-  ASSERT_EQUALM("A level 2 monster with 10 hit points can be created", 2, monster.getLevel());
-  ASSERT_EQUALM("A level 2 monster with 10 hit points can be created", 10, monster.getHitPoints());
-  monster.takeDamage(9, false);
-  ASSERT_EQUALM("The monster is not defeated by a hit of 9 damage points", false, monster.isDefeated());
-  ASSERT_EQUALM("It has 1 remaining hit point", 1, monster.getHitPoints());
-  monster.recover(4);
-  ASSERT_EQUALM("After 4 squares have been explored, it has 9 remaining hit points", 9, monster.getHitPoints());
-  monster.recover(10);
-  ASSERT_EQUALM("It does not recover beyond its max. HP", monster.getHitPointsMax(), monster.getHitPoints());
+  describe("Hero's XP", [] {
+    it("should be 2 instead of 1 if the hero has 'Learning' (permanent bonus)", [&] {
+      Hero hero;
+      hero.addStatus(HeroStatus::Learning);
+      hero.gainExperience(1);
+      AssertThat(hero.getXP(), Equals(2));
+      AssertThat(hero.hasStatus(HeroStatus::Learning), Equals(true));
+    });
+    it("should grow by 1 extra point for each level of 'Learning'", [&] {
+      Hero hero;
+      hero.addStatus(HeroStatus::Learning);
+      hero.addStatus(HeroStatus::Learning);
+      hero.addStatus(HeroStatus::Learning);
+      AssertThat(hero.getStatusIntensity(HeroStatus::Learning), Equals(3));
+      hero.gainExperience(2);
+      AssertThat(hero.getXP(), Equals(0));
+      AssertThat(hero.getLevel(), Equals(2));
+    });
+    it("should grow by a bonus 50% (rounded down) if the hero has 'Experience Boost' (one time bonus, cannot stack)",
+       [&] {
+         Hero hero;
+         hero.addStatus(HeroStatus::ExperienceBoost);
+         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), Equals(true));
+         hero.gainExperience(2);
+         AssertThat(hero.getXP(), Equals(3));
+         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), Equals(false));
+         hero.addStatus(HeroStatus::ExperienceBoost);
+         hero.addStatus(HeroStatus::ExperienceBoost);
+         AssertThat(hero.getStatusIntensity(HeroStatus::ExperienceBoost), Equals(1));
+         hero.gainExperience(1);
+         AssertThat(hero.getXP(), Equals(4));
+       });
+    it("should first consider 'Experience Boost', then 'Learning'", [&] {
+      Hero hero;
+      // Start at level 2, otherwise 5 XP trigger a level up
+      hero.gainLevel();
+      hero.addStatus(HeroStatus::ExperienceBoost);
+      hero.addStatus(HeroStatus::Learning);
+      hero.gainExperience(3);
+      // 150% * 3 + 1 = 5.5 -> 5 rather than 150% * (3 + 1) = 6
+      AssertThat(hero.getXP(), Equals(5));
+    });
 
-  monster.takeDamage(1, false);
-  monster.poison(3);
-  monster.recover(1);
-  ASSERT_EQUALM("Poison prevents healing", 9, monster.getHitPoints());
-  ASSERT_EQUALM("Poison prevents healing", 1, monster.getPoisonAmount());
-  monster.recover(1);
-  ASSERT_EQUALM("Poison wears off", 10, monster.getHitPoints());
-  ASSERT_EQUALM("Poison wears off", false, monster.isPoisoned());
+    // TO DO: Further traits that affect XP
+    // - Alchemist's Pact (gain 3 XP on consuming potion)
+    // - Veteran (Fighter trait, 1 bonus XP per kill)
+  });
 
-  monster.takeFireballDamage(2, false);
-  ASSERT_EQUALM("Fireball does 4 damage per caster level", 8, 10 - monster.getHitPoints());
-  ASSERT_EQUALM("Fireball sets monster on fire", true, monster.isBurning());
-  ASSERT_EQUALM("Burn stack grows by 1", 1, monster.getBurnStackSize());
-  monster.recover(4);
-  ASSERT_EQUALM("Burning slows healing", 6, monster.getHitPoints());
-  monster.takeFireballDamage(1, false);
-  ASSERT_EQUALM("Burn stack increases damage", 5, 6 - monster.getHitPoints());
-  ASSERT_EQUALM("Burn stack grows by 1", 1, monster.getBurnStackSize() - 1);
-  monster.recover(2);
-  ASSERT_EQUALM("Burning slows healing independently of burn stack size", 3, monster.getHitPoints());
+  describe("Monster", [] {
+    Monster monster(makeGenericMonsterStats(2, 10, 3), Defence(), MonsterTraits());
+    it("can be created at level 2 with 10 HP", [&] {
+      AssertThat(monster.getLevel(), Equals(2));
+      AssertThat(monster.getHitPoints(), Equals(10));
+    });
+    it("with 10 HP survives a hit with 9 damage points and has 1 HP remaining", [&] {
+      monster.takeDamage(9, false);
+      AssertThat(monster.isDefeated(), Equals(false));
+      AssertThat(monster.getHitPoints(), Equals(1));
+    });
+    it("at level 2 recovers at a rate of 2 HP per explored square", [&] {
+      monster.recover(4);
+      AssertThat(monster.getHitPoints(), Equals(9));
+    });
+    it("does not recover beyond its max HP", [&] {
+      monster.recover(10);
+      AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax()));
+    });
+    it("does not recover HP while poisoned", [&] {
+      monster.takeDamage(1, false);
+      monster.poison(3);
+      monster.recover(1);
+      AssertThat(monster.getHitPoints(), Equals(9));
+      AssertThat(monster.getPoisonAmount(), Equals(1));
+    });
+    it("reduces poison as it would usually recover HP", [&] {
+      monster.recover(1);
+      AssertThat(monster.getHitPoints(), Equals(10));
+      AssertThat(monster.isPoisoned(), Equals(false));
+    });
+    it("loses 4 HP per caster level when hit by a fireball", [&] {
+      monster.takeFireballDamage(2, false);
+      AssertThat(monster.getHitPoints(), Equals(10 - 2 * 4));
+    });
+    it("is burning after hit by a fireball", [&] {
+      AssertThat(monster.isBurning(), Equals(true));
+      // TODO: Special case: Wizard caster, burn stack size grows by 2 per fireball
+      AssertThat(monster.getBurnStackSize(), Equals(1));
+    });
+    it("recovers HP at a rate reduced by 1 when burning", [&] {
+      monster.recover(4);
+      AssertThat(monster.getHitPoints(), Equals(6));
+    });
+    it("takes additional fireball damage when already burning", [&] {
+      monster.takeFireballDamage(1, false);
+      AssertThat(monster.getHitPoints(), Equals(6 - 1 * 4 - 1));
+      AssertThat(monster.getBurnStackSize(), Equals(2));
+    });
+    it("recovers HP at a rate reduced by 1 when burning, independent of burn stack size", [&] {
+      monster.recover(5);
+      AssertThat(monster.getHitPoints(), Equals(6));
+    });
+    it("takes additional fireball damage per burn stack", [&] {
+      monster.recover(10);
+      monster.takeFireballDamage(1, false);
+      AssertThat(monster.getHitPoints(), Equals(10 - 1 * 4 - 2));
+    });
+    it("cannot have a burn stack size higher than twice the caster's level",
+       [&] { AssertThat(monster.getBurnStackSize(), Equals(2)); });
+    it("stops burning upon any physical damage, and takes damage equal to burn stack size", [&] {
+      AssertThat(monster.getHitPoints() - monster.getBurnStackSize(), Equals(2));
+      monster.takeDamage(0, false);
+      AssertThat(monster.isBurning(), Equals(false));
+      AssertThat(monster.getHitPoints(), Equals(2));
+    });
+    it("recovers from stun when taking damage", [&] {
+      monster.stun();
+      AssertThat(monster.isStunned(), Equals(true));
+      monster.takeDamage(1, false);
+      AssertThat(monster.isStunned(), Equals(false));
+    });
+  });
 
-  monster.takeDamage(0, false);
-  ASSERT_EQUALM("Next hit stops burning", false, monster.isBurning());
-  ASSERT_EQUALM("Burn down does damage equal to burn stack size", 2, 3 - monster.getHitPoints());
-}
+  describe("Monster takes damage", [] {
+    Monster monster(makeGenericMonsterStats(3, 30, 10, 1), Defence(50, 75), MonsterTraits());
+    it("adjusted for physical resistance", [&] {
+      AssertThat(monster.getHitPoints(), Equals(30));
+      AssertThat(monster.getPhysicalResistPercent(), Equals(50));
+      monster.takeDamage(5 * 100 / (100 - 50), false);
+      AssertThat(monster.getHitPoints(), Equals(30 - 5));
+    });
+    it("adjusted for physical resistance, resisted damage is rounded down", [&] {
+      monster.takeDamage(1, false);
+      AssertThat(monster.getHitPoints(), Equals(24));
+    });
+    it("adjusted for magical damage, resisted damage is rounded down", [&] {
+      AssertThat(monster.getMagicalResistPercent(), Equals(75));
+      monster.takeDamage(5 * 100 / (100 - 75) + 1, true);
+      AssertThat(monster.getHitPoints(), Equals(24 - 5 - 1));
+    });
+    it("increased by corrosion", [&] {
+      AssertThat(monster.getHitPoints(), Equals(18));
+      monster.corrode();
+      monster.takeDamage(10, false);
+      AssertThat(monster.getHitPoints(), Equals(18 - 5 - 1));
+    });
+    it("increased by corrosion (2 levels -> 2 extra damage)", [&] {
+      AssertThat(monster.getHitPoints(), Equals(12));
+      monster.corrode();
+      monster.takeDamage(20, true);
+      AssertThat(monster.getHitPoints(), Equals(12 - 5 - 2));
+    });
+    it("-- its resistances can be crushed, 3 percentage points at a time", [&] {
+      monster.crushResistances();
+      AssertThat(monster.getPhysicalResistPercent(), Equals(47));
+      AssertThat(monster.getMagicalResistPercent(), Equals(72));
+      monster.crushResistances();
+      monster.crushResistances();
+      monster.crushResistances();
+      monster.crushResistances();
+      AssertThat(monster.getPhysicalResistPercent(), Equals(47 - 12));
+      AssertThat(monster.getMagicalResistPercent(), Equals(72 - 12));
+      AssertThat(monster.getHitPoints(), Equals(5));
+      monster.takeDamage(2, false);
+      // 35% resistance remaining -> no damage reduction
+      AssertThat(monster.getHitPoints() + monster.getCorroded(), Equals(3));
+    });
+    it("but cannot die when it has death protection, which wears off", [&] {
+      AssertThat(monster.getDeathProtection(), Equals(1));
+      monster.takeDamage(100, false);
+      AssertThat(monster.isDefeated(), Equals(false));
+      AssertThat(monster.getHitPoints(), Equals(1));
+      AssertThat(monster.getDeathProtection(), Equals(0));
+      monster.takeDamage(1, false);
+      AssertThat(monster.isDefeated(), Equals(true));
+    });
+  });
+});
 
-void testMonsterDefence()
-{
-  Monster monster(makeGenericMonsterStats(3, 30, 10, 1), Defence(50, 75), MonsterTraits());
-  monster.takeDamage(10, false);
-  ASSERT_EQUALM("Physical damage resistance is accounted for", 25, monster.getHitPoints());
-  monster.stun();
-  monster.takeDamage(1, false);
-  ASSERT_EQUALM("Resisted damage is rounded down", 24, monster.getHitPoints());
-  ASSERT_EQUALM("Taking damage clears stun", false, monster.isStunned());
-  monster.takeDamage(20, true);
-  ASSERT_EQUALM("Magical damage resistance is accounted for", 19, monster.getHitPoints());
-
-  monster.corrode();
-  monster.takeDamage(10, false);
-  ASSERT_EQUALM("With a layer of corrosion, damage taken increases by 1", 13, monster.getHitPoints());
-  monster.corrode();
-  monster.takeDamage(20, true);
-  ASSERT_EQUALM("With two layers of corrosion, damage taken increases by 2", 6, monster.getHitPoints());
-
-  monster.crushResistances();
-  monster.crushResistances();
-  ASSERT_EQUALM("Resistances can be crushed, 3 points at a time", 69, monster.getMagicalResistPercent());
-
-  monster.takeDamage(100, false);
-  ASSERT_EQUALM("Death protection works (not dead)", false, monster.isDefeated());
-  ASSERT_EQUALM("Death protection works (1 HP)", 1, monster.getHitPoints());
-  ASSERT_EQUALM("Death protection is removed when used", 0, monster.getDeathProtection());
-  ASSERT_EQUALM("Monster not regarded defeated when saved by death protection", false, monster.isDefeated());
-  monster.takeDamage(1, false);
-  ASSERT_EQUALM("Death protection no longer effective after removal", true, monster.isDefeated());
-}
-
+/*
 void testFightBasic()
 {
   {
@@ -204,25 +300,17 @@ void testPathfinding()
   ASSERT_EQUALM("Basic pathfinding (simple revealed path found)", dungeon.isAccessible(Position(9, 9)), true);
 }
 
-bool runAllTests(int argc, char const *argv[])
+// Missing:
+// - exploration
+// - path finding
+// - find possible actions
+// - representations
+// - spells
+// - inventory
+*/
+
+int main(int argc, char* argv[])
 {
-  cute::suite s{CUTE(testHeroExperienceBasic), CUTE(testHeroExperienceAdvanced),
-                CUTE(testMonsterHitPoints),    CUTE(testMonsterDefence),
-                CUTE(testFightBasic),          CUTE(testDungeonBasic),
-                CUTE(testPathfinding)};
-
-  // exploration
-  // path finding
-  // find possible actions
-  // representations
-  // spells
-  // inventory
-
-  cute::xml_file_opener xmlfile(argc, argv);
-  cute::xml_listener<cute::ide_listener<>> lis(xmlfile.out);
-  auto runner = cute::makeRunner(lis, argc, argv);
-  bool success = runner(s, "AllTests");
-  return success;
+  // Run the tests
+  return bandit::run(argc, argv);
 }
-
-int main(int argc, char const *argv[]) { return runAllTests(argc, argv) ? EXIT_SUCCESS : EXIT_FAILURE; }

@@ -27,5 +27,5 @@ add_library(
 target_include_directories(DDHelperLibrary PUBLIC include)
 
 add_executable(DDHelperTest src/DDHelperTest.cpp)
-target_include_directories(DDHelperTest PRIVATE cute)
+target_include_directories(DDHelperTest PRIVATE bandit)
 target_link_libraries(DDHelperTest DDHelperLibrary)
