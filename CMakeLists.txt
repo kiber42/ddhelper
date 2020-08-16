@@ -39,7 +39,6 @@ add_library(
     src/ImguiApp.cpp
     imgui/imgui_impl_sdl.cpp
     imgui/imgui_impl_vulkan.cpp
-    imgui/imgui_demo.cpp
 )
 target_include_directories(imguiapp PUBLIC imgui)
 target_include_directories(imguiapp PUBLIC /usr/include/SDL2)
