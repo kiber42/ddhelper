@@ -33,7 +33,7 @@ int HeroStats::getHitPointsMax() const
 
 void HeroStats::setHitPointsMax(int hitPointsMax)
 {
-  stats.setHitPointsMax(hitPointsMax);
+  stats.setHitPointsMax(hitPointsMax, true);
 }
 
 int HeroStats::getManaPoints() const
@@ -59,7 +59,7 @@ int HeroStats::getHealthBonus() const
 void HeroStats::addHealthBonus()
 {
   healthBonus += 1;
-  stats.setHitPointsMax(stats.getHitPointsMax() + stats.getLevel());
+  stats.setHitPointsMax(stats.getHitPointsMax() + stats.getLevel(), false);
 }
 
 void HeroStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
