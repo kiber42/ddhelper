@@ -23,6 +23,8 @@ int Attack::getBaseDamage() const
 void Attack::changeBaseDamage(int deltaDamagePoints)
 {
   damage += deltaDamagePoints;
+  if (damage < 0)
+    damage = 0;
 }
 
 void Attack::levelGainedUpdate()
