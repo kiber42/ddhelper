@@ -11,7 +11,7 @@ public:
   bool isDefeated() const;
   int getHitPoints() const;
   int getHitPointsMax() const;
-  void setHitPointsMax(int hitPointsMax);
+  void setHitPointsMax(int hitPointsMax, bool capHitPoints);
   int getManaPoints() const;
   int getManaPointsMax() const;
   void setManaPointsMax(int manaPointsMax);

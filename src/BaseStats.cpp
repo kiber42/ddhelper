@@ -39,9 +39,13 @@ int BaseStats::getHitPointsMax() const
   return hpMax;
 }
 
-void BaseStats::setHitPointsMax(int hitPointsMax)
+void BaseStats::setHitPointsMax(int hitPointsMax, bool capHitPoints)
 {
-  hpMax = hitPointsMax;
+  if (hitPointsMax >= hpMax)
+    capHitPoints = false;
+  hpMax = hitPointsMax >= 1 ? hitPointsMax : 1;
+  if (capHitPoints && hp > hpMax)
+    hp = hpMax;
 }
 
 int BaseStats::getManaPoints() const
@@ -57,6 +61,8 @@ int BaseStats::getManaPointsMax() const
 void BaseStats::setManaPointsMax(int manaPointsMax)
 {
   mpMax = manaPointsMax;
+  if (mp > mpMax)
+    mp = mpMax;
 }
 
 int BaseStats::getDamage() const
