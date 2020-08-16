@@ -34,6 +34,7 @@ public:
   int getHitPointsMax() const;
   int getManaPoints() const;
   int getManaPointsMax() const;
+  void modifyHitPointsMax(int delta);
 
   int getBaseDamage() const;
   void changeBaseDamage(int deltaDamagePoints);
@@ -45,7 +46,7 @@ public:
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
 
-  void healHitPoints(int amountPointsHealed);
+  void healHitPoints(int amountPointsHealed, bool mayOverheal = false);
   void loseHitPointsOutsideOfFight(int amountPointsLost);
   void recoverManaPoints(int amountPointsRecovered);
   void loseManaPoints(int amountPointsLost);

@@ -102,6 +102,11 @@ int Hero::getManaPointsMax() const
   return stats.getManaPointsMax();
 }
 
+void Hero::modifyHitPointsMax(int delta)
+{
+  stats.setHitPointsMax(stats.getHitPointsMax() + delta);
+}
+
 int Hero::getBaseDamage() const
 {
   return attack->getBaseDamage();
@@ -142,9 +147,9 @@ void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
   stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
 }
 
-void Hero::healHitPoints(int amountPointsHealed)
+void Hero::healHitPoints(int amountPointsHealed, bool mayOverheal)
 {
-  stats.healHitPoints(amountPointsHealed, false);
+  stats.healHitPoints(amountPointsHealed, mayOverheal);
 }
 
 void Hero::loseHitPointsOutsideOfFight(int amountPointsLost)
