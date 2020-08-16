@@ -272,6 +272,8 @@ void ImguiApp::Data::FrameRender(ImDrawData* draw_data)
   VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
   err = vkAcquireNextImageKHR(g_Device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE,
                               &wd->FrameIndex);
+  if (err == VK_ERROR_OUT_OF_DATE_KHR)
+    return;
   check_vk_result(err);
 
   ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
@@ -341,6 +343,8 @@ void ImguiApp::Data::FramePresent()
   info.pSwapchains = &wd->Swapchain;
   info.pImageIndices = &wd->FrameIndex;
   VkResult err = vkQueuePresentKHR(g_Queue, &info);
+  if (err == VK_ERROR_OUT_OF_DATE_KHR)
+    return;
   check_vk_result(err);
   wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores
 }
