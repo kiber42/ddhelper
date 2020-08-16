@@ -350,7 +350,8 @@ void ImguiApp::Data::FramePresent()
 }
 
 ImguiApp::ImguiApp(const std::string& windowTitle)
-  : data(std::make_unique<Data>())
+  : background_color(0.45f, 0.55f, 0.60f, 1.00f)
+  , data(std::make_unique<Data>())
 {
   // Setup SDL
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
@@ -476,8 +477,6 @@ ImguiApp::~ImguiApp()
 
 void ImguiApp::run()
 {
-  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
   // Main loop
   bool done = false;
   while (!done)
@@ -496,14 +495,17 @@ void ImguiApp::run()
       ImGui_ImplSDL2_ProcessEvent(&event);
       if (event.type == SDL_QUIT)
         done = true;
-      if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED &&
-          event.window.windowID == SDL_GetWindowID(data->m_window))
+      else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED &&
+               event.window.windowID == SDL_GetWindowID(data->m_window))
       {
         const auto width = event.window.data1;
         const auto height = event.window.data2;
         if (width > 0 && height > 0)
           newSize = {width, height};
       }
+      else
+        // Custom event handling
+        processEvent(event);
     }
 
     // Resize swap chain?
@@ -521,26 +523,8 @@ void ImguiApp::run()
     ImGui_ImplSDL2_NewFrame(data->m_window);
     ImGui::NewFrame();
 
-    {
-      static float f = 0.0f;
-      static int counter = 0;
-
-      ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-      ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
-
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-      ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-      if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-        counter++;
-      ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
-
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                  ImGui::GetIO().Framerate);
-      ImGui::End();
-    }
+    // Custom UI code
+    populateFrame();
 
     // Rendering
     ImGui::Render();
@@ -548,7 +532,7 @@ void ImguiApp::run()
     const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
     if (!is_minimized)
     {
-      memcpy(&data->g_MainWindowData.ClearValue.color.float32[0], &clear_color, 4 * sizeof(float));
+      memcpy(&data->g_MainWindowData.ClearValue.color.float32[0], &background_color, 4 * sizeof(float));
       data->FrameRender(draw_data);
       data->FramePresent();
     }
