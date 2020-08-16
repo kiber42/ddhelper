@@ -14,4 +14,6 @@ AllowShortFunctionsOnASingleLine: Empty
 PointerAlignment: Left
 
 ColumnLimit: 120
+
+NamespaceIndentation: All
 ...
