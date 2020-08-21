@@ -240,28 +240,26 @@ go_bandit([] {
   describe("Melee outcome prediction", [] {
     Hero hero;
     Monster monster(makeGenericMonsterStats(3, 15, 5), {}, {});
-    Melee melee(hero, monster);
     it("should work for outcome 'safe' (simple case)",
-       [&] { AssertThat(melee.predictOutcome().summary, Equals(Outcome::Summary::Safe)); });
+       [&] { AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Safe)); });
     it("should work for outcome 'hero dies' (simple case)", [&] {
       hero.loseHitPointsOutsideOfFight(5);
-      AssertThat(melee.predictOutcome().summary, Equals(Outcome::Summary::HeroDefeated));
+      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::HeroDefeated));
     });
     it("should work for outcome 'hero wins' (one shot, monster has lower level)", [&] {
       hero.gainExperience(30);
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
-      AssertThat(melee.predictOutcome().summary, Equals(Outcome::Summary::HeroWins));
+      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::HeroWins));
     });
 
     it("of hitpoint loss should work", [] {
       Hero hero;
       Monster monster(makeGenericMonsterStats(3, 15, 9), {}, {});
-      Melee melee(hero, monster);
-      const auto outcome = melee.predictOutcome();
+      const auto outcome = Melee::predictOutcome(hero, monster);
       AssertThat(hero.getHitPoints(), Equals(10));
       AssertThat(monster.getHitPoints(), Equals(15));
-      AssertThat(outcome.hero->getHitPoints(), Equals(10 - monster.getDamage()));
-      AssertThat(outcome.monster->getHitPoints(), Equals(15 - hero.getDamage()));
+      AssertThat(outcome.hero.getHitPoints(), Equals(10 - monster.getDamage()));
+      AssertThat(outcome.monster.getHitPoints(), Equals(15 - hero.getDamage()));
     });
   });
 
