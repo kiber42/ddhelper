@@ -34,6 +34,24 @@ Hero::Hero(Hero&& other)
 {
 }
 
+Hero& Hero::operator=(const Hero& other)
+{
+  stats = other.stats;
+  defence = other.defence;
+  experience.reset(other.experience->clone());
+  statuses = other.statuses;
+  return *this;
+}
+
+Hero& Hero::operator=(Hero&& other)
+{
+  stats = std::move(other.stats);
+  defence = std::move(other.defence);
+  experience.swap(other.experience);
+  statuses = std::move(other.statuses);
+  return *this;
+}
+
 int Hero::getXP() const
 {
   return experience->getXP();

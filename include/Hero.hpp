@@ -21,6 +21,8 @@ public:
   Hero();
   Hero(const Hero &);
   Hero(Hero &&);
+  Hero& operator=(const Hero&);
+  Hero& operator=(Hero&&);
 
   int getXP() const;
   int getLevel() const;
