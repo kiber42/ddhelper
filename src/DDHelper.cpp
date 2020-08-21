@@ -1,11 +1,12 @@
 #include "ImguiApp.hpp"
 
-#include "Hero.hpp"
 #include "Defence.hpp"
+#include "Hero.hpp"
 #include "Melee.hpp"
 #include "Monster.hpp"
 #include "MonsterFactory.hpp"
 
+#include <memory>
 #include <optional>
 
 class DDHelperApp : public ImguiApp
@@ -21,7 +22,9 @@ private:
   int hero_data[4];
   int monster_data[4];
 
-  std::optional<Outcome::Summary> outcome_summary;
+  std::optional<Hero> hero;
+  std::optional<Monster> monster;
+  std::optional<Outcome> outcome;
 };
 
 DDHelperApp::DDHelperApp()
@@ -45,32 +48,50 @@ void DDHelperApp::populateFrame()
   ImGui::DragInt("Attack", &monster_data[3], 0.5f, 0, 300);
   ImGui::End();
 
-  ImGui::Begin("Combat");
-  if (ImGui::Button("Fight!"))
+  ImGui::Begin("Arena");
+  if (ImGui::Button("Enter"))
   {
-    Hero hero{heroFromForm()};
-    Monster monster{monsterFromForm()};
-    Melee melee(hero, monster);
-    outcome_summary = melee.predictOutcome().summary;
+    printf("Getting hero from form\n");
+    hero = heroFromForm();
+    printf("OK\n");
+    monster = monsterFromForm();
+    outcome.reset();
   }
-  if (outcome_summary.has_value())
+  if (hero.has_value())
   {
-    switch (outcome_summary.value())
+    ImGui::Text("Hero has %i HP", hero->getHitPoints());
+    ImGui::Text("Monster has %i HP", monster->getHitPoints());
+    if (ImGui::Button("Fight!"))
     {
-    case Outcome::Summary::Safe:
-      ImGui::Text("Safe");
-      break;
-    case Outcome::Summary::HeroWins:
-      ImGui::Text("Win");
-      break;
-    case Outcome::Summary::HeroDefeated:
-      ImGui::Text("Death");
-      break;
-    case Outcome::Summary::HeroDebuffed:
-      ImGui::Text("Debuff");
-      break;
-    case Outcome::Summary::Error:
-      break;
+      printf("Running outcome prediction\n");
+      outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
+      printf("OK\n");
+    }
+    if (outcome.has_value())
+    {
+      switch (outcome->summary)
+      {
+      case Outcome::Summary::Safe:
+        ImGui::Text("Safe");
+        break;
+      case Outcome::Summary::HeroWins:
+        ImGui::Text("Win");
+        break;
+      case Outcome::Summary::HeroDefeated:
+        ImGui::Text("Death");
+        break;
+      case Outcome::Summary::HeroDebuffed:
+        ImGui::Text("Debuff");
+        break;
+      case Outcome::Summary::Error:
+        break;
+      }
+      if (ImGui::Button("Accept outcome"))
+      {
+        hero = outcome->hero;
+        monster = outcome->monster;
+        outcome.reset();
+      }
     }
   }
   ImGui::End();
