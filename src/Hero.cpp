@@ -20,6 +20,7 @@ Hero::Hero()
 
 Hero::Hero(const Hero& other)
   : stats(other.stats)
+  , attack(other.attack->clone())
   , defence(other.defence)
   , experience(other.experience->clone())
   , statuses(other.statuses)
@@ -28,6 +29,7 @@ Hero::Hero(const Hero& other)
 
 Hero::Hero(Hero&& other)
   : stats(std::move(other.stats))
+  , attack(std::move(other.attack))
   , defence(std::move(other.defence))
   , experience(std::move(other.experience))
   , statuses(std::move(other.statuses))
@@ -36,6 +38,7 @@ Hero::Hero(Hero&& other)
 
 Hero& Hero::operator=(const Hero& other)
 {
+  attack.reset(other.attack->clone());
   stats = other.stats;
   defence = other.defence;
   experience.reset(other.experience->clone());
@@ -45,6 +48,7 @@ Hero& Hero::operator=(const Hero& other)
 
 Hero& Hero::operator=(Hero&& other)
 {
+  attack.swap(other.attack);
   stats = std::move(other.stats);
   defence = std::move(other.defence);
   experience.swap(other.experience);
