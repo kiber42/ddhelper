@@ -15,6 +15,11 @@ Attack::Attack(int damage, int damageBonusPercent)
 {
 }
 
+AttackBehaviour* Attack::clone() const
+{
+  return new Attack(*this);
+}
+
 int Attack::getBaseDamage() const
 {
   return damage;
@@ -47,10 +52,11 @@ int Attack::getDamage() const
   return getBaseDamage() * (100 + getDamageBonusPercent()) / 100;
 }
 
-bool Attack::hasInitiativeVersus(const Hero &hero, const Monster &monster) const
+bool Attack::hasInitiativeVersus(const Hero& hero, const Monster& monster) const
 {
   // TODO Override for class-specific rules, e.g. Rogue, Assassin
 
+  // TODO Account for first-strike bonus of monster as well! 
   if (hero.hasStatus(HeroStatus::Reflexes))
     return true;
 

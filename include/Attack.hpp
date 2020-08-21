@@ -8,16 +8,18 @@ public:
   Attack();
   Attack(int damage, int damageBonusPercent);
 
-  int getBaseDamage() const;
-  void changeBaseDamage(int deltaDamagePoints);
-  void levelGainedUpdate();
+  AttackBehaviour* clone() const override;
 
-  int getDamageBonusPercent() const;
-  void changeDamageBonusPercent(int deltaDamageBonusPercent);
+  int getBaseDamage() const override;
+  void changeBaseDamage(int deltaDamagePoints) override;
+  void levelGainedUpdate() override;
 
-  int getDamage() const;
+  int getDamageBonusPercent() const override;
+  void changeDamageBonusPercent(int deltaDamageBonusPercent) override;
 
-  bool hasInitiativeVersus(const Hero &, const Monster &) const;
+  int getDamage() const override;
+
+  bool hasInitiativeVersus(const Hero&, const Monster&) const override;
 
 private:
   int damage;
