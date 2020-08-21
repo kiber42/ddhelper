@@ -3,9 +3,6 @@
 #include "Hero.hpp"
 #include "Monster.hpp"
 
-#include <optional>
-#include <vector>
-
 struct Outcome
 {
   enum class Summary
@@ -17,18 +14,11 @@ struct Outcome
     Error
   };
   Summary summary;
-  std::optional<Hero> hero;
-  std::optional<Monster> monster;
+  Hero hero;
+  Monster monster;
 };
 
-class Melee
+namespace Melee
 {
-public:
-  Melee(Hero &hero, Monster &monster);
-  bool heroHasInitiative();
-  Outcome predictOutcome() const;
-
-private:
-  Hero &hero;
-  Monster &monster;
-};
+  Outcome predictOutcome(const Hero&, const Monster&);
+} // namespace Melee
