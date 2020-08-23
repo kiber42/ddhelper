@@ -35,91 +35,12 @@ using namespace gl;
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
 
-void ImguiApp::Data::FrameRender(ImDrawData* draw_data)
+class ImguiApp::Data
 {
-  ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-  VkResult err;
-
-  VkSemaphore image_acquired_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].ImageAcquiredSemaphore;
-  VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
-  err = vkAcquireNextImageKHR(g_Device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE,
-                              &wd->FrameIndex);
-  if (err == VK_ERROR_OUT_OF_DATE_KHR)
-    return;
-  check_vk_result(err);
-
-  ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
-  {
-    err = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE,
-                          UINT64_MAX); // wait indefinitely instead of periodically checking
-    check_vk_result(err);
-
-    err = vkResetFences(g_Device, 1, &fd->Fence);
-    check_vk_result(err);
-  }
-  {
-    err = vkResetCommandPool(g_Device, fd->CommandPool, 0);
-    check_vk_result(err);
-    VkCommandBufferBeginInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    err = vkBeginCommandBuffer(fd->CommandBuffer, &info);
-    check_vk_result(err);
-  }
-  {
-    VkRenderPassBeginInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    info.renderPass = wd->RenderPass;
-    info.framebuffer = fd->Framebuffer;
-    info.renderArea.extent.width = wd->Width;
-    info.renderArea.extent.height = wd->Height;
-    info.clearValueCount = 1;
-    info.pClearValues = &wd->ClearValue;
-    vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
-  }
-
-  // Record dear imgui primitives into command buffer
-  ImGui_ImplVulkan_RenderDrawData(draw_data, fd->CommandBuffer);
-
-  // Submit command buffer
-  vkCmdEndRenderPass(fd->CommandBuffer);
-  {
-    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    VkSubmitInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &image_acquired_semaphore;
-    info.pWaitDstStageMask = &wait_stage;
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &fd->CommandBuffer;
-    info.signalSemaphoreCount = 1;
-    info.pSignalSemaphores = &render_complete_semaphore;
-
-    err = vkEndCommandBuffer(fd->CommandBuffer);
-    check_vk_result(err);
-    err = vkQueueSubmit(g_Queue, 1, &info, fd->Fence);
-    check_vk_result(err);
-  }
-}
-
-void ImguiApp::Data::FramePresent()
-{
-  ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-
-  VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
-  VkPresentInfoKHR info = {};
-  info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-  info.waitSemaphoreCount = 1;
-  info.pWaitSemaphores = &render_complete_semaphore;
-  info.swapchainCount = 1;
-  info.pSwapchains = &wd->Swapchain;
-  info.pImageIndices = &wd->FrameIndex;
-  VkResult err = vkQueuePresentKHR(g_Queue, &info);
-  if (err == VK_ERROR_OUT_OF_DATE_KHR)
-    return;
-  check_vk_result(err);
-  wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores
-}
+public:
+  SDL_GLContext gl_context;
+  SDL_Window* window;
+};
 
 ImguiApp::ImguiApp(const std::string& windowTitle)
   : background_color(0.45f, 0.55f, 0.60f, 1.00f)
@@ -132,7 +53,7 @@ ImguiApp::ImguiApp(const std::string& windowTitle)
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
   {
     printf("Error: %s\n", SDL_GetError());
-    return -1;
+    throw std::runtime_error(SDL_GetError());
   }
 
   // Decide GL+GLSL versions
@@ -157,10 +78,10 @@ ImguiApp::ImguiApp(const std::string& windowTitle)
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-  SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED,
-                                        SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
-  SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-  SDL_GL_MakeCurrent(window, gl_context);
+  data->window = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                  1280, 720, window_flags);
+  data->gl_context = SDL_GL_CreateContext(data->window);
+  SDL_GL_MakeCurrent(data->window, data->gl_context);
   SDL_GL_SetSwapInterval(1); // Enable vsync
 
   // Initialize OpenGL loader
@@ -186,7 +107,7 @@ ImguiApp::ImguiApp(const std::string& windowTitle)
   if (err)
   {
     fprintf(stderr, "Failed to initialize OpenGL loader!\n");
-    return 1;
+    throw std::runtime_error(SDL_GetError());
   }
 
   // Setup Dear ImGui context
@@ -202,7 +123,7 @@ ImguiApp::ImguiApp(const std::string& windowTitle)
   // ImGui::StyleColorsClassic();
 
   // Setup Platform/Renderer bindings
-  ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+  ImGui_ImplSDL2_InitForOpenGL(data->window, data->gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
 
   // Load Fonts
@@ -232,13 +153,15 @@ ImguiApp::~ImguiApp()
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
 
-  SDL_GL_DeleteContext(gl_context);
-  SDL_DestroyWindow(window);
+  SDL_GL_DeleteContext(data->gl_context);
+  SDL_DestroyWindow(data->window);
   SDL_Quit();
 }
 
 void ImguiApp::run()
 {
+  const ImGuiIO& io = ImGui::GetIO();
+
   // Main loop
   bool done = false;
   while (!done)
@@ -257,7 +180,7 @@ void ImguiApp::run()
       if (event.type == SDL_QUIT)
         done = true;
       else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
-               event.window.windowID == SDL_GetWindowID(window))
+               event.window.windowID == SDL_GetWindowID(data->window))
         done = true;
       else
         // Custom event handling
@@ -266,7 +189,7 @@ void ImguiApp::run()
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame(window);
+    ImGui_ImplSDL2_NewFrame(data->window);
     ImGui::NewFrame();
 
     // Custom UI code
@@ -275,9 +198,9 @@ void ImguiApp::run()
     // Rendering
     ImGui::Render();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+    glClearColor(background_color.x, background_color.y, background_color.z, background_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window);
+    SDL_GL_SwapWindow(data->window);
   }
 }
