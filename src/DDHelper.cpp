@@ -51,9 +51,7 @@ void DDHelperApp::populateFrame()
   ImGui::Begin("Arena");
   if (ImGui::Button("Enter"))
   {
-    printf("Getting hero from form\n");
     hero = heroFromForm();
-    printf("OK\n");
     monster = monsterFromForm();
     outcome.reset();
   }
@@ -63,9 +61,7 @@ void DDHelperApp::populateFrame()
     ImGui::Text("Monster has %i HP", monster->getHitPoints());
     if (ImGui::Button("Fight!"))
     {
-      printf("Running outcome prediction\n");
       outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
-      printf("OK\n");
     }
     if (outcome.has_value())
     {
