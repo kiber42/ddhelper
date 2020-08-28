@@ -263,6 +263,32 @@ go_bandit([] {
     });
   });
 
+  describe("Initiative", [] {
+    Hero hero;
+    Monster monster(makeGenericMonsterStats(1, 10, 3, 0), {}, {});
+    it("should go to the monster of equal level", [&] { //
+      AssertThat(!hero.hasInitiativeVersus(monster), IsTrue());
+    });
+    it("should go to the hero if the monster is stunned", [&] {
+      monster.stun();
+      AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
+    });
+    it("should go to the hero if he has first strike", [&] {
+      monster.takeDamage(0, false);
+      AssertThat(monster.isStunned(), IsFalse());
+      hero.addStatus(HeroStatus::FirstStrike);
+      AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
+    });
+    it("should go to the monster if first strike is cancelled by slow strike", [&] {
+      hero.addStatus(HeroStatus::SlowStrike);
+      AssertThat(!hero.hasInitiativeVersus(monster), IsTrue());
+    });
+    it("should go to the hero if he has higher level", [&] {
+      hero.gainLevel();
+      AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
+    });
+  });
+
   describe("Dungeon", [] {
     Dungeon dungeon(3, 3);
     auto monster = std::make_shared<Monster>(makeGenericMonsterStats(3, 30, 10, 0), Defence(), MonsterTraits());

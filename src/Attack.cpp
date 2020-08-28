@@ -55,8 +55,6 @@ int Attack::getDamage() const
 bool Attack::hasInitiativeVersus(const Hero& hero, const Monster& monster) const
 {
   // TODO Override for class-specific rules, e.g. Rogue, Assassin
-
-  // TODO Account for first-strike bonus of monster as well! 
   if (hero.hasStatus(HeroStatus::Reflexes))
     return true;
 
@@ -70,5 +68,5 @@ bool Attack::hasInitiativeVersus(const Hero& hero, const Monster& monster) const
   if (heroSlow || monsterSlow)
     return !heroSlow;
 
-  return hero.getLevel() >= monster.getLevel();
+  return hero.getLevel() > monster.getLevel();
 }
