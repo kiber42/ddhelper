@@ -7,6 +7,8 @@ project(DDHelperTest VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+option(USE_VULKAN "Use DearImgui with Vulkan backend" OFF)
+
 add_library(
     DDHelperLibrary STATIC
     src/Attack.cpp
@@ -34,24 +36,40 @@ add_library(
 )
 target_include_directories(dearimgui PUBLIC imgui)
 
+if(USE_VULKAN)
 add_library(
     imguiapp STATIC
-    src/ImguiApp.cpp
-    imgui/imgui_impl_sdl.cpp
-    imgui/imgui_impl_opengl3.cpp
+    src/ImguiAppVulkan.cpp
+    imgui/examples/imgui_impl_sdl.cpp
+    imgui/examples/imgui_impl_vulkan.cpp
 )
-target_include_directories(imguiapp PUBLIC imgui)
-target_include_directories(imguiapp PUBLIC /usr/include/SDL2)
-target_include_directories(imguiapp PUBLIC include)
+else()
+add_library(
+    imguiapp STATIC
+    src/ImguiAppOpenGL.cpp
+    imgui/examples/imgui_impl_sdl.cpp
+    imgui/examples/imgui_impl_opengl3.cpp
+)
+endif()
+target_include_directories(imguiapp PUBLIC include imgui imgui/examples /usr/include/SDL2)
 target_link_libraries(imguiapp dearimgui)
+
 
 add_executable(DDHelperTest src/DDHelperTest.cpp)
 target_include_directories(DDHelperTest PRIVATE bandit)
 target_link_libraries(DDHelperTest DDHelperLibrary)
 
+
 add_executable(DDHelper src/DDHelper.cpp)
 target_link_libraries(DDHelper DDHelperLibrary)
-target_link_libraries(DDHelper dearimgui imguiapp)
+target_link_libraries(DDHelper dearimgui)
+target_link_libraries(DDHelper imguiapp)
 target_include_directories(DDHelper PUBLIC imgui)
 target_include_directories(DDHelper PUBLIC /usr/include/SDL2)
-target_link_options(DDHelper PUBLIC "-lGL" "-lGLEW" "-lSDL2")
+target_link_options(DDHelper PUBLIC "-lSDL2")
+
+#if(USE_VULKAN)
+target_link_options(DDHelper PUBLIC "-lvulkan")
+#else()
+target_link_options(DDHelper PUBLIC "-lGL" "-lGLEW")
+#endif()
