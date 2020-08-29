@@ -47,11 +47,6 @@ void Attack::changeDamageBonusPercent(int deltaDamageBonusPercent)
   damageBonusPercent += deltaDamageBonusPercent;
 }
 
-int Attack::getDamage() const
-{
-  return getBaseDamage() * (100 + getDamageBonusPercent()) / 100;
-}
-
 bool Attack::hasInitiativeVersus(const Hero& hero, const Monster& monster) const
 {
   // TODO Override for class-specific rules, e.g. Rogue, Assassin

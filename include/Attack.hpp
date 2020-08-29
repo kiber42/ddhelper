@@ -17,8 +17,6 @@ public:
   int getDamageBonusPercent() const override;
   void changeDamageBonusPercent(int deltaDamageBonusPercent) override;
 
-  int getDamage() const override;
-
   bool hasInitiativeVersus(const Hero&, const Monster&) const override;
 
 private:

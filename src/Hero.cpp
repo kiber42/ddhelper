@@ -151,7 +151,7 @@ void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
 
 int Hero::getDamage() const
 {
-  return attack->getDamage() - getStatusIntensity(HeroStatus::Weakened);
+  return getBaseDamage() * (100 + getDamageBonusPercent()) / 100 - getStatusIntensity(HeroStatus::Weakened);
 }
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const
