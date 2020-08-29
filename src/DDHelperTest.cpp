@@ -263,6 +263,29 @@ go_bandit([] {
     });
   });
 
+  describe("Status", [] {
+    it("weakening should reduce base damage by one per level of weakening", [] {
+      Hero hero;
+      hero.changeDamageBonusPercent(100);
+      AssertThat(hero.getDamageBonusPercent(), Equals(100));
+      const int base_initial = hero.getBaseDamage();
+      const int damage_initial = hero.getDamage();
+      hero.addStatus(HeroStatus::Weakened);
+      AssertThat(hero.getBaseDamage(), Equals(base_initial - 1));
+      AssertThat(hero.getDamage(), Equals(damage_initial - 2));
+      AssertThat(hero.getDamageBonusPercent(), Equals(100));
+      hero.addStatus(HeroStatus::Weakened);
+      AssertThat(hero.getBaseDamage(), Equals(base_initial - 2));
+    });
+    it("weakening should not reduce damage below zero", [] {
+      Hero hero;
+      const int initial = hero.getBaseDamage();
+      for (int i = 0; i < initial + 1; ++i)
+        hero.addStatus(HeroStatus::Weakened);
+      AssertThat(hero.getBaseDamage(), Is().Not().LessThan(0));
+    });
+  });
+
   describe("Initiative", [] {
     Hero hero;
     Monster monster(makeGenericMonsterStats(1, 10, 3, 0), {}, {});

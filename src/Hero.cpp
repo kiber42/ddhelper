@@ -131,7 +131,7 @@ void Hero::modifyHitPointsMax(int delta)
 
 int Hero::getBaseDamage() const
 {
-  return attack->getBaseDamage();
+  return std::max(attack->getBaseDamage() - getStatusIntensity(HeroStatus::Weakened), 0);
 }
 
 void Hero::changeBaseDamage(int deltaDamagePoints)
@@ -151,7 +151,7 @@ void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
 
 int Hero::getDamage() const
 {
-  return getBaseDamage() * (100 + getDamageBonusPercent()) / 100 - getStatusIntensity(HeroStatus::Weakened);
+  return getBaseDamage() * (100 + getDamageBonusPercent()) / 100;
 }
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const
