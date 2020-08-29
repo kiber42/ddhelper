@@ -1,0 +1,16 @@
+Edge cases
+==========
+Dungeon modifiers: "Fewer glyphs", "Extra glyphs"
+-------------------------------------------------
+(Tested for The Labyrinth)
+Regular: 5 spells, 100 conversion points
+Fewer glyphs: 4 spells, 150 conversion points
+More glyphs: 6 spells, 80 conversion points
+More and fewer glyphs (daily dungeon only): 6 spells, 130 conversion points
+
+Possible algorithm:
+Set #spells to regular (5), 100 conversion points
+1. Fewer glyphs?
+Set #glyphs to regular - 1, add 50 conversion points
+2. More glyphs?
+Set #glyphs to regular + 1, subtract 20 conversion points
