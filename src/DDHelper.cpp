@@ -1,4 +1,5 @@
-#include "ImguiApp.hpp"
+// IntelliSense gets confused without the relative path
+#include "../include/ImguiApp.hpp"
 
 #include "Defence.hpp"
 #include "Hero.hpp"
@@ -21,6 +22,7 @@ private:
 
   int hero_data[4];
   int monster_data[4];
+  std::map<HeroStatus, int> hero_statuses;
 
   std::optional<Hero> hero;
   std::optional<Monster> monster;
@@ -40,6 +42,25 @@ void DDHelperApp::populateFrame()
   ImGui::DragInt("Level", &hero_data[0], 0.2f, 1, 10);
   ImGui::DragInt2("HP / max", &hero_data[1], 0.5f, 0, 300);
   ImGui::DragInt("Attack", &hero_data[3], 0.5f, 0, 300);
+
+  for (HeroStatus status : {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes,
+                            HeroStatus::MagicalAttack, HeroStatus::ExperienceBoost, HeroStatus::Poisoned,
+                            HeroStatus::ManaBurn, HeroStatus::BloodCurse, HeroStatus::Humility})
+  {
+    bool current = hero_statuses[status] > 0;
+    if (ImGui::Checkbox(toString(status), &current))
+      hero_statuses[status] = current;
+  }
+  for (HeroStatus status : {HeroStatus::Corrosion, HeroStatus::Cursed, HeroStatus::Learning, HeroStatus::Weakened})
+  {
+    int current = hero_statuses[status];
+    if (ImGui::InputInt(toString(status), &current))
+    {
+      if (current < 0)
+        current = 0;
+      hero_statuses[status] = current;
+    }
+  }
   ImGui::End();
 
   ImGui::Begin("Monster");
@@ -60,9 +81,7 @@ void DDHelperApp::populateFrame()
     ImGui::Text("Hero has %i HP", hero->getHitPoints());
     ImGui::Text("Monster has %i HP", monster->getHitPoints());
     if (ImGui::Button("Fight!"))
-    {
       outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
-    }
     if (outcome.has_value())
     {
       switch (outcome->summary)
@@ -106,6 +125,9 @@ Hero DDHelperApp::heroFromForm()
   hero.modifyHitPointsMax(hero_data[2] /* max hp */ - hero.getHitPointsMax());
   hero.healHitPoints(hero_data[1] /* hp */ - hero.getHitPoints(), true);
   hero.changeBaseDamage(hero_data[3] /* damage */ - hero.getBaseDamage());
+  for (const auto& [status, intensity] : hero_statuses)
+    for (int i = 0; i < intensity; ++i)
+      hero.addStatus(status);
   return hero;
 }
 
