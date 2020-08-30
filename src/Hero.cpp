@@ -3,7 +3,9 @@
 #include "Experience.hpp"
 #include "Monster.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <utility>
 
 Hero::Hero()
   : stats(1, 10, 10)
@@ -154,6 +156,36 @@ int Hero::getDamage() const
   return getBaseDamage() * (100 + getDamageBonusPercent()) / 100;
 }
 
+int Hero::getPhysicalResistPercent() const
+{
+  return defence.getPhysicalResistPercent();
+}
+
+int Hero::getMagicalResistPercent() const
+{
+  return defence.getMagicalResistPercent();
+}
+
+void Hero::setPhysicalResistPercent(int physicalResistPercent)
+{
+  defence.setPhysicalResistPercent(physicalResistPercent);
+}
+
+void Hero::setMagicalResistPercent(int magicalResistPercent)
+{
+  defence.setMagicalResistPercent(magicalResistPercent);
+}
+
+void Hero::changePhysicalResistPercent(int deltaPercent)
+{
+  setPhysicalResistPercent(getPhysicalResistPercent() + deltaPercent);
+}
+
+void Hero::changeMagicalResistPercent(int deltaPercent)
+{
+  setMagicalResistPercent(getMagicalResistPercent() + deltaPercent);
+}
+
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
   return attack->hasInitiativeVersus(*this, monster);
@@ -219,7 +251,7 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
 {
   if (newIntensity > 1 && !canHaveMultiple(status))
     newIntensity = 1;
-  statuses[status] = newIntensity;
+  statuses[status] = newIntensity; // TODO: This looks wrong
   int delta = newIntensity - statuses[status];
   if (delta > 0)
     statusAddedHook(status);

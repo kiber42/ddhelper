@@ -44,6 +44,13 @@ public:
   void changeDamageBonusPercent(int deltaDamageBonusPercent);
   int getDamage() const;
 
+  int getPhysicalResistPercent() const;
+  int getMagicalResistPercent() const;
+  void setPhysicalResistPercent(int physicalResistPercent);
+  void setMagicalResistPercent(int magicalResistPercent);
+  void changePhysicalResistPercent(int deltaPercent);
+  void changeMagicalResistPercent(int deltaPercent);
+
   bool hasInitiativeVersus(const Monster &monster) const;
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
