@@ -68,7 +68,7 @@ struct MonsterTraits
   bool undead;
   bool bloodless;
 
-  MonsterTraits() = default;
+  MonsterTraits();
 
   MonsterTraits(MonsterTraitsBuilder&& builder);
 };
