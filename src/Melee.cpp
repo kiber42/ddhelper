@@ -65,7 +65,7 @@ namespace Melee
     if (monster.isPoisonous())
       heroAfterFight.addStatus(HeroStatus::Poisoned);
     if (monster.hasManaBurn())
-      heroAfterFight.addStatus(HeroStatus::ManaBurn);
+      heroAfterFight.addStatus(HeroStatus::ManaBurned);
     if (monsterAfterFight.isDefeated())
     {
       if (monster.bearsCurse())

@@ -3,18 +3,43 @@
 enum class HeroStatus
 {
   BloodCurse,
+  // BurningStrike,
+  // ConsecratedStrike,
   Corrosion,
+  // Corrosive,
+  // CrushingBlow,
+  // CurseImmune,
   Cursed,
+  // DamageReduction,
+  // DeathGazeImmune,
+  // DeathProtection,
+  // DodgePermanent,
+  // DodgeTemporary,
+  // Exhausted,
   ExperienceBoost,
   FirstStrike,
+  // HeavyFireball
   Humility,
+  // Indulgence
+  // Knockback
   Learning,
+  // LifeSteal
   MagicalAttack,
-  ManaBurn,
+  // ManaBurnImmune,
+  ManaBurned,
+  // Might,
+  // PiercePhysical,
+  // PoisonImmune,
   Poisoned,
+  // Poisonous,
+  // Prestige,
   Reflexes,
+  // Sanguine
+  // Schadenfreude,
   SlowStrike,
+  // SpiritStrength,
   Weakened
+  // StoneSkin
 };
 
 constexpr const char* toString(HeroStatus status)
@@ -37,7 +62,7 @@ constexpr const char* toString(HeroStatus status)
     return "Learning";
   case HeroStatus::MagicalAttack:
     return "Magical Attack";
-  case HeroStatus::ManaBurn:
+  case HeroStatus::ManaBurned:
     return "Mana Burn";
   case HeroStatus::Poisoned:
     return "Poisoned";
