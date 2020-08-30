@@ -78,6 +78,9 @@ namespace Melee
     if (monster.isWeakening())
       heroAfterFight.addStatus(HeroStatus::Weakened);
 
+    heroAfterFight.removeStatus(HeroStatus::Reflexes, true);
+    heroAfterFight.removeStatus(HeroStatus::FirstStrike, true);
+
     //  std::vector<HeroStatus> statusAdded;
     //  for (auto& status : {HeroStatus::Poisoned, HeroStatus::ManaBurn, HeroStatus::Cursed, HeroStatus::Corrosion,
     //  HeroStatus::Weakened})
