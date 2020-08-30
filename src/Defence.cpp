@@ -11,6 +11,7 @@ Defence::Defence(int physicalResistPercent,
   , physicalResistPercentMax(physicalResistPercentMax)
   , magicalResistPercentMax(magicalResistPercentMax)
   , numCorrosionLayers(0)
+  , isCursed(false)
 {
 }
 
@@ -36,9 +37,13 @@ void Defence::setMagicalResistPercent(int newMagicalResistPercent)
 
 int Defence::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
 {
-  const int resist = isMagicalDamage ? magicalResistPercent : physicalResistPercent;
-  const int resistedPoints = attackerDamageOutput * resist / 100;
-  int damage = attackerDamageOutput - resistedPoints;
+  int damage = attackerDamageOutput;
+  if (!isCursed)
+  {
+    const int resist = isMagicalDamage ? magicalResistPercent : physicalResistPercent;
+    const int resistedPoints = attackerDamageOutput * resist / 100;
+    damage -= resistedPoints;
+  }
   if (damage > 0)
     damage += numCorrosionLayers;
   return damage;
@@ -47,4 +52,9 @@ int Defence::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) 
 void Defence::setCorrosion(int corrosion)
 {
   numCorrosionLayers = corrosion;
+}
+
+void Defence::setCursed(bool cursed)
+{
+  isCursed = cursed;
 }

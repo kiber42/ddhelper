@@ -17,10 +17,13 @@ public:
 
   void setCorrosion(int numCorrosionLayers);
 
+  void setCursed(bool isCursed);
+
 private:
   int physicalResistPercent;
   int magicalResistPercent;
   int physicalResistPercentMax;
   int magicalResistPercentMax;
   int numCorrosionLayers;
+  bool isCursed;
 };
