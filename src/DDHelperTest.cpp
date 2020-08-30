@@ -297,6 +297,16 @@ go_bandit([] {
       hero.takeDamage(4, false);
       AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2 - 4));
     });
+    it("Cursed takes effect immediately after hero's attack", [] {
+      Hero hero;
+      hero.gainLevel();
+      const int health = hero.getHitPoints();
+      hero.setPhysicalResistPercent(50);
+      Monster monster(makeGenericMonsterStats(1, 100, 10, 0), {}, MonsterTraits().addCurse());
+      hero = Melee::predictOutcome(hero, monster).hero;
+      AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(true));
+      AssertThat(hero.getHitPoints(), Equals(health - 10));
+    });
   });
 
   describe("Initiative", [] {

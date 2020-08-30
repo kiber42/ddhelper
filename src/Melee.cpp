@@ -4,7 +4,8 @@ namespace Melee
 {
   Outcome predictOutcome(const Hero& hero, const Monster& monster)
   {
-    Outcome::Summary summary = Outcome::Summary::Error;
+    using Summary = Outcome::Summary;
+    std::optional<Summary> summary;
     Hero heroAfterFight(hero);
     Monster monsterAfterFight(monster);
 
@@ -22,19 +23,19 @@ namespace Melee
       //   - A Curse Bearer monster will curse the hero directly after his strike
       monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
       if (monsterAfterFight.isDefeated())
-        summary = Outcome::Summary::HeroWins;
+        summary = Summary::HeroWins;
       else
       {
+        if (monster.bearsCurse())
+          heroAfterFight.addStatus(HeroStatus::Cursed);
         heroAfterFight.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
         if (heroAfterFight.isDefeated())
-          summary = Outcome::Summary::HeroDefeated;
+          summary = Summary::HeroDefeated;
         else
         {
-          if (monster.bearsCurse())
-            heroAfterFight.addStatus(HeroStatus::Cursed);
           if (hero.hasStatus(HeroStatus::Reflexes))
             monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
-          summary = monsterAfterFight.isDefeated() ? Outcome::Summary::HeroWins : Outcome::Summary::Safe;
+          summary = monsterAfterFight.isDefeated() ? Summary::HeroWins : Summary::Safe;
         }
       }
     }
@@ -42,16 +43,13 @@ namespace Melee
     {
       heroAfterFight.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
       if (heroAfterFight.isDefeated())
-        summary = Outcome::Summary::HeroDefeated;
+        summary = Summary::HeroDefeated;
       else
       {
+        monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
         if (monster.bearsCurse())
           heroAfterFight.addStatus(HeroStatus::Cursed);
-        monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
-        if (monsterAfterFight.isDefeated())
-          summary = Outcome::Summary::HeroWins;
-        else
-          summary = Outcome::Summary::Safe;
+        summary = monsterAfterFight.isDefeated() ? Summary::HeroWins : Summary::Safe;
       }
     }
 
@@ -74,6 +72,9 @@ namespace Melee
     //       statusAdded.push_back(status);
     //  }
 
-    return Outcome{summary, std::move(heroAfterFight), std::move(monsterAfterFight)};
+    if (!summary.has_value())
+      throw std::logic_error("Internal error in Melee::predict_outcome");
+
+    return Outcome{summary.value(), std::move(heroAfterFight), std::move(monsterAfterFight)};
   }
 } // namespace Melee

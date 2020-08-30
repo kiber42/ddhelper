@@ -29,8 +29,7 @@ constexpr const char* toString(Outcome::Summary status)
     case Summary::HeroWins: return "Win";
     case Summary::HeroDefeated: return "Death";
     case Summary::HeroDebuffed: return "Debuffed";
-    default:
-    case Summary::Error: return "ERROR";
+    default: return "unsupported enum value";
   }
 }
 
