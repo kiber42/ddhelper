@@ -251,15 +251,15 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
 {
   if (newIntensity > 1 && !canHaveMultiple(status))
     newIntensity = 1;
-  statuses[status] = newIntensity; // TODO: This looks wrong
-  int delta = newIntensity - statuses[status];
+  const int delta = newIntensity - statuses[status];
+  if (delta == 0)
+    return;
+  statuses[status] = newIntensity;
   if (delta > 0)
     statusAddedHook(status);
-  else if (delta < 0)
-  {
+  else
     assert(isRemovable(status));
-  }
-  propagateStatus(status);
+  propagateStatus(status, newIntensity);
 }
 
 int Hero::getStatusIntensity(HeroStatus status) const
@@ -282,16 +282,22 @@ void Hero::statusAddedHook(HeroStatus status)
   }
 }
 
-void Hero::propagateStatus(HeroStatus status)
+void Hero::propagateStatus(HeroStatus status, int intensity)
 {
-  if (status == HeroStatus::Learning)
-    experience->setLearning(statuses[status]);
-
-  else if (status == HeroStatus::ExperienceBoost)
-    experience->setExperienceBoost(statuses[status]);
-
-  else if (status == HeroStatus::Corrosion)
-    defence.setCorrosion(statuses[status]);
+  switch (status)
+  {
+  case HeroStatus::Learning:
+    experience->setLearning(intensity);
+    break;
+  case HeroStatus::ExperienceBoost:
+    experience->setExperienceBoost(intensity);
+    break;
+  case HeroStatus::Corrosion:
+    defence.setCorrosion(intensity);
+    break;
+  case HeroStatus::Cursed:
+    defence.setCursed(intensity > 0);
+  }
 }
 
 void Hero::levelGainedUpdate()

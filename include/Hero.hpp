@@ -77,7 +77,7 @@ private:
   std::map<HeroStatus, int> statuses;
 
   void statusAddedHook(HeroStatus status);
-  void propagateStatus(HeroStatus status);
+  void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
 
   /*

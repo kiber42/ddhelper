@@ -288,6 +288,15 @@ go_bandit([] {
       Monster monster(makeGenericMonsterStats(1, 2 * hero.getDamage(), 1, 0), {}, {});
       AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::HeroWins));
     });
+    it("Cursed should negate resistances", [] {
+      Hero hero;
+      hero.setPhysicalResistPercent(50);
+      hero.takeDamage(4, false);
+      AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2));
+      hero.addStatus(HeroStatus::Cursed);
+      hero.takeDamage(4, false);
+      AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2 - 4));
+    });
   });
 
   describe("Initiative", [] {
