@@ -77,7 +77,7 @@ void Hero::gainExperience(int xpGained)
 {
   int level = getLevel();
   experience->gain(xpGained);
-  removeStatus(HeroStatus::ExperienceBoost);
+  removeStatus(HeroStatus::ExperienceBoost, true);
   while (getLevel() > level)
   {
     levelGainedUpdate();
@@ -297,6 +297,8 @@ void Hero::propagateStatus(HeroStatus status, int intensity)
     break;
   case HeroStatus::Cursed:
     defence.setCursed(intensity > 0);
+  default:
+    break;
   }
 }
 

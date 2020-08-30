@@ -297,7 +297,18 @@ go_bandit([] {
       hero.takeDamage(4, false);
       AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2 - 4));
     });
-    it("Cursed takes effect immediately after hero's attack", [] {
+    it("Cursed should be added/removed when cursed/not-cursed monster is defeated", [] {
+      Hero hero;
+      hero.changeBaseDamage(100);
+      Monster monster(makeGenericMonsterStats(1, 10, 3, 0), {}, MonsterTraits().addCurse());
+      hero = Melee::predictOutcome(hero, monster).hero;
+      // One curse from hit, one from killing
+      AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
+      Monster monster2(makeGenericMonsterStats(1, 10, 3, 0), {}, {});
+      hero = Melee::predictOutcome(hero, monster2).hero;
+      AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
+    });
+    it("Cursed should take effect immediately after hero's attack", [] {
       Hero hero;
       hero.gainLevel();
       const int health = hero.getHitPoints();

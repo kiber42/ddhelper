@@ -64,7 +64,7 @@ public:
   void setDeathProtection(bool enableProtection);
 
   void addStatus(HeroStatus status, int addedIntensity = 1);
-  void removeStatus(HeroStatus status, bool completely = true);
+  void removeStatus(HeroStatus status, bool completely);
   bool hasStatus(HeroStatus status) const;
   void setStatusIntensity(HeroStatus status, int newIntensity);
   int getStatusIntensity(HeroStatus status) const;

@@ -1,5 +1,7 @@
 #include "Melee.hpp"
 
+#include <cassert>
+
 namespace Melee
 {
   Outcome predictOutcome(const Hero& hero, const Monster& monster)
@@ -41,6 +43,7 @@ namespace Melee
     }
     else
     {
+      assert(!hero.hasStatus(HeroStatus::Reflexes));
       heroAfterFight.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
       if (heroAfterFight.isDefeated())
         summary = Summary::HeroDefeated;
@@ -57,8 +60,13 @@ namespace Melee
       heroAfterFight.addStatus(HeroStatus::Poisoned);
     if (monster.hasManaBurn())
       heroAfterFight.addStatus(HeroStatus::ManaBurn);
-    if (monster.bearsCurse() && monsterAfterFight.isDefeated())
-      heroAfterFight.addStatus(HeroStatus::Cursed);
+    if (monsterAfterFight.isDefeated())
+    {
+      if (monster.bearsCurse())
+        heroAfterFight.addStatus(HeroStatus::Cursed);
+      else
+        heroAfterFight.removeStatus(HeroStatus::Cursed, false);
+    }
     if (monster.isCorrosive())
       heroAfterFight.addStatus(HeroStatus::Corrosion);
     if (monster.isWeakening())
