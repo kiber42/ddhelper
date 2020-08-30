@@ -3,7 +3,10 @@
 class Defence
 {
 public:
-  Defence(int physicalResistPercent = 0, int magicalResistPercent = 0);
+  Defence(int physicalResistPercent = 0,
+          int magicalResistPercent = 0,
+          int physicalResistPercentMax = 100,
+          int magicalResistPercentMax = 100);
 
   int getPhysicalResistPercent() const;
   int getMagicalResistPercent() const;
@@ -17,5 +20,7 @@ public:
 private:
   int physicalResistPercent;
   int magicalResistPercent;
+  int physicalResistPercentMax;
+  int magicalResistPercentMax;
   int numCorrosionLayers;
 };

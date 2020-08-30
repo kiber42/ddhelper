@@ -10,7 +10,7 @@
 Hero::Hero()
   : stats(1, 10, 10)
   , attack(new Attack())
-  , defence()
+  , defence(0, 0, 65, 65)
   , experience(new Experience())
 /*
  , piety(0)
