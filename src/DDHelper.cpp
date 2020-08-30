@@ -84,23 +84,7 @@ void DDHelperApp::populateFrame()
       outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
     if (outcome.has_value())
     {
-      switch (outcome->summary)
-      {
-      case Outcome::Summary::Safe:
-        ImGui::Text("Safe");
-        break;
-      case Outcome::Summary::HeroWins:
-        ImGui::Text("Win");
-        break;
-      case Outcome::Summary::HeroDefeated:
-        ImGui::Text("Death");
-        break;
-      case Outcome::Summary::HeroDebuffed:
-        ImGui::Text("Debuff");
-        break;
-      case Outcome::Summary::Error:
-        break;
-      }
+      ImGui::Text("%s", toString(outcome->summary));
       if (ImGui::Button("Accept outcome"))
       {
         hero = outcome->hero;
