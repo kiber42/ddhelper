@@ -48,7 +48,7 @@ void DDHelperApp::populateFrame()
 
   for (HeroStatus status :
        {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
-        HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
+        HeroStatus::ConsecratedStrike, HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
   {
     bool current = hero_statuses[status] > 0;
     if (ImGui::Checkbox(toString(status), &current))

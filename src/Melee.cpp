@@ -29,7 +29,7 @@ namespace Melee
       //   - Health from Life Steal is added directly after strike
       //   - Warlord's 30% damage bonus if hero's health is below 50%
       //   - A Curse Bearer monster will curse the hero directly after his strike
-      monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
+      monsterAfterFight.takeDamage(hero.getDamage(), hero.doesMagicalDamage());
       if (monsterAfterFight.isDefeated())
         summary = Summary::HeroWins;
       else
@@ -42,7 +42,7 @@ namespace Melee
         else
         {
           if (hero.hasStatus(HeroStatus::Reflexes))
-            monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
+            monsterAfterFight.takeDamage(hero.getDamage(), hero.doesMagicalDamage());
           summary = monsterAfterFight.isDefeated() ? Summary::HeroWins : Summary::Safe;
         }
       }
@@ -55,7 +55,7 @@ namespace Melee
         summary = Summary::HeroDefeated;
       else
       {
-        monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
+        monsterAfterFight.takeDamage(hero.getDamage(), hero.doesMagicalDamage());
         if (monster.bearsCurse())
           heroAfterFight.addStatus(HeroStatus::Cursed);
         summary = monsterAfterFight.isDefeated() ? Summary::HeroWins : Summary::Safe;
@@ -78,8 +78,9 @@ namespace Melee
     if (monster.isWeakening())
       heroAfterFight.addStatus(HeroStatus::Weakened);
 
-    heroAfterFight.removeStatus(HeroStatus::Reflexes, true);
+    heroAfterFight.removeStatus(HeroStatus::ConsecratedStrike, true);
     heroAfterFight.removeStatus(HeroStatus::FirstStrike, true);
+    heroAfterFight.removeStatus(HeroStatus::Reflexes, true);
 
     //  std::vector<HeroStatus> statusAdded;
     //  for (auto& status : {HeroStatus::Poisoned, HeroStatus::ManaBurn, HeroStatus::Cursed, HeroStatus::Corrosion,

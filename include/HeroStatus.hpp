@@ -4,7 +4,7 @@ enum class HeroStatus
 {
   BloodCurse,
   // BurningStrike,
-  // ConsecratedStrike,
+  ConsecratedStrike,
   Corrosion,
   // Corrosive,
   // CrushingBlow,
@@ -48,6 +48,8 @@ constexpr const char* toString(HeroStatus status)
   {
   case HeroStatus::BloodCurse:
     return "Blood Curse";
+  case HeroStatus::ConsecratedStrike:
+    return "Consecrated Strike";
   case HeroStatus::Corrosion:
     return "Corrosion";
   case HeroStatus::Cursed:

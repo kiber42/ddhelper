@@ -51,6 +51,8 @@ public:
   void changePhysicalResistPercent(int deltaPercent);
   void changeMagicalResistPercent(int deltaPercent);
 
+  bool doesMagicalDamage() const;
+
   bool hasInitiativeVersus(const Monster &monster) const;
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);

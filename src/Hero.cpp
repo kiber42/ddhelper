@@ -186,6 +186,11 @@ void Hero::changeMagicalResistPercent(int deltaPercent)
   setMagicalResistPercent(getMagicalResistPercent() + deltaPercent);
 }
 
+bool Hero::doesMagicalDamage() const
+{
+  return getStatusIntensity(HeroStatus::ConsecratedStrike) > 0 || getStatusIntensity(HeroStatus::MagicalAttack) > 0;
+}
+
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
   return attack->hasInitiativeVersus(*this, monster);
