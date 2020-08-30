@@ -1,11 +1,17 @@
 #include "Melee.hpp"
 
 #include <cassert>
+#include <iostream>
 
 namespace Melee
 {
   Outcome predictOutcome(const Hero& hero, const Monster& monster)
   {
+    if (hero.isDefeated())
+      std::cerr << "Dead hero cannot fight." << std::endl;
+    if (monster.isDefeated())
+      std::cerr << "Cannot fight defeated monster." << std::endl;
+
     using Summary = Outcome::Summary;
     std::optional<Summary> summary;
     Hero heroAfterFight(hero);
