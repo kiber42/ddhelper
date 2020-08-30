@@ -300,7 +300,7 @@ go_bandit([] {
     it("Cursed should be added/removed when cursed/not-cursed monster is defeated", [] {
       Hero hero;
       hero.changeBaseDamage(100);
-      Monster monster(makeGenericMonsterStats(1, 10, 3, 0), {}, MonsterTraits().addCurse());
+      Monster monster(makeGenericMonsterStats(1, 10, 3, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
       hero = Melee::predictOutcome(hero, monster).hero;
       // One curse from hit, one from killing
       AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
@@ -313,7 +313,7 @@ go_bandit([] {
       hero.gainLevel();
       const int health = hero.getHitPoints();
       hero.setPhysicalResistPercent(50);
-      Monster monster(makeGenericMonsterStats(1, 100, 10, 0), {}, MonsterTraits().addCurse());
+      Monster monster(makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
       hero = Melee::predictOutcome(hero, monster).hero;
       AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(true));
       AssertThat(hero.getHitPoints(), Equals(health - 10));

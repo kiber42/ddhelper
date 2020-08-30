@@ -1,208 +1,145 @@
 #include "MonsterTraits.hpp"
 
-MonsterTraits::MonsterTraits()
-  : magicalDamage(false)
-  , retaliate(false)
-  , poisonous(false)
-  , manaBurn(false)
-  , curse(false)
-  , corrosive(false)
-  , weakening(false)
-  , firstStrike(false)
-  , deathGazePercent(0)
-  , lifeStealPercent(0)
-  , undead(false)
-  , bloodless(false)
+#include <utility>
+
+MonsterTraits::MonsterTraits(MonsterTraitsBuilder&& builder)
+  : MonsterTraits(std::move(builder.get()))
 {
 }
 
-MonsterTraits& MonsterTraits::addMagicalDamage()
+MonsterTraits MonsterTraitsBuilder::get()
 {
-  magicalDamage = true;
+  return traits;
+}
+
+MonsterTraitsBuilder& MonsterTraitsBuilder::addMagicalDamage()
+{
+  traits.magicalDamage = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addRetaliate()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addRetaliate()
 {
-  retaliate = true;
+  traits.retaliate = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addPoisonous()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addPoisonous()
 {
-  poisonous = true;
+  traits.poisonous = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addManaBurn()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addManaBurn()
 {
-  manaBurn = true;
+  traits.manaBurn = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addCurse()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addCurse()
 {
-  curse = true;
+  traits.curse = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addCorrosive()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addCorrosive()
 {
-  corrosive = true;
+  traits.corrosive = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addWeakening()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addWeakening()
 {
-  weakening = true;
+  traits.weakening = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addFirstStrike()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addFirstStrike()
 {
-  firstStrike = true;
+  traits.firstStrike = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::setDeathGazePercent(int newDeathGazePercent)
+MonsterTraitsBuilder& MonsterTraitsBuilder::setDeathGazePercent(int newDeathGazePercent)
 {
-  deathGazePercent = newDeathGazePercent;
+  traits.deathGazePercent = newDeathGazePercent;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::setLifeStealPercent(int newLifeStealPercent)
+MonsterTraitsBuilder& MonsterTraitsBuilder::setLifeStealPercent(int newLifeStealPercent)
 {
-  lifeStealPercent = newLifeStealPercent;
+  traits.lifeStealPercent = newLifeStealPercent;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addUndead()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addUndead()
 {
-  undead = true;
+  traits.undead = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::addBloodless()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addBloodless()
 {
-  bloodless = true;
+  traits.bloodless = true;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeMagicalDamage()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeMagicalDamage()
 {
-  magicalDamage = false;
+  traits.magicalDamage = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeRetaliate()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeRetaliate()
 {
-  retaliate = false;
+  traits.retaliate = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removePoisonous()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removePoisonous()
 {
-  poisonous = false;
+  traits.poisonous = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeManaBurn()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeManaBurn()
 {
-  manaBurn = false;
+  traits.manaBurn = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeCurse()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeCurse()
 {
-  curse = false;
+  traits.curse = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeCorrosive()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeCorrosive()
 {
-  corrosive = false;
+  traits.corrosive = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeWeakening()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeWeakening()
 {
-  weakening = false;
+  traits.weakening = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeFirstStrike()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeFirstStrike()
 {
-  firstStrike = false;
+  traits.firstStrike = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeUndead()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeUndead()
 {
-  undead = false;
+  traits.undead = false;
   return *this;
 }
 
-MonsterTraits& MonsterTraits::removeBloodless()
+MonsterTraitsBuilder& MonsterTraitsBuilder::removeBloodless()
 {
-  bloodless = false;
+  traits.bloodless = false;
   return *this;
-}
-
-bool MonsterTraits::doesMagicalDamage() const
-{
-  return magicalDamage;
-}
-
-bool MonsterTraits::doesRetaliate() const
-{
-  return retaliate;
-}
-
-bool MonsterTraits::isPoisonous() const
-{
-  return poisonous;
-}
-bool MonsterTraits::hasManaBurn() const
-{
-  return manaBurn;
-}
-
-bool MonsterTraits::bearsCurse() const
-{
-  return curse;
-}
-
-bool MonsterTraits::isCorrosive() const
-{
-  return corrosive;
-}
-
-bool MonsterTraits::isWeakening() const
-{
-  return weakening;
-}
-
-bool MonsterTraits::hasFirstStrike() const
-{
-  return firstStrike;
-}
-
-int MonsterTraits::getDeathGazePercent() const
-{
-  return deathGazePercent;
-}
-
-int MonsterTraits::getLifeStealPercent() const
-{
-  return lifeStealPercent;
-}
-
-bool MonsterTraits::isUndead() const
-{
-  return undead;
-}
-
-bool MonsterTraits::isBloodless() const
-{
-  return bloodless;
 }
