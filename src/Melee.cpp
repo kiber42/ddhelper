@@ -8,15 +8,18 @@ namespace Melee
     Hero heroAfterFight(hero);
     Monster monsterAfterFight(monster);
 
-    // TODO Handle evasion
-
-    // TODO Handle knock back
+    // TODO Handle attack with Flaming Sword
+    // TODO Handle evasion?
+    // TODO Handle knockback?
+    // TODO Handle burn stack pop on other monsters?
 
     if (hero.hasInitiativeVersus(monster))
     {
-      // damage is always computed using the initial hero or monster!
-      //   (is that correct? what about e.g. warlord's damage bonus at low health?)
-      // TODO Handle attack with Flaming Sword
+      // Damage is almost always computed using the initial hero and monster
+      // Known exceptions:
+      //   - Health from Life Steal is added directly after strike
+      //   - Warlord's 30% damage bonus if hero's health is below 50%
+      //   - A Curse Bearer monster will curse the hero directly after his strike
       monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
       if (monsterAfterFight.isDefeated())
         summary = Outcome::Summary::HeroWins;
@@ -26,12 +29,14 @@ namespace Melee
         if (heroAfterFight.isDefeated())
           summary = Outcome::Summary::HeroDefeated;
         else
-          summary = Outcome::Summary::Safe;
-        if (monster.bearsCurse())
-          heroAfterFight.addStatus(HeroStatus::Cursed);
+        {
+          if (monster.bearsCurse())
+            heroAfterFight.addStatus(HeroStatus::Cursed);
+          if (hero.hasStatus(HeroStatus::Reflexes))
+            monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
+          summary = monsterAfterFight.isDefeated() ? Outcome::Summary::HeroWins : Outcome::Summary::Safe;
+        }
       }
-      if (hero.hasStatus(HeroStatus::Reflexes))
-        monsterAfterFight.takeDamage(hero.getDamage(), hero.hasStatus(HeroStatus::MagicalAttack));
     }
     else
     {

@@ -264,7 +264,7 @@ go_bandit([] {
   });
 
   describe("Status", [] {
-    it("weakening should reduce base damage by one per level of weakening", [] {
+    it("Weakened should reduce base damage by one per stack level", [] {
       Hero hero;
       hero.changeDamageBonusPercent(100);
       AssertThat(hero.getDamageBonusPercent(), Equals(100));
@@ -277,12 +277,16 @@ go_bandit([] {
       hero.addStatus(HeroStatus::Weakened);
       AssertThat(hero.getBaseDamage(), Equals(base_initial - 2));
     });
-    it("weakening should not reduce damage below zero", [] {
+    it("Weakened should not reduce damage below zero", [] {
       Hero hero;
-      const int initial = hero.getBaseDamage();
-      for (int i = 0; i < initial + 1; ++i)
-        hero.addStatus(HeroStatus::Weakened);
+      hero.addStatus(HeroStatus::Weakened, hero.getBaseDamage() + 1);
       AssertThat(hero.getBaseDamage(), Is().Not().LessThan(0));
+    });
+    it("Reflexes should cause 2 hits", [] {
+      Hero hero;
+      hero.addStatus(HeroStatus::Reflexes);
+      Monster monster(makeGenericMonsterStats(1, 2 * hero.getDamage(), 1, 0), {}, {});
+      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::HeroWins));
     });
   });
 
