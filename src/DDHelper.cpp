@@ -7,8 +7,8 @@
 #include "Monster.hpp"
 #include "MonsterFactory.hpp"
 
-#include <memory>
 #include <optional>
+#include <utility>
 
 class DDHelperApp : public ImguiApp
 {
@@ -99,7 +99,9 @@ void DDHelperApp::populateFrame()
   {
     ImGui::Text("Hero has %i HP", hero->getHitPoints());
     ImGui::Text("Monster has %i HP", monster->getHitPoints());
-    if (ImGui::Button("Fight!"))
+    if (hero->hasStatus(HeroStatus::FirstStrike))
+      ImGui::Text("Hero has first strike");
+    if (!hero->isDefeated() && !monster->isDefeated() && ImGui::Button("Fight!"))
       outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
     if (outcome.has_value())
     {
