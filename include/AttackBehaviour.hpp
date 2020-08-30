@@ -3,8 +3,6 @@
 class Hero;
 class Monster;
 
-#include <vector>
-
 class AttackBehaviour
 {
 public:
@@ -19,5 +17,5 @@ public:
   virtual int getDamageBonusPercent() const = 0;
   virtual void changeDamageBonusPercent(int deltaDamageBonusPercent) = 0;
 
-  virtual bool hasInitiativeVersus(const Hero &, const Monster &) const = 0;
+  virtual bool hasInitiativeVersus(const Hero&, const Monster&) const = 0;
 };
