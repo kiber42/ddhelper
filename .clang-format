@@ -16,4 +16,10 @@ PointerAlignment: Left
 ColumnLimit: 120
 
 NamespaceIndentation: All
+
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackParameters: false
+
+BinPackArguments: true
+
 ...
