@@ -53,6 +53,7 @@ add_library(
     src/MonsterStats.cpp
     src/MonsterStatus.cpp
     src/MonsterTraits.cpp
+    src/Spells.cpp
 )
 target_include_directories(DDHelperLibrary PUBLIC include)
 
