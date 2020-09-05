@@ -7,4 +7,6 @@
 namespace Melee
 {
   Outcome predictOutcome(const Hero&, const Monster&);
+
+  Outcome::Debuffs retaliate(Hero&, const Monster&);
 } // namespace Melee

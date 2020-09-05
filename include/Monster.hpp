@@ -20,9 +20,8 @@ public:
   int getPhysicalResistPercent() const;
   int getMagicalResistPercent() const;
 
-  int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
-  void takeFireballDamage(int casterLevel, bool wearsRing);
+  void takeFireballDamage(int casterLevel, int damageMultiplier = 4);
   void recover(int nSquares);
   void burn(int nMaxStacks);
   void burnMax(int nMaxStacks);
@@ -60,6 +59,8 @@ public:
   bool isBloodless() const;
 
 private:
+  int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
+
   MonsterStats stats;
   Defence defence;
   MonsterStatus status;

@@ -23,8 +23,9 @@ struct Outcome
     Corroded,
     Weakened,
   };
+  using Debuffs = std::set<Debuff>;
   Summary summary;
-  std::set<Debuff> debuffs;
+  Debuffs debuffs;
   Hero hero;
   Monster monster;
 };
@@ -55,7 +56,7 @@ constexpr const char* toString(Outcome::Debuff debuff)
   }
 }
 
-inline std::string toString(Outcome::Summary summary, const std::set<Outcome::Debuff>& debuffs)
+inline std::string toString(Outcome::Summary summary, const Outcome::Debuffs& debuffs)
 {
   using Summary = Outcome::Summary;
   using Debuff = Outcome::Debuff;

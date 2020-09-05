@@ -59,9 +59,9 @@ void Monster::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
   status.setBurn(0);
 }
 
-void Monster::takeFireballDamage(int casterLevel, bool wearsRing)
+void Monster::takeFireballDamage(int casterLevel, int damageMultiplier)
 {
-  int damagePoints = casterLevel * (wearsRing ? 5 : 4);
+  const int damagePoints = casterLevel * damageMultiplier;
   stats.loseHitPoints(predictDamageTaken(damagePoints, true));
   status.setStunned(false);
   burn(casterLevel * 2);

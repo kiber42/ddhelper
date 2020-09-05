@@ -17,7 +17,7 @@ enum class HeroStatus
   // Exhausted,
   ExperienceBoost,
   FirstStrike,
-  // HeavyFireball
+  HeavyFireball,
   // Indulgence
   // Knockback
   Learning,
@@ -54,6 +54,8 @@ constexpr const char* toString(HeroStatus status)
     return "Experience Boost";
   case HeroStatus::FirstStrike:
     return "First Strike";
+  case HeroStatus::HeavyFireball:
+    return "Heavy Fireball";
   case HeroStatus::Learning:
     return "Learning";
   case HeroStatus::MagicalAttack:

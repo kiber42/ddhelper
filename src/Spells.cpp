@@ -1,9 +1,48 @@
 #include "Spells.hpp"
 
+#include "Melee.hpp"
+
 #include <cassert>
 
 namespace Cast
 {
+  namespace
+  {
+    // Rules for Burndayray glyph:
+    // 4 damage per character level, 1 burn stack (max 2 burn stacks per character level)
+    // (existing burn stack size is added to damage as usual)
+    // Effects to be accounted for:
+    // Classes:
+    // - Wizard: double burn stacks (Magic Attunement)
+    // God boons:
+    // - Flames (Mystera Annur), +1 dmg per caster level
+    // Items:
+    // - Avatar's Codex -> Heavy Fireball: +4 dmg per caster level, instant max burn stacks, monster will
+    // retaliate if not defeated
+    // - Battlemage Ring, +1 dmg per caster level
+    std::pair<Outcome::Summary, Outcome::Debuffs> burndayraz(Hero& hero, Monster& monster)
+    {
+      using Summary = Outcome::Summary;
+      const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
+      const int multiplier =
+          4 + hero.hasTrait(HeroTrait::Flames) + (heavy ? 4 : 0) /* + (hero.hasItem(Items::BattlemageRing) ? 1 : 0) */;
+      monster.takeFireballDamage(hero.getLevel(), multiplier);
+      const int maxBurnStackSize = 2 * hero.getLevel();
+      if (heavy)
+        monster.burnMax(maxBurnStackSize);
+      else if (hero.hasTrait(HeroTrait::MagicAttunement))
+        monster.burn(maxBurnStackSize);
+      if (monster.isDefeated())
+        return {Summary::Win, {}};
+      else if (heavy || monster.doesRetaliate())
+      {
+        auto debuffs = Melee::retaliate(hero, monster);
+        return {hero.isDefeated() ? Summary::Death : Summary::Safe, std::move(debuffs)};
+      }
+      return {Summary::Safe, {}};
+    }
+  } // namespace
+
   constexpr int baseSpellCosts(Spell spell)
   {
     switch (spell)
@@ -157,16 +196,7 @@ namespace Cast
           outcome.monster.poison(10 * hero.getLevel());
           break;
         case Spell::Burndayraz:
-          // 4 damage per character level, 1 burn stack (max 2 burn stacks per character level)
-          // Effects to be accounted for:
-          // Classes:
-          // - Wizard: double burn stacks (Magic Attunement)
-          // God boons:
-          // - Flames (Mystera Annur), +1 dmg per caster level
-          // Items:
-          // - Avatar's Codex -> Heavy Fireball: +4 dmg per caster level, instant max burn stacks, monster will
-          // retaliate
-          // - Battlemage Ring, +1 dmg per caster level
+          burndayraz(outcome.hero, outcome.monster);
           break;
         case Spell::Imawal:
           outcome.monster.petrify();
@@ -174,8 +204,8 @@ namespace Cast
           break;
         case Spell::Pisorf:
           // 60% of base damage as knockback damage if against wall
-          // 50% of base damage as knockback damage if against enemy
-          // ignores any magic resistance <100% (cannot cast against 100% magic resistance)
+          // (TODO?) 50% of base damage as knockback damage if against enemy
+          outcome.monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
           break;
         case Spell::Weytwut:
           // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)

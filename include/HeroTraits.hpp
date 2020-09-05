@@ -4,14 +4,16 @@
 // and cannot be removed
 enum class HeroTrait
 {
-  Additives,  // Chemist
-  Damned,     // Vampire
-  Defiant,    // Warlord
-  Discipline, // Monk
-  HolyHands,  // Paladin
+  Additives,       // Chemist
+  Damned,          // Vampire
+  Defiant,         // Warlord
+  Discipline,      // Monk
+  HolyHands,       // Paladin
+  MagicAttunement, // Wizard
   // Boons
-  BloodCurse, // Dracul
-  Humility, // Glowing Guardian
+  BloodCurse,      // Dracul
+  Flames,          // Mystera Annur
+  Humility,        // Glowing Guardian
 };
 
 constexpr const char* toString(HeroTrait trait)
@@ -28,9 +30,13 @@ constexpr const char* toString(HeroTrait trait)
     return "Discipline";
   case HeroTrait::HolyHands:
     return "Holy Hands";
+  case HeroTrait::MagicAttunement:
+    return "Magic Attunement";
 
   case HeroTrait::BloodCurse:
     return "Blood Curse";
+  case HeroTrait::Flames:
+    return "Flames";
   case HeroTrait::Humility:
     return "Humility";
   }

@@ -5,10 +5,46 @@
 
 namespace Melee
 {
+  namespace
+  {
+    Outcome::Debuffs receiveDebuffs(Hero& hero, const Monster& monster, bool includeCurse)
+    {
+      using Debuff = Outcome::Debuff;
+      Outcome::Debuffs debuffs;
+
+      if (monster.isPoisonous() && !hero.hasStatus(HeroStatus::Poisoned))
+      {
+        hero.addStatus(HeroStatus::Poisoned);
+        debuffs.insert(Debuff::Poisoned);
+      }
+      if (monster.hasManaBurn() && !hero.hasStatus(HeroStatus::ManaBurned))
+      {
+        hero.addStatus(HeroStatus::ManaBurned);
+        debuffs.insert(Debuff::ManaBurned);
+      }
+      if (monster.isCorrosive())
+      {
+        hero.addStatus(HeroStatus::Corrosion);
+        debuffs.insert(Debuff::Corroded);
+      }
+      if (monster.isWeakening())
+      {
+        hero.addStatus(HeroStatus::Weakened);
+        debuffs.insert(Debuff::Weakened);
+      }
+      if (includeCurse && monster.bearsCurse())
+      {
+        hero.addStatus(HeroStatus::Cursed);
+        debuffs.insert(Debuff::Cursed);
+      }
+
+      return debuffs;
+    }
+  } // namespace
+
   Outcome predictOutcome(const Hero& hero, const Monster& monster)
   {
     using Summary = Outcome::Summary;
-    using Debuff = Outcome::Debuff;
     Outcome outcome{Summary::NotPossible, {}, hero, monster};
 
     if (hero.isDefeated())
@@ -56,10 +92,7 @@ namespace Melee
       }
     }
 
-    if (monster.isPoisonous())
-      outcome.hero.addStatus(HeroStatus::Poisoned);
-    if (monster.hasManaBurn())
-      outcome.hero.addStatus(HeroStatus::ManaBurned);
+    outcome.debuffs = receiveDebuffs(outcome.hero, monster, false);
     if (outcome.monster.isDefeated())
     {
       if (monster.bearsCurse())
@@ -67,10 +100,6 @@ namespace Melee
       else
         outcome.hero.removeStatus(HeroStatus::Cursed, false);
     }
-    if (monster.isCorrosive())
-      outcome.hero.addStatus(HeroStatus::Corrosion);
-    if (monster.isWeakening())
-      outcome.hero.addStatus(HeroStatus::Weakened);
 
     outcome.hero.removeStatus(HeroStatus::ConsecratedStrike, true);
     // if (!hero.hasTrait(HeroTrait::Dextrous))
@@ -82,19 +111,21 @@ namespace Melee
     else
     {
       outcome.summary = outcome.monster.isDefeated() ? Summary::Win : Summary::Safe;
-      auto flagDebuff = [&outcome, &hero](HeroStatus status, Debuff debuff) {
-        if (outcome.hero.getStatusIntensity(status) > hero.getStatusIntensity(status))
-          outcome.debuffs.insert(debuff);
-      };
-      flagDebuff(HeroStatus::Cursed, Debuff::Cursed);
-      flagDebuff(HeroStatus::Poisoned, Debuff::Poisoned);
-      flagDebuff(HeroStatus::ManaBurned, Debuff::ManaBurned);
-      flagDebuff(HeroStatus::Corrosion, Debuff::Corroded);
-      flagDebuff(HeroStatus::Weakened, Debuff::Weakened);
       if (outcome.hero.getDeathProtection() < hero.getDeathProtection())
-        outcome.debuffs.insert(Debuff::LostDeathProtection);
+        outcome.debuffs.insert(Outcome::Debuff::LostDeathProtection);
     }
 
     return outcome;
   }
+
+  Outcome::Debuffs retaliate(Hero& hero, const Monster& monster)
+  {
+    const int deathProtectionBefore = hero.getDeathProtection();
+    hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
+    auto debuffs = receiveDebuffs(hero, monster, true);
+    if (hero.getDeathProtection() < deathProtectionBefore)
+      debuffs.insert(Outcome::Debuff::LostDeathProtection);
+    return debuffs;
+  }
+
 } // namespace Melee
