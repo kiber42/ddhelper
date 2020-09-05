@@ -3,7 +3,7 @@
 //#include "Inventory.h"
 
 #include "Defence.hpp"
-#include "ExperienceInterface.hpp"
+#include "Experience.hpp"
 #include "HeroStats.hpp"
 #include "HeroStatus.hpp"
 #include "HeroTraits.hpp"
@@ -18,15 +18,11 @@ class Hero
 {
 public:
   Hero();
-  Hero(const Hero &);
-  Hero(Hero &&) = default;
-  Hero& operator=(const Hero&);
-  Hero& operator=(Hero&&);
 
   int getXP() const;
   int getLevel() const;
   int getPrestige() const;
-  void gainExperience(int xpGained);
+  void gainExperience(int xpGained, bool monsterWasSlowed=false);
   void gainLevel();
   void modifyLevelBy(int delta);
 
@@ -78,7 +74,7 @@ private:
   int damage;
   int damageBonusPercent;
   Defence defence;
-  std::unique_ptr<ExperienceInterface> experience;
+  Experience experience;
   std::map<HeroStatus, int> statuses;
   std::set<HeroTrait> traits;
 

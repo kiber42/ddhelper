@@ -1,32 +1,24 @@
 #pragma once
 
-#include "ExperienceInterface.hpp"
-
-class Experience : public ExperienceInterface
+class Experience
 {
 public:
-  Experience();
+  explicit Experience(bool hasVeteranTrait=false);
 
-  ExperienceInterface *clone() override { return new Experience(*this); }
+  int getXP() const { return xp; }
+  int getLevel() const { return level; }
+  int getPrestige() const { return prestige; }
 
-  int getXP() const override { return xp; }
-  int getLevel() const override { return level; }
-  int getPrestige() const override { return prestige; }
-
-  void gain(int xpGained) override;
-  void gainLevel() override;
-  void modifyLevelBy(int delta) override;
-
-  void setLearning(int learningLevels) override;
-  void setExperienceBoost(int active) override;
+  void gain(int xpGained, int xpBonus, bool xpBoost);
+  void gainLevel();
+  void modifyLevelBy(int delta);
 
 private:
   int level;
   int prestige;
+  bool veteran;
 
   int xp;
+  int xpStep;
   int xpNext;
-
-  int learning;
-  bool xpBoost;
 };

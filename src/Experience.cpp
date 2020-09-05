@@ -3,22 +3,22 @@
 #include <algorithm>
 #include <cassert>
 
-Experience::Experience()
+Experience::Experience(bool hasVeteranTrait)
   : level(1)
   , prestige(0)
+  , veteran(hasVeteranTrait)
   , xp(0)
-  , xpNext(5)
-  , learning(0)
-  , xpBoost(false)
+  , xpStep(hasVeteranTrait ? 4 : 5)
+  , xpNext(xpStep)
 {
 }
 
-void Experience::gain(int xpGained)
+void Experience::gain(int xpGained, int xpBonus, bool xpBoost)
 {
   if (xpBoost)
     xpGained += xpGained / 2;
 
-  xpGained += learning;
+  xpGained += xpBonus;
 
   while (xp + xpGained >= xpNext)
   {
@@ -34,21 +34,16 @@ void Experience::gainLevel()
     ++level;
   else
     ++prestige;
-  xpNext += 5;
   xp = 0;
+  if (veteran)
+  {
+    // Alternate between +4 and +5
+    xpStep = 9 - xpStep;
+  }
+  xpNext += xpStep;
 }
 
 void Experience::modifyLevelBy(int delta)
 {
   level = std::min(std::max(level + delta, 1), 10);
-}
-
-void Experience::setLearning(int learningLevels)
-{
-  learning = learningLevels;
-}
-
-void Experience::setExperienceBoost(int active)
-{
-  xpBoost = active > 0;
 }

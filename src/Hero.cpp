@@ -12,7 +12,7 @@ Hero::Hero()
   , damage(5)
   , damageBonusPercent(0)
   , defence(0, 0, 65, 65)
-  , experience(new Experience())
+  , experience()
 /*
  , piety(0)
  , gold(20)
@@ -21,57 +21,26 @@ Hero::Hero()
 {
 }
 
-Hero::Hero(const Hero& other)
-  : stats(other.stats)
-  , damage(other.damage)
-  , damageBonusPercent(other.damageBonusPercent)
-  , defence(other.defence)
-  , experience(other.experience->clone())
-  , statuses(other.statuses)
-{
-}
-
-Hero& Hero::operator=(const Hero& other)
-{
-  stats = other.stats;
-  damage = other.damage;
-  damageBonusPercent = other.damageBonusPercent;
-  defence = other.defence;
-  experience.reset(other.experience->clone());
-  statuses = other.statuses;
-  return *this;
-}
-
-Hero& Hero::operator=(Hero&& other)
-{
-  stats = std::move(other.stats);
-  damage = other.damage;
-  damageBonusPercent = other.damageBonusPercent;
-  defence = std::move(other.defence);
-  experience.swap(other.experience);
-  statuses = std::move(other.statuses);
-  return *this;
-}
-
 int Hero::getXP() const
 {
-  return experience->getXP();
+  return experience.getXP();
 }
 
 int Hero::getLevel() const
 {
-  return experience->getLevel();
+  return experience.getLevel();
 }
 
 int Hero::getPrestige() const
 {
-  return experience->getPrestige();
+  return experience.getPrestige();
 }
 
-void Hero::gainExperience(int xpGained)
+void Hero::gainExperience(int xpGained, bool monsterWasSlowed)
 {
-  int level = getLevel();
-  experience->gain(xpGained);
+  int level = experience.getLevel();
+  int bonuses = getStatusIntensity(HeroStatus::Learning) + (monsterWasSlowed ? 1 : 0);
+  experience.gain(xpGained, bonuses, hasStatus(HeroStatus::ExperienceBoost));
   removeStatus(HeroStatus::ExperienceBoost, true);
   while (getLevel() > level)
   {
@@ -83,7 +52,7 @@ void Hero::gainExperience(int xpGained)
 void Hero::gainLevel()
 {
   int level = getLevel();
-  experience->gainLevel();
+  experience.gainLevel();
   while (getLevel() > level)
   {
     levelGainedUpdate();
@@ -93,7 +62,7 @@ void Hero::gainLevel()
 
 void Hero::modifyLevelBy(int delta)
 {
-  experience->modifyLevelBy(delta);
+  experience.modifyLevelBy(delta);
 }
 
 bool Hero::isDefeated() const
@@ -290,11 +259,11 @@ void Hero::addTrait(HeroTrait trait)
 
   if (trait == HeroTrait::BloodCurse)
   {
-    experience->modifyLevelBy(+1);
+    experience.modifyLevelBy(+1);
   }
   else if (trait == HeroTrait::Humility)
   {
-    experience->modifyLevelBy(-1);
+    experience.modifyLevelBy(-1);
   }
 }
 
@@ -307,12 +276,6 @@ void Hero::propagateStatus(HeroStatus status, int intensity)
 {
   switch (status)
   {
-  case HeroStatus::Learning:
-    experience->setLearning(intensity);
-    break;
-  case HeroStatus::ExperienceBoost:
-    experience->setExperienceBoost(intensity);
-    break;
   case HeroStatus::Corrosion:
     defence.setCorrosion(intensity);
     break;
@@ -325,7 +288,7 @@ void Hero::propagateStatus(HeroStatus status, int intensity)
 
 void Hero::levelGainedUpdate()
 {
-  stats.setLevel(experience->getLevel());
+  stats.setLevel(experience.getLevel());
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus()); // TODO
   stats.refresh();
 
