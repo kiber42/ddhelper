@@ -34,6 +34,17 @@ namespace Cast
     return baseSpellCosts(spell);
   }
 
+  bool isPossible(const Hero& hero, const Monster& monster, Spell spell)
+  {
+    return hero.getManaPoints() >= spellCosts(spell, hero) &&
+    monster.getMagicalResistPercent() < 100 &&
+    (spell != Spell::Apheelsik || !monster.isUndead()) &&
+    (spell != Spell::Bludtupowa || hero.getHitPoints() > 3 * hero.getLevel()) &&
+    (spell != Spell::Bysseps || !hero.hasStatus(HeroStatus::Might) || hero.hasTrait(HeroTrait::Additives)) &&
+    (spell != Spell::Cydstepp || (hero.getDeathProtection() == 0 && (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant)))) &&
+    (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrike) /* TODO modify for Rogue */);
+  }
+
   Outcome predictOutcome(const Hero& hero, const Monster& monster, Spell spell)
   {
     using Summary = Outcome::Summary;

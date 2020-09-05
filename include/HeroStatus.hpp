@@ -27,7 +27,7 @@ enum class HeroStatus
   MagicalAttack,
   // ManaBurnImmune,
   ManaBurned,
-  // Might,
+  Might,
   // PiercePhysical,
   // PoisonImmune,
   Poisoned,
@@ -66,6 +66,8 @@ constexpr const char* toString(HeroStatus status)
     return "Magical Attack";
   case HeroStatus::ManaBurned:
     return "Mana Burn";
+  case HeroStatus::Might:
+    return "Might";
   case HeroStatus::Poisoned:
     return "Poisoned";
   case HeroStatus::Reflexes:

@@ -23,5 +23,6 @@ enum class Spell
 
 namespace Cast
 {
+  bool isPossible(const Hero& hero, const Monster& monster, Spell spell);
   Outcome predictOutcome(const Hero& hero, const Monster& monster, Spell spell);
 }
