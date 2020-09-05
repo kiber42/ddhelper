@@ -23,6 +23,11 @@ enum class Spell
 
 namespace Cast
 {
+  // Determine whether spell can currently be cast
+  bool isPossible(const Hero& hero, Spell spell);
   bool isPossible(const Hero& hero, const Monster& monster, Spell spell);
+  // Cast spell that does not target a monster
+  Hero untargeted(Hero hero, Spell spell);
+  // Predict outcome of casting spell on monster
   Outcome predictOutcome(const Hero& hero, const Monster& monster, Spell spell);
-}
+} // namespace Cast

@@ -25,7 +25,7 @@ enum class HeroStatus
   MagicalAttack,
   // ManaBurnImmune,
   ManaBurned,
-  Might,
+  Might, // +30% dmg, +3% erode resistances
   // PiercePhysical,
   // PoisonImmune,
   Poisoned,
