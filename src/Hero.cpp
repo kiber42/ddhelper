@@ -82,7 +82,7 @@ int Hero::getHitPointsMax() const
 
 int Hero::getManaPoints() const
 {
-  return stats.getManaPointsMax();
+  return stats.getManaPoints();
 }
 
 int Hero::getManaPointsMax() const
