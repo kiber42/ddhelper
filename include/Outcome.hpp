@@ -13,7 +13,7 @@ struct Outcome
     HeroWins,
     HeroDefeated,
     HeroDebuffed,
-    Error
+    NotPossible
   };
   Summary summary;
   Hero hero;
@@ -29,7 +29,7 @@ constexpr const char* toString(Outcome::Summary status)
     case Summary::HeroWins: return "Win";
     case Summary::HeroDefeated: return "Death";
     case Summary::HeroDebuffed: return "Debuffed";
-    default: return "unsupported enum value";
+    case Summary::NotPossible: return "Not Possible";
   }
 }
 
