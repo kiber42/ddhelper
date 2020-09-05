@@ -273,6 +273,17 @@ int Hero::getStatusIntensity(HeroStatus status) const
   return iter != statuses.end() ? iter->second : 0;
 }
 
+void Hero::addTrait(HeroTrait trait)
+{
+  [[maybe_unused]] auto success = traits.insert(trait);
+  assert(success.second);
+}
+
+bool Hero::hasTrait(HeroTrait trait) const
+{
+  return traits.count(trait) > 0;
+}
+
 void Hero::statusAddedHook(HeroStatus status)
 {
   if (status == HeroStatus::BloodCurse)

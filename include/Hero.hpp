@@ -8,9 +8,11 @@
 #include "ExperienceInterface.hpp"
 #include "HeroStats.hpp"
 #include "HeroStatus.hpp"
+#include "HeroTraits.hpp"
 
 #include <map>
 #include <memory>
+#include <set>
 
 class AttackBehaviour;
 class Monster;
@@ -71,12 +73,16 @@ public:
   void setStatusIntensity(HeroStatus status, int newIntensity);
   int getStatusIntensity(HeroStatus status) const;
 
+  void addTrait(HeroTrait trait);
+  bool hasTrait(HeroTrait trait) const;
+
 private:
   HeroStats stats;
   std::unique_ptr<AttackBehaviour> attack;
   Defence defence;
   std::unique_ptr<ExperienceInterface> experience;
   std::map<HeroStatus, int> statuses;
+  std::set<HeroTrait> traits;
 
   void statusAddedHook(HeroStatus status);
   void propagateStatus(HeroStatus status, int intensity);
@@ -88,6 +94,5 @@ private:
           int conversionPoints;
 
           std::unique_ptr<Inventory> inventory;
-          std::vector<std::unique_ptr<HeroModifier>> modifiers;
           */
 };
