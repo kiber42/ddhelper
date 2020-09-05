@@ -88,23 +88,6 @@ namespace Cast
     return baseSpellCosts(spell);
   }
 
-  constexpr bool needsMonster(Spell spell)
-  {
-    return spell == Spell::Apheelsik || spell == Spell::Burndayraz || spell == Spell::Pisorf ||
-           spell == Spell::Weytwut || spell == Spell::Wonafyt;
-  }
-
-  // Spells that behave differently if a target is present
-  constexpr bool monsterIsOptional(Spell spell)
-  {
-    return spell == Spell::Imawal || spell == Spell::Lemmisi;
-  }
-
-  constexpr bool canBeResisted(Spell spell)
-  {
-    return spell == Spell::Imawal || spell == Spell::Weytwut || spell == Spell::Wonafyt;
-  }
-
   bool isPossible(const Hero& hero, Spell spell)
   {
     const bool validWithoutTarget = !needsMonster(spell);

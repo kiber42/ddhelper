@@ -15,4 +15,7 @@ namespace Melee
 
   // Predicts recovery of hero and monster when uncovering tiles
   Outcome uncoverTiles(const Hero&, const Monster&, int numTiles=1);
+
+  // Predicts recovery of hero when uncovering tiles and no monster is around
+  Hero uncoverTiles(Hero, int numTiles=1);
 } // namespace Melee

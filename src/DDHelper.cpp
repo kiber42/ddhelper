@@ -31,7 +31,7 @@ private:
   std::optional<Monster> monster;
   std::optional<Outcome> outcome;
 
-  std::vector<std::pair<Hero, Monster>> history;
+  std::vector<std::pair<std::optional<Hero>, std::optional<Monster>>> history;
 };
 
 DDHelperApp::DDHelperApp()
@@ -41,24 +41,30 @@ DDHelperApp::DDHelperApp()
 {
 }
 
-void showStatus(const Hero& hero, const Monster& monster)
+void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& monster)
 {
-  if (!hero.isDefeated())
+  if (hero.has_value())
   {
-    ImGui::Text("Hero has %i HP, %i MP", hero.getHitPoints(), hero.getManaPoints());
-    if (hero.hasStatus(HeroStatus::FirstStrike))
-      ImGui::Text("Hero has first strike");
+    if (!hero->isDefeated())
+    {
+      ImGui::Text("Hero has %i HP, %i MP", hero->getHitPoints(), hero->getManaPoints());
+      if (hero->hasStatus(HeroStatus::FirstStrike))
+        ImGui::Text("Hero has first strike");
+    }
+    else
+      ImGui::Text("Hero was defeated.");
   }
-  else
-    ImGui::Text("Hero was defeated.");
-  if (!monster.isDefeated())
+  if (monster.has_value())
   {
-    ImGui::Text("Monster has %i HP", monster.getHitPoints());
-    if (monster.isBurning())
-      ImGui::Text("Monster is burning (burn stack size %i)", monster.getBurnStackSize());
+    if (!monster->isDefeated())
+    {
+      ImGui::Text("Monster has %i HP", monster->getHitPoints());
+      if (monster->isBurning())
+        ImGui::Text("Monster is burning (burn stack size %i)", monster->getBurnStackSize());
+    }
+    else
+      ImGui::Text("Monster was defeated.");
   }
-  else
-    ImGui::Text("Monster was defeated.");
 }
 
 void DDHelperApp::populateFrame()
@@ -88,6 +94,13 @@ void DDHelperApp::populateFrame()
       hero_statuses[status] = current;
     }
   }
+  if (ImGui::Button("Send to Arena"))
+  {
+    if (hero.has_value())
+      history.emplace_back(std::move(hero), monster);
+    hero = heroFromForm();
+    outcome.reset();
+  }
   ImGui::End();
 
   ImGui::Begin("Monster");
@@ -110,19 +123,21 @@ void DDHelperApp::populateFrame()
     monster_traits.deathGazePercent = std::min(std::max(monster_traits.deathGazePercent, 0), 100);
   if (ImGui::InputInt("Life Steal %", &monster_traits.lifeStealPercent))
     monster_traits.lifeStealPercent = std::min(std::max(monster_traits.lifeStealPercent, 0), 100);
-  ImGui::End();
-
-  ImGui::Begin("Arena");
-  if (ImGui::Button("Enter"))
+  if (ImGui::Button("Send to Arena"))
   {
-    hero = heroFromForm();
+    if (hero.has_value() || monster.has_value())
+      history.emplace_back(hero, std::move(monster));
     monster = monsterFromForm();
     outcome.reset();
   }
-  if (hero.has_value())
+  ImGui::End();
+
+  ImGui::Begin("Arena");
+  showStatus(hero, monster);
+  if (hero.has_value() && !hero->isDefeated())
   {
-    showStatus(hero.value(), monster.value());
-    if (!hero->isDefeated() && !monster->isDefeated())
+    const bool withMonster = monster.has_value() && !monster->isDefeated();
+    if (withMonster)
     {
       if (ImGui::Button("Attack"))
         outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
@@ -132,34 +147,55 @@ void DDHelperApp::populateFrame()
       ImGui::SameLine();
       if (ImGui::Button("Uncover Tile"))
         outcome.emplace(Melee::uncoverTiles(hero.value(), monster.value(), 1));
-      int count = 0;
-      for (Spell spell :
-           {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,
-            Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
+    }
+    else
+    {
+      if (ImGui::Button("Uncover Tile"))
       {
-        if (count++ % 4 != 0)
-          ImGui::SameLine();
-        if (ImGui::Button(toString(spell)))
+        Hero heroAfter = Melee::uncoverTiles(hero.value(), 1);
+        history.emplace_back(std::move(hero), monster);
+        hero = heroAfter;
+      }
+    }
+
+    int count = 0;
+    for (Spell spell :
+         {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,
+          Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
+    {
+      if (!withMonster && Cast::needsMonster(spell))
+        continue;
+      if (count++ % 4 != 0)
+        ImGui::SameLine();
+      if (ImGui::Button(toString(spell)))
+      {
+        if (withMonster)
           outcome.emplace(Cast::predictOutcome(hero.value(), monster.value(), spell));
+        else if (Cast::isPossible(hero.value(), spell))
+        {
+          Hero heroAfter = Cast::untargeted(hero.value(), spell);
+          history.emplace_back(std::move(hero), monster);
+          hero = heroAfter;
+        }
       }
     }
-    if (outcome.has_value())
+  }
+  if (outcome.has_value())
+  {
+    ImGui::Text("%s", toString(outcome->summary, outcome->debuffs).c_str());
+    showStatus(outcome->hero, outcome->monster);
+    if (ImGui::Button("Accept outcome"))
     {
-      ImGui::Text("%s", toString(outcome->summary, outcome->debuffs).c_str());
-      showStatus(outcome->hero, outcome->monster);
-      if (ImGui::Button("Accept outcome"))
-      {
-        history.emplace_back(std::move(hero.value()), std::move(monster.value()));
-        hero = outcome->hero;
-        monster = outcome->monster;
-        outcome.reset();
-      }
+      history.emplace_back(std::move(hero), std::move(monster));
+      hero = outcome->hero;
+      monster = outcome->monster;
+      outcome.reset();
     }
-    else if (!history.empty() && ImGui::Button("Undo"))
-    {
-      std::tie(hero, monster) = std::move(history.back());
-      history.pop_back();
-    }
+  }
+  else if (!history.empty() && ImGui::Button("Undo"))
+  {
+    std::tie(hero, monster) = std::move(history.back());
+    history.pop_back();
   }
   ImGui::End();
 

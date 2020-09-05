@@ -154,4 +154,10 @@ namespace Melee
     return outcome;
   }
 
+  Hero uncoverTiles(Hero hero, int numTiles)
+  {
+    hero.recover(numTiles);
+    return hero;
+  }
+
 } // namespace Melee
