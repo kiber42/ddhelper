@@ -110,12 +110,22 @@ namespace Cast
            (spell != Spell::Wonafyt || hero.getLevel() >= monster.getLevel());
   }
 
+  void applyCastingSideEffects(Hero& hero, int manaCosts)
+  {
+    // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
+    // Transmuter: Gain conversion points (Inner Focus)
+    // Dragon Soul (15% free cast chance)
+    // God Likes and Dislikes
+  }
+
   Hero untargeted(Hero hero, Spell spell)
   {
     if (!isPossible(hero, spell))
       return hero;
 
-    hero.loseManaPoints(spellCosts(spell, hero));
+    const int manaCosts = spellCosts(spell, hero);
+    hero.loseManaPoints(manaCosts);
+    applyCastingSideEffects(hero, manaCosts);
 
     switch (spell)
     {
@@ -177,7 +187,9 @@ namespace Cast
         outcome.hero = untargeted(std::move(outcome.hero), spell);
       else
       {
-        outcome.hero.loseManaPoints(spellCosts(spell, hero));
+        const int manaCosts = spellCosts(spell, hero);
+        outcome.hero.loseManaPoints(manaCosts);
+        applyCastingSideEffects(outcome.hero, manaCosts);
 
         switch (spell)
         {
@@ -216,10 +228,6 @@ namespace Cast
           break;
         }
       }
-
-      // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
-
-      // Dragon Soul (15% free cast chance)
     }
 
     return outcome;
