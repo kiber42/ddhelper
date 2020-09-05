@@ -244,12 +244,12 @@ go_bandit([] {
        [&] { AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Safe)); });
     it("should work for outcome 'hero dies' (simple case)", [&] {
       hero.loseHitPointsOutsideOfFight(5);
-      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::HeroDefeated));
+      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Death));
     });
     it("should work for outcome 'hero wins' (one shot, monster has lower level)", [&] {
       hero.gainExperience(30);
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
-      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::HeroWins));
+      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
 
     it("of hitpoint loss should work", [] {
@@ -286,7 +286,7 @@ go_bandit([] {
       Hero hero;
       hero.addStatus(HeroStatus::Reflexes);
       Monster monster(makeGenericMonsterStats(1, 2 * hero.getDamage(), 1, 0), {}, {});
-      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::HeroWins));
+      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
     it("Cursed should negate resistances", [] {
       Hero hero;

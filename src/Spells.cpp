@@ -113,6 +113,6 @@ namespace Cast
 
     // Dragon Soul (15% free cast chance)
 
-    return Outcome{summary, std::move(heroAfterFight), std::move(monsterAfterFight)};
+    return Outcome{summary, {}, std::move(heroAfterFight), std::move(monsterAfterFight)};
   }
 } // namespace Cast

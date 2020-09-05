@@ -105,7 +105,7 @@ void DDHelperApp::populateFrame()
       outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
     if (outcome.has_value())
     {
-      ImGui::Text("%s", toString(outcome->summary));
+      ImGui::Text("%s", toString(outcome->summary, outcome->debuffs).c_str());
       if (ImGui::Button("Accept outcome"))
       {
         hero = outcome->hero;
