@@ -6,9 +6,11 @@
 #include "Melee.hpp"
 #include "Monster.hpp"
 #include "MonsterFactory.hpp"
+#include "Spells.hpp"
 
 #include <optional>
 #include <utility>
+#include <vector>
 
 class DDHelperApp : public ImguiApp
 {
@@ -28,6 +30,8 @@ private:
   std::optional<Hero> hero;
   std::optional<Monster> monster;
   std::optional<Outcome> outcome;
+
+  std::vector<std::pair<Hero, Monster>> history;
 };
 
 DDHelperApp::DDHelperApp()
@@ -35,6 +39,26 @@ DDHelperApp::DDHelperApp()
   , hero_data{1, 10, 10, 5}
   , monster_data{1, 6, 6, 3}
 {
+}
+
+void showStatus(const Hero& hero, const Monster& monster)
+{
+  if (!hero.isDefeated())
+  {
+    ImGui::Text("Hero has %i HP, %i MP", hero.getHitPoints(), hero.getManaPoints());
+    if (hero.hasStatus(HeroStatus::FirstStrike))
+      ImGui::Text("Hero has first strike");
+  }
+  else
+    ImGui::Text("Hero was defeated.");
+  if (!monster.isDefeated())
+  {
+    ImGui::Text("Monster has %i HP", monster.getHitPoints());
+    if (monster.isBurning())
+      ImGui::Text("Monster is burning (burn stack size %i)", monster.getBurnStackSize());
+  }
+  else
+    ImGui::Text("Monster was defeated.");
 }
 
 void DDHelperApp::populateFrame()
@@ -46,9 +70,9 @@ void DDHelperApp::populateFrame()
   ImGui::DragInt("Physical Resistance", &hero_data[4], 0.2f, 0, 80);
   ImGui::DragInt("Magical Resistance", &hero_data[5], 0.2f, 0, 80);
 
-  for (HeroStatus status :
-       {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
-        HeroStatus::ConsecratedStrike, HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
+  for (HeroStatus status : {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes,
+                            HeroStatus::MagicalAttack, HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball,
+                            HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
   {
     bool current = hero_statuses[status] > 0;
     if (ImGui::Checkbox(toString(status), &current))
@@ -97,21 +121,55 @@ void DDHelperApp::populateFrame()
   }
   if (hero.has_value())
   {
-    ImGui::Text("Hero has %i HP", hero->getHitPoints());
-    ImGui::Text("Monster has %i HP", monster->getHitPoints());
-    if (hero->hasStatus(HeroStatus::FirstStrike))
-      ImGui::Text("Hero has first strike");
-    if (!hero->isDefeated() && !monster->isDefeated() && ImGui::Button("Fight!"))
-      outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
+    showStatus(hero.value(), monster.value());
+    if (!hero->isDefeated() && !monster->isDefeated())
+    {
+      if (ImGui::Button("Attack"))
+        outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
+      ImGui::SameLine();
+      if (ImGui::Button("Attack Other"))
+      {
+        Monster monsterAfter = monster.value();
+        monsterAfter.burnDown();
+        auto summary = monsterAfter.isDefeated() ? Outcome::Summary::Win : Outcome::Summary::Safe;
+        outcome.emplace(Outcome{summary, {}, hero.value(), std::move(monsterAfter)});
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Uncover Tile"))
+      {
+        Hero heroAfter = hero.value();
+        Monster monsterAfter = monster.value();
+        heroAfter.recover(1);
+        monsterAfter.recover(1);
+        outcome.emplace(Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), std::move(monsterAfter)});
+      }
+      int count = 0;
+      for (Spell spell :
+           {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,
+            Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
+      {
+        if (count++ % 4 != 0)
+          ImGui::SameLine();
+        if (ImGui::Button(toString(spell)))
+          outcome.emplace(Cast::predictOutcome(hero.value(), monster.value(), spell));
+      }
+    }
     if (outcome.has_value())
     {
       ImGui::Text("%s", toString(outcome->summary, outcome->debuffs).c_str());
+      showStatus(outcome->hero, outcome->monster);
       if (ImGui::Button("Accept outcome"))
       {
+        history.emplace_back(std::move(hero.value()), std::move(monster.value()));
         hero = outcome->hero;
         monster = outcome->monster;
         outcome.reset();
       }
+    }
+    else if (!history.empty() && ImGui::Button("Undo"))
+    {
+      std::tie(hero, monster) = std::move(history.back());
+      history.pop_back();
     }
   }
   ImGui::End();
