@@ -118,10 +118,18 @@ void Monster::stun()
   status.setStunned(true);
 }
 
-void Monster::crushResistances()
+void Monster::erodeResitances()
 {
   defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() - 3);
   defence.setMagicalResistPercent(defence.getMagicalResistPercent() - 3);
+}
+
+void Monster::petrify()
+{
+  status.setBurn(false);
+  status.setStunned(false);
+  stats.setDeathProtection(0);
+  stats.loseHitPoints(stats.getHitPoints());
 }
 
 bool Monster::isBurning() const

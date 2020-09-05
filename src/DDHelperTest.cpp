@@ -212,13 +212,13 @@ go_bandit([] {
       AssertThat(monster.getHitPoints(), Equals(12 - 5 - 2));
     });
     it("should work for crushed resistances (3 percentage points lost per crushing)", [&] {
-      monster.crushResistances();
+      monster.erodeResitances();
       AssertThat(monster.getPhysicalResistPercent(), Equals(47));
       AssertThat(monster.getMagicalResistPercent(), Equals(72));
-      monster.crushResistances();
-      monster.crushResistances();
-      monster.crushResistances();
-      monster.crushResistances();
+      monster.erodeResitances();
+      monster.erodeResitances();
+      monster.erodeResitances();
+      monster.erodeResitances();
       AssertThat(monster.getPhysicalResistPercent(), Equals(47 - 12));
       AssertThat(monster.getMagicalResistPercent(), Equals(72 - 12));
       AssertThat(monster.getHitPoints(), Equals(5));
