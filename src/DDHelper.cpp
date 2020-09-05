@@ -128,21 +128,10 @@ void DDHelperApp::populateFrame()
         outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
       ImGui::SameLine();
       if (ImGui::Button("Attack Other"))
-      {
-        Monster monsterAfter = monster.value();
-        monsterAfter.burnDown();
-        auto summary = monsterAfter.isDefeated() ? Outcome::Summary::Win : Outcome::Summary::Safe;
-        outcome.emplace(Outcome{summary, {}, hero.value(), std::move(monsterAfter)});
-      }
+        outcome.emplace(Melee::attackOther(hero.value(), monster.value()));
       ImGui::SameLine();
       if (ImGui::Button("Uncover Tile"))
-      {
-        Hero heroAfter = hero.value();
-        Monster monsterAfter = monster.value();
-        heroAfter.recover(1);
-        monsterAfter.recover(1);
-        outcome.emplace(Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), std::move(monsterAfter)});
-      }
+        outcome.emplace(Melee::uncoverTiles(hero.value(), monster.value(), 1));
       int count = 0;
       for (Spell spell :
            {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,

@@ -128,4 +128,30 @@ namespace Melee
     return debuffs;
   }
 
+  Outcome attackOther(const Hero& hero, const Monster& monster)
+  {
+    Outcome outcome{Outcome::Summary::Safe, {}, hero, monster};
+    outcome.monster.burnDown();
+    if (outcome.monster.isDefeated())
+    {
+      outcome.summary = Outcome::Summary::Win;
+      if (outcome.monster.bearsCurse())
+      {
+        outcome.hero.addStatus(HeroStatus::Cursed);
+        outcome.debuffs.insert(Outcome::Debuff::Cursed);
+      }
+      else
+        outcome.hero.removeStatus(HeroStatus::Cursed, false);
+    }
+    return outcome;
+  }
+
+  Outcome uncoverTiles(const Hero& hero, const Monster& monster, int numTiles)
+  {
+    Outcome outcome{Outcome::Summary::Safe, {}, hero, monster};
+    outcome.hero.recover(numTiles);
+    outcome.monster.recover(numTiles);
+    return outcome;
+  }
+
 } // namespace Melee
