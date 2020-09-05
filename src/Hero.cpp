@@ -184,6 +184,22 @@ void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
   stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
 }
 
+void Hero::recover(int nSquares)
+{
+  if (!hasStatus(HeroStatus::Poisoned))
+  {
+    int multiplier = getLevel() * (hasTrait(HeroTrait::Discipline) ? 2 : 1);
+    if (hasTrait(HeroTrait::Damned))
+      multiplier = 1;
+    // TODO: Add +1 for Bloody Sigil
+    stats.healHitPoints(nSquares * multiplier, false);
+  }
+  if (!hasStatus(HeroStatus::ManaBurned))
+  {
+    stats.recoverManaPoints(nSquares);
+  }
+}
+
 void Hero::healHitPoints(int amountPointsHealed, bool mayOverheal)
 {
   stats.healHitPoints(amountPointsHealed, mayOverheal);
