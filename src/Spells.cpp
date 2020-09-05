@@ -91,7 +91,13 @@ namespace Cast
   constexpr bool needsMonster(Spell spell)
   {
     return spell == Spell::Apheelsik || spell == Spell::Burndayraz || spell == Spell::Pisorf ||
-           spell == Spell::Imawal /* ignore creating walls */ || spell == Spell::Weytwut || spell == Spell::Wonafyt;
+           spell == Spell::Weytwut || spell == Spell::Wonafyt;
+  }
+
+  // Spells that behave differently if a target is present
+  constexpr bool monsterIsOptional(Spell spell)
+  {
+    return spell == Spell::Imawal || spell == Spell::Lemmisi;
   }
 
   constexpr bool canBeResisted(Spell spell)
@@ -101,7 +107,7 @@ namespace Cast
 
   bool isPossible(const Hero& hero, Spell spell)
   {
-    const bool validWithoutTarget = !needsMonster(spell) || spell == Spell::Imawal /* permit if explictly requested */;
+    const bool validWithoutTarget = !needsMonster(spell);
     assert(validWithoutTarget);
     return validWithoutTarget && hero.getManaPoints() >= spellCosts(spell, hero) &&
            (spell != Spell::Bludtupowa || hero.getHitPoints() > 3 * hero.getLevel()) &&
@@ -184,7 +190,7 @@ namespace Cast
     }
     else
     {
-      if (!needsMonster(spell))
+      if (!needsMonster(spell) && !monsterIsOptional(spell))
         outcome.hero = untargeted(std::move(outcome.hero), spell);
       else
       {
@@ -196,12 +202,19 @@ namespace Cast
           outcome.monster.poison(10 * hero.getLevel());
           break;
         case Spell::Burndayraz:
-          burndayraz(outcome.hero, outcome.monster);
+          std::tie(outcome.summary, outcome.debuffs) = burndayraz(outcome.hero, outcome.monster);
           break;
         case Spell::Imawal:
           outcome.monster.petrify();
           outcome.hero.addStatus(HeroStatus::ExperienceBoost);
           break;
+        case Spell::Lemmisi:
+        {
+          const int uncoveredTiles = 3;
+          outcome.hero.recover(uncoveredTiles);
+          outcome.monster.recover(uncoveredTiles);
+          break;
+        }
         case Spell::Pisorf:
           // 60% of base damage as knockback damage if against wall
           // (TODO?) 50% of base damage as knockback damage if against enemy
