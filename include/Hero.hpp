@@ -1,9 +1,7 @@
 #pragma once
 
-//#include "HeroModifier.h"
 //#include "Inventory.h"
 
-#include "Attack.hpp"
 #include "Defence.hpp"
 #include "ExperienceInterface.hpp"
 #include "HeroStats.hpp"
@@ -14,7 +12,6 @@
 #include <memory>
 #include <set>
 
-class AttackBehaviour;
 class Monster;
 
 class Hero
@@ -22,7 +19,7 @@ class Hero
 public:
   Hero();
   Hero(const Hero &);
-  Hero(Hero &&);
+  Hero(Hero &&) = default;
   Hero& operator=(const Hero&);
   Hero& operator=(Hero&&);
 
@@ -78,7 +75,8 @@ public:
 
 private:
   HeroStats stats;
-  std::unique_ptr<AttackBehaviour> attack;
+  int damage;
+  int damageBonusPercent;
   Defence defence;
   std::unique_ptr<ExperienceInterface> experience;
   std::map<HeroStatus, int> statuses;

@@ -9,7 +9,8 @@
 
 Hero::Hero()
   : stats(1, 10, 10)
-  , attack(new Attack())
+  , damage(5)
+  , damageBonusPercent(0)
   , defence(0, 0, 65, 65)
   , experience(new Experience())
 /*
@@ -22,26 +23,19 @@ Hero::Hero()
 
 Hero::Hero(const Hero& other)
   : stats(other.stats)
-  , attack(other.attack->clone())
+  , damage(other.damage)
+  , damageBonusPercent(other.damageBonusPercent)
   , defence(other.defence)
   , experience(other.experience->clone())
   , statuses(other.statuses)
 {
 }
 
-Hero::Hero(Hero&& other)
-  : stats(std::move(other.stats))
-  , attack(std::move(other.attack))
-  , defence(std::move(other.defence))
-  , experience(std::move(other.experience))
-  , statuses(std::move(other.statuses))
-{
-}
-
 Hero& Hero::operator=(const Hero& other)
 {
-  attack.reset(other.attack->clone());
   stats = other.stats;
+  damage = other.damage;
+  damageBonusPercent = other.damageBonusPercent;
   defence = other.defence;
   experience.reset(other.experience->clone());
   statuses = other.statuses;
@@ -50,8 +44,9 @@ Hero& Hero::operator=(const Hero& other)
 
 Hero& Hero::operator=(Hero&& other)
 {
-  attack.swap(other.attack);
   stats = std::move(other.stats);
+  damage = other.damage;
+  damageBonusPercent = other.damageBonusPercent;
   defence = std::move(other.defence);
   experience.swap(other.experience);
   statuses = std::move(other.statuses);
@@ -133,22 +128,22 @@ void Hero::modifyHitPointsMax(int delta)
 
 int Hero::getBaseDamage() const
 {
-  return std::max(attack->getBaseDamage() - getStatusIntensity(HeroStatus::Weakened), 0);
+  return std::max(damage - getStatusIntensity(HeroStatus::Weakened), 0);
 }
 
 void Hero::changeBaseDamage(int deltaDamagePoints)
 {
-  attack->changeBaseDamage(deltaDamagePoints);
+  damage = std::max(damage + deltaDamagePoints, 0);
 }
 
 int Hero::getDamageBonusPercent() const
 {
-  return attack->getDamageBonusPercent();
+  return damageBonusPercent;
 }
 
 void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
 {
-  attack->changeDamageBonusPercent(deltaDamageBonusPercent);
+  damageBonusPercent += deltaDamageBonusPercent;
 }
 
 int Hero::getDamage() const
@@ -193,7 +188,21 @@ bool Hero::doesMagicalDamage() const
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
-  return attack->hasInitiativeVersus(*this, monster);
+    // TODO Adjust behaviour based on hero's traits
+  if (hasStatus(HeroStatus::Reflexes))
+    return true;
+
+  const bool heroFast = hasStatus(HeroStatus::FirstStrike) && !hasStatus(HeroStatus::SlowStrike);
+  const bool monsterFast = monster.hasFirstStrike() && !monster.isStunned();
+  if (heroFast || monsterFast)
+    return !monsterFast;
+
+  const bool heroSlow = !hasStatus(HeroStatus::FirstStrike) && hasStatus(HeroStatus::SlowStrike);
+  const bool monsterSlow = monster.isStunned();
+  if (heroSlow || monsterSlow)
+    return !heroSlow;
+
+  return getLevel() > monster.getLevel();
 }
 
 int Hero::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
@@ -254,10 +263,11 @@ bool Hero::hasStatus(HeroStatus status) const
 
 void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
 {
-  if (newIntensity > 1 && !canHaveMultiple(status))
+  const bool canStack = canHaveMultiple(status) ||
+    (status == HeroStatus::Might && hasTrait(HeroTrait::Additives));
+  if (newIntensity > 1 && !canStack)
     newIntensity = 1;
-  const int delta = newIntensity - statuses[status];
-  if (delta == 0)
+  if (newIntensity == statuses[status])
     return;
   statuses[status] = newIntensity;
   propagateStatus(status, newIntensity);
@@ -318,5 +328,6 @@ void Hero::levelGainedUpdate()
   stats.setLevel(experience->getLevel());
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus()); // TODO
   stats.refresh();
-  attack->levelGainedUpdate();
+
+  damage += 5;
 }
