@@ -6,6 +6,9 @@ enum class HeroTrait
 {
   Additives,
   Defiant,
+  // Boons
+  BloodCurse,
+  Humility,
 };
 
 constexpr const char* toString(HeroTrait trait)
@@ -16,5 +19,10 @@ constexpr const char* toString(HeroTrait trait)
     return "Additives";
   case HeroTrait::Defiant:
     return "Defiant";
+
+  case HeroTrait::BloodCurse:
+    return "Blood Curse";
+  case HeroTrait::Humility:
+    return "Humility";
   }
 }

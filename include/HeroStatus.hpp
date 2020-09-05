@@ -2,7 +2,6 @@
 
 enum class HeroStatus
 {
-  BloodCurse,
   // BurningStrike,
   ConsecratedStrike,
   Corrosion,
@@ -19,7 +18,6 @@ enum class HeroStatus
   ExperienceBoost,
   FirstStrike,
   // HeavyFireball
-  Humility,
   // Indulgence
   // Knockback
   Learning,
@@ -46,8 +44,6 @@ constexpr const char* toString(HeroStatus status)
 {
   switch (status)
   {
-  case HeroStatus::BloodCurse:
-    return "Blood Curse";
   case HeroStatus::ConsecratedStrike:
     return "Consecrated Strike";
   case HeroStatus::Corrosion:
@@ -58,8 +54,6 @@ constexpr const char* toString(HeroStatus status)
     return "Experience Boost";
   case HeroStatus::FirstStrike:
     return "First Strike";
-  case HeroStatus::Humility:
-    return "Humility";
   case HeroStatus::Learning:
     return "Learning";
   case HeroStatus::MagicalAttack:
@@ -83,9 +77,4 @@ constexpr bool canHaveMultiple(HeroStatus status)
 {
   return status == HeroStatus::Corrosion || status == HeroStatus::Cursed || status == HeroStatus::Learning ||
          status == HeroStatus::Weakened;
-}
-
-constexpr bool isRemovable(HeroStatus status)
-{
-  return status != HeroStatus::BloodCurse && status != HeroStatus::Humility;
 }

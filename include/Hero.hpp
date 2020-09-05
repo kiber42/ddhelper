@@ -84,7 +84,6 @@ private:
   std::map<HeroStatus, int> statuses;
   std::set<HeroTrait> traits;
 
-  void statusAddedHook(HeroStatus status);
   void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
 

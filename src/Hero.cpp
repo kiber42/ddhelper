@@ -260,10 +260,6 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
   if (delta == 0)
     return;
   statuses[status] = newIntensity;
-  if (delta > 0)
-    statusAddedHook(status);
-  else
-    assert(isRemovable(status));
   propagateStatus(status, newIntensity);
 }
 
@@ -275,27 +271,26 @@ int Hero::getStatusIntensity(HeroStatus status) const
 
 void Hero::addTrait(HeroTrait trait)
 {
-  [[maybe_unused]] auto success = traits.insert(trait);
-  assert(success.second);
+  auto success = traits.insert(trait);
+  if (!success.second)
+  {
+    assert(false);
+    return;
+  }
+
+  if (trait == HeroTrait::BloodCurse)
+  {
+    experience->modifyLevelBy(+1);
+  }
+  else if (trait == HeroTrait::Humility)
+  {
+    experience->modifyLevelBy(-1);
+  }
 }
 
 bool Hero::hasTrait(HeroTrait trait) const
 {
   return traits.count(trait) > 0;
-}
-
-void Hero::statusAddedHook(HeroStatus status)
-{
-  if (status == HeroStatus::BloodCurse)
-  {
-    assert(statuses[status] == 1);
-    experience->modifyLevelBy(+1);
-  }
-  else if (status == HeroStatus::Humility)
-  {
-    assert(statuses[status] == 1);
-    experience->modifyLevelBy(-1);
-  }
 }
 
 void Hero::propagateStatus(HeroStatus status, int intensity)
