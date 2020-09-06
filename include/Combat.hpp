@@ -4,10 +4,12 @@
 #include "Monster.hpp"
 #include "Outcome.hpp"
 
-namespace Melee
+namespace Combat
 {
+  // Predict outcome of melee attack
   Outcome predictOutcome(const Hero&, const Monster&);
 
+  // Monster attacks hero
   Outcome::Debuffs retaliate(Hero&, const Monster&);
 
   // Predicts outcome for current monster if hero were to attack another monster
@@ -21,4 +23,4 @@ namespace Melee
 
   // Determines outcome summary and awards experience if applicable
   Outcome::Summary summaryAndExperience(Hero& heroAfterFight, const Monster& monsterAfterFight, bool monsterWasSlowed);
-} // namespace Melee
+} // namespace Combat

@@ -1,9 +1,9 @@
 // IntelliSense gets confused without the relative path
 #include "../include/ImguiApp.hpp"
 
+#include "Combat.hpp"
 #include "Defence.hpp"
 #include "Hero.hpp"
-#include "Melee.hpp"
 #include "Monster.hpp"
 #include "MonsterFactory.hpp"
 #include "Spells.hpp"
@@ -144,19 +144,19 @@ void DDHelperApp::populateFrame()
     if (withMonster)
     {
       if (ImGui::Button("Attack"))
-        outcome.emplace(Melee::predictOutcome(hero.value(), monster.value()));
+        outcome.emplace(Combat::predictOutcome(hero.value(), monster.value()));
       ImGui::SameLine();
       if (ImGui::Button("Attack Other"))
-        outcome.emplace(Melee::attackOther(hero.value(), monster.value()));
+        outcome.emplace(Combat::attackOther(hero.value(), monster.value()));
       ImGui::SameLine();
       if (ImGui::Button("Uncover Tile"))
-        outcome.emplace(Melee::uncoverTiles(hero.value(), monster.value(), 1));
+        outcome.emplace(Combat::uncoverTiles(hero.value(), monster.value(), 1));
     }
     else
     {
       if (ImGui::Button("Uncover Tile"))
       {
-        Hero heroAfter = Melee::uncoverTiles(hero.value(), 1);
+        Hero heroAfter = Combat::uncoverTiles(hero.value(), 1);
         history.emplace_back(std::move(hero), monster);
         hero = heroAfter;
       }

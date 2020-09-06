@@ -1,6 +1,6 @@
 #include "Spells.hpp"
 
-#include "Melee.hpp"
+#include "Combat.hpp"
 
 #include <cassert>
 
@@ -34,7 +34,7 @@ namespace Cast
       else if (hero.hasTrait(HeroTrait::MagicAttunement))
         monster.burn(maxBurnStackSize);
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
-        return Melee::retaliate(hero, monster);
+        return Combat::retaliate(hero, monster);
       return {};
     }
   } // namespace
@@ -224,7 +224,7 @@ namespace Cast
           break;
         }
 
-        outcome.summary = Melee::summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
+        outcome.summary = Combat::summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
       }
     }
 

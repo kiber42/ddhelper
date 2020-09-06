@@ -1,9 +1,9 @@
-#include "Melee.hpp"
+#include "Combat.hpp"
 
 #include <cassert>
 #include <iostream>
 
-namespace Melee
+namespace Combat
 {
   namespace
   {
@@ -174,4 +174,4 @@ namespace Melee
     return heroAfterFight.getLevel() > levelInitial ? Outcome::Summary::LevelUp : Outcome::Summary::Win;
   }
 
-} // namespace Melee
+} // namespace Combat

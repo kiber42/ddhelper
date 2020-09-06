@@ -40,13 +40,13 @@ target_link_libraries(imguiapp dearimgui)
 add_library(
     DDHelperLibrary STATIC
     src/BaseStats.cpp
+    src/Combat.cpp
     src/Defence.cpp
     src/Dungeon.cpp
     src/Experience.cpp
     src/Hero.cpp
     src/HeroStats.cpp
     src/ItemClass.cpp
-    src/Melee.cpp
     src/Monster.cpp
     src/MonsterFactory.cpp
     src/MonsterStats.cpp

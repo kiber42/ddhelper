@@ -1,9 +1,9 @@
 #include "bandit/bandit.h"
 
+#include "Combat.hpp"
 #include "Dungeon.hpp"
 #include "Experience.hpp"
 #include "Hero.hpp"
-#include "Melee.hpp"
 #include "Monster.hpp"
 #include "MonsterFactory.hpp"
 
@@ -241,23 +241,23 @@ go_bandit([] {
     Hero hero;
     Monster monster = makeGenericMonster(3, 15, 5);
     it("should work for outcome 'safe' (simple case)",
-       [&] { AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Safe)); });
+       [&] { AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Safe)); });
     it("should work for outcome 'hero dies' (simple case)", [&] {
       hero.loseHitPointsOutsideOfFight(5);
-      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Death));
+      AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Death));
     });
     it("should work for outcome 'hero wins' (one shot, monster has lower level)", [&] {
       hero.gainExperience(30);
       AssertThat(hero.getLevel(), Equals(4));
       AssertThat(hero.getXP(), Equals(0));
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
-      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
+      AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
 
     it("of hitpoint loss should work", [] {
       Hero hero;
       Monster monster = makeGenericMonster(3, 15, 9);
-      const auto outcome = Melee::predictOutcome(hero, monster);
+      const auto outcome = Combat::predictOutcome(hero, monster);
       AssertThat(hero.getHitPoints(), Equals(10));
       AssertThat(monster.getHitPoints(), Equals(15));
       AssertThat(outcome.hero.getHitPoints(), Equals(10 - monster.getDamage()));
@@ -288,7 +288,7 @@ go_bandit([] {
       Hero hero;
       hero.addStatus(HeroStatus::Reflexes);
       Monster monster = makeGenericMonster(1, 2 * hero.getDamage(), 1);
-      AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
+      AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
     it("Cursed should negate resistances", [] {
       Hero hero;
@@ -303,11 +303,11 @@ go_bandit([] {
       Hero hero;
       hero.changeBaseDamage(100);
       Monster monster("",  makeGenericMonsterStats(1, 10, 3, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
-      hero = Melee::predictOutcome(hero, monster).hero;
+      hero = Combat::predictOutcome(hero, monster).hero;
       // One curse from hit, one from killing
       AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
       Monster monster2 = makeGenericMonster(1, 10, 3);
-      hero = Melee::predictOutcome(hero, monster2).hero;
+      hero = Combat::predictOutcome(hero, monster2).hero;
       AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
     });
     it("Cursed should take effect immediately after hero's attack", [] {
@@ -316,7 +316,7 @@ go_bandit([] {
       const int health = hero.getHitPoints();
       hero.setPhysicalResistPercent(50);
       Monster monster("", makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
-      hero = Melee::predictOutcome(hero, monster).hero;
+      hero = Combat::predictOutcome(hero, monster).hero;
       AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(true));
       AssertThat(hero.getHitPoints(), Equals(health - 10));
     });
