@@ -24,6 +24,7 @@ namespace Cast
     {
       using Summary = Outcome::Summary;
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
+      const bool monsterSlowed = monster.isSlowed();
       const int multiplier =
           4 + hero.hasTrait(HeroTrait::Flames) + (heavy ? 4 : 0) /* + (hero.hasItem(Items::BattlemageRing) ? 1 : 0) */;
       monster.takeFireballDamage(hero.getLevel(), multiplier);
@@ -34,7 +35,7 @@ namespace Cast
         monster.burn(maxBurnStackSize);
       if (monster.isDefeated())
         return {Summary::Win, {}};
-      else if (heavy || monster.doesRetaliate())
+      else if (!monsterSlowed && (heavy || monster.doesRetaliate()))
       {
         auto debuffs = Melee::retaliate(hero, monster);
         return {hero.isDefeated() ? Summary::Death : Summary::Safe, std::move(debuffs)};
