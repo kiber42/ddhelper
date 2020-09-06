@@ -55,7 +55,7 @@ int Monster::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) 
 void Monster::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
 {
   stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
-  status.setStunned(false);
+  status.setSlowed(false);
   status.setBurn(0);
 }
 
@@ -63,7 +63,7 @@ void Monster::takeFireballDamage(int casterLevel, int damageMultiplier)
 {
   const int damagePoints = casterLevel * damageMultiplier;
   stats.loseHitPoints(predictDamageTaken(damagePoints, true));
-  status.setStunned(false);
+  status.setSlowed(false);
   burn(casterLevel * 2);
 }
 
@@ -102,7 +102,7 @@ void Monster::burnDown()
 {
   if (status.getBurnStackSize() > 0)
   {
-    status.setStunned(false);
+    status.setSlowed(false);
     stats.loseHitPoints(status.getBurnStackSize());
     status.setBurn(0);
   }
@@ -113,9 +113,9 @@ void Monster::poison(int addedPoisonAmount)
   status.setPoison(status.getPoisonAmount() + addedPoisonAmount);
 }
 
-void Monster::stun()
+void Monster::slow()
 {
-  status.setStunned(true);
+  status.setSlowed(true);
 }
 
 void Monster::erodeResitances()
@@ -127,7 +127,7 @@ void Monster::erodeResitances()
 void Monster::petrify()
 {
   status.setBurn(false);
-  status.setStunned(false);
+  status.setSlowed(false);
   stats.setDeathProtection(0);
   stats.loseHitPoints(stats.getHitPoints());
 }
@@ -142,9 +142,9 @@ bool Monster::isPoisoned() const
   return status.isPoisoned();
 }
 
-bool Monster::isStunned() const
+bool Monster::isSlowed() const
 {
-  return status.isStunned();
+  return status.isSlowed();
 }
 
 int Monster::getBurnStackSize() const

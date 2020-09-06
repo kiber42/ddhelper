@@ -162,12 +162,12 @@ bool Hero::hasInitiativeVersus(const Monster& monster) const
     return true;
 
   const bool heroFast = hasStatus(HeroStatus::FirstStrike) && !hasStatus(HeroStatus::SlowStrike);
-  const bool monsterFast = monster.hasFirstStrike() && !monster.isStunned();
+  const bool monsterFast = monster.hasFirstStrike() && !monster.isSlowed();
   if (heroFast || monsterFast)
     return !monsterFast;
 
   const bool heroSlow = !hasStatus(HeroStatus::FirstStrike) && hasStatus(HeroStatus::SlowStrike);
-  const bool monsterSlow = monster.isStunned();
+  const bool monsterSlow = monster.isSlowed();
   if (heroSlow || monsterSlow)
     return !heroSlow;
 

@@ -27,13 +27,13 @@ public:
   void burnMax(int nMaxStacks);
   void burnDown();
   void poison(int addedPoisonAmount);
-  void stun();
+  void slow();
   void erodeResitances();
   void petrify();
 
   bool isBurning() const;
   bool isPoisoned() const;
-  bool isStunned() const;
+  bool isSlowed() const;
   int getBurnStackSize() const;
   int getPoisonAmount() const;
   int getDeathProtection() const;

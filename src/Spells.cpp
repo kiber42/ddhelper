@@ -217,11 +217,11 @@ namespace Cast
           break;
         case Spell::Weytwut:
           // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
-          outcome.monster.stun();
+          outcome.monster.slow();
           break;
         case Spell::Wonafyt:
           // adds Slowed to monster, can only be cast against same or lower level
-          outcome.monster.stun();
+          outcome.monster.slow();
           break;
         default:
           assert(false);

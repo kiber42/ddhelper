@@ -7,7 +7,7 @@ public:
 
   bool isBurning() const;
   bool isPoisoned() const;
-  bool isStunned() const;
+  bool isSlowed() const;
 
   int getBurnStackSize() const;
   int getPoisonAmount() const;
@@ -16,14 +16,14 @@ public:
 
   void setBurn(int nStacks);
   void setPoison(int poisonAmount);
-  void setStunned(bool stunned);
+  void setSlowed(bool slowed);
   void setCorroded(int numCorrosionStacks);
   void setWeakened(int numWeakened);
 
 private:
   int burnStackSize;
   int poisonAmount;
-  bool stunned;
+  bool slowed;
   int corroded;
   int weakened;
 };

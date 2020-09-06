@@ -63,6 +63,8 @@ namespace Melee
     // TODO Handle knockback?
     // TODO Handle burn stack pop on other monsters?
 
+    bool monsterWasStunned = monster.isSlowed();
+
     if (hero.hasInitiativeVersus(monster))
     {
       // Damage is almost always computed using the initial hero and monster
@@ -77,7 +79,10 @@ namespace Melee
           outcome.hero.addStatus(HeroStatus::Cursed);
         outcome.hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
         if (hero.hasStatus(HeroStatus::Reflexes) && !outcome.hero.isDefeated())
+        {
+          monsterWasStunned = false;
           outcome.monster.takeDamage(hero.getDamage(), hero.doesMagicalDamage());
+        }
       }
     }
     else
@@ -110,7 +115,13 @@ namespace Melee
       outcome.summary = Summary::Death;
     else
     {
-      outcome.summary = outcome.monster.isDefeated() ? Summary::Win : Summary::Safe;
+      if (outcome.monster.isDefeated())
+      {
+        outcome.summary = Summary::Win;
+        outcome.hero.gainExperience(Experience::forHeroAndMonsterLevels(hero.getLevel(), monster.getLevel()), monster.isSlowed());
+      }
+      else
+        outcome.summary = Summary::Safe;
       if (outcome.hero.getDeathProtection() < hero.getDeathProtection())
         outcome.debuffs.insert(Outcome::Debuff::LostDeathProtection);
     }

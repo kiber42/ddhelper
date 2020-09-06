@@ -174,11 +174,11 @@ go_bandit([] {
       AssertThat(monster.isBurning(), Equals(false));
       AssertThat(monster.getHitPoints(), Equals(2));
     });
-    it("should recover from stun when taking damage", [&] {
-      monster.stun();
-      AssertThat(monster.isStunned(), Equals(true));
+    it("should recover from being slowed when taking damage", [&] {
+      monster.slow();
+      AssertThat(monster.isSlowed(), Equals(true));
       monster.takeDamage(1, false);
-      AssertThat(monster.isStunned(), Equals(false));
+      AssertThat(monster.isSlowed(), Equals(false));
     });
   });
 
@@ -326,13 +326,13 @@ go_bandit([] {
     it("should go to the monster of equal level", [&] { //
       AssertThat(!hero.hasInitiativeVersus(monster), IsTrue());
     });
-    it("should go to the hero if the monster is stunned", [&] {
-      monster.stun();
+    it("should go to the hero if the monster is slowed", [&] {
+      monster.slow();
       AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
     });
     it("should go to the hero if he has first strike", [&] {
       monster.takeDamage(0, false);
-      AssertThat(monster.isStunned(), IsFalse());
+      AssertThat(monster.isSlowed(), IsFalse());
       hero.addStatus(HeroStatus::FirstStrike);
       AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
     });
