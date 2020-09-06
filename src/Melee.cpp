@@ -44,8 +44,7 @@ namespace Melee
 
   Outcome predictOutcome(const Hero& hero, const Monster& monster)
   {
-    using Summary = Outcome::Summary;
-    Outcome outcome{Summary::NotPossible, {}, hero, monster};
+    Outcome outcome{Outcome::Summary::NotPossible, {}, hero, monster};
 
     if (hero.isDefeated())
     {
@@ -98,6 +97,8 @@ namespace Melee
     }
 
     outcome.debuffs = receiveDebuffs(outcome.hero, monster, false);
+    if (outcome.hero.getDeathProtection() < hero.getDeathProtection())
+      outcome.debuffs.insert(Outcome::Debuff::LostDeathProtection);
     if (outcome.monster.isDefeated())
     {
       if (monster.bearsCurse())
@@ -111,23 +112,7 @@ namespace Melee
     outcome.hero.removeStatus(HeroStatus::FirstStrike, true);
     outcome.hero.removeStatus(HeroStatus::Reflexes, true);
 
-    if (outcome.hero.isDefeated())
-      outcome.summary = Summary::Death;
-    else
-    {
-      if (outcome.monster.isDefeated())
-      {
-        outcome.hero.gainExperience(Experience::forHeroAndMonsterLevels(hero.getLevel(), monster.getLevel()), monster.isSlowed());
-        if (outcome.hero.getLevel() > hero.getLevel())
-          outcome.summary = Summary::LevelUp;
-        else
-          outcome.summary = Summary::Win;
-      }
-      else
-        outcome.summary = Summary::Safe;
-      if (outcome.hero.getDeathProtection() < hero.getDeathProtection())
-        outcome.debuffs.insert(Outcome::Debuff::LostDeathProtection);
-    }
+    outcome.summary = summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
 
     return outcome;
   }
@@ -148,7 +133,7 @@ namespace Melee
     outcome.monster.burnDown();
     if (outcome.monster.isDefeated())
     {
-      outcome.summary = Outcome::Summary::Win;
+      outcome.summary = summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
       if (outcome.monster.bearsCurse())
       {
         outcome.hero.addStatus(HeroStatus::Cursed);
@@ -172,6 +157,21 @@ namespace Melee
   {
     hero.recover(numTiles);
     return hero;
+  }
+
+  Outcome::Summary summaryAndExperience(Hero& heroAfterFight, const Monster& monsterAfterFight, bool monsterWasSlowed)
+  {
+    using Summary = Outcome::Summary;
+    if (heroAfterFight.isDefeated())
+      return Summary::Death;
+
+    if (!monsterAfterFight.isDefeated())
+      return Summary::Safe;
+
+    const int levelInitial = heroAfterFight.getLevel();
+    heroAfterFight.gainExperience(
+        Experience::forHeroAndMonsterLevels(heroAfterFight.getLevel(), monsterAfterFight.getLevel()), monsterWasSlowed);
+    return heroAfterFight.getLevel() > levelInitial ? Outcome::Summary::LevelUp : Outcome::Summary::Win;
   }
 
 } // namespace Melee

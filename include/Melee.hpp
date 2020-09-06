@@ -18,4 +18,7 @@ namespace Melee
 
   // Predicts recovery of hero when uncovering tiles and no monster is around
   Hero uncoverTiles(Hero, int numTiles=1);
+
+  // Determines outcome summary and awards experience if applicable
+  Outcome::Summary summaryAndExperience(Hero& heroAfterFight, const Monster& monsterAfterFight, bool monsterWasSlowed);
 } // namespace Melee

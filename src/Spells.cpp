@@ -20,7 +20,7 @@ namespace Cast
     // - Avatar's Codex -> Heavy Fireball: +4 dmg per caster level, instant max burn stacks, monster will
     // retaliate if not defeated
     // - Battlemage Ring, +1 dmg per caster level
-    std::pair<Outcome::Summary, Outcome::Debuffs> burndayraz(Hero& hero, Monster& monster)
+    Outcome::Debuffs burndayraz(Hero& hero, Monster& monster)
     {
       using Summary = Outcome::Summary;
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
@@ -33,14 +33,9 @@ namespace Cast
         monster.burnMax(maxBurnStackSize);
       else if (hero.hasTrait(HeroTrait::MagicAttunement))
         monster.burn(maxBurnStackSize);
-      if (monster.isDefeated())
-        return {Summary::Win, {}};
-      else if (!monsterSlowed && (heavy || monster.doesRetaliate()))
-      {
-        auto debuffs = Melee::retaliate(hero, monster);
-        return {hero.isDefeated() ? Summary::Death : Summary::Safe, std::move(debuffs)};
-      }
-      return {Summary::Safe, {}};
+      if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
+        return Melee::retaliate(hero, monster);
+      return {};
     }
   } // namespace
 
@@ -198,7 +193,7 @@ namespace Cast
           outcome.monster.poison(10 * hero.getLevel());
           break;
         case Spell::Burndayraz:
-          std::tie(outcome.summary, outcome.debuffs) = burndayraz(outcome.hero, outcome.monster);
+          outcome.debuffs = burndayraz(outcome.hero, outcome.monster);
           break;
         case Spell::Imawal:
           outcome.monster.petrify();
@@ -228,14 +223,8 @@ namespace Cast
           assert(false);
           break;
         }
-        if (outcome.monster.isDefeated() && !outcome.hero.isDefeated())
-        {
-          outcome.hero.gainExperience(Experience::forHeroAndMonsterLevels(hero.getLevel(), monster.getLevel()), monster.isSlowed());
-          if (outcome.hero.getLevel() > hero.getLevel())
-            outcome.summary = Summary::LevelUp;
-          else
-            outcome.summary = Summary::Win;
-        }
+
+        outcome.summary = Melee::summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
       }
     }
 
