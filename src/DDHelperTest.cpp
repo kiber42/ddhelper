@@ -248,6 +248,8 @@ go_bandit([] {
     });
     it("should work for outcome 'hero wins' (one shot, monster has lower level)", [&] {
       hero.gainExperience(30);
+      AssertThat(hero.getLevel(), Equals(4));
+      AssertThat(hero.getXP(), Equals(0));
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
       AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
