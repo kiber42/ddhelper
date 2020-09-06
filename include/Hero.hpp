@@ -18,7 +18,7 @@ class Hero
 {
 public:
   Hero();
-  Hero(HeroStats, int damage, Defence, Experience);
+  Hero(HeroStats, Defence, Experience);
 
   int getXP() const;
   int getLevel() const;
@@ -73,8 +73,6 @@ public:
 
 private:
   HeroStats stats;
-  int damage;
-  int damageBonusPercent;
   Defence defence;
   Experience experience;
   std::map<HeroStatus, int> statuses;

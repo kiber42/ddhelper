@@ -1,54 +1,119 @@
 #include "HeroStats.hpp"
 
-HeroStats::HeroStats(int level, int hpMax, int mpMax)
-  : stats(level, hpMax, mpMax, 0)
+#include <algorithm>
+#include <cassert>
+
+HeroStats::HeroStats()
+  : HeroStats(10, 10, 5)
+{
+}
+
+HeroStats::HeroStats(int hpMax, int mpMax, int baseDamage)
+  : hp(hpMax)
+  , hpMax(hpMax)
+  , mp(mpMax)
+  , mpMax(mpMax)
+  , baseDamage(baseDamage)
+  , damageBonusPercent(0)
   , healthBonus(0)
+  , deathProtection(false)
 {
-}
-
-int HeroStats::getLevel() const
-{
-  return stats.getLevel();
-}
-
-void HeroStats::setLevel(int level)
-{
-  stats.setLevel(level);
 }
 
 bool HeroStats::isDefeated() const
 {
-  return stats.isDefeated();
+  return hp <= 0;
 }
 
 int HeroStats::getHitPoints() const
 {
-  return stats.getHitPoints();
+  return hp;
 }
 
 int HeroStats::getHitPointsMax() const
 {
-  return stats.getHitPointsMax();
+  return hpMax;
 }
 
 void HeroStats::setHitPointsMax(int hitPointsMax)
 {
-  stats.setHitPointsMax(hitPointsMax, true);
+  if (hitPointsMax < 1)
+    hitPointsMax = 1;
+  const bool isReduction = hitPointsMax < hpMax;
+  hpMax = hitPointsMax;
+  if (isReduction && hp > hpMax)
+    hp = hpMax;
 }
 
 int HeroStats::getManaPoints() const
 {
-  return stats.getManaPoints();
+  return mp;
 }
 
 int HeroStats::getManaPointsMax() const
 {
-  return stats.getManaPointsMax();
+  return mpMax;
 }
 
 void HeroStats::setManaPointsMax(int manaPointsMax)
 {
-  stats.setManaPointsMax(manaPointsMax);
+  mpMax = manaPointsMax;
+  if (mp > mpMax)
+    mp = mpMax;
+}
+
+void HeroStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
+{
+  const int max = allowOverheal ? hpMax : (hpMax * 3 / 2);
+  hp = std::min(hp + amountPointsHealed, max);
+}
+
+void HeroStats::loseHitPoints(int amountPointsLost)
+{
+  hp = std::max(hp - amountPointsLost, 0);
+  if (hp == 0 && deathProtection)
+  {
+    hp = 1;
+    deathProtection = false;
+  }
+}
+
+void HeroStats::recoverManaPoints(int amountPointsRecovered)
+{
+  mp = std::min(mp + amountPointsRecovered, mpMax);
+}
+
+void HeroStats::loseManaPoints(int amountPointsLost)
+{
+  assert(amountPointsLost <= mp);
+  mp = std::max(mp - amountPointsLost, 0);
+}
+
+
+void HeroStats::refresh()
+{
+  hp = hpMax;
+  mp = mpMax;
+}
+
+int HeroStats::getBaseDamage() const
+{
+  return baseDamage;
+}
+
+void HeroStats::setBaseDamage(int damagePoints)
+{
+  baseDamage = damagePoints;
+}
+
+int HeroStats::getDamageBonusPercent() const
+{
+  return damageBonusPercent;
+}
+
+void HeroStats::setDamageBonusPercent(int newDamageBonus)
+{
+  damageBonusPercent = newDamageBonus;
 }
 
 int HeroStats::getHealthBonus() const
@@ -56,43 +121,18 @@ int HeroStats::getHealthBonus() const
   return healthBonus;
 }
 
-void HeroStats::addHealthBonus()
+void HeroStats::addHealthBonus(int unmodifiedLevel)
 {
   healthBonus += 1;
-  stats.setHitPointsMax(stats.getHitPointsMax() + stats.getLevel(), false);
+  hpMax += unmodifiedLevel;
 }
 
-void HeroStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
+bool HeroStats::getDeathProtection() const
 {
-  stats.healHitPoints(amountPointsHealed, allowOverheal);
-}
-
-void HeroStats::loseHitPoints(int amountPointsLost)
-{
-  stats.loseHitPoints(amountPointsLost);
-}
-
-void HeroStats::recoverManaPoints(int amountPointsRecovered)
-{
-  stats.recoverManaPoints(amountPointsRecovered);
-}
-
-void HeroStats::loseManaPoints(int amountPointsLost)
-{
-  stats.loseManaPoints(amountPointsLost);
-}
-
-void HeroStats::refresh()
-{
-  stats.refresh();
-}
-
-int HeroStats::getDeathProtection() const
-{
-  return stats.getDeathProtection();
+  return deathProtection;
 }
 
 void HeroStats::setDeathProtection(bool enableProtection)
 {
-  stats.setDeathProtection(enableProtection ? 1 : 0);
+  deathProtection = enableProtection;
 }

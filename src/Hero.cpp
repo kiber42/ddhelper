@@ -8,11 +8,9 @@
 #include <utility>
 
 Hero::Hero()
-  : stats(1, 10, 10)
-  , damage(5)
-  , damageBonusPercent(0)
+  : stats(10, 10, 5)
   , defence(0, 0, 65, 65)
-  , experience()
+  , experience(1, false)
 /*
  , piety(0)
  , gold(20)
@@ -21,10 +19,8 @@ Hero::Hero()
 {
 }
 
-Hero::Hero(HeroStats stats, int damage, Defence defence, Experience experience)
+Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   : stats(std::move(stats))
-  , damage(damage)
-  , damageBonusPercent(0)
   , defence(std::move(defence))
   , experience(std::move(experience))
 {
@@ -106,22 +102,22 @@ int Hero::getManaPointsMax() const
 
 int Hero::getBaseDamage() const
 {
-  return std::max(damage - getStatusIntensity(HeroStatus::Weakened), 0);
+  return std::max(stats.getBaseDamage() - getStatusIntensity(HeroStatus::Weakened), 0);
 }
 
 void Hero::changeBaseDamage(int deltaDamagePoints)
 {
-  damage = std::max(damage + deltaDamagePoints, 0);
+  stats.setBaseDamage(std::max(stats.getBaseDamage() + deltaDamagePoints, 0));
 }
 
 int Hero::getDamageBonusPercent() const
 {
-  return damageBonusPercent;
+  return stats.getDamageBonusPercent();
 }
 
 void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
 {
-  damageBonusPercent += deltaDamageBonusPercent;
+  stats.setDamageBonusPercent(stats.getDamageBonusPercent() + deltaDamageBonusPercent);
 }
 
 int Hero::getDamage() const
@@ -312,9 +308,8 @@ void Hero::propagateStatus(HeroStatus status, int intensity)
 
 void Hero::levelGainedUpdate()
 {
-  stats.setLevel(experience.getLevel());
-  stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus()); // TODO
+  stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
   stats.refresh();
 
-  damage += 5;
+  changeBaseDamage(+5);
 }

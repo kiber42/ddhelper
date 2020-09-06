@@ -39,7 +39,6 @@ target_link_libraries(imguiapp dearimgui)
 
 add_library(
     DDHelperLibrary STATIC
-    src/BaseStats.cpp
     src/Combat.cpp
     src/Defence.cpp
     src/Dungeon.cpp

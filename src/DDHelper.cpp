@@ -47,8 +47,9 @@ void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& m
   {
     if (!hero->isDefeated())
     {
-      ImGui::Text("Hero has %i/%i HP, %i/%i MP, %i/%i XP", hero->getHitPoints(), hero->getHitPointsMax(),
-                  hero->getManaPoints(), hero->getManaPointsMax(), hero->getXP(), hero->getXPforNextLevel());
+      ImGui::Text("Level %i hero has %i/%i HP, %i/%i MP, %i/%i XP", hero->getLevel(), hero->getHitPoints(),
+                  hero->getHitPointsMax(), hero->getManaPoints(), hero->getManaPointsMax(), hero->getXP(),
+                  hero->getXPforNextLevel());
       if (hero->hasStatus(HeroStatus::FirstStrike))
         ImGui::Text("Hero has first strike");
     }
@@ -59,7 +60,7 @@ void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& m
   {
     if (!monster->isDefeated())
     {
-      ImGui::Text("%s has %i HP", monster->getName(), monster->getHitPoints());
+      ImGui::Text("%s has %i/%i HP", monster->getName(), monster->getHitPoints(), monster->getHitPointsMax());
       if (monster->isBurning())
         ImGui::Text("Monster is burning (burn stack size %i)", monster->getBurnStackSize());
     }
@@ -217,7 +218,7 @@ Hero DDHelperApp::heroFromForm()
   const int damage = hero_data[5];
   const int physicalResistance = hero_data[6];
   const int magicalResistance = hero_data[7];
-  Hero hero(HeroStats{level, maxHp, maxMp}, damage, Defence{physicalResistance, magicalResistance}, Experience{level});
+  Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
 
   const int deltaHp = maxHp - hero_data[1];
   const int deltaMp = maxMp - hero_data[3];

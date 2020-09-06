@@ -1,59 +1,70 @@
 #include "MonsterStats.hpp"
 
+#include <algorithm>
+
 MonsterStats::MonsterStats(int level, int hp, int hpMax, int damage, int deathProtection)
-  : stats(level, hpMax, 0, damage)
+  : level(level)
+  , hp(hp)
+  , hpMax(hpMax)
+  , damage(damage)
+  , deathProtection(deathProtection)
 {
-  if (hp < hpMax)
-    stats.loseHitPoints(hpMax - hp);
-  stats.setDeathProtection(deathProtection);
 }
 
 int MonsterStats::getLevel() const
 {
-  return stats.getLevel();
+  return level;
 }
 
 bool MonsterStats::isDefeated() const
 {
-  return stats.isDefeated();
+  return hp <= 0;
 }
 
 int MonsterStats::getHitPoints() const
 {
-  return stats.getHitPoints();
+  return hp;
 }
 
 int MonsterStats::getHitPointsMax() const
 {
-  return stats.getHitPointsMax();
-}
-
-int MonsterStats::getDamage() const
-{
-  return stats.getDamage();
-}
-
-void MonsterStats::setDamage(int damagePoints)
-{
-  stats.setDamage(damagePoints);
+  return hpMax;
 }
 
 void MonsterStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
 {
-  stats.healHitPoints(amountPointsHealed, allowOverheal);
+  int max = hpMax;
+  if (allowOverheal)
+    max = hpMax * 3 / 2;
+  hp = std::min(hp + amountPointsHealed, max);
 }
 
 void MonsterStats::loseHitPoints(int amountPointsLost)
 {
-  stats.loseHitPoints(amountPointsLost);
+  hp = std::max(hp - amountPointsLost, 0);
+  if (hp == 0 && deathProtection > 0)
+  {
+    hp = 1;
+    --deathProtection;
+  }
+}
+
+int MonsterStats::getDamage() const
+{
+  return damage;
+}
+
+void MonsterStats::setDamage(int damagePoints)
+{
+  damage = damagePoints;
 }
 
 int MonsterStats::getDeathProtection() const
 {
-  return stats.getDeathProtection();
+  return deathProtection;
 }
 
 void MonsterStats::setDeathProtection(int numDeathProtectionLayers)
 {
-  stats.setDeathProtection(numDeathProtectionLayers);
+  deathProtection = numDeathProtectionLayers;
 }

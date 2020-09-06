@@ -1,7 +1,5 @@
 #pragma once
 
-#include "BaseStats.hpp"
-
 class MonsterStats
 {
 public:
@@ -13,15 +11,19 @@ public:
   int getHitPoints() const;
   int getHitPointsMax() const;
 
-  int getDamage() const;
-  void setDamage(int damagePoints);
-
   void healHitPoints(int amountPointsHealed, bool allowOverheal);
   void loseHitPoints(int amountPointsLost);
+
+  int getDamage() const;
+  void setDamage(int damagePoints);
 
   int getDeathProtection() const;
   void setDeathProtection(int numDeathProtectionLayers);
 
 private:
-  BaseStats stats;
+  int level;
+  int hp;
+  int hpMax;
+  int damage;
+  int deathProtection;
 };
