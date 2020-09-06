@@ -140,7 +140,7 @@ go_bandit([] {
       AssertThat(monster.isPoisoned(), Equals(false));
     });
     it("should lose 4 HP per caster level when hit by a fireball", [&] {
-      monster.takeFireballDamage(2, false);
+      monster.takeFireballDamage(2);
       AssertThat(monster.getHitPoints(), Equals(10 - 2 * 4));
     });
     it("should be burning after hit by a fireball", [&] {
@@ -153,7 +153,7 @@ go_bandit([] {
       AssertThat(monster.getHitPoints(), Equals(6));
     });
     it("should take additional fireball damage when already burning", [&] {
-      monster.takeFireballDamage(1, false);
+      monster.takeFireballDamage(1);
       AssertThat(monster.getHitPoints(), Equals(6 - 1 * 4 - 1));
       AssertThat(monster.getBurnStackSize(), Equals(2));
     });
@@ -163,7 +163,7 @@ go_bandit([] {
     });
     it("should take additional fireball damage per burn stack", [&] {
       monster.recover(10);
-      monster.takeFireballDamage(1, false);
+      monster.takeFireballDamage(1);
       AssertThat(monster.getHitPoints(), Equals(10 - 1 * 4 - 2));
     });
     it("should not have a burn stack size higher than twice the caster's level",
