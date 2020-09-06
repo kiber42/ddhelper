@@ -16,7 +16,9 @@ public:
   void setManaPointsMax(int manaPointsMax);
 
   void healHitPoints(int amountPointsHealed, bool allowOverheal);
-  void loseHitPoints(int amountPointsLost);
+  void loseHitPointsWithoutDeathProtection(int amountPointsLost);
+  void barelySurvive();
+
   void recoverManaPoints(int amountPointsRecovered);
   void loseManaPoints(int amountPointsLost);
   void refresh();
@@ -30,9 +32,6 @@ public:
   int getHealthBonus() const;
   void addHealthBonus(int unmodifiedLevel);
 
-  bool getDeathProtection() const;
-  void setDeathProtection(bool enableProtection);
-
 private:
   int hp;
   int hpMax;
@@ -41,5 +40,4 @@ private:
   int baseDamage;
   int damageBonusPercent;
   int healthBonus;
-  bool deathProtection;
 };

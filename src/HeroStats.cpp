@@ -16,13 +16,12 @@ HeroStats::HeroStats(int hpMax, int mpMax, int baseDamage)
   , baseDamage(baseDamage)
   , damageBonusPercent(0)
   , healthBonus(0)
-  , deathProtection(false)
 {
 }
 
 bool HeroStats::isDefeated() const
 {
-  return hp <= 0;
+  return hp == 0;
 }
 
 int HeroStats::getHitPoints() const
@@ -68,14 +67,15 @@ void HeroStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
   hp = std::min(hp + amountPointsHealed, max);
 }
 
-void HeroStats::loseHitPoints(int amountPointsLost)
+void HeroStats::loseHitPointsWithoutDeathProtection(int amountPointsLost)
 {
   hp = std::max(hp - amountPointsLost, 0);
-  if (hp == 0 && deathProtection)
-  {
-    hp = 1;
-    deathProtection = false;
-  }
+}
+
+void HeroStats::barelySurvive()
+{
+  assert(hp == 0);
+  hp = 1;
 }
 
 void HeroStats::recoverManaPoints(int amountPointsRecovered)
@@ -125,14 +125,4 @@ void HeroStats::addHealthBonus(int unmodifiedLevel)
 {
   healthBonus += 1;
   hpMax += unmodifiedLevel;
-}
-
-bool HeroStats::getDeathProtection() const
-{
-  return deathProtection;
-}
-
-void HeroStats::setDeathProtection(bool enableProtection)
-{
-  deathProtection = enableProtection;
 }

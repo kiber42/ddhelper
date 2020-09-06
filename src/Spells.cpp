@@ -92,7 +92,7 @@ namespace Cast
            (spell != Spell::Bludtupowa || hero.getHitPoints() > 3 * hero.getLevel()) &&
            (spell != Spell::Bysseps || !hero.hasStatus(HeroStatus::Might) || hero.hasTrait(HeroTrait::Additives)) &&
            (spell != Spell::Cydstepp ||
-            (hero.getDeathProtection() == 0 &&
+            (!hero.hasStatus(HeroStatus::DeathProtection) &&
              (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant)))) &&
            (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrike) /* TODO modify for Rogue */);
   }
@@ -137,7 +137,7 @@ namespace Cast
       hero.addStatus(HeroStatus::Might);
       break;
     case Spell::Cydstepp:
-      hero.setDeathProtection(true);
+      hero.addStatus(HeroStatus::DeathProtection);
       break;
     case Spell::Endiswal:
       hero.changePhysicalResistPercent(+20);

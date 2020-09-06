@@ -59,9 +59,6 @@ public:
   void recoverManaPoints(int amountPointsRecovered);
   void loseManaPoints(int amountPointsLost);
 
-  int getDeathProtection() const;
-  void setDeathProtection(bool enableProtection);
-
   void addStatus(HeroStatus status, int addedIntensity = 1);
   void removeStatus(HeroStatus status, bool completely);
   bool hasStatus(HeroStatus status) const;
@@ -78,6 +75,7 @@ private:
   std::map<HeroStatus, int> statuses;
   std::set<HeroTrait> traits;
 
+  void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
 

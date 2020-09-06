@@ -11,7 +11,7 @@ enum class HeroStatus
   Cursed,
   // DamageReduction,
   // DeathGazeImmune,
-  // DeathProtection,
+  DeathProtection,
   // DodgePermanent,
   // DodgeTemporary,
   // Exhausted,
@@ -50,6 +50,8 @@ constexpr const char* toString(HeroStatus status)
     return "Corrosion";
   case HeroStatus::Cursed:
     return "Cursed";
+  case HeroStatus::DeathProtection:
+    return "Death Protection";
   case HeroStatus::ExperienceBoost:
     return "Experience Boost";
   case HeroStatus::FirstStrike:

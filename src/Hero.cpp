@@ -184,9 +184,19 @@ int Hero::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) con
   return defence.predictDamageTaken(attackerDamageOutput, isMagicalDamage);
 }
 
+void Hero::loseHitPoints(int amountPointsLost)
+{
+  stats.loseHitPointsWithoutDeathProtection(amountPointsLost);
+  if (stats.getHitPoints() == 0 && hasStatus(HeroStatus::DeathProtection))
+  {
+    stats.barelySurvive();
+    removeStatus(HeroStatus::DeathProtection, false);
+  }
+}
+
 void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
 {
-  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
+  loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
 }
 
 void Hero::recover(int nSquares)
@@ -212,7 +222,7 @@ void Hero::healHitPoints(int amountPointsHealed, bool mayOverheal)
 
 void Hero::loseHitPointsOutsideOfFight(int amountPointsLost)
 {
-  stats.loseHitPoints(amountPointsLost);
+  loseHitPoints(amountPointsLost);
 }
 
 void Hero::recoverManaPoints(int amountPointsRecovered)
@@ -223,16 +233,6 @@ void Hero::recoverManaPoints(int amountPointsRecovered)
 void Hero::loseManaPoints(int amountPointsLost)
 {
   stats.loseManaPoints(amountPointsLost);
-}
-
-int Hero::getDeathProtection() const
-{
-  return stats.getDeathProtection();
-}
-
-void Hero::setDeathProtection(bool enableProtection)
-{
-  stats.setDeathProtection(enableProtection);
 }
 
 void Hero::addStatus(HeroStatus status, int addedIntensity)

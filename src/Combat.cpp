@@ -97,7 +97,7 @@ namespace Combat
     }
 
     outcome.debuffs = receiveDebuffs(outcome.hero, monster, false);
-    if (outcome.hero.getDeathProtection() < hero.getDeathProtection())
+    if (hero.hasStatus(HeroStatus::DeathProtection) && !outcome.hero.hasStatus(HeroStatus::DeathProtection))
       outcome.debuffs.insert(Outcome::Debuff::LostDeathProtection);
     if (outcome.monster.isDefeated())
     {
@@ -119,10 +119,10 @@ namespace Combat
 
   Outcome::Debuffs retaliate(Hero& hero, const Monster& monster)
   {
-    const int deathProtectionBefore = hero.getDeathProtection();
+    const bool deathProtectionBefore = hero.hasStatus(HeroStatus::DeathProtection);
     hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
     auto debuffs = receiveDebuffs(hero, monster, true);
-    if (hero.getDeathProtection() < deathProtectionBefore)
+    if (deathProtectionBefore && !hero.hasStatus(HeroStatus::DeathProtection))
       debuffs.insert(Outcome::Debuff::LostDeathProtection);
     return debuffs;
   }

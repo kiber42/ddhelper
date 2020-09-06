@@ -18,7 +18,7 @@ int MonsterStats::getLevel() const
 
 bool MonsterStats::isDefeated() const
 {
-  return hp <= 0;
+  return hp == 0;
 }
 
 int MonsterStats::getHitPoints() const

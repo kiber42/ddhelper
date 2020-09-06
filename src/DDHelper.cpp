@@ -81,9 +81,10 @@ void DDHelperApp::populateFrame()
   ImGui::DragInt("Physical Resistance", &hero_data[6], 0.2f, 0, 80);
   ImGui::DragInt("Magical Resistance", &hero_data[7], 0.2f, 0, 80);
 
-  for (HeroStatus status : {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes,
-                            HeroStatus::MagicalAttack, HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball,
-                            HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
+  for (HeroStatus status :
+       {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
+        HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball, HeroStatus::DeathProtection,
+        HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
   {
     bool current = hero_statuses[status] > 0;
     if (ImGui::Checkbox(toString(status), &current))
