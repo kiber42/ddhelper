@@ -3,13 +3,19 @@
 #include <algorithm>
 #include <utility>
 
-Monster::Monster(MonsterStats stats, Defence damage, MonsterTraits traits)
-  : stats(std::move(stats))
+Monster::Monster(std::string name, MonsterStats stats, Defence damage, MonsterTraits traits)
+  : name(std::move(name))
+  , stats(std::move(stats))
   , defence(std::move(damage))
   , status{}
   , traits(std::move(traits))
-{
+{  
   defence.setCorrosion(getCorroded());
+}
+
+const char* Monster::getName() const
+{
+  return name.c_str();
 }
 
 int Monster::getLevel() const

@@ -47,10 +47,8 @@ void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& m
   {
     if (!hero->isDefeated())
     {
-      ImGui::Text("Hero has %i/%i HP, %i/%i MP, %i/%i XP",
-      hero->getHitPoints(), hero->getHitPointsMax(),
-      hero->getManaPoints(), hero->getManaPointsMax(),
-      hero->getXP(), hero->getXPforNextLevel());
+      ImGui::Text("Hero has %i/%i HP, %i/%i MP, %i/%i XP", hero->getHitPoints(), hero->getHitPointsMax(),
+                  hero->getManaPoints(), hero->getManaPointsMax(), hero->getXP(), hero->getXPforNextLevel());
       if (hero->hasStatus(HeroStatus::FirstStrike))
         ImGui::Text("Hero has first strike");
     }
@@ -61,12 +59,12 @@ void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& m
   {
     if (!monster->isDefeated())
     {
-      ImGui::Text("Monster has %i HP", monster->getHitPoints());
+      ImGui::Text("%s has %i HP", monster->getName(), monster->getHitPoints());
       if (monster->isBurning())
         ImGui::Text("Monster is burning (burn stack size %i)", monster->getBurnStackSize());
     }
     else
-      ImGui::Text("Monster was defeated.");
+      ImGui::Text("%s was defeated.", monster->getName());
   }
 }
 
@@ -226,7 +224,8 @@ Hero DDHelperApp::heroFromForm()
 
 Monster DDHelperApp::monsterFromForm()
 {
-  Monster monster(makeGenericMonsterStats(monster_data[0] /* level */, monster_data[2] /* max hp */,
+  Monster monster("Level " + std::to_string(monster_data[0]) + " monster",
+                  makeGenericMonsterStats(monster_data[0] /* level */, monster_data[2] /* max hp */,
                                           monster_data[3] /* damage */, 0 /* death protection */),
                   {monster_data[4] /* physical resistance */, monster_data[5] /* magical resistance */},
                   monster_traits);

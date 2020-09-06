@@ -5,11 +5,14 @@
 #include "MonsterStatus.hpp"
 #include "MonsterTraits.hpp"
 
+#include <string>
+
 class Monster
 {
 public:
-  Monster(MonsterStats, Defence, MonsterTraits);
+  Monster(std::string name, MonsterStats, Defence, MonsterTraits);
 
+  const char* getName() const;
   int getLevel() const;
   bool isDefeated() const;
 
@@ -60,6 +63,8 @@ public:
 
 private:
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
+
+  std::string name;
 
   MonsterStats stats;
   Defence defence;

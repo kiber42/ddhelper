@@ -109,7 +109,7 @@ go_bandit([] {
   });
 
   describe("Monster", [] {
-    Monster monster(makeGenericMonsterStats(2, 10, 3), Defence(), MonsterTraits());
+    Monster monster = makeGenericMonster(2, 10, 3);
     it("used for test should have level 2 and 10 HP", [&] {
       AssertThat(monster.getLevel(), Equals(2));
       AssertThat(monster.getHitPoints(), Equals(10));
@@ -183,7 +183,7 @@ go_bandit([] {
   });
 
   describe("Monster damage", [] {
-    Monster monster(makeGenericMonsterStats(3, 30, 10, 1), Defence(50, 75), MonsterTraits());
+    Monster monster("", makeGenericMonsterStats(3, 30, 10, 1), Defence(50, 75), MonsterTraits());
     it("should be adjusted for physical resistance", [&] {
       AssertThat(monster.getHitPoints(), Equals(30));
       AssertThat(monster.getPhysicalResistPercent(), Equals(50));
@@ -239,7 +239,7 @@ go_bandit([] {
 
   describe("Melee outcome prediction", [] {
     Hero hero;
-    Monster monster(makeGenericMonsterStats(3, 15, 5), {}, {});
+    Monster monster = makeGenericMonster(3, 15, 5);
     it("should work for outcome 'safe' (simple case)",
        [&] { AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Safe)); });
     it("should work for outcome 'hero dies' (simple case)", [&] {
@@ -254,7 +254,7 @@ go_bandit([] {
 
     it("of hitpoint loss should work", [] {
       Hero hero;
-      Monster monster(makeGenericMonsterStats(3, 15, 9), {}, {});
+      Monster monster = makeGenericMonster(3, 15, 9);
       const auto outcome = Melee::predictOutcome(hero, monster);
       AssertThat(hero.getHitPoints(), Equals(10));
       AssertThat(monster.getHitPoints(), Equals(15));
@@ -285,7 +285,7 @@ go_bandit([] {
     it("Reflexes should cause 2 hits", [] {
       Hero hero;
       hero.addStatus(HeroStatus::Reflexes);
-      Monster monster(makeGenericMonsterStats(1, 2 * hero.getDamage(), 1, 0), {}, {});
+      Monster monster = makeGenericMonster(1, 2 * hero.getDamage(), 1);
       AssertThat(Melee::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
     it("Cursed should negate resistances", [] {
@@ -300,11 +300,11 @@ go_bandit([] {
     it("Cursed should be added/removed when cursed/not-cursed monster is defeated", [] {
       Hero hero;
       hero.changeBaseDamage(100);
-      Monster monster(makeGenericMonsterStats(1, 10, 3, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
+      Monster monster("",  makeGenericMonsterStats(1, 10, 3, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
       hero = Melee::predictOutcome(hero, monster).hero;
       // One curse from hit, one from killing
       AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
-      Monster monster2(makeGenericMonsterStats(1, 10, 3, 0), {}, {});
+      Monster monster2 = makeGenericMonster(1, 10, 3);
       hero = Melee::predictOutcome(hero, monster2).hero;
       AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
     });
@@ -313,7 +313,7 @@ go_bandit([] {
       hero.gainLevel();
       const int health = hero.getHitPoints();
       hero.setPhysicalResistPercent(50);
-      Monster monster(makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
+      Monster monster("", makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
       hero = Melee::predictOutcome(hero, monster).hero;
       AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(true));
       AssertThat(hero.getHitPoints(), Equals(health - 10));
@@ -322,7 +322,7 @@ go_bandit([] {
 
   describe("Initiative", [] {
     Hero hero;
-    Monster monster(makeGenericMonsterStats(1, 10, 3, 0), {}, {});
+    Monster monster = makeGenericMonster(1, 10, 3);
     it("should go to the monster of equal level", [&] { //
       AssertThat(!hero.hasInitiativeVersus(monster), IsTrue());
     });
@@ -348,7 +348,7 @@ go_bandit([] {
 
   describe("Dungeon", [] {
     Dungeon dungeon(3, 3);
-    auto monster = std::make_shared<Monster>(makeGenericMonsterStats(3, 30, 10, 0), Defence(), MonsterTraits());
+    auto monster = std::make_shared<Monster>(makeGenericMonster(3, 30, 10));
     auto monster2 = std::make_shared<Monster>(*monster);
     it("should allow adding monsters if there is space", [&] {
       dungeon.add(monster, dungeon.randomFreePosition().value());
