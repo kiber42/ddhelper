@@ -47,3 +47,9 @@ void Experience::modifyLevelBy(int delta)
 {
   level = std::min(std::max(level + delta, 1), 10);
 }
+
+int Experience::forHeroAndMonsterLevels(int heroLevel, int monsterLevel)
+{
+  const int delta = monsterLevel - heroLevel;
+  return monsterLevel + (delta > 0 ? delta * (delta - 1) + 2 : 0);
+}

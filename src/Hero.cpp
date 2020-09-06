@@ -36,6 +36,11 @@ int Hero::getPrestige() const
   return experience.getPrestige();
 }
 
+int Hero::getXPforNextLevel() const
+{
+  return experience.getXPforNextLevel();
+}
+
 void Hero::gainExperience(int xpGained, bool monsterWasSlowed)
 {
   int level = experience.getLevel();

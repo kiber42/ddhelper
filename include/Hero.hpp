@@ -22,6 +22,7 @@ public:
   int getXP() const;
   int getLevel() const;
   int getPrestige() const;
+  int getXPforNextLevel() const;
   void gainExperience(int xpGained, bool monsterWasSlowed=false);
   void gainLevel();
   void modifyLevelBy(int delta);

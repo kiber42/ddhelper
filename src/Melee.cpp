@@ -117,8 +117,11 @@ namespace Melee
     {
       if (outcome.monster.isDefeated())
       {
-        outcome.summary = Summary::Win;
         outcome.hero.gainExperience(Experience::forHeroAndMonsterLevels(hero.getLevel(), monster.getLevel()), monster.isSlowed());
+        if (outcome.hero.getLevel() > hero.getLevel())
+          outcome.summary = Summary::LevelUp;
+        else
+          outcome.summary = Summary::Win;
       }
       else
         outcome.summary = Summary::Safe;

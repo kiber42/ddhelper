@@ -47,7 +47,10 @@ void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& m
   {
     if (!hero->isDefeated())
     {
-      ImGui::Text("Hero has %i HP, %i MP", hero->getHitPoints(), hero->getManaPoints());
+      ImGui::Text("Hero has %i/%i HP, %i/%i MP, %i/%i XP",
+      hero->getHitPoints(), hero->getHitPointsMax(),
+      hero->getManaPoints(), hero->getManaPointsMax(),
+      hero->getXP(), hero->getXPforNextLevel());
       if (hero->hasStatus(HeroStatus::FirstStrike))
         ImGui::Text("Hero has first strike");
     }

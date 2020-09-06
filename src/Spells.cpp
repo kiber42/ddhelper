@@ -228,6 +228,14 @@ namespace Cast
           assert(false);
           break;
         }
+        if (outcome.monster.isDefeated() && !outcome.hero.isDefeated())
+        {
+          outcome.hero.gainExperience(Experience::forHeroAndMonsterLevels(hero.getLevel(), monster.getLevel()), monster.isSlowed());
+          if (outcome.hero.getLevel() > hero.getLevel())
+            outcome.summary = Summary::LevelUp;
+          else
+            outcome.summary = Summary::Win;
+        }
       }
     }
 
