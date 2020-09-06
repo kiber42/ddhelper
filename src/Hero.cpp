@@ -21,6 +21,14 @@ Hero::Hero()
 {
 }
 
+Hero::Hero(HeroStats stats, int damage, Defence defence, Experience experience)
+  : stats(std::move(stats))
+  , damage(damage)
+  , defence(std::move(defence))
+  , experience(std::move(experience))
+{
+}
+
 int Hero::getXP() const
 {
   return experience.getXP();
@@ -95,11 +103,6 @@ int Hero::getManaPointsMax() const
   return stats.getManaPointsMax();
 }
 
-void Hero::modifyHitPointsMax(int delta)
-{
-  stats.setHitPointsMax(stats.getHitPointsMax() + delta);
-}
-
 int Hero::getBaseDamage() const
 {
   return std::max(damage - getStatusIntensity(HeroStatus::Weakened), 0);
@@ -162,7 +165,7 @@ bool Hero::doesMagicalDamage() const
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
-    // TODO Adjust behaviour based on hero's traits
+  // TODO Adjust behaviour based on hero's traits
   if (hasStatus(HeroStatus::Reflexes))
     return true;
 
@@ -253,8 +256,7 @@ bool Hero::hasStatus(HeroStatus status) const
 
 void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
 {
-  const bool canStack = canHaveMultiple(status) ||
-    (status == HeroStatus::Might && hasTrait(HeroTrait::Additives));
+  const bool canStack = canHaveMultiple(status) || (status == HeroStatus::Might && hasTrait(HeroTrait::Additives));
   if (newIntensity > 1 && !canStack)
     newIntensity = 1;
   if (newIntensity == statuses[status])

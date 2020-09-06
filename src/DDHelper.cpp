@@ -22,7 +22,7 @@ public:
 private:
   void populateFrame() override;
 
-  int hero_data[6];
+  int hero_data[8];
   int monster_data[6];
   std::map<HeroStatus, int> hero_statuses;
   MonsterTraits monster_traits;
@@ -36,8 +36,8 @@ private:
 
 DDHelperApp::DDHelperApp()
   : ImguiApp("Desktop Dungeons Simulator")
-  , hero_data{1, 10, 10, 5}
-  , monster_data{1, 6, 6, 3}
+  , hero_data{1, 10, 10, 10, 10, 5, 0, 0}
+  , monster_data{1, 6, 6, 3, 0, 0}
 {
 }
 
@@ -72,10 +72,13 @@ void DDHelperApp::populateFrame()
 {
   ImGui::Begin("Hero");
   ImGui::DragInt("Level", &hero_data[0], 0.1f, 1, 10);
-  ImGui::DragInt2("HP / max", &hero_data[1], 0.5f, 0, 300);
-  ImGui::DragInt("Attack", &hero_data[3], 0.5f, 0, 300);
-  ImGui::DragInt("Physical Resistance", &hero_data[4], 0.2f, 0, 80);
-  ImGui::DragInt("Magical Resistance", &hero_data[5], 0.2f, 0, 80);
+  if (ImGui::DragInt2("HP / max", &hero_data[1], 0.5f, 0, 300))
+    hero_data[1] = std::min(hero_data[1], hero_data[2] * 3 / 2);
+  if (ImGui::DragInt2("MP / max", &hero_data[3], 0.1f, 0, 30))
+    hero_data[3] = std::min(hero_data[3], hero_data[4]);
+  ImGui::DragInt("Attack", &hero_data[5], 0.5f, 0, 300);
+  ImGui::DragInt("Physical Resistance", &hero_data[6], 0.2f, 0, 80);
+  ImGui::DragInt("Magical Resistance", &hero_data[7], 0.2f, 0, 80);
 
   for (HeroStatus status : {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes,
                             HeroStatus::MagicalAttack, HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball,
@@ -208,17 +211,27 @@ void DDHelperApp::populateFrame()
 
 Hero DDHelperApp::heroFromForm()
 {
-  Hero hero;
-  for (int level = 1; level < hero_data[0] /* level */; ++level)
-    hero.gainLevel();
-  hero.modifyHitPointsMax(hero_data[2] /* max hp */ - hero.getHitPointsMax());
-  hero.healHitPoints(hero_data[1] /* hp */ - hero.getHitPoints(), true);
-  hero.changeBaseDamage(hero_data[3] /* damage */ - hero.getBaseDamage());
-  hero.setPhysicalResistPercent(hero_data[4]);
-  hero.setMagicalResistPercent(hero_data[5]);
+  const int level = hero_data[0];
+  const int maxHp = hero_data[2];
+  const int maxMp = hero_data[4];
+  const int damage = hero_data[5];
+  const int physicalResistance = hero_data[6];
+  const int magicalResistance = hero_data[7];
+  Hero hero(HeroStats{level, maxHp, maxMp}, damage, Defence{physicalResistance, magicalResistance}, Experience{level});
+
+  const int deltaHp = maxHp - hero_data[1];
+  const int deltaMp = maxMp - hero_data[3];
+  if (deltaHp > 0)
+    hero.loseHitPointsOutsideOfFight(deltaHp);
+  else if (deltaHp < 0)
+    hero.healHitPoints(-deltaHp, true);
+  else if (deltaMp > 0)
+    hero.loseManaPoints(deltaMp);
+
   for (const auto& [status, intensity] : hero_statuses)
     for (int i = 0; i < intensity; ++i)
       hero.addStatus(status);
+
   return hero;
 }
 

@@ -3,7 +3,7 @@
 class Experience
 {
 public:
-  explicit Experience(bool hasVeteranTrait=false);
+  explicit Experience(int initialLevel=1, bool hasVeteranTrait=false);
 
   int getXP() const { return xp; }
   int getLevel() const { return level; }

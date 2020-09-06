@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
-Experience::Experience(bool hasVeteranTrait)
+Experience::Experience(int initialLevel, bool hasVeteranTrait)
   : level(1)
   , prestige(0)
   , veteran(hasVeteranTrait)
@@ -11,6 +11,8 @@ Experience::Experience(bool hasVeteranTrait)
   , xpStep(hasVeteranTrait ? 4 : 5)
   , xpNext(xpStep)
 {
+  while (level + prestige < initialLevel)
+    gainLevel();
 }
 
 void Experience::gain(int xpGained, int xpBonus, bool xpBoost)

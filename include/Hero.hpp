@@ -18,6 +18,7 @@ class Hero
 {
 public:
   Hero();
+  Hero(HeroStats, int damage, Defence, Experience);
 
   int getXP() const;
   int getLevel() const;
@@ -32,7 +33,6 @@ public:
   int getHitPointsMax() const;
   int getManaPoints() const;
   int getManaPointsMax() const;
-  void modifyHitPointsMax(int delta);
 
   int getBaseDamage() const;
   void changeBaseDamage(int deltaDamagePoints);
