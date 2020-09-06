@@ -24,6 +24,7 @@ Hero::Hero()
 Hero::Hero(HeroStats stats, int damage, Defence defence, Experience experience)
   : stats(std::move(stats))
   , damage(damage)
+  , damageBonusPercent(0)
   , defence(std::move(defence))
   , experience(std::move(experience))
 {
