@@ -4,6 +4,7 @@
 
 #include "Defence.hpp"
 #include "Experience.hpp"
+#include "HeroClass.hpp"
 #include "HeroStats.hpp"
 #include "HeroStatus.hpp"
 #include "HeroTraits.hpp"
@@ -17,14 +18,14 @@ class Monster;
 class Hero
 {
 public:
-  Hero();
+  Hero(HeroClass theClass = HeroClass::Guard);
   Hero(HeroStats, Defence, Experience);
 
   int getXP() const;
   int getLevel() const;
   int getPrestige() const;
   int getXPforNextLevel() const;
-  void gainExperience(int xpGained, bool monsterWasSlowed=false);
+  void gainExperience(int xpGained, bool monsterWasSlowed = false);
   void gainLevel();
   void modifyLevelBy(int delta);
 
@@ -49,7 +50,7 @@ public:
 
   bool doesMagicalDamage() const;
 
-  bool hasInitiativeVersus(const Monster &monster) const;
+  bool hasInitiativeVersus(const Monster& monster) const;
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
   void recover(int nSquares);
@@ -73,7 +74,7 @@ private:
   Defence defence;
   Experience experience;
   std::map<HeroStatus, int> statuses;
-  std::set<HeroTrait> traits;
+  std::vector<HeroTrait> traits;
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);

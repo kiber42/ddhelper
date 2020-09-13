@@ -7,10 +7,12 @@
 #include <cassert>
 #include <utility>
 
-Hero::Hero()
+Hero::Hero(HeroClass theClass)
   : stats(10, 10, 5)
   , defence(0, 0, 65, 65)
   , experience(1, false)
+  , statuses()
+  , traits(startingTraits(theClass))
 /*
  , piety(0)
  , gold(20)
@@ -270,12 +272,12 @@ int Hero::getStatusIntensity(HeroStatus status) const
 
 void Hero::addTrait(HeroTrait trait)
 {
-  auto success = traits.insert(trait);
-  if (!success.second)
+  if (hasTrait(trait))
   {
     assert(false);
     return;
   }
+  traits.emplace_back(trait);
 
   if (trait == HeroTrait::BloodCurse)
   {
@@ -289,7 +291,7 @@ void Hero::addTrait(HeroTrait trait)
 
 bool Hero::hasTrait(HeroTrait trait) const
 {
-  return traits.count(trait) > 0;
+  return std::find(begin(traits), end(traits), trait) != end(traits);
 }
 
 void Hero::propagateStatus(HeroStatus status, int intensity)
