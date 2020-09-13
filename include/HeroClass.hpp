@@ -70,11 +70,11 @@ constexpr const char* to_string(HeroClass theClass)
   case HeroClass::Vampire:
     return "Vampire";
   case HeroClass::HalfDragon:
-    return "HalfDragon";
+    return "Half Dragon";
   case HeroClass::Gorgon:
     return "Gorgon";
   case HeroClass::RatMonarch:
-    return "RatMonarch";
+    return "Rat Monarch";
   case HeroClass::Goatperson:
     return "Goatperson";
   case HeroClass::Guard:

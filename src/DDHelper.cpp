@@ -13,6 +13,19 @@
 #include <utility>
 #include <vector>
 
+class HeroSelection
+{
+public:
+  HeroSelection();
+  std::optional<Hero> run();
+  Hero get() const;
+
+private:
+  HeroClass selectedClass;
+  int selectedClassIndex;
+  int level;
+};
+
 class CustomHeroBuilder
 {
 public:
@@ -60,6 +73,7 @@ public:
 private:
   void populateFrame() override;
 
+  HeroSelection heroSelection;
   CustomHeroBuilder heroBuilder;
   CustomMonsterBuilder monsterBuilder;
   Arena arena;
@@ -128,15 +142,62 @@ DDHelperApp::DDHelperApp()
 
 void DDHelperApp::populateFrame()
 {
-  auto heroToArena = heroBuilder.run();
-  if (heroToArena.has_value())
-    arena.enter(std::move(heroToArena.value()));
+  auto hero = heroSelection.run();
+  if (hero.has_value())
+    arena.enter(std::move(hero.value()));
+
+  auto customHero = heroBuilder.run();
+  if (customHero.has_value())
+    arena.enter(std::move(customHero.value()));
 
   auto monsterToArena = monsterBuilder.run();
   if (monsterToArena.has_value())
     arena.enter(std::move(monsterToArena.value()));
 
   arena.run();
+}
+
+HeroSelection::HeroSelection()
+  : selectedClass(HeroClass::Fighter)
+  , selectedClassIndex(0)
+  , level(1)
+{
+}
+
+std::optional<Hero> HeroSelection::run()
+{
+  constexpr std::array allClasses = {HeroClass::Fighter, HeroClass::Berserker, HeroClass::Warlord};
+
+  ImGui::Begin("Hero");
+  if (ImGui::BeginCombo("Class", to_string(selectedClass)))
+  {
+    int n = 0;
+    for (auto theClass : allClasses)
+    {
+      if (ImGui::Selectable(to_string(theClass), n == selectedClassIndex))
+      {
+        selectedClass = theClass;
+        selectedClassIndex = n;
+      }
+      ++n;
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::DragInt("Level", &level, 0.1f, 1, 10);
+
+  std::optional<Hero> newHero;
+  if (ImGui::Button("Send to Arena"))
+    newHero.emplace(get());
+  ImGui::End();
+  return newHero;
+}
+
+Hero HeroSelection::get() const
+{
+  Hero hero(selectedClass);
+  for (int i = 1; i < level; ++i)
+    hero.gainLevel();
+  return hero;
 }
 
 CustomHeroBuilder::CustomHeroBuilder()
@@ -146,7 +207,7 @@ CustomHeroBuilder::CustomHeroBuilder()
 
 std::optional<Hero> CustomHeroBuilder::run()
 {
-  ImGui::Begin("Hero");
+  ImGui::Begin("Custom Hero");
   ImGui::DragInt("Level", &data[0], 0.1f, 1, 10);
   if (ImGui::DragInt2("HP / max", &data[1], 0.5f, 0, 300))
     data[1] = std::min(data[1], data[2] * 3 / 2);
