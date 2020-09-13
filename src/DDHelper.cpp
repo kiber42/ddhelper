@@ -26,6 +26,19 @@ private:
   int level;
 };
 
+class MonsterSelection
+{
+public:
+  MonsterSelection();
+  std::optional<Monster> run();
+  Monster get() const;
+
+private:
+  MonsterType selectedType;
+  int selectedTypeIndex;
+  int level;
+};
+
 class CustomHeroBuilder
 {
 public:
@@ -74,6 +87,7 @@ private:
   void populateFrame() override;
 
   HeroSelection heroSelection;
+  MonsterSelection monsterSelection;
   CustomHeroBuilder heroBuilder;
   CustomMonsterBuilder monsterBuilder;
   Arena arena;
@@ -164,9 +178,13 @@ void DDHelperApp::populateFrame()
   if (customHero.has_value())
     arena.enter(std::move(customHero.value()));
 
-  auto monsterToArena = monsterBuilder.run();
-  if (monsterToArena.has_value())
-    arena.enter(std::move(monsterToArena.value()));
+  auto monster = monsterSelection.run();
+  if (monster.has_value())
+    arena.enter(std::move(monster.value()));
+
+  auto customMonster = monsterBuilder.run();
+  if (customMonster.has_value())
+    arena.enter(std::move(customMonster.value()));
 
   arena.run();
 }
@@ -214,6 +232,51 @@ Hero HeroSelection::get() const
   for (int i = 1; i < level; ++i)
     hero.gainLevel();
   return hero;
+}
+
+MonsterSelection::MonsterSelection()
+  : selectedType(MonsterType::Bandit)
+  , selectedTypeIndex(0)
+  , level(1)
+{
+}
+
+std::optional<Monster> MonsterSelection::run()
+{
+  constexpr std::array allTypes = {
+      MonsterType::Bandit,  MonsterType::DragonSpawn, MonsterType::Goat,   MonsterType::Goblin,
+      MonsterType::Golem,   MonsterType::GooBlob,     MonsterType::Gorgon, MonsterType::MeatMan,
+      MonsterType::Serpent, MonsterType::Warlock,     MonsterType::Wraith, MonsterType::Zombie,
+  };
+
+  ImGui::Begin("Monster");
+  if (ImGui::BeginCombo("Type", toString(selectedType)))
+  {
+    int n = 0;
+    for (auto type : allTypes)
+    {
+      if (ImGui::Selectable(toString(type), n == selectedTypeIndex))
+      {
+        selectedType = type;
+        selectedTypeIndex = n;
+      }
+      ++n;
+    }
+    ImGui::EndCombo();
+  }
+  if (ImGui::InputInt("Level", &level, 1, 1))
+    level = std::min(std::max(level, 1), 10);
+
+  std::optional<Monster> newMonster;
+  if (ImGui::Button("Send to Arena"))
+    newMonster.emplace(get());
+  ImGui::End();
+  return newMonster;
+}
+
+Monster MonsterSelection::get() const
+{
+  return makeMonster(selectedType, level);
 }
 
 CustomHeroBuilder::CustomHeroBuilder()
@@ -292,7 +355,7 @@ CustomMonsterBuilder::CustomMonsterBuilder()
 
 std::optional<Monster> CustomMonsterBuilder::run()
 {
-  ImGui::Begin("Monster");
+  ImGui::Begin("Custom Monster");
   ImGui::DragInt("Level", &data[0], 0.2f, 1, 10);
   ImGui::DragInt2("HP / max", &data[1], 0.5f, 0, 300);
   ImGui::DragInt("Attack", &data[3], 0.5f, 0, 300);
