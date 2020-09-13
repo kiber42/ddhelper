@@ -32,7 +32,7 @@ enum class HeroStatus
   // Poisonous,
   // Prestige,
   Reflexes,
-  // Sanguine
+  Sanguine,
   // Schadenfreude,
   SlowStrike,
   // SpiritStrength,
@@ -70,6 +70,8 @@ constexpr const char* toString(HeroStatus status)
     return "Poisoned";
   case HeroStatus::Reflexes:
     return "Reflexes";
+  case HeroStatus::Sanguine:
+    return "Sanguine";
   case HeroStatus::SlowStrike:
     return "Slow Strike";
   case HeroStatus::Weakened:
@@ -80,5 +82,5 @@ constexpr const char* toString(HeroStatus status)
 constexpr bool canHaveMultiple(HeroStatus status)
 {
   return status == HeroStatus::Corrosion || status == HeroStatus::Cursed || status == HeroStatus::Learning ||
-         status == HeroStatus::Weakened;
+         status == HeroStatus::Sanguine || status == HeroStatus::Weakened;
 }

@@ -14,3 +14,10 @@ Set #spells to regular (5), 100 conversion points
 Set #glyphs to regular - 1, add 50 conversion points
 2. More glyphs?
 Set #glyphs to regular + 1, subtract 20 conversion points
+
+Essence Transit health point gain is awarded after damage is taken (if still alive)
+
+Mana shield damage against monster with magic resistance:
+Damage done is rounded down (not the amount of resisted damage as is usually done!)
+
+Retaliate damage: 50% of regular damage

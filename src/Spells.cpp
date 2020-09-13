@@ -20,6 +20,8 @@ namespace Cast
     // - Avatar's Codex -> Heavy Fireball: +4 dmg per caster level, instant max burn stacks, monster will
     // retaliate if not defeated
     // - Battlemage Ring, +1 dmg per caster level
+    // - Witchalok pendant: add stone skin when burndayraz is cast
+    // Note: Attack counts for Crusader's momentum
     Outcome::Debuffs burndayraz(Hero& hero, Monster& monster)
     {
       using Summary = Outcome::Summary;
@@ -83,6 +85,8 @@ namespace Cast
     int costs = baseSpellCosts(spell);
     if (hero.hasTrait(HeroTrait::Mageslay))
       costs += 2;
+    if (hero.hasTrait(HeroTrait::MagicAffinity))
+      costs -= 1;
     return costs;
   }
 
@@ -110,7 +114,11 @@ namespace Cast
 
   void applyCastingSideEffects(Hero& hero, int manaCosts)
   {
+    if (hero.isDefeated())
+      return;
     // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
+    if (hero.hasTrait(HeroTrait::EssenceTransit))
+      hero.healHitPoints(2 * manaCosts);
     // Transmuter: Gain conversion points (Inner Focus)
     // Dragon Soul (15% free cast chance)
     // God Likes and Dislikes
@@ -123,7 +131,6 @@ namespace Cast
 
     const int manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
-    applyCastingSideEffects(hero, manaCosts);
 
     switch (spell)
     {
@@ -167,6 +174,8 @@ namespace Cast
     default:
       assert(false);
     }
+
+    applyCastingSideEffects(hero, manaCosts);
     return hero;
   }
 
@@ -187,7 +196,6 @@ namespace Cast
       {
         const int manaCosts = spellCosts(spell, hero);
         outcome.hero.loseManaPoints(manaCosts);
-        applyCastingSideEffects(outcome.hero, manaCosts);
 
         switch (spell)
         {
@@ -225,6 +233,8 @@ namespace Cast
           assert(false);
           break;
         }
+
+        applyCastingSideEffects(outcome.hero, manaCosts);
 
         outcome.summary = Combat::summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
       }

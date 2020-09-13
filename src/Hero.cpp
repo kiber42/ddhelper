@@ -26,7 +26,16 @@ Hero::Hero(HeroClass theClass)
     stats.setDamageBonusPercent(20);
   if (hasTrait(HeroTrait::Spellkill))
     defence.setMagicalResistPercent(50);
+  if (hasTrait(HeroTrait::ArcaneKnowledge))
+    stats.setManaPointsMax(stats.getManaPointsMax() + 5);
+  if (hasTrait(HeroTrait::Insane))
+  {
+    setStatusIntensity(HeroStatus::Sanguine, 20);
+    stats.setManaPointsMax(stats.getManaPointsMax() - 3);
+  }
   // Defiant: Add Cyddstepp glyph
+  // Magic Attunement: Add Burndayraz glyph
+  // Insane: Add Bludtupowa glyph
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)

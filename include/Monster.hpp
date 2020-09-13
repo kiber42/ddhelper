@@ -25,6 +25,7 @@ public:
 
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
   void takeFireballDamage(int casterLevel, int damageMultiplier = 4);
+  void takeManaShieldDamage(int casterLevel);
   void recover(int nSquares);
   void burn(int nMaxStacks);
   void burnMax(int nMaxStacks);

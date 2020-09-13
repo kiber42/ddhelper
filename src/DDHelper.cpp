@@ -180,7 +180,8 @@ HeroSelection::HeroSelection()
 
 std::optional<Hero> HeroSelection::run()
 {
-  constexpr std::array allClasses = {HeroClass::Fighter, HeroClass::Berserker, HeroClass::Warlord};
+  constexpr std::array allClasses = {HeroClass::Fighter, HeroClass::Berserker, HeroClass::Warlord,
+                                     HeroClass::Wizard,  HeroClass::Sorcerer,  HeroClass::Bloodmage};
 
   ImGui::Begin("Hero");
   if (ImGui::BeginCombo("Class", toString(selectedClass)))

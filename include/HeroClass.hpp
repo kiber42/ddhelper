@@ -91,13 +91,13 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   case HeroClass::Berserker:
     return {HeroTrait::Bloodlust, HeroTrait::Mageslay, HeroTrait::Spellkill};
   case HeroClass::Warlord:
-    // return {HeroTrait::Courageous, HeroTrait::Determined, HeroTrait::Defiant};
+    return {HeroTrait::Courageous, HeroTrait::Determined, HeroTrait::Defiant};
   case HeroClass::Wizard:
-    // return {HeroTrait::MagicSense, HeroTrait::MagicAffinity, HeroTrait::MagicAttunement};
+    return {HeroTrait::MagicSense, HeroTrait::MagicAffinity, HeroTrait::MagicAttunement};
   case HeroClass::Sorcerer:
-    // return {HeroTrait::EssenceTransit, HeroTrait::ArcaneKnowledge, HeroTrait::ManaShield};
+    return {HeroTrait::EssenceTransit, HeroTrait::ArcaneKnowledge, HeroTrait::ManaShield};
   case HeroClass::Bloodmage:
-    // return {HeroTrait::PowerHungry, HeroTrait::Sanguine, HeroTrait::Insane};
+    return {HeroTrait::PowerHungry, HeroTrait::Sanguine, HeroTrait::Insane};
   case HeroClass::Thief:
     // return {HeroTrait::Stabber, HeroTrait::Hoarder, HeroTrait::Survivor};
   case HeroClass::Rogue:

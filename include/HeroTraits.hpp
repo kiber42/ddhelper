@@ -35,14 +35,14 @@ enum class HeroTrait
   HolyShield,
   HolyWork,
   InnerFocus,
-  Insane,
+  Insane,    // partially implemented, missing: drinking blood restores 1 mana
   Instincts, // not implemented: monsters of equal or lower level always have their location revealed
   LightFoot,
   Macguyver,
   Mageslay,
-  MagicAffinity,
+  MagicAffinity, // partially implemented, missing: glyphs donate 10 points to other conversions
   MagicAttunement,
-  MagicSense,
+  MagicSense, // not implemented: can see locations of all glyphs from level start, all glyphs are small items
   ManaShield,
   Martyr,
   Merchant,
@@ -50,7 +50,7 @@ enum class HeroTrait
   Negotiator,
   PitDog,
   PoisonedBlade,
-  PowerHungry,
+  PowerHungry, // not implemented: Mana Potions are 60% effective and boost Sanguine
   Preservatives,
   Prototype,
   RegalHygiene,
@@ -171,7 +171,7 @@ constexpr const char* toString(HeroTrait trait)
   case HeroTrait::PoisonedBlade:
     return "Poisoned Blade";
   case HeroTrait::PowerHungry:
-    return "Power Hungry";
+    return "Power-Hungry";
   case HeroTrait::Preservatives:
     return "Preservatives";
   case HeroTrait::Prototype:

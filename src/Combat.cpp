@@ -91,14 +91,20 @@ namespace Combat
       outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
       if (!outcome.monster.isDefeated())
       {
+        // If monster is defeated beyond this point, it was not slowed before the final blow
+        monsterWasSlowed = false;
         if (monster.bearsCurse())
           outcome.hero.addStatus(HeroStatus::Cursed);
         outcome.hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
-        if (hero.hasStatus(HeroStatus::Reflexes) && !outcome.hero.isDefeated())
+        if (!outcome.hero.isDefeated())
         {
-          monsterWasSlowed = false;
-          const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
-          outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
+          if (hero.hasTrait(HeroTrait::ManaShield))
+            outcome.monster.takeManaShieldDamage(hero.getLevel());
+          if (hero.hasStatus(HeroStatus::Reflexes))
+          {
+            const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
+            outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
+          }
         }
       }
     }
@@ -108,6 +114,8 @@ namespace Combat
       outcome.hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
       if (!outcome.hero.isDefeated())
       {
+        if (hero.hasTrait(HeroTrait::ManaShield))
+          outcome.monster.takeManaShieldDamage(hero.getLevel());
         const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
         outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
         if (monster.bearsCurse())
@@ -136,10 +144,12 @@ namespace Combat
     return outcome;
   }
 
-  Outcome::Debuffs retaliate(Hero& hero, const Monster& monster)
+  Outcome::Debuffs retaliate(Hero& hero, Monster& monster)
   {
     const bool deathProtectionBefore = hero.hasStatus(HeroStatus::DeathProtection);
     hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
+    if (hero.hasTrait(HeroTrait::ManaShield))
+      monster.takeManaShieldDamage(hero.getLevel());
     auto debuffs = receiveDebuffs(hero, monster, true);
     if (deathProtectionBefore && !hero.hasStatus(HeroStatus::DeathProtection))
       debuffs.insert(Outcome::Debuff::LostDeathProtection);

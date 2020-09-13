@@ -73,6 +73,12 @@ void Monster::takeFireballDamage(int casterLevel, int damageMultiplier)
   burn(casterLevel * 2);
 }
 
+void Monster::takeManaShieldDamage(int casterLevel)
+{
+  // Mana Shield damage against magical resistance is rounded down (usually resisted damage is rounded down)
+  stats.loseHitPoints(casterLevel * (100 - getMagicalResistPercent()) / 100);
+}
+
 void Monster::recover(int nSquares)
 {
   int recoverPoints = nSquares * (getLevel() - static_cast<int>(status.isBurning()));

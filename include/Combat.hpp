@@ -9,8 +9,8 @@ namespace Combat
   // Predict outcome of melee attack
   Outcome predictOutcome(const Hero&, const Monster&);
 
-  // Monster attacks hero
-  Outcome::Debuffs retaliate(Hero&, const Monster&);
+  // Monster attacks hero (Mana Shield may result in monster HP loss)
+  Outcome::Debuffs retaliate(Hero&, Monster&);
 
   // Predicts outcome for current monster if hero were to attack another monster
   Outcome attackOther(const Hero&, const Monster& current);
