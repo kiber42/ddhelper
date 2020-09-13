@@ -63,7 +63,7 @@ void HeroStats::setManaPointsMax(int manaPointsMax)
 
 void HeroStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
 {
-  const int max = allowOverheal ? hpMax : (hpMax * 3 / 2);
+  const int max = allowOverheal ? hpMax * 3 / 2 : hpMax;
   hp = std::min(hp + amountPointsHealed, max);
 }
 

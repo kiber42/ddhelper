@@ -33,9 +33,7 @@ int MonsterStats::getHitPointsMax() const
 
 void MonsterStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
 {
-  int max = hpMax;
-  if (allowOverheal)
-    max = hpMax * 3 / 2;
+  const int max = allowOverheal ? hpMax * 3 / 2 : hpMax;
   hp = std::min(hp + amountPointsHealed, max);
 }
 
