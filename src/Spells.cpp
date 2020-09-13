@@ -72,16 +72,18 @@ namespace Cast
     }
   }
 
-  int spellCosts(Spell spell, const Hero& /*hero*/)
+  int spellCosts(Spell spell, const Hero& hero)
   {
     // Effects to be accounted for:
     // Classes:
-    // Berserker: cost +2 (Mageslay trait)
     // Chemist: can have multiple layers of bysseps, cost doubles per layer (Additives trait)
     // Wizard: costs -1 (Magic Affinity trait)
     // God boons:
     // Mystic Balance (Mystera Annur), glyph costs change by +/-2 toward 5 (evaluated after Magic Affinity!)
-    return baseSpellCosts(spell);
+    int costs = baseSpellCosts(spell);
+    if (hero.hasTrait(HeroTrait::Mageslay))
+      costs += 2;
+    return costs;
   }
 
   bool isPossible(const Hero& hero, Spell spell)

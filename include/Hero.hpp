@@ -39,7 +39,8 @@ public:
   void changeBaseDamage(int deltaDamagePoints);
   int getDamageBonusPercent() const;
   void changeDamageBonusPercent(int deltaDamageBonusPercent);
-  int getDamage() const;
+  int getDamageVersusStandard() const;
+  int getDamageVersus(const Monster& monster) const;
 
   int getPhysicalResistPercent() const;
   int getMagicalResistPercent() const;

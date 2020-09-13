@@ -261,7 +261,7 @@ go_bandit([] {
       AssertThat(hero.getHitPoints(), Equals(10));
       AssertThat(monster.getHitPoints(), Equals(15));
       AssertThat(outcome.hero.getHitPoints(), Equals(10 - monster.getDamage()));
-      AssertThat(outcome.monster.getHitPoints(), Equals(15 - hero.getDamage()));
+      AssertThat(outcome.monster.getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
     });
   });
 
@@ -271,10 +271,10 @@ go_bandit([] {
       hero.changeDamageBonusPercent(100);
       AssertThat(hero.getDamageBonusPercent(), Equals(100));
       const int base_initial = hero.getBaseDamage();
-      const int damage_initial = hero.getDamage();
+      const int damage_initial = hero.getDamageVersusStandard();
       hero.addStatus(HeroStatus::Weakened);
       AssertThat(hero.getBaseDamage(), Equals(base_initial - 1));
-      AssertThat(hero.getDamage(), Equals(damage_initial - 2));
+      AssertThat(hero.getDamageVersusStandard(), Equals(damage_initial - 2));
       AssertThat(hero.getDamageBonusPercent(), Equals(100));
       hero.addStatus(HeroStatus::Weakened);
       AssertThat(hero.getBaseDamage(), Equals(base_initial - 2));
@@ -287,7 +287,7 @@ go_bandit([] {
     it("Reflexes should cause 2 hits", [] {
       Hero hero;
       hero.addStatus(HeroStatus::Reflexes);
-      Monster monster = makeGenericMonster(1, 2 * hero.getDamage(), 1);
+      Monster monster = makeGenericMonster(1, 2 * hero.getDamageVersusStandard(), 1);
       AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
     it("Cursed should negate resistances", [] {

@@ -71,7 +71,7 @@ namespace Combat
       //   - Health from Life Steal is added directly after strike
       //   - Warlord's 30% damage bonus if hero's health is below 50%
       //   - A Curse Bearer monster will curse the hero directly after his strike
-      outcome.monster.takeDamage(hero.getDamage(), hero.doesMagicalDamage());
+      outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
       if (!outcome.monster.isDefeated())
       {
         if (monster.bearsCurse())
@@ -80,7 +80,7 @@ namespace Combat
         if (hero.hasStatus(HeroStatus::Reflexes) && !outcome.hero.isDefeated())
         {
           monsterWasStunned = false;
-          outcome.monster.takeDamage(hero.getDamage(), hero.doesMagicalDamage());
+          outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
         }
       }
     }
@@ -90,7 +90,7 @@ namespace Combat
       outcome.hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
       if (!outcome.hero.isDefeated())
       {
-        outcome.monster.takeDamage(hero.getDamage(), hero.doesMagicalDamage());
+        outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
         if (monster.bearsCurse())
           outcome.hero.addStatus(HeroStatus::Cursed);
       }

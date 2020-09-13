@@ -10,7 +10,7 @@
 Hero::Hero(HeroClass theClass)
   : stats(10, 10, 5)
   , defence(0, 0, 65, 65)
-  , experience(1, false)
+  , experience(1, theClass == HeroClass::Fighter /* veteran trait */)
   , statuses()
   , traits(startingTraits(theClass))
 /*
@@ -19,6 +19,12 @@ Hero::Hero(HeroClass theClass)
  , conversionPoints(0)
 */
 {
+  if (hasTrait(HeroTrait::PitDog))
+    addStatus(HeroStatus::DeathProtection);
+  if (hasTrait(HeroTrait::Mageslay))
+    stats.setDamageBonusPercent(20);
+  if (hasTrait(HeroTrait::Spellkill))
+    defence.setMagicalResistPercent(50);
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -122,9 +128,16 @@ void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
   stats.setDamageBonusPercent(stats.getDamageBonusPercent() + deltaDamageBonusPercent);
 }
 
-int Hero::getDamage() const
+int Hero::getDamageVersusStandard() const
 {
   return getBaseDamage() * (100 + getDamageBonusPercent()) / 100;
+}
+
+int Hero::getDamageVersus(const Monster& monster) const
+{
+  int damage = getDamageVersusStandard();
+  const bool applyBloodlust = hasTrait(HeroTrait::Bloodlust) && monster.getLevel() > getLevel();
+  return applyBloodlust ? damage * 12 / 10 : damage;
 }
 
 int Hero::getPhysicalResistPercent() const

@@ -87,9 +87,9 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   switch (theClass)
   {
   case HeroClass::Fighter:
-    // return {HeroTrait::Instincts, HeroTrait::Veteran, HeroTrait::PitDog};
+    return {HeroTrait::Instincts, HeroTrait::Veteran, HeroTrait::PitDog};
   case HeroClass::Berserker:
-    // return {HeroTrait::Bloodlust, HeroTrait::Mageslay, HeroTrait::Spellkill};
+    return {HeroTrait::Bloodlust, HeroTrait::Mageslay, HeroTrait::Spellkill};
   case HeroClass::Warlord:
     // return {HeroTrait::Courageous, HeroTrait::Determined, HeroTrait::Defiant};
   case HeroClass::Wizard:
