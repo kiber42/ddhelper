@@ -25,6 +25,7 @@ Hero::Hero(HeroClass theClass)
     stats.setDamageBonusPercent(20);
   if (hasTrait(HeroTrait::Spellkill))
     defence.setMagicalResistPercent(50);
+  // Defiant: Add Cyddstepp glyph
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -120,7 +121,10 @@ void Hero::changeBaseDamage(int deltaDamagePoints)
 
 int Hero::getDamageBonusPercent() const
 {
-  return stats.getDamageBonusPercent();
+  int bonus = stats.getDamageBonusPercent();
+  if (hasTrait(HeroTrait::Determined) && stats.getHitPoints() < stats.getHitPointsMax() / 2)
+    bonus += 30;
+  return bonus;
 }
 
 void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
@@ -305,6 +309,18 @@ void Hero::addTrait(HeroTrait trait)
 bool Hero::hasTrait(HeroTrait trait) const
 {
   return std::find(begin(traits), end(traits), trait) != end(traits);
+}
+
+bool Hero::isTraitActive(HeroTrait trait) const
+{
+  if (!hasTrait(trait))
+    return false;
+  if (trait == HeroTrait::Determined)
+    return stats.getHitPoints() * 2 < stats.getHitPointsMax();
+  if (trait == HeroTrait::Courageous)
+    throw std::runtime_error("Not implemented");
+  // Most traits are always active
+  return true;
 }
 
 void Hero::propagateStatus(HeroStatus status, int intensity)

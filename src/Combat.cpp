@@ -40,6 +40,21 @@ namespace Combat
 
       return debuffs;
     }
+
+    // The "determined" trait may become active during combat, the effect is applied immediately
+    int damageAccountingForDetermined(const Hero& before, const Hero& after, const Monster& monster)
+    {
+      const bool wasActive = before.isTraitActive(HeroTrait::Determined);
+      const bool isActive = after.isTraitActive(HeroTrait::Determined);
+      if (wasActive != isActive)
+      {
+        // It seems possible that the trait becomes disabled during fight (probably with Life Steal and Reflexes)
+        Hero determinedHero = before;
+        determinedHero.changeBaseDamage(isActive ? +30 : -30);
+        return determinedHero.getDamageVersus(monster);
+      }
+      return before.getDamageVersus(monster);
+    }
   } // namespace
 
   Outcome predictOutcome(const Hero& hero, const Monster& monster)
@@ -62,15 +77,17 @@ namespace Combat
     // TODO Handle knockback?
     // TODO Handle burn stack pop on other monsters?
 
-    bool monsterWasStunned = monster.isSlowed();
+    // Damage is almost always computed using the initial hero and monster
+    // Known exceptions:
+    //   - Health from Life Steal is added directly after strike
+    //   - Warlord's 30% damage bonus if hero's health is below 50%
+    //   - A Curse Bearer monster will curse the hero directly after his strike
+
+    // Bonus experience is added if the monster was slowed before the attack
+    bool monsterWasSlowed = monster.isSlowed();
 
     if (hero.hasInitiativeVersus(monster))
     {
-      // Damage is almost always computed using the initial hero and monster
-      // Known exceptions:
-      //   - Health from Life Steal is added directly after strike
-      //   - Warlord's 30% damage bonus if hero's health is below 50%
-      //   - A Curse Bearer monster will curse the hero directly after his strike
       outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
       if (!outcome.monster.isDefeated())
       {
@@ -79,8 +96,9 @@ namespace Combat
         outcome.hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
         if (hero.hasStatus(HeroStatus::Reflexes) && !outcome.hero.isDefeated())
         {
-          monsterWasStunned = false;
-          outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+          monsterWasSlowed = false;
+          const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
+          outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
         }
       }
     }
@@ -90,7 +108,8 @@ namespace Combat
       outcome.hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
       if (!outcome.hero.isDefeated())
       {
-        outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+        const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
+        outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
         if (monster.bearsCurse())
           outcome.hero.addStatus(HeroStatus::Cursed);
       }
@@ -112,7 +131,7 @@ namespace Combat
     outcome.hero.removeStatus(HeroStatus::FirstStrike, true);
     outcome.hero.removeStatus(HeroStatus::Reflexes, true);
 
-    outcome.summary = summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
+    outcome.summary = summaryAndExperience(outcome.hero, outcome.monster, monsterWasSlowed);
 
     return outcome;
   }

@@ -69,6 +69,7 @@ public:
 
   void addTrait(HeroTrait trait);
   bool hasTrait(HeroTrait trait) const;
+  bool isTraitActive(HeroTrait trait) const;
 
 private:
   HeroStats stats;

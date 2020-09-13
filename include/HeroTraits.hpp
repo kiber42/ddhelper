@@ -10,7 +10,7 @@ enum class HeroTrait
   AzureBody,
   Bloodlust,
   Colourants,
-  Courageous,
+  Courageous, // not implemented: drinking a mana potion will cause the next attack to do +30% damage
   Damned,
   Dangerous,
   Defiant,
