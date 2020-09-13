@@ -207,7 +207,7 @@ bool Hero::hasInitiativeVersus(const Monster& monster) const
 
 int Hero::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
 {
-  return defence.predictDamageTaken(attackerDamageOutput, isMagicalDamage);
+  return defence.predictDamageTaken(attackerDamageOutput, isMagicalDamage, 0);
 }
 
 void Hero::loseHitPoints(int amountPointsLost)

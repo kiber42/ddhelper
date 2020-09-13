@@ -55,7 +55,7 @@ int Monster::getMagicalResistPercent() const
 
 int Monster::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
 {
-  return defence.predictDamageTaken(attackerDamageOutput, isMagicalDamage) + status.getBurnStackSize();
+  return defence.predictDamageTaken(attackerDamageOutput, isMagicalDamage, status.getBurnStackSize());
 }
 
 void Monster::takeDamage(int attackerDamageOutput, bool isMagicalDamage)

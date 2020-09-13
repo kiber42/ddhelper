@@ -35,13 +35,13 @@ void Defence::setMagicalResistPercent(int newMagicalResistPercent)
   magicalResistPercent = std::min(std::max(newMagicalResistPercent, 0), magicalResistPercentMax);
 }
 
-int Defence::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
+int Defence::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage, int burnStackSize) const
 {
-  int damage = attackerDamageOutput;
+  int damage = attackerDamageOutput + burnStackSize;
   if (!isCursed)
   {
     const int resist = isMagicalDamage ? magicalResistPercent : physicalResistPercent;
-    const int resistedPoints = attackerDamageOutput * resist / 100;
+    const int resistedPoints = (attackerDamageOutput * resist + burnStackSize * magicalResistPercent) / 100;
     damage -= resistedPoints;
   }
   if (damage > 0)
