@@ -47,7 +47,6 @@ public:
 private:
   std::optional<Hero> hero;
   std::optional<Monster> monster;
-  std::optional<Outcome> outcome;
 
   std::vector<std::pair<std::optional<Hero>, std::optional<Monster>>> history;
 };
@@ -66,37 +65,65 @@ private:
   Arena arena;
 };
 
+namespace
+{
+  static ImVec4 colorSafe(0, 0.5f, 0, 1);
+  static ImVec4 colorWin(0.2f, 1, 0.2f, 1);
+  static ImVec4 colorDeath(1, 0, 0, 1);
+  static ImVec4 colorLevelUp(0.5f, 1, 0.5f, 1);
+  static ImVec4 colorNotPossible(0, 0, 0, 1);
+
+  inline const ImVec4& summaryColor(Outcome::Summary summary)
+  {
+    using Summary = Outcome::Summary;
+    switch (summary)
+    {
+    case Summary::Safe:
+      return colorSafe;
+    case Summary::Win:
+      return colorWin;
+    case Summary::Death:
+      return colorDeath;
+    case Summary::LevelUp:
+      return colorLevelUp;
+    case Summary::NotPossible:
+      return colorNotPossible;
+    }
+  }
+
+  void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& monster)
+  {
+    if (hero.has_value())
+    {
+      if (!hero->isDefeated())
+      {
+        ImGui::Text("Level %i hero has %i/%i HP, %i/%i MP, %i/%i XP", hero->getLevel(), hero->getHitPoints(),
+                    hero->getHitPointsMax(), hero->getManaPoints(), hero->getManaPointsMax(), hero->getXP(),
+                    hero->getXPforNextLevel());
+        if (hero->hasStatus(HeroStatus::FirstStrike))
+          ImGui::Text("Hero has first strike");
+      }
+      else
+        ImGui::Text("Hero was defeated.");
+    }
+    if (monster.has_value())
+    {
+      if (!monster->isDefeated())
+      {
+        ImGui::Text("%s has %i/%i HP", monster->getName(), monster->getHitPoints(), monster->getHitPointsMax());
+        if (monster->isBurning())
+          ImGui::Text("Monster is burning (burn stack size %i)", monster->getBurnStackSize());
+      }
+      else
+        ImGui::Text("%s was defeated.", monster->getName());
+    }
+  }
+
+} // namespace
+
 DDHelperApp::DDHelperApp()
   : ImguiApp("Desktop Dungeons Simulator")
 {
-}
-
-void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& monster)
-{
-  if (hero.has_value())
-  {
-    if (!hero->isDefeated())
-    {
-      ImGui::Text("Level %i hero has %i/%i HP, %i/%i MP, %i/%i XP", hero->getLevel(), hero->getHitPoints(),
-                  hero->getHitPointsMax(), hero->getManaPoints(), hero->getManaPointsMax(), hero->getXP(),
-                  hero->getXPforNextLevel());
-      if (hero->hasStatus(HeroStatus::FirstStrike))
-        ImGui::Text("Hero has first strike");
-    }
-    else
-      ImGui::Text("Hero was defeated.");
-  }
-  if (monster.has_value())
-  {
-    if (!monster->isDefeated())
-    {
-      ImGui::Text("%s has %i/%i HP", monster->getName(), monster->getHitPoints(), monster->getHitPointsMax());
-      if (monster->isBurning())
-        ImGui::Text("Monster is burning (burn stack size %i)", monster->getBurnStackSize());
-    }
-    else
-      ImGui::Text("%s was defeated.", monster->getName());
-  }
 }
 
 void DDHelperApp::populateFrame()
@@ -218,10 +245,9 @@ std::optional<Monster> CustomMonsterBuilder::run()
 Monster CustomMonsterBuilder::get() const
 {
   Monster monster("Level " + std::to_string(data[0]) + " monster",
-                  makeGenericMonsterStats(data[0] /* level */, data[2] /* max hp */,
-                                          data[3] /* damage */, 0 /* death protection */),
-                  {data[4] /* physical resistance */, data[5] /* magical resistance */},
-                  traits);
+                  makeGenericMonsterStats(data[0] /* level */, data[2] /* max hp */, data[3] /* damage */,
+                                          0 /* death protection */),
+                  {data[4] /* physical resistance */, data[5] /* magical resistance */}, traits);
   if (data[1] < data[2])
     monster.takeDamage(data[2] - data[1], false);
   return monster;
@@ -232,7 +258,6 @@ void Arena::enter(Hero&& newHero)
   if (hero.has_value())
     history.emplace_back(std::move(hero), monster);
   hero.emplace(newHero);
-  outcome.reset();
 }
 
 void Arena::enter(Monster&& newMonster)
@@ -240,11 +265,39 @@ void Arena::enter(Monster&& newMonster)
   if (hero.has_value() || monster.has_value())
     history.emplace_back(hero, std::move(monster));
   monster.emplace(newMonster);
-  outcome.reset();
 }
 
 void Arena::run()
 {
+  auto addActionButton = [&](const char* title, auto outcomeProvider) {
+    if (ImGui::Button(title))
+    {
+      auto outcome = outcomeProvider();
+      if (outcome.summary != Outcome::Summary::NotPossible)
+      {
+        history.emplace_back(std::move(hero), std::move(monster));
+        hero = std::move(outcome.hero);
+        monster = std::move(outcome.monster);
+      }
+    }
+    else if (ImGui::IsItemHovered())
+    {
+      const auto outcome = outcomeProvider();
+      ImGui::BeginTooltip();
+      ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+      if (outcome.summary == Outcome::Summary::NotPossible)
+        ImGui::TextUnformatted("Not possible");
+      else
+      {
+        const auto color = summaryColor(outcome.summary);
+        ImGui::TextColored(color, "%s", toString(outcome.summary));
+        showStatus(outcome.hero, outcome.monster);
+      }
+      ImGui::PopTextWrapPos();
+      ImGui::EndTooltip();
+    }
+  };
+
   ImGui::Begin("Arena");
   showStatus(hero, monster);
   if (hero.has_value() && !hero->isDefeated())
@@ -252,14 +305,11 @@ void Arena::run()
     const bool withMonster = monster.has_value() && !monster->isDefeated();
     if (withMonster)
     {
-      if (ImGui::Button("Attack"))
-        outcome.emplace(Combat::predictOutcome(hero.value(), monster.value()));
+      addActionButton("Attack", [&] { return Combat::predictOutcome(hero.value(), monster.value()); });
       ImGui::SameLine();
-      if (ImGui::Button("Attack Other"))
-        outcome.emplace(Combat::attackOther(hero.value(), monster.value()));
+      addActionButton("Attack Other", [&] { return Combat::attackOther(hero.value(), monster.value()); });
       ImGui::SameLine();
-      if (ImGui::Button("Uncover Tile"))
-        outcome.emplace(Combat::uncoverTiles(hero.value(), monster.value(), 1));
+      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(hero.value(), monster.value(), 1); });
     }
     else
     {
@@ -280,32 +330,17 @@ void Arena::run()
         continue;
       if (count++ % 4 != 0)
         ImGui::SameLine();
-      if (ImGui::Button(toString(spell)))
+      if (withMonster)
+        addActionButton(toString(spell), [&] { return Cast::predictOutcome(hero.value(), monster.value(), spell); });
+      else if (ImGui::Button(toString(spell)) && Cast::isPossible(hero.value(), spell))
       {
-        if (withMonster)
-          outcome.emplace(Cast::predictOutcome(hero.value(), monster.value(), spell));
-        else if (Cast::isPossible(hero.value(), spell))
-        {
-          Hero heroAfter = Cast::untargeted(hero.value(), spell);
-          history.emplace_back(std::move(hero), monster);
-          hero = heroAfter;
-        }
+        Hero heroAfter = Cast::untargeted(hero.value(), spell);
+        history.emplace_back(std::move(hero), monster);
+        hero = heroAfter;
       }
     }
   }
-  if (outcome.has_value())
-  {
-    ImGui::Text("%s", toString(outcome->summary, outcome->debuffs).c_str());
-    showStatus(outcome->hero, outcome->monster);
-    if (ImGui::Button("Accept outcome"))
-    {
-      history.emplace_back(std::move(hero), std::move(monster));
-      hero = outcome->hero;
-      monster = outcome->monster;
-      outcome.reset();
-    }
-  }
-  else if (!history.empty() && ImGui::Button("Undo"))
+  if (!history.empty() && ImGui::Button("Undo"))
   {
     std::tie(hero, monster) = std::move(history.back());
     history.pop_back();
