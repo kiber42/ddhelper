@@ -8,25 +8,43 @@
 #include "MonsterFactory.hpp"
 #include "Spells.hpp"
 
+#include <array>
 #include <optional>
 #include <utility>
 #include <vector>
 
-class DDHelperApp : public ImguiApp
+class CustomHeroBuilder
 {
 public:
-  DDHelperApp();
-  Hero heroFromForm();
-  Monster monsterFromForm();
+  CustomHeroBuilder();
+  std::optional<Hero> run();
+  Hero get() const;
 
 private:
-  void populateFrame() override;
+  std::array<int, 8> data;
+  std::map<HeroStatus, int> statuses;
+};
 
-  int hero_data[8];
-  int monster_data[6];
-  std::map<HeroStatus, int> hero_statuses;
-  MonsterTraits monster_traits;
+class CustomMonsterBuilder
+{
+public:
+  CustomMonsterBuilder();
+  std::optional<Monster> run();
+  Monster get() const;
 
+private:
+  std::array<int, 6> data;
+  MonsterTraits traits;
+};
+
+class Arena
+{
+public:
+  void enter(Hero&&);
+  void enter(Monster&&);
+  void run();
+
+private:
   std::optional<Hero> hero;
   std::optional<Monster> monster;
   std::optional<Outcome> outcome;
@@ -34,10 +52,22 @@ private:
   std::vector<std::pair<std::optional<Hero>, std::optional<Monster>>> history;
 };
 
+class DDHelperApp : public ImguiApp
+{
+public:
+  DDHelperApp();
+  Monster monsterFromForm();
+
+private:
+  void populateFrame() override;
+
+  CustomHeroBuilder heroBuilder;
+  CustomMonsterBuilder monsterBuilder;
+  Arena arena;
+};
+
 DDHelperApp::DDHelperApp()
   : ImguiApp("Desktop Dungeons Simulator")
-  , hero_data{1, 10, 10, 10, 10, 5, 0, 0}
-  , monster_data{1, 6, 6, 3, 0, 0}
 {
 }
 
@@ -71,73 +101,150 @@ void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& m
 
 void DDHelperApp::populateFrame()
 {
+  auto heroToArena = heroBuilder.run();
+  if (heroToArena.has_value())
+    arena.enter(std::move(heroToArena.value()));
+
+  auto monsterToArena = monsterBuilder.run();
+  if (monsterToArena.has_value())
+    arena.enter(std::move(monsterToArena.value()));
+
+  arena.run();
+}
+
+CustomHeroBuilder::CustomHeroBuilder()
+  : data{1, 10, 10, 10, 10, 5, 0, 0}
+{
+}
+
+std::optional<Hero> CustomHeroBuilder::run()
+{
   ImGui::Begin("Hero");
-  ImGui::DragInt("Level", &hero_data[0], 0.1f, 1, 10);
-  if (ImGui::DragInt2("HP / max", &hero_data[1], 0.5f, 0, 300))
-    hero_data[1] = std::min(hero_data[1], hero_data[2] * 3 / 2);
-  if (ImGui::DragInt2("MP / max", &hero_data[3], 0.1f, 0, 30))
-    hero_data[3] = std::min(hero_data[3], hero_data[4]);
-  ImGui::DragInt("Attack", &hero_data[5], 0.5f, 0, 300);
-  ImGui::DragInt("Physical Resistance", &hero_data[6], 0.2f, 0, 80);
-  ImGui::DragInt("Magical Resistance", &hero_data[7], 0.2f, 0, 80);
+  ImGui::DragInt("Level", &data[0], 0.1f, 1, 10);
+  if (ImGui::DragInt2("HP / max", &data[1], 0.5f, 0, 300))
+    data[1] = std::min(data[1], data[2] * 3 / 2);
+  if (ImGui::DragInt2("MP / max", &data[3], 0.1f, 0, 30))
+    data[3] = std::min(data[3], data[4]);
+  ImGui::DragInt("Attack", &data[5], 0.5f, 0, 300);
+  ImGui::DragInt("Physical Resistance", &data[6], 0.2f, 0, 80);
+  ImGui::DragInt("Magical Resistance", &data[7], 0.2f, 0, 80);
 
   for (HeroStatus status :
        {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
         HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball, HeroStatus::DeathProtection,
         HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
   {
-    bool current = hero_statuses[status] > 0;
+    bool current = statuses[status] > 0;
     if (ImGui::Checkbox(toString(status), &current))
-      hero_statuses[status] = current;
+      statuses[status] = current;
   }
   for (HeroStatus status : {HeroStatus::Corrosion, HeroStatus::Cursed, HeroStatus::Learning, HeroStatus::Weakened})
   {
-    int current = hero_statuses[status];
+    int current = statuses[status];
     if (ImGui::InputInt(toString(status), &current))
     {
       if (current < 0)
         current = 0;
-      hero_statuses[status] = current;
+      statuses[status] = current;
     }
   }
+  std::optional<Hero> newHero;
   if (ImGui::Button("Send to Arena"))
-  {
-    if (hero.has_value())
-      history.emplace_back(std::move(hero), monster);
-    hero = heroFromForm();
-    outcome.reset();
-  }
+    newHero.emplace(get());
   ImGui::End();
+  return newHero;
+}
 
+Hero CustomHeroBuilder::get() const
+{
+  const int level = data[0];
+  const int maxHp = data[2];
+  const int maxMp = data[4];
+  const int damage = data[5];
+  const int physicalResistance = data[6];
+  const int magicalResistance = data[7];
+  Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
+
+  const int deltaHp = maxHp - data[1];
+  const int deltaMp = maxMp - data[3];
+  if (deltaHp > 0)
+    hero.loseHitPointsOutsideOfFight(deltaHp);
+  else if (deltaHp < 0)
+    hero.healHitPoints(-deltaHp, true);
+  else if (deltaMp > 0)
+    hero.loseManaPoints(deltaMp);
+
+  for (const auto& [status, intensity] : statuses)
+    for (int i = 0; i < intensity; ++i)
+      hero.addStatus(status);
+
+  return hero;
+}
+
+CustomMonsterBuilder::CustomMonsterBuilder()
+  : data{1, 6, 6, 3, 0, 0}
+{
+}
+
+std::optional<Monster> CustomMonsterBuilder::run()
+{
   ImGui::Begin("Monster");
-  ImGui::DragInt("Level", &monster_data[0], 0.2f, 1, 10);
-  ImGui::DragInt2("HP / max", &monster_data[1], 0.5f, 0, 300);
-  ImGui::DragInt("Attack", &monster_data[3], 0.5f, 0, 300);
-  ImGui::DragInt("Physical Resistance", &monster_data[4], 0.2f, 0, 100);
-  ImGui::DragInt("Magical Resistance", &monster_data[5], 0.2f, 0, 100);
-  ImGui::Checkbox("First Strike", &monster_traits.firstStrike);
-  ImGui::Checkbox("Magical Attack", &monster_traits.magicalDamage);
-  ImGui::Checkbox("Retaliate", &monster_traits.retaliate);
-  ImGui::Checkbox("Poisonous", &monster_traits.poisonous);
-  ImGui::Checkbox("Mana Burn", &monster_traits.manaBurn);
-  ImGui::Checkbox("Cursed", &monster_traits.curse);
-  ImGui::Checkbox("Corrosive", &monster_traits.corrosive);
-  ImGui::Checkbox("Weakening", &monster_traits.weakening);
-  ImGui::Checkbox("Undead", &monster_traits.undead);
-  ImGui::Checkbox("Bloodless ", &monster_traits.bloodless);
-  if (ImGui::InputInt("Death Gaze %", &monster_traits.deathGazePercent))
-    monster_traits.deathGazePercent = std::min(std::max(monster_traits.deathGazePercent, 0), 100);
-  if (ImGui::InputInt("Life Steal %", &monster_traits.lifeStealPercent))
-    monster_traits.lifeStealPercent = std::min(std::max(monster_traits.lifeStealPercent, 0), 100);
+  ImGui::DragInt("Level", &data[0], 0.2f, 1, 10);
+  ImGui::DragInt2("HP / max", &data[1], 0.5f, 0, 300);
+  ImGui::DragInt("Attack", &data[3], 0.5f, 0, 300);
+  ImGui::DragInt("Physical Resistance", &data[4], 0.2f, 0, 100);
+  ImGui::DragInt("Magical Resistance", &data[5], 0.2f, 0, 100);
+  ImGui::Checkbox("First Strike", &traits.firstStrike);
+  ImGui::Checkbox("Magical Attack", &traits.magicalDamage);
+  ImGui::Checkbox("Retaliate", &traits.retaliate);
+  ImGui::Checkbox("Poisonous", &traits.poisonous);
+  ImGui::Checkbox("Mana Burn", &traits.manaBurn);
+  ImGui::Checkbox("Cursed", &traits.curse);
+  ImGui::Checkbox("Corrosive", &traits.corrosive);
+  ImGui::Checkbox("Weakening", &traits.weakening);
+  ImGui::Checkbox("Undead", &traits.undead);
+  ImGui::Checkbox("Bloodless ", &traits.bloodless);
+  if (ImGui::InputInt("Death Gaze %", &traits.deathGazePercent))
+    traits.deathGazePercent = std::min(std::max(traits.deathGazePercent, 0), 100);
+  if (ImGui::InputInt("Life Steal %", &traits.lifeStealPercent))
+    traits.lifeStealPercent = std::min(std::max(traits.lifeStealPercent, 0), 100);
+  std::optional<Monster> monster;
   if (ImGui::Button("Send to Arena"))
-  {
-    if (hero.has_value() || monster.has_value())
-      history.emplace_back(hero, std::move(monster));
-    monster = monsterFromForm();
-    outcome.reset();
-  }
+    monster.emplace(get());
   ImGui::End();
+  return monster;
+}
 
+Monster CustomMonsterBuilder::get() const
+{
+  Monster monster("Level " + std::to_string(data[0]) + " monster",
+                  makeGenericMonsterStats(data[0] /* level */, data[2] /* max hp */,
+                                          data[3] /* damage */, 0 /* death protection */),
+                  {data[4] /* physical resistance */, data[5] /* magical resistance */},
+                  traits);
+  if (data[1] < data[2])
+    monster.takeDamage(data[2] - data[1], false);
+  return monster;
+}
+
+void Arena::enter(Hero&& newHero)
+{
+  if (hero.has_value())
+    history.emplace_back(std::move(hero), monster);
+  hero.emplace(newHero);
+  outcome.reset();
+}
+
+void Arena::enter(Monster&& newMonster)
+{
+  if (hero.has_value() || monster.has_value())
+    history.emplace_back(hero, std::move(monster));
+  monster.emplace(newMonster);
+  outcome.reset();
+}
+
+void Arena::run()
+{
   ImGui::Begin("Arena");
   showStatus(hero, monster);
   if (hero.has_value() && !hero->isDefeated())
@@ -204,49 +311,6 @@ void DDHelperApp::populateFrame()
     history.pop_back();
   }
   ImGui::End();
-
-  ImGui::Begin("Debug");
-  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-              ImGui::GetIO().Framerate);
-  ImGui::End();
-}
-
-Hero DDHelperApp::heroFromForm()
-{
-  const int level = hero_data[0];
-  const int maxHp = hero_data[2];
-  const int maxMp = hero_data[4];
-  const int damage = hero_data[5];
-  const int physicalResistance = hero_data[6];
-  const int magicalResistance = hero_data[7];
-  Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
-
-  const int deltaHp = maxHp - hero_data[1];
-  const int deltaMp = maxMp - hero_data[3];
-  if (deltaHp > 0)
-    hero.loseHitPointsOutsideOfFight(deltaHp);
-  else if (deltaHp < 0)
-    hero.healHitPoints(-deltaHp, true);
-  else if (deltaMp > 0)
-    hero.loseManaPoints(deltaMp);
-
-  for (const auto& [status, intensity] : hero_statuses)
-    for (int i = 0; i < intensity; ++i)
-      hero.addStatus(status);
-
-  return hero;
-}
-
-Monster DDHelperApp::monsterFromForm()
-{
-  Monster monster("Level " + std::to_string(monster_data[0]) + " monster",
-                  makeGenericMonsterStats(monster_data[0] /* level */, monster_data[2] /* max hp */,
-                                          monster_data[3] /* damage */, 0 /* death protection */),
-                  {monster_data[4] /* physical resistance */, monster_data[5] /* magical resistance */},
-                  monster_traits);
-  if (monster_data[1] < monster_data[2])
-    monster.takeDamage(monster_data[2] - monster_data[1], false);
-  return monster;
 }
 
 int main()
