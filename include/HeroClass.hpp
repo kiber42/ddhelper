@@ -31,7 +31,7 @@ enum class HeroClass
   Guard,
 };
 
-constexpr const char* to_string(HeroClass theClass)
+constexpr const char* toString(HeroClass theClass)
 {
   switch (theClass)
   {

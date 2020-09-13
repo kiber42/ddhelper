@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "Inventory.h"
-
 #include "Defence.hpp"
 #include "Experience.hpp"
 #include "HeroClass.hpp"
@@ -10,8 +8,8 @@
 #include "HeroTraits.hpp"
 
 #include <map>
-#include <memory>
-#include <set>
+#include <string>
+#include <vector>
 
 class Monster;
 
@@ -20,6 +18,8 @@ class Hero
 public:
   Hero(HeroClass theClass = HeroClass::Guard);
   Hero(HeroStats, Defence, Experience);
+
+  std::string getName() const;
 
   int getXP() const;
   int getLevel() const;
@@ -72,6 +72,7 @@ public:
   bool isTraitActive(HeroTrait trait) const;
 
 private:
+  std::string name;
   HeroStats stats;
   Defence defence;
   Experience experience;

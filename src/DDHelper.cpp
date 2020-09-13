@@ -87,19 +87,23 @@ namespace
   static ImVec4 colorLevelUp(0.5f, 1, 0.5f, 1);
   static ImVec4 colorNotPossible(0, 0, 0, 1);
 
-  inline const ImVec4& summaryColor(Outcome::Summary summary)
+  static ImVec4 colorDebuffedSafe(0, 0.5f, 0.5f, 1);
+  static ImVec4 colorDebuffedWin(0, 0.8f, 0.8f, 1);
+  static ImVec4 colorDebuffedLevelUp(0, 1, 1, 1);
+
+  inline const ImVec4& summaryColor(Outcome::Summary summary, bool debuffed)
   {
     using Summary = Outcome::Summary;
     switch (summary)
     {
     case Summary::Safe:
-      return colorSafe;
+      return debuffed ? colorDebuffedSafe : colorSafe;
     case Summary::Win:
-      return colorWin;
+      return debuffed ? colorDebuffedWin : colorWin;
     case Summary::Death:
       return colorDeath;
     case Summary::LevelUp:
-      return colorLevelUp;
+      return debuffed ? colorDebuffedLevelUp : colorLevelUp;
     case Summary::NotPossible:
       return colorNotPossible;
     }
@@ -111,14 +115,20 @@ namespace
     {
       if (!hero->isDefeated())
       {
-        ImGui::Text("Level %i hero has %i/%i HP, %i/%i MP, %i/%i XP", hero->getLevel(), hero->getHitPoints(),
-                    hero->getHitPointsMax(), hero->getManaPoints(), hero->getManaPointsMax(), hero->getXP(),
-                    hero->getXPforNextLevel());
+        ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP", hero->getName().c_str(), hero->getLevel(),
+                    hero->getHitPoints(), hero->getHitPointsMax(), hero->getManaPoints(), hero->getManaPointsMax(),
+                    hero->getXP(), hero->getXPforNextLevel());
         if (hero->hasStatus(HeroStatus::FirstStrike))
-          ImGui::Text("Hero has first strike");
+          ImGui::Text("  has first strike");
+        if (hero->hasStatus(HeroStatus::DeathProtection))
+          ImGui::Text("  has death protection");
+        if (hero->hasStatus(HeroStatus::Poisoned))
+          ImGui::Text("  is poisoned");
+        if (hero->hasStatus(HeroStatus::ManaBurned))
+          ImGui::Text("  is mana burned");
       }
       else
-        ImGui::Text("Hero was defeated.");
+        ImGui::Text("Hero defeated.");
     }
     if (monster.has_value())
     {
@@ -126,10 +136,14 @@ namespace
       {
         ImGui::Text("%s has %i/%i HP", monster->getName(), monster->getHitPoints(), monster->getHitPointsMax());
         if (monster->isBurning())
-          ImGui::Text("Monster is burning (burn stack size %i)", monster->getBurnStackSize());
+          ImGui::Text("  is burning (burn stack size %i)", monster->getBurnStackSize());
+        if (monster->isPoisoned())
+          ImGui::Text("  is poisoned (amount: %i)", monster->getPoisonAmount());
+        if (monster->isSlowed())
+          ImGui::Text("  is slowed");
       }
       else
-        ImGui::Text("%s was defeated.", monster->getName());
+        ImGui::Text("%s defeated.", monster->getName());
     }
   }
 
@@ -169,12 +183,12 @@ std::optional<Hero> HeroSelection::run()
   constexpr std::array allClasses = {HeroClass::Fighter, HeroClass::Berserker, HeroClass::Warlord};
 
   ImGui::Begin("Hero");
-  if (ImGui::BeginCombo("Class", to_string(selectedClass)))
+  if (ImGui::BeginCombo("Class", toString(selectedClass)))
   {
     int n = 0;
     for (auto theClass : allClasses)
     {
-      if (ImGui::Selectable(to_string(theClass), n == selectedClassIndex))
+      if (ImGui::Selectable(toString(theClass), n == selectedClassIndex))
       {
         selectedClass = theClass;
         selectedClassIndex = n;
@@ -183,7 +197,8 @@ std::optional<Hero> HeroSelection::run()
     }
     ImGui::EndCombo();
   }
-  ImGui::DragInt("Level", &level, 0.1f, 1, 10);
+  if (ImGui::InputInt("Level", &level, 1, 1))
+    level = std::min(std::max(level, 1), 10);
 
   std::optional<Hero> newHero;
   if (ImGui::Button("Send to Arena"))
@@ -350,8 +365,8 @@ void Arena::run()
         ImGui::TextUnformatted("Not possible");
       else
       {
-        const auto color = summaryColor(outcome.summary);
-        ImGui::TextColored(color, "%s", toString(outcome.summary));
+        const auto color = summaryColor(outcome.summary, !outcome.debuffs.empty());
+        ImGui::TextColored(color, "%s", toString(outcome.summary, outcome.debuffs).c_str());
         showStatus(outcome.hero, outcome.monster);
       }
       ImGui::PopTextWrapPos();

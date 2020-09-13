@@ -8,7 +8,8 @@
 #include <utility>
 
 Hero::Hero(HeroClass theClass)
-  : stats(10, 10, 5)
+  : name(toString(theClass))
+  , stats(10, 10, 5)
   , defence(0, 0, 65, 65)
   , experience(1, theClass == HeroClass::Fighter /* veteran trait */)
   , statuses()
@@ -29,10 +30,16 @@ Hero::Hero(HeroClass theClass)
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
-  : stats(std::move(stats))
+  : name("Hero")
+  , stats(std::move(stats))
   , defence(std::move(defence))
   , experience(std::move(experience))
 {
+}
+
+std::string Hero::getName() const
+{
+  return name;
 }
 
 int Hero::getXP() const

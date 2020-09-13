@@ -4,6 +4,7 @@
 #include "Monster.hpp"
 
 #include <ostream>
+#include <set>
 
 struct Outcome
 {
