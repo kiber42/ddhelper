@@ -150,7 +150,22 @@ namespace
     {
       if (!monster->isDefeated())
       {
-        ImGui::Text("%s has %i/%i HP", monster->getName(), monster->getHitPoints(), monster->getHitPointsMax());
+        ImGui::Text("%s has %i/%i HP, and does %i damage", monster->getName(), monster->getHitPoints(),
+                    monster->getHitPointsMax(), monster->getDamage());
+        if (monster->getPhysicalResistPercent() > 0)
+          ImGui::Text("  Physical resist %i%%", monster->getPhysicalResistPercent());
+        if (monster->getMagicalResistPercent() > 0)
+          ImGui::Text("  Magical resist %i%%", monster->getMagicalResistPercent());
+        if (monster->isPoisonous())
+          ImGui::Text("  Poisonous");
+        if (monster->hasManaBurn())
+          ImGui::Text("  Mana Burn");
+        if (monster->bearsCurse())
+          ImGui::Text("  Curse bearer");
+        if (monster->getDeathGazePercent() > 0)
+          ImGui::Text("  Death Gaze %i%%", monster->getDeathGazePercent());
+        if (monster->getDeathProtection() > 0)
+          ImGui::Text("  Death protection (%i)", monster->getDeathProtection());
         if (monster->isBurning())
           ImGui::Text("  is burning (burn stack size %i)", monster->getBurnStackSize());
         if (monster->isPoisoned())
