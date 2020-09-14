@@ -81,12 +81,19 @@ namespace Combat
     // Known exceptions:
     //   - Health from Life Steal is added directly after strike
     //   - Warlord's 30% damage bonus if hero's health is below 50%
-    //   - A Curse Bearer monster will curse the hero directly after his strike
+    //   - A Curse Bearer monster will curse the hero directly after the hero's strike
 
     // Bonus experience is added if the monster was slowed before the attack
     bool monsterWasSlowed = monster.isSlowed();
 
-    if (hero.hasInitiativeVersus(monster))
+    const bool petrified = monster.getDeathGazePercent() * hero.getHitPointsMax() / 100 > hero.getHitPoints();
+
+    if (petrified)
+    {
+      // Hero either dies or death protection is triggered
+      outcome.hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
+    }
+    else if (hero.hasInitiativeVersus(monster))
     {
       outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
       if (!outcome.monster.isDefeated())
@@ -139,7 +146,9 @@ namespace Combat
     outcome.hero.removeStatus(HeroStatus::FirstStrike, true);
     outcome.hero.removeStatus(HeroStatus::Reflexes, true);
 
-    outcome.summary = summaryAndExperience(outcome.hero, outcome.monster, monsterWasSlowed);
+    outcome.summary = petrified && outcome.hero.isDefeated()
+                          ? Outcome::Summary::Petrified
+                          : summaryAndExperience(outcome.hero, outcome.monster, monsterWasSlowed);
 
     return outcome;
   }

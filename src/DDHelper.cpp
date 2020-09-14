@@ -117,6 +117,7 @@ namespace
     case Summary::Win:
       return debuffed ? colorDebuffedWin : colorWin;
     case Summary::Death:
+    case Summary::Petrified:
       return colorDeath;
     case Summary::LevelUp:
       return debuffed ? colorDebuffedLevelUp : colorLevelUp;

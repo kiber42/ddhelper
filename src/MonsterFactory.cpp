@@ -71,7 +71,7 @@ MonsterTraits getTraits(MonsterType type)
   case MonsterType::GooBlob:
     break;
   case MonsterType::Gorgon:
-    traits.addFirstStrike()/*.addDeathGaze(50)*/;
+    traits.addFirstStrike().setDeathGazePercent(50);
     break;
   case MonsterType::MeatMan:
     break;
@@ -90,7 +90,7 @@ MonsterTraits getTraits(MonsterType type)
 
 Monster makeMonster(MonsterType type, int level, int dungeonMultiplier)
 {
-  std::string name = std::string(toString(type)) + " Level " + std::to_string(level);
+  std::string name = std::string(toString(type)) + " level " + std::to_string(level);
   const auto [damageMultiplier, hpMultiplier] = getMultipliers(type);
   const int hp = (level * (level + 6) - 1) * dungeonMultiplier / 100 * hpMultiplier / 100;
   const int damage = (level * (level + 5) / 2) * dungeonMultiplier / 100 * damageMultiplier / 100;

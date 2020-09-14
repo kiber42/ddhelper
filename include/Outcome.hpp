@@ -13,6 +13,7 @@ struct Outcome
     Safe,
     Win,
     Death,
+    Petrified,
     LevelUp,
     NotPossible
   };
@@ -40,6 +41,7 @@ constexpr const char* toString(Outcome::Summary status)
     case Summary::Safe: return "Safe";
     case Summary::Win: return "Win";
     case Summary::Death: return "Death";
+    case Summary::Petrified: return "Petrified";
     case Summary::LevelUp: return "Level Up";
     case Summary::NotPossible: return "Not Possible";
   }
