@@ -1,5 +1,6 @@
 #include "MonsterFactory.hpp"
 
+// Attack and health modifiers
 constexpr std::pair<int, int> getMultipliers(MonsterType type)
 {
   switch (type)
@@ -31,6 +32,7 @@ constexpr std::pair<int, int> getMultipliers(MonsterType type)
   }
 }
 
+// Physical and magical resistances
 constexpr std::pair<int, int> getResistances(MonsterType type)
 {
   switch (type)
@@ -86,12 +88,12 @@ MonsterTraits getTraits(MonsterType type)
   return traits.get();
 }
 
-Monster makeMonster(MonsterType type, int level)
+Monster makeMonster(MonsterType type, int level, int dungeonMultiplier)
 {
   std::string name = std::string(toString(type)) + " Level " + std::to_string(level);
-  const auto [hpMultiplier, damageMultiplier] = getMultipliers(type);
-  const int hp = (level * (level + 6) - 1) * hpMultiplier / 100;
-  const int damage = (level * (level + 5) / 2) * damageMultiplier / 100;
+  const auto [damageMultiplier, hpMultiplier] = getMultipliers(type);
+  const int hp = (level * (level + 6) - 1) * dungeonMultiplier / 100 * hpMultiplier / 100;
+  const int damage = (level * (level + 5) / 2) * dungeonMultiplier / 100 * damageMultiplier / 100;
   MonsterStats stats(level, hp, hp, damage, 0);
 
   const auto [physicalResist, magicalResist] = getResistances(type);

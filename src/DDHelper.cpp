@@ -34,9 +34,11 @@ public:
   Monster get() const;
 
 private:
-  MonsterType selectedType;
-  int selectedTypeIndex;
+  MonsterType type;
   int level;
+  int dungeonMultiplier;
+  int selectedTypeIndex;
+  int selectedDungeonIndex;
 };
 
 class CustomHeroBuilder
@@ -235,9 +237,11 @@ Hero HeroSelection::get() const
 }
 
 MonsterSelection::MonsterSelection()
-  : selectedType(MonsterType::Bandit)
-  , selectedTypeIndex(0)
+  : type(MonsterType::Bandit)
   , level(1)
+  , dungeonMultiplier(100)
+  , selectedTypeIndex(0)
+  , selectedDungeonIndex(1)
 {
 }
 
@@ -250,14 +254,14 @@ std::optional<Monster> MonsterSelection::run()
   };
 
   ImGui::Begin("Monster");
-  if (ImGui::BeginCombo("Type", toString(selectedType)))
+  if (ImGui::BeginCombo("Type", toString(type)))
   {
     int n = 0;
-    for (auto type : allTypes)
+    for (auto aType : allTypes)
     {
-      if (ImGui::Selectable(toString(type), n == selectedTypeIndex))
+      if (ImGui::Selectable(toString(aType), n == selectedTypeIndex))
       {
-        selectedType = type;
+        type = aType;
         selectedTypeIndex = n;
       }
       ++n;
@@ -266,6 +270,47 @@ std::optional<Monster> MonsterSelection::run()
   }
   if (ImGui::InputInt("Level", &level, 1, 1))
     level = std::min(std::max(level, 1), 10);
+
+  constexpr std::array<std::pair<const char*, int>, 21> dungeons = {
+      std::make_pair("Hobbler's Hold", 80),
+      {"Den of Danger", 100},
+      {"Venture Cave", 100},
+      {"Western Jungle", 100},
+      {"Eastern Tundra", 100},
+      {"Northern Desert", 100},
+      {"Southern Swamp", 100},
+      {"Doubledoom", 110},
+      {"Grimm's Grotto", 140},
+      {"Rock Garden", 100},
+      {"Cursed Oasis", 115},
+      {"Shifting Passages", 130},
+      {"Havendale Bridge", 105},
+      {"The Labyrinth", 130},
+      {"Magma Mines", 130},
+      {"Hexx Ruins", 100},
+      {"Ick Swamp", 120},
+      {"The Slime Pit", 120},
+      {"Berserker Camp", 100},
+      {"Creeplight Ruins", 110},
+      {"Halls of Steel", 120},
+  };
+
+  if (ImGui::BeginCombo("Dungeon", dungeons[selectedDungeonIndex].first))
+  {
+    int n = 0;
+    for (auto dungeon : dungeons)
+    {
+      char buffer[30];
+      sprintf(buffer, "%s (%i%%)", dungeon.first, dungeon.second);
+      if (ImGui::Selectable(buffer, n == selectedDungeonIndex))
+      {
+        dungeonMultiplier = dungeon.second;
+        selectedDungeonIndex = n;
+      }
+      ++n;
+    }
+    ImGui::EndCombo();
+  }
 
   std::optional<Monster> newMonster;
   if (ImGui::Button("Send to Arena"))
@@ -276,7 +321,7 @@ std::optional<Monster> MonsterSelection::run()
 
 Monster MonsterSelection::get() const
 {
-  return makeMonster(selectedType, level);
+  return makeMonster(type, level, dungeonMultiplier);
 }
 
 CustomHeroBuilder::CustomHeroBuilder()

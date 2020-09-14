@@ -50,7 +50,7 @@ constexpr const char* toString(MonsterType type)
   }
 }
 
-Monster makeMonster(MonsterType type, int level);
+Monster makeMonster(MonsterType type, int level, int dungeonMultiplier=100);
 
 Monster makeGenericMonster(int level, int hp, int damage);
 MonsterStats makeGenericMonsterStats(int level, int hp, int damage, int deathProtection = 0);
