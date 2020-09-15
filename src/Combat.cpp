@@ -32,9 +32,10 @@ namespace Combat
         hero.addStatus(HeroStatus::Weakened);
         debuffs.insert(Debuff::Weakened);
       }
-      if (includeCurse && monster.bearsCurse())
+      if (monster.bearsCurse())
       {
-        hero.addStatus(HeroStatus::Cursed);
+        if (includeCurse)
+          hero.addStatus(HeroStatus::Cursed);
         debuffs.insert(Debuff::Cursed);
       }
 

@@ -143,6 +143,8 @@ namespace
           ImGui::Text("  is poisoned");
         if (hero->hasStatus(HeroStatus::ManaBurned))
           ImGui::Text("  is mana burned");
+        if (hero->hasStatus(HeroStatus::Cursed))
+          ImGui::Text("  is cursed (x%i)", hero->getStatusIntensity(HeroStatus::Cursed));
       }
       else
         ImGui::Text("Hero defeated.");
@@ -166,7 +168,7 @@ namespace
         if (monster->getDeathGazePercent() > 0)
           ImGui::Text("  Death Gaze %i%%", monster->getDeathGazePercent());
         if (monster->getDeathProtection() > 0)
-          ImGui::Text("  Death protection (%i)", monster->getDeathProtection());
+          ImGui::Text("  Death protection (x%i)", monster->getDeathProtection());
         if (monster->isBurning())
           ImGui::Text("  is burning (burn stack size %i)", monster->getBurnStackSize());
         if (monster->isPoisoned())

@@ -37,6 +37,16 @@ namespace Cast
         monster.burn(maxBurnStackSize);
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
         return Combat::retaliate(hero, monster);
+      if (monster.isDefeated())
+      {
+        if (monster.bearsCurse())
+        {
+          hero.addStatus(HeroStatus::Cursed);
+          return {Outcome::Debuff::Cursed};
+        }
+        else
+          hero.removeStatus(HeroStatus::Cursed, false);
+      }
       return {};
     }
   } // namespace
