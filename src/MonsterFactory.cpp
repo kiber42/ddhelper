@@ -1,34 +1,34 @@
 #include "MonsterFactory.hpp"
 
-// Attack and health modifiers
+// Attack and health modifiers, in percent
 constexpr std::pair<int, int> getMultipliers(MonsterType type)
 {
   switch (type)
   {
   case MonsterType::Bandit:
-    return {70, 100};
+    return {100, 70};
   case MonsterType::DragonSpawn:
-    return {100, 125};
+    return {125, 100};
   case MonsterType::Goat:
-    return {100, 90};
+    return {90, 100};
   case MonsterType::Goblin:
-    return {120, 100};
+    return {100, 120};
   case MonsterType::Golem:
     return {100, 100};
   case MonsterType::GooBlob:
     return {100, 100};
   case MonsterType::Gorgon:
-    return {100, 90};
+    return {90, 100};
   case MonsterType::MeatMan:
-    return {65, 200};
+    return {200, 65};
   case MonsterType::Serpent:
     return {100, 100};
   case MonsterType::Warlock:
-    return {135, 100};
+    return {100, 135};
   case MonsterType::Wraith:
-    return {100, 75};
+    return {75, 100};
   case MonsterType::Zombie:
-    return {100, 150};
+    return {150, 100};
   }
 }
 
@@ -91,7 +91,8 @@ MonsterTraits getTraits(MonsterType type)
 Monster makeMonster(MonsterType type, int level, int dungeonMultiplier)
 {
   std::string name = std::string(toString(type)) + " level " + std::to_string(level);
-  const auto [damageMultiplier, hpMultiplier] = getMultipliers(type);
+  const auto [hpMultiplier, damageMultiplier] = getMultipliers(type);
+  // HP sometimes appears to be 1 too high
   const int hp = (level * (level + 6) - 1) * dungeonMultiplier / 100 * hpMultiplier / 100;
   const int damage = (level * (level + 5) / 2) * dungeonMultiplier / 100 * damageMultiplier / 100;
   MonsterStats stats(level, hp, hp, damage, 0);
