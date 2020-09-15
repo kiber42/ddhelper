@@ -30,14 +30,14 @@ enum class HeroTrait
   GoodHealth,
   HandToHand,
   Herbivore,
-  Hoarder,
+  Hoarder,   // not implemented: +33% more items on dungeon map
   HolyHands,
   HolyShield,
   HolyWork,
   InnerFocus,
   Insane,    // partially implemented, missing: drinking blood restores 1 mana
   Instincts, // not implemented: monsters of equal or lower level always have their location revealed
-  LightFoot,
+  LightFoot, // not implemented: exploring the area around a monster grants first strike
   Macguyver,
   Mageslay,
   MagicAffinity, // partially implemented, missing: glyphs donate 10 points to other conversions
@@ -63,7 +63,7 @@ enum class HeroTrait
   Spellkill,
   SpiritSword,
   Stabber,
-  Survivor,
+  Survivor, // not implemented: All Health and Mana Potions restore both health AND mana
   SwiftHand,
   Undead,
   Veteran,

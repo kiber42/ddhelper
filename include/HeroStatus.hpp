@@ -12,11 +12,12 @@ enum class HeroStatus
   // DamageReduction,
   // DeathGazeImmune,
   DeathProtection,
-  // DodgePermanent,
-  // DodgeTemporary,
+  DodgePermanent,
+  DodgeTemporary,
   // Exhausted,
   ExperienceBoost,
-  FirstStrike,
+  FirstStrike, // temporary or permanent (Dexterous trait)
+  FirstStrikeTemporary,
   HeavyFireball,
   // Indulgence
   // Knockback
@@ -26,8 +27,8 @@ enum class HeroStatus
   // ManaBurnImmune,
   ManaBurned,
   Might, // +30% dmg, +3% erode resistances
-  // PiercePhysical,
-  // PoisonImmune,
+         // PiercePhysical,
+         // PoisonImmune,
   Poisoned,
   // Poisonous,
   // Prestige,
@@ -50,11 +51,17 @@ constexpr const char* toString(HeroStatus status)
     return "Corrosion";
   case HeroStatus::Cursed:
     return "Cursed";
+  case HeroStatus::DodgePermanent:
+    return "Dodge change";
+  case HeroStatus::DodgeTemporary:
+    return "Dodge change";
   case HeroStatus::DeathProtection:
     return "Death Protection";
   case HeroStatus::ExperienceBoost:
     return "Experience Boost";
   case HeroStatus::FirstStrike:
+    return "First Strike";
+  case HeroStatus::FirstStrikeTemporary:
     return "First Strike";
   case HeroStatus::HeavyFireball:
     return "Heavy Fireball";
@@ -81,6 +88,7 @@ constexpr const char* toString(HeroStatus status)
 
 constexpr bool canHaveMultiple(HeroStatus status)
 {
-  return status == HeroStatus::Corrosion || status == HeroStatus::Cursed || status == HeroStatus::Learning ||
-         status == HeroStatus::Sanguine || status == HeroStatus::Weakened;
+  return status == HeroStatus::Corrosion || status == HeroStatus::Cursed || status == HeroStatus::DodgePermanent ||
+         status == HeroStatus::DodgeTemporary || status == HeroStatus::Learning || status == HeroStatus::Sanguine ||
+         status == HeroStatus::Weakened;
 }

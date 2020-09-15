@@ -86,9 +86,14 @@ namespace Combat
     // Bonus experience is added if the monster was slowed before the attack
     bool monsterWasSlowed = monster.isSlowed();
 
+    const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
     const bool petrified = monster.getDeathGazePercent() * hero.getHitPointsMax() / 100 > hero.getHitPoints();
 
-    if (petrified)
+    if (swiftHand)
+    {
+      outcome.monster.die();
+    }
+    else if (petrified)
     {
       // Hero either dies or death protection is triggered
       outcome.hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
@@ -130,20 +135,26 @@ namespace Combat
       }
     }
 
-    outcome.debuffs = receiveDebuffs(outcome.hero, monster, false);
+    if (!swiftHand)
+      outcome.debuffs = receiveDebuffs(outcome.hero, monster, false);
+
     if (hero.hasStatus(HeroStatus::DeathProtection) && !outcome.hero.hasStatus(HeroStatus::DeathProtection))
       outcome.debuffs.insert(Outcome::Debuff::LostDeathProtection);
     if (outcome.monster.isDefeated())
     {
       if (monster.bearsCurse())
+      {
         outcome.hero.addStatus(HeroStatus::Cursed);
+        outcome.debuffs.insert(Outcome::Debuff::Cursed);
+      }
       else
         outcome.hero.removeStatus(HeroStatus::Cursed, false);
     }
 
     outcome.hero.removeStatus(HeroStatus::ConsecratedStrike, true);
-    // if (!hero.hasTrait(HeroTrait::Dextrous))
-    outcome.hero.removeStatus(HeroStatus::FirstStrike, true);
+    if (!hero.hasTrait(HeroTrait::Dexterous))
+      outcome.hero.removeStatus(HeroStatus::FirstStrike, true);
+    outcome.hero.removeStatus(HeroStatus::FirstStrikeTemporary, true);
     outcome.hero.removeStatus(HeroStatus::Reflexes, true);
 
     outcome.summary = petrified && outcome.hero.isDefeated()

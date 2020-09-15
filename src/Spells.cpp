@@ -100,7 +100,7 @@ namespace Cast
            (spell != Spell::Cydstepp ||
             (!hero.hasStatus(HeroStatus::DeathProtection) &&
              (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant)))) &&
-           (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrike) /* TODO modify for Rogue */);
+           (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrikeTemporary));
   }
 
   bool isPossible(const Hero& hero, const Monster& monster, Spell spell)
@@ -154,7 +154,8 @@ namespace Cast
     case Spell::Getindare:
       // first strike, +5% dodge chance (until actual dodge)
       hero.addStatus(HeroStatus::FirstStrike);
-      // hero.addDodgeChangePercent(5);
+      hero.addStatus(HeroStatus::FirstStrikeTemporary);
+      hero.addDodgeChangePercent(5, false);
       break;
     case Spell::Halpmeh:
       hero.healHitPoints(hero.getLevel() * (hero.hasTrait(HeroTrait::HolyHands) ? 5 : 4));

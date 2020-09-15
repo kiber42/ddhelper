@@ -138,6 +138,11 @@ void Monster::erodeResitances()
 
 void Monster::petrify()
 {
+  die();
+}
+
+void Monster::die()
+{
   status.setBurn(false);
   status.setSlowed(false);
   stats.setDeathProtection(0);

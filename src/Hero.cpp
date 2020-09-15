@@ -9,9 +9,9 @@
 
 Hero::Hero(HeroClass theClass)
   : name(toString(theClass))
-  , stats(10, 10, 5)
+  , stats()
   , defence(0, 0, 65, 65)
-  , experience(1, theClass == HeroClass::Fighter /* veteran trait */)
+  , experience()
   , statuses()
   , traits(startingTraits(theClass))
 /*
@@ -20,10 +20,15 @@ Hero::Hero(HeroClass theClass)
  , conversionPoints(0)
 */
 {
+  if (hasTrait(HeroTrait::Veteran))
+    experience = Experience(Experience::IsVeteran{});
+  if (hasTrait(HeroTrait::Dangerous))
+    stats = HeroStats(HeroStats::IsDangerous{});
+
   if (hasTrait(HeroTrait::PitDog))
     addStatus(HeroStatus::DeathProtection);
   if (hasTrait(HeroTrait::Mageslay))
-    stats.setDamageBonusPercent(20);
+    changeDamageBonusPercent(+20);
   if (hasTrait(HeroTrait::Spellkill))
     defence.setMagicalResistPercent(50);
   if (hasTrait(HeroTrait::ArcaneKnowledge))
@@ -33,9 +38,17 @@ Hero::Hero(HeroClass theClass)
     setStatusIntensity(HeroStatus::Sanguine, 20);
     stats.setManaPointsMax(stats.getManaPointsMax() - 3);
   }
+  if (hasTrait(HeroTrait::Dexterous))
+    addStatus(HeroStatus::FirstStrike);
+  if (hasTrait(HeroTrait::Evasive))
+    addDodgeChangePercent(20, true);
+  if (hasTrait(HeroTrait::PoisonedBlade))
+    changeDamageBonusPercent(-20);
+
   // Defiant: Add Cyddstepp glyph
   // Magic Attunement: Add Burndayraz glyph
   // Insane: Add Bludtupowa glyph
+  // PoisonedBlade: Add Apheelsik glyph
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -156,8 +169,13 @@ int Hero::getDamageVersusStandard() const
 int Hero::getDamageVersus(const Monster& monster) const
 {
   int damage = getDamageVersusStandard();
-  const bool applyBloodlust = hasTrait(HeroTrait::Bloodlust) && monster.getLevel() > getLevel();
-  return applyBloodlust ? damage * 12 / 10 : damage;
+  if (hasTrait(HeroTrait::Bloodlust) && monster.getLevel() > getLevel())
+    damage = damage * 12 / 10;
+  if (hasTrait(HeroTrait::Stabber) && monster.getHitPoints() >= monster.getHitPointsMax())
+    damage = damage * 13 / 10;
+  if (hasTrait(HeroTrait::PoisonedBlade) && monster.isPoisoned())
+    damage = damage * 14 / 10;
+  return damage;
 }
 
 int Hero::getPhysicalResistPercent() const
@@ -357,6 +375,20 @@ void Hero::levelGainedUpdate()
 {
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
   stats.refresh();
-
   changeBaseDamage(+5);
+}
+
+void Hero::addDodgeChangePercent(int percent, bool isPermanent)
+{
+  const int permanent = getStatusIntensity(HeroStatus::DodgePermanent);
+  const int temporary = getStatusIntensity(HeroStatus::DodgeTemporary);
+  if (isPermanent)
+    setStatusIntensity(HeroStatus::DodgePermanent, std::min(std::max(permanent + percent, 0), 100 - temporary));
+  else
+    setStatusIntensity(HeroStatus::DodgeTemporary, std::min(std::max(temporary + percent, 0), 100 - permanent));
+}
+
+int Hero::getDodgeChangePercent() const
+{
+  return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
 }

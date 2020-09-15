@@ -8,6 +8,17 @@ HeroStats::HeroStats()
 {
 }
 
+HeroStats::HeroStats(IsDangerous)
+  : hp(5)
+  , hpMax(5)
+  , mp(10)
+  , mpMax(10)
+  , baseDamage(5)
+  , damageBonusPercent(40)
+  , healthBonus(-5)
+{
+}
+
 HeroStats::HeroStats(int hpMax, int mpMax, int baseDamage)
   : hp(hpMax)
   , hpMax(hpMax)
@@ -88,7 +99,6 @@ void HeroStats::loseManaPoints(int amountPointsLost)
   assert(amountPointsLost <= mp);
   mp = std::max(mp - amountPointsLost, 0);
 }
-
 
 void HeroStats::refresh()
 {

@@ -3,7 +3,10 @@
 class HeroStats
 {
 public:
+  struct IsDangerous {};
+
   HeroStats();
+  HeroStats(IsDangerous);
   HeroStats(int hpMax, int mpMax, int baseDamage);
 
   bool isDefeated() const;

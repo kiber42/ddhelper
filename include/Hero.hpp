@@ -71,6 +71,9 @@ public:
   bool hasTrait(HeroTrait trait) const;
   bool isTraitActive(HeroTrait trait) const;
 
+  void addDodgeChangePercent(int percent, bool isPermanent);
+  int getDodgeChangePercent() const;
+
 private:
   std::string name;
   HeroStats stats;

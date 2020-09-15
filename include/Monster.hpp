@@ -34,6 +34,7 @@ public:
   void slow();
   void erodeResitances();
   void petrify();
+  void die();
 
   bool isBurning() const;
   bool isPoisoned() const;

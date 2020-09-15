@@ -132,9 +132,9 @@ namespace
     {
       if (!hero->isDefeated())
       {
-        ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP", hero->getName().c_str(), hero->getLevel(),
+        ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i damage", hero->getName().c_str(), hero->getLevel(),
                     hero->getHitPoints(), hero->getHitPointsMax(), hero->getManaPoints(), hero->getManaPointsMax(),
-                    hero->getXP(), hero->getXPforNextLevel());
+                    hero->getXP(), hero->getXPforNextLevel(), hero->getDamageVersusStandard());
         if (hero->hasStatus(HeroStatus::FirstStrike))
           ImGui::Text("  has first strike");
         if (hero->hasStatus(HeroStatus::DeathProtection))
@@ -151,7 +151,7 @@ namespace
     {
       if (!monster->isDefeated())
       {
-        ImGui::Text("%s has %i/%i HP, and does %i damage", monster->getName(), monster->getHitPoints(),
+        ImGui::Text("%s has %i/%i HP and does %i damage", monster->getName(), monster->getHitPoints(),
                     monster->getHitPointsMax(), monster->getDamage());
         if (monster->getPhysicalResistPercent() > 0)
           ImGui::Text("  Physical resist %i%%", monster->getPhysicalResistPercent());
@@ -217,7 +217,8 @@ HeroSelection::HeroSelection()
 std::optional<Hero> HeroSelection::run()
 {
   constexpr std::array allClasses = {HeroClass::Fighter, HeroClass::Berserker, HeroClass::Warlord,
-                                     HeroClass::Wizard,  HeroClass::Sorcerer,  HeroClass::Bloodmage};
+                                     HeroClass::Wizard,  HeroClass::Sorcerer,  HeroClass::Bloodmage,
+                                     HeroClass::Thief,   HeroClass::Rogue,     HeroClass::Assassin};
 
   ImGui::Begin("Hero");
   if (ImGui::BeginCombo("Class", toString(selectedClass)))
