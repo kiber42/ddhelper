@@ -76,7 +76,9 @@ private:
   std::optional<Hero> hero;
   std::optional<Monster> monster;
 
-  std::vector<std::pair<std::optional<Hero>, std::optional<Monster>>> history;
+  using HistoryItem =
+      std::tuple<std::string, Outcome::Summary, Outcome::Debuffs, std::optional<Hero>, std::optional<Monster>>;
+  std::vector<HistoryItem> history;
 };
 
 class DDHelperApp : public ImguiApp
@@ -132,9 +134,10 @@ namespace
     {
       if (!hero->isDefeated())
       {
-        ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i damage", hero->getName().c_str(), hero->getLevel(),
-                    hero->getHitPoints(), hero->getHitPointsMax(), hero->getManaPoints(), hero->getManaPointsMax(),
-                    hero->getXP(), hero->getXPforNextLevel(), hero->getDamageVersusStandard());
+        ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i damage", hero->getName().c_str(),
+                    hero->getLevel(), hero->getHitPoints(), hero->getHitPointsMax(), hero->getManaPoints(),
+                    hero->getManaPointsMax(), hero->getXP(), hero->getXPforNextLevel(),
+                    hero->getDamageVersusStandard());
         if (hero->hasStatus(HeroStatus::FirstStrike))
           ImGui::Text("  has first strike");
         if (hero->hasStatus(HeroStatus::DeathProtection))
@@ -460,26 +463,28 @@ Monster CustomMonsterBuilder::get() const
 void Arena::enter(Hero&& newHero)
 {
   if (hero.has_value())
-    history.emplace_back(std::move(hero), monster);
+    history.emplace_back("Hero enters", Outcome::Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
   hero.emplace(newHero);
 }
 
 void Arena::enter(Monster&& newMonster)
 {
   if (hero.has_value() || monster.has_value())
-    history.emplace_back(hero, std::move(monster));
+    history.emplace_back("Monster enters", Outcome::Summary::Safe, Outcome::Debuffs{}, hero, std::move(monster));
   monster.emplace(newMonster);
 }
 
 void Arena::run()
 {
+  using Summary = Outcome::Summary;
+
   auto addActionButton = [&](const char* title, auto outcomeProvider) {
     if (ImGui::Button(title))
     {
       auto outcome = outcomeProvider();
-      if (outcome.summary != Outcome::Summary::NotPossible)
+      if (outcome.summary != Summary::NotPossible)
       {
-        history.emplace_back(std::move(hero), std::move(monster));
+        history.emplace_back(title, outcome.summary, std::move(outcome.debuffs), std::move(hero), std::move(monster));
         hero = std::move(outcome.hero);
         monster = std::move(outcome.monster);
       }
@@ -489,7 +494,7 @@ void Arena::run()
       const auto outcome = outcomeProvider();
       ImGui::BeginTooltip();
       ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-      if (outcome.summary == Outcome::Summary::NotPossible)
+      if (outcome.summary == Summary::NotPossible)
         ImGui::TextUnformatted("Not possible");
       else
       {
@@ -520,7 +525,7 @@ void Arena::run()
       if (ImGui::Button("Uncover Tile"))
       {
         Hero heroAfter = Combat::uncoverTiles(hero.value(), 1);
-        history.emplace_back(std::move(hero), monster);
+        history.emplace_back("Uncover Tile", Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
         hero = heroAfter;
       }
     }
@@ -539,15 +544,50 @@ void Arena::run()
       else if (ImGui::Button(toString(spell)) && Cast::isPossible(hero.value(), spell))
       {
         Hero heroAfter = Cast::untargeted(hero.value(), spell);
-        history.emplace_back(std::move(hero), monster);
+        history.emplace_back(toString(spell), Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
         hero = heroAfter;
       }
     }
   }
   if (!history.empty() && ImGui::Button("Undo"))
   {
-    std::tie(hero, monster) = std::move(history.back());
+    auto restore = history.back();
+    hero = std::move(std::get<3>(restore));
+    monster = std::move(std::get<4>(restore));
     history.pop_back();
+  }
+  ImGui::End();
+
+  ImGui::Begin("Protocol");
+  int repeated = 1;
+  for (unsigned i = 0; i < history.size(); ++i)
+  {
+    const auto& item = history[i];
+    if (i < history.size() - 1)
+    {
+      const auto next = history[i + 1];
+      if (std::get<0>(item) == std::get<0>(next) && std::get<1>(item) == std::get<1>(next) &&
+          std::get<2>(item) == std::get<2>(next))
+      {
+        ++repeated;
+        continue;
+      }
+    }
+    ImGui::TextUnformatted(std::get<0>(item).c_str());
+    const auto summary = std::get<1>(item);
+    if (summary != Summary::Safe)
+    {
+      const auto debuffs = std::get<2>(item);
+      const auto color = summaryColor(summary, !debuffs.empty());
+      ImGui::SameLine();
+      ImGui::TextColored(color, "%s", toString(summary, debuffs).c_str());
+    }
+    if (repeated > 1)
+    {
+      ImGui::SameLine();
+      ImGui::Text("(x%i)", repeated);
+      repeated = 1;
+    }
   }
   ImGui::End();
 }
