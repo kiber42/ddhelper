@@ -79,6 +79,15 @@ void Monster::takeManaShieldDamage(int casterLevel)
   stats.loseHitPoints(casterLevel * (100 - getMagicalResistPercent()) / 100);
 }
 
+void Monster::receiveCrushingBlow()
+{
+  int delta = stats.getHitPoints() - stats.getHitPointsMax() * 3 / 4;
+  if (delta > 0)
+    stats.loseHitPoints(delta);
+  status.setSlowed(false);
+  status.setBurn(0);
+}
+
 void Monster::recover(int nSquares)
 {
   int recoverPoints = nSquares * (getLevel() - static_cast<int>(status.isBurning()));

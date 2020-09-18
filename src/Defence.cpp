@@ -35,6 +35,30 @@ void Defence::setMagicalResistPercent(int newMagicalResistPercent)
   magicalResistPercent = std::min(std::max(newMagicalResistPercent, 0), magicalResistPercentMax);
 }
 
+int Defence::getPhysicalResistPercentMax() const
+{
+  return physicalResistPercentMax;
+}
+
+int Defence::getMagicalResistPercentMax() const
+{
+  return magicalResistPercentMax;
+}
+
+void Defence::setPhysicalResistPercentMax(int newMax)
+{
+  physicalResistPercentMax = newMax;
+  if (physicalResistPercent > physicalResistPercentMax)
+    physicalResistPercent = physicalResistPercentMax;
+}
+
+void Defence::setMagicalResistPercentMax(int newMax)
+{
+  magicalResistPercentMax = newMax;
+  if (magicalResistPercent > magicalResistPercentMax)
+    magicalResistPercent = magicalResistPercentMax;
+}
+
 int Defence::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage, int burnStackSize) const
 {
   int damage = attackerDamageOutput + burnStackSize;

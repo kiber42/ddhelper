@@ -101,7 +101,12 @@ namespace Combat
     }
     else if (hero.hasInitiativeVersus(monster))
     {
-      outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+      if (hero.hasStatus(HeroStatus::CrushingBlow))
+        outcome.monster.receiveCrushingBlow();
+      else
+        outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+      if (hero.hasStatus(HeroStatus::Might))
+        outcome.monster.erodeResitances();
       if (!outcome.monster.isDefeated())
       {
         // If monster is defeated beyond this point, it was not slowed before the final blow
@@ -115,8 +120,8 @@ namespace Combat
             outcome.monster.takeManaShieldDamage(hero.getLevel());
           if (hero.hasStatus(HeroStatus::Reflexes))
           {
-            const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
-            outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
+            outcome.hero.removeOneTimeAttackEffects();
+            outcome.monster.takeDamage(outcome.hero.getDamageVersus(outcome.monster), outcome.hero.doesMagicalDamage());
           }
         }
       }
@@ -129,8 +134,15 @@ namespace Combat
       {
         if (hero.hasTrait(HeroTrait::ManaShield))
           outcome.monster.takeManaShieldDamage(hero.getLevel());
-        const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
-        outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
+        if (hero.hasStatus(HeroStatus::CrushingBlow))
+          outcome.monster.receiveCrushingBlow();
+        else
+        {
+          const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
+          outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
+        }
+        if (hero.hasStatus(HeroStatus::Might))
+          outcome.monster.erodeResitances();
         if (monster.bearsCurse())
           outcome.hero.addStatus(HeroStatus::Cursed);
       }
@@ -152,11 +164,7 @@ namespace Combat
         outcome.hero.removeStatus(HeroStatus::Cursed, false);
     }
 
-    outcome.hero.removeStatus(HeroStatus::ConsecratedStrike, true);
-    if (!hero.hasTrait(HeroTrait::Dexterous))
-      outcome.hero.removeStatus(HeroStatus::FirstStrike, true);
-    outcome.hero.removeStatus(HeroStatus::FirstStrikeTemporary, true);
-    outcome.hero.removeStatus(HeroStatus::Reflexes, true);
+    outcome.hero.removeOneTimeAttackEffects();
 
     outcome.summary = petrified && outcome.hero.isDefeated()
                           ? Outcome::Summary::Petrified

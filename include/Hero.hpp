@@ -71,6 +71,8 @@ public:
   bool hasTrait(HeroTrait trait) const;
   bool isTraitActive(HeroTrait trait) const;
 
+  void removeOneTimeAttackEffects();
+
   void addDodgeChangePercent(int percent, bool isPermanent);
   int getDodgeChangePercent() const;
 

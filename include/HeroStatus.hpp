@@ -6,7 +6,7 @@ enum class HeroStatus
   ConsecratedStrike,
   Corrosion,
   // Corrosive,
-  // CrushingBlow,
+  CrushingBlow,
   // CurseImmune,
   Cursed,
   // DamageReduction,
@@ -34,11 +34,11 @@ enum class HeroStatus
   // Prestige,
   Reflexes,
   Sanguine,
-  // Schadenfreude,
+  Schadenfreude,
   SlowStrike,
-  // SpiritStrength,
-  Weakened
-  // StoneSkin
+  SpiritStrength,
+  Weakened,
+  StoneSkin
 };
 
 constexpr const char* toString(HeroStatus status)
@@ -49,6 +49,8 @@ constexpr const char* toString(HeroStatus status)
     return "Consecrated Strike";
   case HeroStatus::Corrosion:
     return "Corrosion";
+  case HeroStatus::CrushingBlow:
+    return "Crushing Blow";
   case HeroStatus::Cursed:
     return "Cursed";
   case HeroStatus::DodgePermanent:
@@ -79,8 +81,14 @@ constexpr const char* toString(HeroStatus status)
     return "Reflexes";
   case HeroStatus::Sanguine:
     return "Sanguine";
+  case HeroStatus::Schadenfreude:
+    return "Schadenfreude";
   case HeroStatus::SlowStrike:
     return "Slow Strike";
+  case HeroStatus::SpiritStrength:
+    return "Spirit Strength";
+  case HeroStatus::StoneSkin:
+    return "Stone Skin";
   case HeroStatus::Weakened:
     return "Weakened";
   }
@@ -88,7 +96,8 @@ constexpr const char* toString(HeroStatus status)
 
 constexpr bool canHaveMultiple(HeroStatus status)
 {
-  return status == HeroStatus::Corrosion || status == HeroStatus::Cursed || status == HeroStatus::DodgePermanent ||
-         status == HeroStatus::DodgeTemporary || status == HeroStatus::Learning || status == HeroStatus::Sanguine ||
-         status == HeroStatus::Weakened;
+  return status == HeroStatus::Corrosion || status == HeroStatus::CrushingBlow || status == HeroStatus::Cursed ||
+         status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
+         status == HeroStatus::Learning || status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength ||
+         status == HeroStatus::StoneSkin || status == HeroStatus::Weakened;
 }

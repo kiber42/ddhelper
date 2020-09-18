@@ -13,6 +13,11 @@ public:
   void setPhysicalResistPercent(int physicalResistPercent);
   void setMagicalResistPercent(int magicalResistPercent);
 
+  int getPhysicalResistPercentMax() const;
+  int getMagicalResistPercentMax() const;
+  void setPhysicalResistPercentMax(int newMax);
+  void setMagicalResistPercentMax(int newMax);
+
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage, int burnStackSize) const;
 
   void setCorrosion(int numCorrosionLayers);

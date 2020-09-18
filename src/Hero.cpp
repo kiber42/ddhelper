@@ -140,7 +140,8 @@ int Hero::getManaPointsMax() const
 
 int Hero::getBaseDamage() const
 {
-  return std::max(stats.getBaseDamage() - getStatusIntensity(HeroStatus::Weakened), 0);
+  const int modifiers = getStatusIntensity(HeroStatus::SpiritStrength) - getStatusIntensity(HeroStatus::Weakened);
+  return std::max(stats.getBaseDamage() + modifiers, 0);
 }
 
 void Hero::changeBaseDamage(int deltaDamagePoints)
@@ -151,6 +152,7 @@ void Hero::changeBaseDamage(int deltaDamagePoints)
 int Hero::getDamageBonusPercent() const
 {
   int bonus = stats.getDamageBonusPercent();
+  if (hasStatus(HeroStatus::Might)) bonus += 30;
   if (hasTrait(HeroTrait::Determined) && stats.getHitPoints() < stats.getHitPointsMax() / 2)
     bonus += 30;
   return bonus;
@@ -180,7 +182,8 @@ int Hero::getDamageVersus(const Monster& monster) const
 
 int Hero::getPhysicalResistPercent() const
 {
-  return defence.getPhysicalResistPercent();
+  return std::min(defence.getPhysicalResistPercent() + 20 * getStatusIntensity(HeroStatus::StoneSkin),
+                  defence.getPhysicalResistPercentMax());
 }
 
 int Hero::getMagicalResistPercent() const
@@ -210,7 +213,7 @@ void Hero::changeMagicalResistPercent(int deltaPercent)
 
 bool Hero::doesMagicalDamage() const
 {
-  return getStatusIntensity(HeroStatus::ConsecratedStrike) > 0 || getStatusIntensity(HeroStatus::MagicalAttack) > 0;
+  return hasStatus(HeroStatus::ConsecratedStrike) || hasStatus(HeroStatus::MagicalAttack);
 }
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const
@@ -249,7 +252,14 @@ void Hero::loseHitPoints(int amountPointsLost)
 
 void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
 {
-  loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
+  const int damagePoints = predictDamageTaken(attackerDamageOutput, isMagicalDamage);
+  loseHitPoints(damagePoints);
+  if (damagePoints > 0 && hasStatus(HeroStatus::Schadenfreude))
+  {
+    recoverManaPoints(damagePoints);
+    removeStatus(HeroStatus::Schadenfreude, true);
+  }
+  removeStatus(HeroStatus::StoneSkin, true);
 }
 
 void Hero::recover(int nSquares)
@@ -355,6 +365,18 @@ bool Hero::isTraitActive(HeroTrait trait) const
     throw std::runtime_error("Not implemented");
   // Most traits are always active
   return true;
+}
+
+void Hero::removeOneTimeAttackEffects()
+{
+  removeStatus(HeroStatus::ConsecratedStrike, true);
+  removeStatus(HeroStatus::Might, true);
+  removeStatus(HeroStatus::SpiritStrength, true);
+
+  if (!hasTrait(HeroTrait::Dexterous))
+    removeStatus(HeroStatus::FirstStrike, true);
+  removeStatus(HeroStatus::FirstStrikeTemporary, true);
+  removeStatus(HeroStatus::Reflexes, true);
 }
 
 void Hero::propagateStatus(HeroStatus status, int intensity)
