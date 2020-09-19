@@ -68,7 +68,7 @@ void testHeroExperience()
       hero.addStatus(HeroStatus::Learning);
       hero.gainExperience(1);
       AssertThat(hero.getXP(), Equals(2));
-      AssertThat(hero.hasStatus(HeroStatus::Learning), Equals(true));
+      AssertThat(hero.hasStatus(HeroStatus::Learning), IsTrue());
     });
     it("should grow by 1 extra point for each level of 'Learning'", [&] {
       Hero hero;
@@ -84,10 +84,10 @@ void testHeroExperience()
        [&] {
          Hero hero;
          hero.addStatus(HeroStatus::ExperienceBoost);
-         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), Equals(true));
+         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), IsTrue());
          hero.gainExperience(2);
          AssertThat(hero.getXP(), Equals(3));
-         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), Equals(false));
+         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), IsFalse());
          hero.addStatus(HeroStatus::ExperienceBoost);
          hero.addStatus(HeroStatus::ExperienceBoost);
          AssertThat(hero.getStatusIntensity(HeroStatus::ExperienceBoost), Equals(1));
@@ -107,7 +107,7 @@ void testHeroExperience()
 
     // TO DO: Further traits that affect XP
     // - Alchemist's Pact (gain 3 XP on consuming potion)
-    // - Veteran (Fighter trait, 1 bonus XP per kill)
+    // - Veteran (Fighter trait, 1 bonus XP per kill, different level thresholds)
   });
 }
 
@@ -121,7 +121,7 @@ void testMonsterBasics()
     });
     it("with 10 HP should survive a hit with 9 damage points and has 1 HP remaining", [&] {
       monster.takeDamage(9, false);
-      AssertThat(monster.isDefeated(), Equals(false));
+      AssertThat(monster.isDefeated(), IsFalse());
       AssertThat(monster.getHitPoints(), Equals(1));
     });
     it("at level 2 should recover at a rate of 2 HP per explored square", [&] {
@@ -142,14 +142,14 @@ void testMonsterBasics()
     it("should reduce poison as it would usually recover HP", [&] {
       monster.recover(1);
       AssertThat(monster.getHitPoints(), Equals(10));
-      AssertThat(monster.isPoisoned(), Equals(false));
+      AssertThat(monster.isPoisoned(), IsFalse());
     });
     it("should lose 4 HP per caster level when hit by a fireball", [&] {
       monster.takeFireballDamage(2);
       AssertThat(monster.getHitPoints(), Equals(10 - 2 * 4));
     });
     it("should be burning after hit by a fireball", [&] {
-      AssertThat(monster.isBurning(), Equals(true));
+      AssertThat(monster.isBurning(), IsTrue());
       // TODO: Special case: Wizard caster, burn stack size grows by 2 per fireball
       AssertThat(monster.getBurnStackSize(), Equals(1));
     });
@@ -176,14 +176,14 @@ void testMonsterBasics()
     it("should stop burning upon any physical damage, and take damage equal to burn stack size", [&] {
       AssertThat(monster.getHitPoints() - monster.getBurnStackSize(), Equals(2));
       monster.takeDamage(0, false);
-      AssertThat(monster.isBurning(), Equals(false));
+      AssertThat(monster.isBurning(), IsFalse());
       AssertThat(monster.getHitPoints(), Equals(2));
     });
     it("should recover from being slowed when taking damage", [&] {
       monster.slow();
-      AssertThat(monster.isSlowed(), Equals(true));
+      AssertThat(monster.isSlowed(), IsTrue());
       monster.takeDamage(1, false);
-      AssertThat(monster.isSlowed(), Equals(false));
+      AssertThat(monster.isSlowed(), IsFalse());
     });
   });
 }
@@ -244,27 +244,108 @@ void testDefenceBasics()
       Monster monster("", makeGenericMonsterStats(1, 10, 10, 2), {}, {});
       it("should prevent defeat", [&] {
         monster.takeDamage(100, false);
-        AssertThat(monster.isDefeated(), Equals(false));
+        AssertThat(monster.isDefeated(), IsFalse());
         AssertThat(monster.getHitPoints(), Equals(1));
       });
       it("should wear off", [&] {
         monster.takeDamage(100, false);
-        AssertThat(monster.isDefeated(), Equals(false));
+        AssertThat(monster.isDefeated(), IsFalse());
         AssertThat(monster.getHitPoints(), Equals(1));
         AssertThat(monster.getDeathProtection(), Equals(0));
         monster.takeDamage(1, false);
-        AssertThat(monster.isDefeated(), Equals(true));
+        AssertThat(monster.isDefeated(), IsTrue());
       });
     });
   });
 
   describe("Hero", [] {
-    describe("Physical resistance", [] {});
-    describe("Magical resistance", [] {});
-    describe("Damage reduction", [] {});
-    describe("Corrosion", [] {});
+    describe("Physical resistance", [] {
+      Hero hero;
+      hero.setPhysicalResistPercent(50);
+      it("should be accounted for (rounding down)", [&] {
+        hero.takeDamage(11, false);
+        AssertThat(hero.getHitPoints(), Equals(10 - 6));
+      });
+      it("should not block magical damage", [&] {
+        AssertThat(hero.getHitPoints(), Equals(4));
+        hero.takeDamage(3, true);
+        AssertThat(hero.getHitPoints(), Equals(1));
+      });
+      it("should be capped (at 65% by default)", [&] {
+        hero.setPhysicalResistPercent(100);
+        hero.changePhysicalResistPercent(+100);
+        AssertThat(hero.getPhysicalResistPercent(), Equals(65));
+      });
+    });
+    describe("Magical resistance", [] {
+      Hero hero;
+      hero.setMagicalResistPercent(50);
+      it("should be accounted for (rounding down)", [&] {
+        hero.takeDamage(11, true);
+        AssertThat(hero.getHitPoints(), Equals(10 - 6));
+      });
+      it("should not block physical damage", [&] {
+        AssertThat(hero.getHitPoints(), Equals(4));
+        hero.takeDamage(3, false);
+        AssertThat(hero.getHitPoints(), Equals(1));
+      });
+      it("should be capped (at 65% by default)", [&] {
+        hero.setMagicalResistPercent(100);
+        hero.changeMagicalResistPercent(+100);
+        AssertThat(hero.getMagicalResistPercent(), Equals(65));
+      });
+    });
+    describe("Damage reduction", [] {
+      it("should reduce incoming damage", [&] {
+        Hero hero;
+        hero.addStatus(HeroStatus::DamageReduction);
+        hero.takeDamage(3, false);
+        AssertThat(hero.getHitPoints(), Equals(8));
+        hero.addStatus(HeroStatus::DamageReduction, 99);
+        hero.takeDamage(90, false);
+        hero.takeDamage(99, true);
+        AssertThat(hero.getHitPoints(), Equals(8));
+        hero.takeDamage(104, false);
+        AssertThat(hero.getHitPoints(), Equals(4));
+        hero.addStatus(HeroStatus::DeathProtection);
+        hero.takeDamage(104, true);
+        AssertThat(hero.getHitPoints(), Equals(1));
+        AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsFalse());
+        hero.takeDamage(101, true);
+        AssertThat(hero.isDefeated(), IsTrue());
+      });
+    });
+    describe("Corrosion", [] {
+      it("should increase damage taken by 1 per stack size", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::Corrosion);
+        hero.takeDamage(1, false);
+        AssertThat(hero.getHitPoints(), Equals(8));
+        hero.takeDamage(1, true);
+        AssertThat(hero.getHitPoints(), Equals(6));
+        hero.addStatus(HeroStatus::Corrosion);
+        hero.addStatus(HeroStatus::Corrosion);
+        hero.takeDamage(3, true);
+        AssertThat(hero.isDefeated(), IsTrue());
+      });
+      it("should only cause extra damage if any damage was taken at all", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::Corrosion);
+        hero.addStatus(HeroStatus::DamageReduction);
+        hero.takeDamage(1, false);
+        AssertThat(hero.getHitPoints(), Equals(10));
+      });
+    });
     describe("Damage reduction, resistance and corrosion", [] {
-      it("should be applied in this order" , [] {});
+      it("should be applied in this order" , [] {
+        Hero hero;
+        hero.setPhysicalResistPercent(50);
+        hero.addStatus(HeroStatus::DamageReduction, 2);
+        hero.addStatus(HeroStatus::Corrosion, 5);
+        hero.takeDamage(3, false);
+        const int expectedDamage = (3 - 2) - 0 /* 50% of 1, rounded down */ + 5;
+        AssertThat(hero.getHitPoints(), Equals(10 - expectedDamage));
+      });
     });
   });
 }
@@ -349,7 +430,7 @@ void testStatusEffects()
         hero.setPhysicalResistPercent(50);
         Monster monster("", makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
         hero = Combat::predictOutcome(hero, monster).hero;
-        AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(true));
+        AssertThat(hero.hasStatus(HeroStatus::Cursed), IsTrue());
         AssertThat(hero.getHitPoints(), Equals(health - 10));
       });
     });
@@ -451,40 +532,40 @@ void testDungeonBasics()
       AssertThat(dungeon.getMonsters().size(), Equals(1));
       for (unsigned n = 2; n <= 9; ++n)
       {
-        AssertThat(dungeon.randomFreePosition().has_value(), Equals(true));
+        AssertThat(dungeon.randomFreePosition().has_value(), IsTrue());
         dungeon.add(monster2, dungeon.randomFreePosition().value());
         AssertThat(dungeon.getMonsters().size(), Equals(n));
       }
-      AssertThat(dungeon.randomFreePosition().has_value(), Equals(false));
-      AssertThat(dungeon.isFree({0, 0}), Equals(false));
+      AssertThat(dungeon.randomFreePosition().has_value(), IsFalse());
+      AssertThat(dungeon.isFree({0, 0}), IsFalse());
     });
-    it("should not be revealed initially", [&] { AssertThat(dungeon.isRevealed({1, 1}), Equals(false)); });
+    it("should not be revealed initially", [&] { AssertThat(dungeon.isRevealed({1, 1}), IsFalse()); });
     it("should consider a square with a defeated monster as free", [&] {
       monster->takeDamage(100, false);
-      AssertThat(monster->isDefeated(), Equals(true));
+      AssertThat(monster->isDefeated(), IsTrue());
       dungeon.update();
-      AssertThat(dungeon.randomFreePosition().has_value(), Equals(true));
+      AssertThat(dungeon.randomFreePosition().has_value(), IsTrue());
     });
     auto hero = std::make_shared<Hero>();
     it("should consider the hero's square as occupied", [&] {
       dungeon.setHero(hero, dungeon.randomFreePosition().value());
-      AssertThat(dungeon.randomFreePosition().has_value(), Equals(false));
+      AssertThat(dungeon.randomFreePosition().has_value(), IsFalse());
     });
-    it("should be revealed around the hero's position", [&] { AssertThat(dungeon.isRevealed({1, 1}), Equals(true)); });
+    it("should be revealed around the hero's position", [&] { AssertThat(dungeon.isRevealed({1, 1}), IsTrue()); });
   });
 
   describe("Pathfinding", [] {
     Dungeon dungeon(10, 10);
     auto hero = std::make_shared<Hero>();
     dungeon.setHero(hero, Position(0, 0));
-    it("should find paths if there are no obstacles", [&] { AssertThat(dungeon.isConnected({9, 9}), Equals(true)); });
+    it("should find paths if there are no obstacles", [&] { AssertThat(dungeon.isConnected({9, 9}), IsTrue()); });
     it("should consider squares inaccessible if there are no revealed paths to them", [&] {
-      AssertThat(dungeon.isAccessible({9, 9}), Equals(false));
+      AssertThat(dungeon.isAccessible({9, 9}), IsFalse());
     });
     it("should consider squares accessible if there is a revealed path", [&] {
       for (int x = 2; x < 10; ++x)
         dungeon.reveal({x, x});
-      AssertThat(dungeon.isAccessible({9, 9}), Equals(true));
+      AssertThat(dungeon.isAccessible({9, 9}), IsTrue());
     });
   });
 }

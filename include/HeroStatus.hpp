@@ -9,7 +9,7 @@ enum class HeroStatus
   CrushingBlow,
   // CurseImmune,
   Cursed,
-  // DamageReduction,
+  DamageReduction,
   // DeathGazeImmune,
   DeathProtection,
   DodgePermanent,
@@ -53,6 +53,8 @@ constexpr const char* toString(HeroStatus status)
     return "Crushing Blow";
   case HeroStatus::Cursed:
     return "Cursed";
+  case HeroStatus::DamageReduction:
+    return "Damage Reduction";
   case HeroStatus::DodgePermanent:
     return "Dodge change";
   case HeroStatus::DodgeTemporary:
@@ -97,7 +99,7 @@ constexpr const char* toString(HeroStatus status)
 constexpr bool canHaveMultiple(HeroStatus status)
 {
   return status == HeroStatus::Corrosion || status == HeroStatus::CrushingBlow || status == HeroStatus::Cursed ||
-         status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
-         status == HeroStatus::Learning || status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength ||
-         status == HeroStatus::StoneSkin || status == HeroStatus::Weakened;
+         status == HeroStatus::DamageReduction || status == HeroStatus::DodgePermanent ||
+         status == HeroStatus::DodgeTemporary || status == HeroStatus::Learning || status == HeroStatus::Sanguine ||
+         status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin || status == HeroStatus::Weakened;
 }

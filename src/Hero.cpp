@@ -152,7 +152,8 @@ void Hero::changeBaseDamage(int deltaDamagePoints)
 int Hero::getDamageBonusPercent() const
 {
   int bonus = stats.getDamageBonusPercent();
-  if (hasStatus(HeroStatus::Might)) bonus += 30;
+  if (hasStatus(HeroStatus::Might))
+    bonus += 30;
   if (hasTrait(HeroTrait::Determined) && stats.getHitPoints() < stats.getHitPointsMax() / 2)
     bonus += 30;
   return bonus;
@@ -237,7 +238,8 @@ bool Hero::hasInitiativeVersus(const Monster& monster) const
 
 int Hero::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
 {
-  return defence.predictDamageTaken(attackerDamageOutput, isMagicalDamage, 0);
+  return defence.predictDamageTaken(std::max(0, attackerDamageOutput - getStatusIntensity(HeroStatus::DamageReduction)),
+                                    isMagicalDamage, 0);
 }
 
 void Hero::loseHitPoints(int amountPointsLost)
