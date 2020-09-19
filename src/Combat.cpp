@@ -189,6 +189,7 @@ namespace Combat
   {
     Outcome outcome{Outcome::Summary::Safe, {}, hero, monster};
     outcome.monster.burnDown();
+    outcome.hero.removeOneTimeAttackEffects();
     if (outcome.monster.isDefeated())
     {
       outcome.summary = summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
