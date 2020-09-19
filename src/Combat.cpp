@@ -88,7 +88,8 @@ namespace Combat
     bool monsterWasSlowed = monster.isSlowed();
 
     const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
-    const bool petrified = monster.getDeathGazePercent() * hero.getHitPointsMax() / 100 > hero.getHitPoints();
+    const bool petrified = !hero.hasStatus(HeroStatus::DeathGazeImmune) &&
+                           (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
 
     if (swiftHand)
     {
