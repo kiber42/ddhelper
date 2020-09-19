@@ -401,7 +401,6 @@ void testStatusEffects()
       });
     });
     describe("Crushing Blow", [] {});
-    describe("Curse Immune", [] {});
     describe("Cursed", [] {
       it("should negate resistances", [] {
         Hero hero;
@@ -434,6 +433,19 @@ void testStatusEffects()
         AssertThat(hero.getHitPoints(), Equals(health - 10));
       });
     });
+    describe("Curse Immune", [] {
+      it("should prevent being cursed", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::CurseImmune);
+        hero.addStatus(HeroStatus::Cursed);
+        AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(false));
+        Hero hero2;
+        hero2.addStatus(HeroStatus::Cursed);
+        AssertThat(hero2.hasStatus(HeroStatus::Cursed), Equals(true));
+        hero2.addStatus(HeroStatus::CurseImmune);
+        AssertThat(hero2.hasStatus(HeroStatus::Cursed), Equals(false));
+      });
+    });
     describe("Damage Reduction", [] {});
     describe("Death Gaze Immune", [] {});
     describe("Death Protection", [] {});
@@ -447,12 +459,36 @@ void testStatusEffects()
     describe("Learning", [] {});
     describe("Life Steal", [] {});
     describe("Magical Attack", [] {});
-    describe("Mana Burn Immune", [] {});
     describe("Mana Burned", [] {});
+    describe("Mana Burn Immune", [] {
+      it("should prevent being mana burned", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::ManaBurnImmune);
+        hero.addStatus(HeroStatus::ManaBurned);
+        AssertThat(hero.hasStatus(HeroStatus::ManaBurned), Equals(false));
+        Hero hero2;
+        hero2.addStatus(HeroStatus::ManaBurned);
+        AssertThat(hero2.hasStatus(HeroStatus::ManaBurned), Equals(true));
+        hero2.addStatus(HeroStatus::ManaBurnImmune);
+        AssertThat(hero2.hasStatus(HeroStatus::ManaBurned), Equals(false));
+      });
+    });
     describe("Might", [] {});
     describe("Pierce Physical", [] {});
-    describe("Poison Immune", [] {});
     describe("Poisoned", [] {});
+    describe("Poison Immune", [] {
+      it("should prevent being poisoned", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::PoisonImmune);
+        hero.addStatus(HeroStatus::Poisoned);
+        AssertThat(hero.hasStatus(HeroStatus::Poisoned), Equals(false));
+        Hero hero2;
+        hero2.addStatus(HeroStatus::Poisoned);
+        AssertThat(hero2.hasStatus(HeroStatus::Poisoned), Equals(true));
+        hero2.addStatus(HeroStatus::PoisonImmune);
+        AssertThat(hero2.hasStatus(HeroStatus::Poisoned), Equals(false));
+      });
+    });
     describe("Poisonous", [] {});
     describe("Prestige", [] {});
     describe("Reflexes", [] {
