@@ -186,59 +186,85 @@ void testMonsterBasics()
       AssertThat(monster.isSlowed(), Equals(false));
     });
   });
+}
 
-  describe("Monster damage", [] {
-    Monster monster("", makeGenericMonsterStats(3, 30, 10, 1), Defence(50, 75), MonsterTraits());
-    it("should be adjusted for physical resistance", [&] {
-      AssertThat(monster.getHitPoints(), Equals(30));
-      AssertThat(monster.getPhysicalResistPercent(), Equals(50));
-      monster.takeDamage(5 * 100 / (100 - 50), false);
-      AssertThat(monster.getHitPoints(), Equals(30 - 5));
+void testDefenceBasics()
+{
+  describe("Monster", [] {
+    describe("Physical resistance", [] {
+      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), Defence(50, 0), {});
+      it("should reduce damage according to resistance %", [&] {
+        AssertThat(monster.getPhysicalResistPercent(), Equals(50));
+        monster.takeDamage(10, false);
+        AssertThat(monster.getHitPoints(), Equals(5));
+      });
+      it("should be rounded down", [&] {
+        monster.takeDamage(1, false);
+        AssertThat(monster.getHitPoints(), Equals(4));
+      });
     });
-    it("should be adjusted for physical resistance, resisted damage is rounded down", [&] {
-      monster.takeDamage(1, false);
-      AssertThat(monster.getHitPoints(), Equals(24));
+    describe("Magical resistance", [] {
+      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), Defence(0, 75), {});
+      it("should be adjusted for magical damage, resisted damage is rounded down", [&] {
+        AssertThat(monster.getMagicalResistPercent(), Equals(75));
+        monster.takeDamage(5 * 4 + 1, true);
+        AssertThat(monster.getHitPoints(), Equals(10 - 5 - 1));
+      });
     });
-    it("should be adjusted for magical damage, resisted damage is rounded down", [&] {
-      AssertThat(monster.getMagicalResistPercent(), Equals(75));
-      monster.takeDamage(5 * 100 / (100 - 75) + 1, true);
-      AssertThat(monster.getHitPoints(), Equals(24 - 5 - 1));
+    describe("Corrosion", [] {
+      it("should add 1 damage point per level", [] {
+        Hero hero;
+        Monster monster = makeGenericMonster(1, 20, 1);
+        monster.corrode();
+        monster.takeDamage(1, false);
+        AssertThat(monster.getHitPoints(), Equals(18));
+        monster.corrode();
+        monster.takeDamage(1, true);
+        AssertThat(monster.getHitPoints(), Equals(15));
+      });
     });
-    it("should be increased by corrosion", [&] {
-      AssertThat(monster.getHitPoints(), Equals(18));
-      monster.corrode();
-      monster.takeDamage(10, false);
-      AssertThat(monster.getHitPoints(), Equals(18 - 5 - 1));
+    describe("Resistance crushing", [] {
+      it("should reduce resistances by 3 percentage points", [&] {
+        Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), Defence(50, 75), {});
+        monster.erodeResitances();
+        AssertThat(monster.getPhysicalResistPercent(), Equals(47));
+        AssertThat(monster.getMagicalResistPercent(), Equals(72));
+        monster.erodeResitances();
+        monster.erodeResitances();
+        monster.erodeResitances();
+        monster.erodeResitances();
+        AssertThat(monster.getPhysicalResistPercent(), Equals(47 - 12));
+        AssertThat(monster.getMagicalResistPercent(), Equals(72 - 12));
+        // 35% physical resistance remaining -> no damage reduction
+        monster.takeDamage(2, false);
+        AssertThat(monster.getHitPoints(), Equals(8));
+      });
     });
-    it("should be increased by corrosion (2 levels -> 2 extra damage)", [&] {
-      AssertThat(monster.getHitPoints(), Equals(12));
-      monster.corrode();
-      monster.takeDamage(20, true);
-      AssertThat(monster.getHitPoints(), Equals(12 - 5 - 2));
+    describe("Death protection", [] {
+      Monster monster("", makeGenericMonsterStats(1, 10, 10, 2), {}, {});
+      it("should prevent defeat", [&] {
+        monster.takeDamage(100, false);
+        AssertThat(monster.isDefeated(), Equals(false));
+        AssertThat(monster.getHitPoints(), Equals(1));
+      });
+      it("should wear off", [&] {
+        monster.takeDamage(100, false);
+        AssertThat(monster.isDefeated(), Equals(false));
+        AssertThat(monster.getHitPoints(), Equals(1));
+        AssertThat(monster.getDeathProtection(), Equals(0));
+        monster.takeDamage(1, false);
+        AssertThat(monster.isDefeated(), Equals(true));
+      });
     });
-    it("should work for crushed resistances (3 percentage points lost per crushing)", [&] {
-      monster.erodeResitances();
-      AssertThat(monster.getPhysicalResistPercent(), Equals(47));
-      AssertThat(monster.getMagicalResistPercent(), Equals(72));
-      monster.erodeResitances();
-      monster.erodeResitances();
-      monster.erodeResitances();
-      monster.erodeResitances();
-      AssertThat(monster.getPhysicalResistPercent(), Equals(47 - 12));
-      AssertThat(monster.getMagicalResistPercent(), Equals(72 - 12));
-      AssertThat(monster.getHitPoints(), Equals(5));
-      monster.takeDamage(2, false);
-      // 35% resistance remaining -> no damage reduction
-      AssertThat(monster.getHitPoints() + monster.getCorroded(), Equals(3));
-    });
-    it("should account for death protection and have it wear off", [&] {
-      AssertThat(monster.getDeathProtection(), Equals(1));
-      monster.takeDamage(100, false);
-      AssertThat(monster.isDefeated(), Equals(false));
-      AssertThat(monster.getHitPoints(), Equals(1));
-      AssertThat(monster.getDeathProtection(), Equals(0));
-      monster.takeDamage(1, false);
-      AssertThat(monster.isDefeated(), Equals(true));
+  });
+
+  describe("Hero", [] {
+    describe("Physical resistance", [] {});
+    describe("Magical resistance", [] {});
+    describe("Damage reduction", [] {});
+    describe("Corrosion", [] {});
+    describe("Damage reduction, resistance and corrosion", [] {
+      it("should be applied in this order" , [] {});
     });
   });
 }
@@ -293,7 +319,6 @@ void testStatusEffects()
         AssertThat(outcome.hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
       });
     });
-    describe("Corrosion", [] {});
     describe("Crushing Blow", [] {});
     describe("Curse Immune", [] {});
     describe("Cursed", [] {
@@ -467,6 +492,7 @@ void testDungeonBasics()
 go_bandit([] {
   testHeroExperience();
   testMonsterBasics();
+  testDefenceBasics();
   testMeleeBasics();
   testStatusEffects();
   testCombatInitiative();
