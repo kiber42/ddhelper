@@ -26,9 +26,9 @@ enum class HeroStatus
   MagicalAttack,
   // ManaBurnImmune,
   ManaBurned,
-  Might, // +30% dmg, +3% erode resistances
-         // PiercePhysical,
-         // PoisonImmune,
+  Might,
+  // PiercePhysical,
+  // PoisonImmune,
   Poisoned,
   // Poisonous,
   // Prestige,
@@ -37,8 +37,8 @@ enum class HeroStatus
   Schadenfreude,
   SlowStrike,
   SpiritStrength,
+  StoneSkin,
   Weakened,
-  StoneSkin
 };
 
 constexpr const char* toString(HeroStatus status)
