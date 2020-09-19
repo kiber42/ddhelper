@@ -4,6 +4,7 @@
 #include "Dungeon.hpp"
 #include "Experience.hpp"
 #include "Hero.hpp"
+#include "HeroStatus.hpp"
 #include "Monster.hpp"
 #include "MonsterFactory.hpp"
 
@@ -277,7 +278,21 @@ void testStatusEffects()
 {
   describe("Status", [] {
     describe("Burning Strike", [] {});
-    describe("Consecrated Strike", [] {});
+    describe("Consecrated Strike", [] {
+      Hero hero;
+      it("should result in magical damage", [&] {
+        AssertThat(hero.doesMagicalDamage(), IsFalse());
+        hero.addStatus(HeroStatus::ConsecratedStrike);
+        AssertThat(hero.doesMagicalDamage(), IsTrue());
+      });
+      it("should wear off", [&] {
+        Monster monster("", makeGenericMonsterStats(1, 5, 1, 0), {100, 0}, {});
+        const auto outcome = Combat::predictOutcome(hero, monster);
+        AssertThat(outcome.monster.isDefeated(), IsTrue());
+        AssertThat(outcome.hero.doesMagicalDamage(), IsFalse());
+        AssertThat(outcome.hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
+      });
+    });
     describe("Corrosion", [] {});
     describe("Crushing Blow", [] {});
     describe("Curse Immune", [] {});
@@ -365,6 +380,7 @@ void testStatusEffects()
         Hero hero;
         hero.addStatus(HeroStatus::Weakened, hero.getBaseDamage() + 1);
         AssertThat(hero.getBaseDamage(), Is().Not().LessThan(0));
+        AssertThat(hero.getDamageVersusStandard(), Is().Not().LessThan(0));
       });
     });
   });
