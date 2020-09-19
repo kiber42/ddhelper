@@ -10,7 +10,7 @@ enum class HeroStatus
   Cursed,
   CurseImmune,
   DamageReduction,
-  // DeathGazeImmune,
+  DeathGazeImmune,
   DeathProtection,
   DodgePermanent,
   DodgeTemporary,
@@ -31,7 +31,6 @@ enum class HeroStatus
   Poisoned,
   PoisonImmune,
   // Poisonous,
-  // Prestige,
   Reflexes,
   Sanguine,
   Schadenfreude,
@@ -57,6 +56,8 @@ constexpr const char* toString(HeroStatus status)
     return "Curse Immune";
   case HeroStatus::DamageReduction:
     return "Damage Reduction";
+  case HeroStatus::DeathGazeImmune:
+    return "Death Gaze Immune";
   case HeroStatus::DodgePermanent:
     return "Dodge change";
   case HeroStatus::DodgeTemporary:

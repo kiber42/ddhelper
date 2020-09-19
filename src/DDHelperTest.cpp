@@ -337,7 +337,7 @@ void testDefenceBasics()
       });
     });
     describe("Damage reduction, resistance and corrosion", [] {
-      it("should be applied in this order" , [] {
+      it("should be applied in this order", [] {
         Hero hero;
         hero.setPhysicalResistPercent(50);
         hero.addStatus(HeroStatus::DamageReduction, 2);
@@ -350,7 +350,7 @@ void testDefenceBasics()
   });
 }
 
-void testMeleeBasics()
+void testMelee()
 {
   describe("Melee outcome prediction", [] {
     Hero hero;
@@ -368,7 +368,6 @@ void testMeleeBasics()
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
       AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
     });
-
     it("of hitpoint loss should work", [] {
       Hero hero;
       Monster monster = makeGenericMonster(3, 15, 9);
@@ -377,6 +376,35 @@ void testMeleeBasics()
       AssertThat(monster.getHitPoints(), Equals(15));
       AssertThat(outcome.hero.getHitPoints(), Equals(10 - monster.getDamage()));
       AssertThat(outcome.monster.getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
+    });
+  });
+
+  describe("Monster death gaze", [] {
+    it("should petrify hero with low health (<50%)", [] {
+      Hero hero;
+      Monster gorgon = makeMonster(MonsterType::Gorgon, 1);
+      auto outcome = Combat::predictOutcome(hero, gorgon);
+      AssertThat(outcome.summary, Equals(Outcome::Summary::Win));
+      hero.takeDamage(6, false);
+      outcome = Combat::predictOutcome(hero, gorgon);
+      AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
+    });
+    it("should be available with 100% intensity", [] {
+      Hero hero;
+      auto traits = MonsterTraitsBuilder().setDeathGazePercent(100).get();
+      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), {}, traits);
+      auto outcome = Combat::predictOutcome(hero, monster);
+      AssertThat(outcome.summary, Equals(Outcome::Summary::Safe));
+      hero.takeDamage(1, false);
+      outcome = Combat::predictOutcome(hero, monster);
+      AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
+    });
+    it("should be available with 101% intensity", [] {
+      Hero hero;
+      auto traits = MonsterTraitsBuilder().setDeathGazePercent(101).get();
+      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), {}, traits);
+      const auto outcome = Combat::predictOutcome(hero, monster);
+      AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
     });
   });
 }
@@ -446,9 +474,16 @@ void testStatusEffects()
         AssertThat(hero2.hasStatus(HeroStatus::Cursed), Equals(false));
       });
     });
-    describe("Damage Reduction", [] {});
-    describe("Death Gaze Immune", [] {});
-    describe("Death Protection", [] {});
+    describe("Death Gaze Immune", [] {
+      it("should prevent petrification", [] {
+        Hero hero;
+        hero.takeDamage(6, false);
+        hero.addStatus(HeroStatus::DeathGazeImmune);
+        Monster gorgon = makeMonster(MonsterType::Gorgon, 1);
+        auto outcome = Combat::predictOutcome(hero, gorgon);
+        AssertThat(outcome.summary, Equals(Outcome::Summary::Win));
+      });
+    });
     describe("Dodge", [] {});
     describe("Exhausted", [] {});
     describe("Experience Boost", [] {});
@@ -490,7 +525,6 @@ void testStatusEffects()
       });
     });
     describe("Poisonous", [] {});
-    describe("Prestige", [] {});
     describe("Reflexes", [] {
       it("should cause 2 hits", [] {
         Hero hero;
@@ -610,7 +644,7 @@ go_bandit([] {
   testHeroExperience();
   testMonsterBasics();
   testDefenceBasics();
-  testMeleeBasics();
+  testMelee();
   testStatusEffects();
   testCombatInitiative();
   testDungeonBasics();
