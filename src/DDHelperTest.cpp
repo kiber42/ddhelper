@@ -10,7 +10,8 @@
 using namespace bandit;
 using namespace snowhouse;
 
-go_bandit([] {
+void testHeroExperience()
+{
   describe("Hero's level", [] {
     Hero hero;
     it("should initially be 1", [&] { AssertThat(hero.getLevel(), Equals(1)); });
@@ -107,7 +108,10 @@ go_bandit([] {
     // - Alchemist's Pact (gain 3 XP on consuming potion)
     // - Veteran (Fighter trait, 1 bonus XP per kill)
   });
+}
 
+void testMonsterBasics()
+{
   describe("Monster", [] {
     Monster monster = makeGenericMonster(2, 10, 3);
     it("used for test should have level 2 and 10 HP", [&] {
@@ -236,7 +240,10 @@ go_bandit([] {
       AssertThat(monster.isDefeated(), Equals(true));
     });
   });
+}
 
+void testMeleeBasics()
+{
   describe("Melee outcome prediction", [] {
     Hero hero;
     Monster monster = makeGenericMonster(3, 15, 5);
@@ -264,64 +271,107 @@ go_bandit([] {
       AssertThat(outcome.monster.getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
     });
   });
+}
 
+void testStatusEffects()
+{
   describe("Status", [] {
-    it("Weakened should reduce base damage by one per stack level", [] {
-      Hero hero;
-      hero.changeDamageBonusPercent(100);
-      AssertThat(hero.getDamageBonusPercent(), Equals(100));
-      const int base_initial = hero.getBaseDamage();
-      const int damage_initial = hero.getDamageVersusStandard();
-      hero.addStatus(HeroStatus::Weakened);
-      AssertThat(hero.getBaseDamage(), Equals(base_initial - 1));
-      AssertThat(hero.getDamageVersusStandard(), Equals(damage_initial - 2));
-      AssertThat(hero.getDamageBonusPercent(), Equals(100));
-      hero.addStatus(HeroStatus::Weakened);
-      AssertThat(hero.getBaseDamage(), Equals(base_initial - 2));
+    describe("Burning Strike", [] {});
+    describe("Consecrated Strike", [] {});
+    describe("Corrosion", [] {});
+    describe("Crushing Blow", [] {});
+    describe("Curse Immune", [] {});
+    describe("Cursed", [] {
+      it("should negate resistances", [] {
+        Hero hero;
+        hero.setPhysicalResistPercent(50);
+        hero.takeDamage(4, false);
+        AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2));
+        hero.addStatus(HeroStatus::Cursed);
+        hero.takeDamage(4, false);
+        AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2 - 4));
+      });
+      it("should be added/removed when cursed/not-cursed monster is defeated", [] {
+        Hero hero;
+        hero.changeBaseDamage(100);
+        Monster monster("", makeGenericMonsterStats(1, 10, 3, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
+        hero = Combat::predictOutcome(hero, monster).hero;
+        // One curse from hit, one from killing
+        AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
+        Monster monster2 = makeGenericMonster(1, 10, 3);
+        hero = Combat::predictOutcome(hero, monster2).hero;
+        AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
+      });
+      it("should take effect immediately after hero's attack", [] {
+        Hero hero;
+        hero.gainLevel();
+        const int health = hero.getHitPoints();
+        hero.setPhysicalResistPercent(50);
+        Monster monster("", makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
+        hero = Combat::predictOutcome(hero, monster).hero;
+        AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(true));
+        AssertThat(hero.getHitPoints(), Equals(health - 10));
+      });
     });
-    it("Weakened should not reduce damage below zero", [] {
-      Hero hero;
-      hero.addStatus(HeroStatus::Weakened, hero.getBaseDamage() + 1);
-      AssertThat(hero.getBaseDamage(), Is().Not().LessThan(0));
+    describe("Damage Reduction", [] {});
+    describe("Death Gaze Immune", [] {});
+    describe("Death Protection", [] {});
+    describe("Dodge", [] {});
+    describe("Exhausted", [] {});
+    describe("Experience Boost", [] {});
+    describe("First Strike", [] {});
+    describe("Heavy Fireball", [] {});
+    describe("Indulgence", [] {});
+    describe("Knockback", [] {});
+    describe("Learning", [] {});
+    describe("Life Steal", [] {});
+    describe("Magical Attack", [] {});
+    describe("Mana Burn Immune", [] {});
+    describe("Mana Burned", [] {});
+    describe("Might", [] {});
+    describe("Pierce Physical", [] {});
+    describe("Poison Immune", [] {});
+    describe("Poisoned", [] {});
+    describe("Poisonous", [] {});
+    describe("Prestige", [] {});
+    describe("Reflexes", [] {
+      it("should cause 2 hits", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::Reflexes);
+        Monster monster = makeGenericMonster(1, 2 * hero.getDamageVersusStandard(), 1);
+        AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
+      });
     });
-    it("Reflexes should cause 2 hits", [] {
-      Hero hero;
-      hero.addStatus(HeroStatus::Reflexes);
-      Monster monster = makeGenericMonster(1, 2 * hero.getDamageVersusStandard(), 1);
-      AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
-    });
-    it("Cursed should negate resistances", [] {
-      Hero hero;
-      hero.setPhysicalResistPercent(50);
-      hero.takeDamage(4, false);
-      AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2));
-      hero.addStatus(HeroStatus::Cursed);
-      hero.takeDamage(4, false);
-      AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2 - 4));
-    });
-    it("Cursed should be added/removed when cursed/not-cursed monster is defeated", [] {
-      Hero hero;
-      hero.changeBaseDamage(100);
-      Monster monster("",  makeGenericMonsterStats(1, 10, 3, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
-      hero = Combat::predictOutcome(hero, monster).hero;
-      // One curse from hit, one from killing
-      AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
-      Monster monster2 = makeGenericMonster(1, 10, 3);
-      hero = Combat::predictOutcome(hero, monster2).hero;
-      AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
-    });
-    it("Cursed should take effect immediately after hero's attack", [] {
-      Hero hero;
-      hero.gainLevel();
-      const int health = hero.getHitPoints();
-      hero.setPhysicalResistPercent(50);
-      Monster monster("", makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
-      hero = Combat::predictOutcome(hero, monster).hero;
-      AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(true));
-      AssertThat(hero.getHitPoints(), Equals(health - 10));
+    describe("Sanguine", [] {});
+    describe("Schadenfreude", [] {});
+    describe("Slow Strike", [] {});
+    describe("Spirit Strength", [] {});
+    describe("Stone Skin", [] {});
+    describe("Weakened", [] {
+      it("should reduce base damage by one per stack level", [] {
+        Hero hero;
+        hero.changeDamageBonusPercent(100);
+        AssertThat(hero.getDamageBonusPercent(), Equals(100));
+        const int base_initial = hero.getBaseDamage();
+        const int damage_initial = hero.getDamageVersusStandard();
+        hero.addStatus(HeroStatus::Weakened);
+        AssertThat(hero.getBaseDamage(), Equals(base_initial - 1));
+        AssertThat(hero.getDamageVersusStandard(), Equals(damage_initial - 2));
+        AssertThat(hero.getDamageBonusPercent(), Equals(100));
+        hero.addStatus(HeroStatus::Weakened);
+        AssertThat(hero.getBaseDamage(), Equals(base_initial - 2));
+      });
+      it("should not reduce damage below zero", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::Weakened, hero.getBaseDamage() + 1);
+        AssertThat(hero.getBaseDamage(), Is().Not().LessThan(0));
+      });
     });
   });
+}
 
+void testCombatInitiative()
+{
   describe("Initiative", [] {
     Hero hero;
     Monster monster = makeGenericMonster(1, 10, 3);
@@ -347,7 +397,10 @@ go_bandit([] {
       AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
     });
   });
+}
 
+void testDungeonBasics()
+{
   describe("Dungeon", [] {
     Dungeon dungeon(3, 3);
     auto monster = std::make_shared<Monster>(makeGenericMonster(3, 30, 10));
@@ -393,15 +446,16 @@ go_bandit([] {
       AssertThat(dungeon.isAccessible({9, 9}), Equals(true));
     });
   });
-});
+}
 
-// Missing:
-// - exploration
-// - path finding
-// - find possible actions
-// - representations
-// - spells
-// - inventory
+go_bandit([] {
+  testHeroExperience();
+  testMonsterBasics();
+  testMeleeBasics();
+  testStatusEffects();
+  testCombatInitiative();
+  testDungeonBasics();
+});
 
 int main(int argc, char* argv[])
 {
