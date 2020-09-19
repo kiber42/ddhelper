@@ -21,3 +21,5 @@ Mana shield damage against monster with magic resistance:
 Damage done is rounded down (not the amount of resisted damage as is usually done!)
 
 Retaliate damage: 50% of regular damage
+
+Crushing blow ignores resistances and even physical immunity (magical not tested)
