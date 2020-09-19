@@ -321,9 +321,29 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
   const bool canStack = canHaveMultiple(status) || (status == HeroStatus::Might && hasTrait(HeroTrait::Additives));
   if (newIntensity > 1 && !canStack)
     newIntensity = 1;
-  if (newIntensity == statuses[status])
+  else if (newIntensity < 0)
+    newIntensity = 0;
+  if (newIntensity == getStatusIntensity(status))
     return;
-  statuses[status] = newIntensity;
+  if (newIntensity > 0)
+    statuses[status] = newIntensity;
+  else
+    statuses.erase(status);
+  if (status == HeroStatus::Cursed || status == HeroStatus::CurseImmune)
+  {
+    if (hasStatus(HeroStatus::CurseImmune))
+      statuses.erase(HeroStatus::Cursed);
+  }
+  else if (status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune)
+  {
+    if (hasStatus(HeroStatus::ManaBurnImmune))
+      statuses.erase(HeroStatus::ManaBurned);
+  }
+  else if (status == HeroStatus::Poisoned || status == HeroStatus::PoisonImmune)
+  {
+    if (hasStatus(HeroStatus::PoisonImmune))
+      statuses.erase(HeroStatus::Poisoned);
+  }
   propagateStatus(status, newIntensity);
 }
 
@@ -331,6 +351,20 @@ int Hero::getStatusIntensity(HeroStatus status) const
 {
   auto iter = statuses.find(status);
   return iter != statuses.end() ? iter->second : 0;
+}
+
+void Hero::propagateStatus(HeroStatus status, int intensity)
+{
+  switch (status)
+  {
+  case HeroStatus::Corrosion:
+    defence.setCorrosion(intensity);
+    break;
+  case HeroStatus::Cursed:
+    defence.setCursed(intensity > 0);
+  default:
+    break;
+  }
 }
 
 void Hero::addTrait(HeroTrait trait)
@@ -379,20 +413,6 @@ void Hero::removeOneTimeAttackEffects()
     removeStatus(HeroStatus::FirstStrike, true);
   removeStatus(HeroStatus::FirstStrikeTemporary, true);
   removeStatus(HeroStatus::Reflexes, true);
-}
-
-void Hero::propagateStatus(HeroStatus status, int intensity)
-{
-  switch (status)
-  {
-  case HeroStatus::Corrosion:
-    defence.setCorrosion(intensity);
-    break;
-  case HeroStatus::Cursed:
-    defence.setCursed(intensity > 0);
-  default:
-    break;
-  }
 }
 
 void Hero::levelGainedUpdate()
