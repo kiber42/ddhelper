@@ -158,6 +158,17 @@ void Monster::die()
   stats.loseHitPoints(stats.getHitPoints());
 }
 
+void Monster::corrode()
+{
+  status.setCorroded(getCorroded() + 1);
+  defence.setCorrosion(getCorroded());
+}
+
+void Monster::weaken()
+{
+  status.setWeakened(getWeakened() + 1);
+}
+
 bool Monster::isBurning() const
 {
   return status.isBurning();
@@ -196,17 +207,6 @@ int Monster::getCorroded() const
 int Monster::getWeakened() const
 {
   return status.getWeakened();
-}
-
-void Monster::corrode()
-{
-  status.setCorroded(getCorroded() + 1);
-  defence.setCorrosion(getCorroded());
-}
-
-void Monster::weaken()
-{
-  status.setWeakened(getWeakened() + 1);
 }
 
 bool Monster::doesMagicalDamage() const
