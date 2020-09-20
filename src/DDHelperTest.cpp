@@ -486,12 +486,24 @@ void testStatusEffects()
     });
     describe("Dodge", [] {});
     describe("Exhausted", [] {});
-    describe("Experience Boost", [] {});
-    describe("First Strike", [] {});
+    describe("First Strike", [] {
+      it("should give initiative versus regular monsters of any level", [&] {
+        Hero hero;
+        Monster boss = makeMonster(MonsterType::Goat, 10);
+        hero.addStatus(HeroStatus::FirstStrike);
+        AssertThat(hero.hasInitiativeVersus(boss), IsTrue());
+      });
+      it("should not give initiative versus first-strike monsters of any level", [] {
+        Hero hero;
+        hero.gainLevel();
+        Monster goblin = makeMonster(MonsterType::Goblin, 1);
+        hero.addStatus(HeroStatus::FirstStrike);
+        AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
+      });
+    });
     describe("Heavy Fireball", [] {});
     describe("Indulgence", [] {});
     describe("Knockback", [] {});
-    describe("Learning", [] {});
     describe("Life Steal", [] {});
     describe("Magical Attack", [] {});
     describe("Mana Burned", [] {});
@@ -535,7 +547,32 @@ void testStatusEffects()
     });
     describe("Sanguine", [] {});
     describe("Schadenfreude", [] {});
-    describe("Slow Strike", [] {});
+    describe("Slow Strike", [] {
+      Hero hero({}, {}, Experience(10));
+      Monster meatMan = makeMonster(MonsterType::MeatMan, 1);
+      Monster goblin = makeMonster(MonsterType::Goblin, 1);
+      it("should give initiative to regular monsters of any level", [&] {
+        hero.addStatus(HeroStatus::SlowStrike);
+        AssertThat(hero.hasInitiativeVersus(meatMan), IsFalse());
+      });
+      it("should cancel First Strike", [&] {
+        hero.addStatus(HeroStatus::FirstStrike);
+        AssertThat(hero.hasInitiativeVersus(meatMan), IsTrue());
+        AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
+        hero.removeStatus(HeroStatus::FirstStrike, true);
+      });
+      it("should give initiative to slowed monsters of any level (regardless of monster's first strike)", [&] {
+        meatMan.slow();
+        goblin.slow();
+        AssertThat(hero.hasInitiativeVersus(meatMan), IsFalse());
+        AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
+      });
+      it("should not give initiative to slowed monsters when cancelled by First Strike", [&] {
+        hero.addStatus(HeroStatus::FirstStrike);
+        AssertThat(hero.hasInitiativeVersus(meatMan), IsTrue());
+        AssertThat(hero.hasInitiativeVersus(goblin), IsTrue());
+      });
+    });
     describe("Spirit Strength", [] {});
     describe("Stone Skin", [] {});
     describe("Weakened", [] {
@@ -566,23 +603,13 @@ void testCombatInitiative()
 {
   describe("Initiative", [] {
     Hero hero;
+    Monster boss = makeGenericMonster(10, 10, 3);
     Monster monster = makeGenericMonster(1, 10, 3);
+    it("should go to the monster of higher level", [&] { //
+      AssertThat(hero.hasInitiativeVersus(boss), IsFalse());
+    });
     it("should go to the monster of equal level", [&] { //
-      AssertThat(!hero.hasInitiativeVersus(monster), IsTrue());
-    });
-    it("should go to the hero if the monster is slowed", [&] {
-      monster.slow();
-      AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
-    });
-    it("should go to the hero if he has first strike", [&] {
-      monster.takeDamage(0, false);
-      AssertThat(monster.isSlowed(), IsFalse());
-      hero.addStatus(HeroStatus::FirstStrike);
-      AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
-    });
-    it("should go to the monster if first strike is cancelled by slow strike", [&] {
-      hero.addStatus(HeroStatus::SlowStrike);
-      AssertThat(!hero.hasInitiativeVersus(monster), IsTrue());
+      AssertThat(hero.hasInitiativeVersus(monster), IsFalse());
     });
     it("should go to the hero if he has higher level", [&] {
       hero.gainLevel();
