@@ -78,6 +78,8 @@ private:
   using HistoryItem =
       std::tuple<std::string, Outcome::Summary, Outcome::Debuffs, std::optional<Hero>, std::optional<Monster>>;
   std::vector<HistoryItem> history;
+
+  int selectedPotion;
 };
 
 class DDHelperApp : public ImguiApp
@@ -483,8 +485,8 @@ void Arena::run()
 {
   using Summary = Outcome::Summary;
 
-  auto addActionButton = [&](std::string title, auto outcomeProvider) {
-    if (ImGui::Button(title.c_str()))
+  auto addAction = [&](std::string title, auto outcomeProvider, bool activated) {
+    if (activated)
     {
       auto outcome = outcomeProvider();
       if (outcome.summary != Summary::NotPossible)
@@ -512,6 +514,22 @@ void Arena::run()
       ImGui::EndTooltip();
     }
   };
+  auto addActionButton = [&](std::string title, auto outcomeProvider) {
+    const bool button = ImGui::Button(title.c_str());
+    addAction(std::move(title), std::move(outcomeProvider), button);
+  };
+  auto addPotionAction = [&](std::string title, auto heroModifier, int potionIndex) {
+    const bool mouseDown = ImGui::IsAnyMouseDown();
+    const bool becameSelected = (ImGui::Selectable(title.c_str()) || (ImGui::IsItemHovered() && mouseDown));
+    auto outcomeProvider = [&] {
+      Hero heroAfter = *hero;
+      heroModifier(heroAfter);
+      return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
+    };
+    addAction(std::move(title), std::move(outcomeProvider), selectedPotion == potionIndex && !mouseDown);
+    if (becameSelected)
+      selectedPotion = potionIndex;
+  };
 
   ImGui::Begin("Arena");
   showStatus(hero, monster);
@@ -525,30 +543,68 @@ void Arena::run()
       addActionButton("Attack Other", [&] { return Combat::attackOther(*hero, *monster); });
       ImGui::SameLine();
     }
+
+    ImGui::Button("Drink");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("PotionPopup");
+      selectedPotion = -1;
+    }
+    if (ImGui::BeginPopup("PotionPopup"))
+    {
+      ImGui::Text("Potions");
+      ImGui::Separator();
+      addPotionAction(
+          "Health Potion", [](Hero& hero) { hero.drinkHealthPotion(); }, 0);
+      addPotionAction(
+          "Mana Potion", [](Hero& hero) { hero.drinkManaPotion(); }, 1);
+      addPotionAction(
+          "Fortitude Tonic",
+          [](Hero& hero) {
+            hero.removeStatus(HeroStatus::Poisoned, true);
+            hero.removeStatus(HeroStatus::Weakened, true);
+          },
+          2);
+      addPotionAction(
+          "Burn Salve",
+          [](Hero& hero) {
+            hero.removeStatus(HeroStatus::ManaBurned, true);
+            hero.removeStatus(HeroStatus::Corrosion, true);
+          },
+          3);
+      addPotionAction(
+          "Strength Potion",
+          [](Hero& hero) {
+            const int mp = hero.getManaPoints();
+            hero.loseManaPoints(mp);
+            hero.addStatus(HeroStatus::SpiritStrength, hero.getLevel() + mp);
+          },
+          4);
+      addPotionAction(
+          "Schadenfreude", [](Hero& hero) { hero.addStatus(HeroStatus::Schadenfreude); }, 5);
+      addPotionAction(
+          "Dodge Potion", [](Hero& hero) { hero.addStatus(HeroStatus::DodgeTemporary, 50); }, 6);
+      addPotionAction(
+          "Reflex Potion", [](Hero& hero) { hero.addStatus(HeroStatus::Reflexes); }, 7);
+      addPotionAction(
+          "Can of Whupaz", [](Hero& hero) { hero.addStatus(HeroStatus::CrushingBlow); }, 8);
+      if (!ImGui::IsAnyMouseDown() && selectedPotion != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+
     const int numSquares = hero->numSquaresForFullRecovery();
     if (numSquares > 0)
     {
-      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(*hero, monster, 1); });
       ImGui::SameLine();
+      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(*hero, monster, 1); });
       if (numSquares > 1 && !withMonster)
       {
         const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-        addActionButton(label, [&] { return Combat::uncoverTiles(*hero, monster, numSquares); });
         ImGui::SameLine();
+        addActionButton(label, [&] { return Combat::uncoverTiles(*hero, monster, numSquares); });
       }
     }
-
-    addActionButton("Health Potion", [&] {
-      Hero heroAfter = *hero;
-      heroAfter.drinkHealthPotion();
-      return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
-    });
-    ImGui::SameLine();
-    addActionButton("Mana Potion", [&] {
-      Hero heroAfter = *hero;
-      heroAfter.drinkManaPotion();
-      return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
-    });
 
     int count = 0;
     for (Spell spell :
