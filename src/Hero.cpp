@@ -128,7 +128,7 @@ int Hero::getHitPointsMax() const
 
 int Hero::getManaPoints() const
 {
-  return stats.getManaPoints();
+  return hasStatus(HeroStatus::ManaBurned) ? 0 : stats.getManaPoints();
 }
 
 int Hero::getManaPointsMax() const
