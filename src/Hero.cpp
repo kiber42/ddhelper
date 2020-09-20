@@ -419,6 +419,8 @@ void Hero::levelGainedUpdate()
 {
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
   stats.refresh();
+  removeStatus(HeroStatus::Poisoned, true);
+  removeStatus(HeroStatus::ManaBurned, true);
   changeBaseDamage(+5);
 }
 

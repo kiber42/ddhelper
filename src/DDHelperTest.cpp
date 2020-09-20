@@ -49,6 +49,13 @@ void testHeroExperience()
     hero.gainExperience(10);
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
     it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30)); });
+    hero.addStatus(HeroStatus::Poisoned);
+    hero.addStatus(HeroStatus::ManaBurned);
+    hero.gainExperience(15);
+    it("should remove poison and mana burn", [&] {
+      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
+      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
+    });
   });
 
   describe("Level up (from item or boon)", [] {
@@ -58,6 +65,13 @@ void testHeroExperience()
     hero.gainLevel();
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
     it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30)); });
+    hero.addStatus(HeroStatus::Poisoned);
+    hero.addStatus(HeroStatus::ManaBurned);
+    hero.gainLevel();
+    it("should remove poison and mana burn", [&] {
+      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
+      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
+    });
   });
 
   describe("Hero's XP", [] {
