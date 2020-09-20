@@ -1,8 +1,11 @@
 #pragma once
 
+enum class MonsterType;
+
 class Defence
 {
 public:
+  Defence(MonsterType type);
   Defence(int physicalResistPercent = 0,
           int magicalResistPercent = 0,
           int physicalResistPercentMax = 100,

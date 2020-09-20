@@ -1,9 +1,12 @@
 #pragma once
 
+enum class MonsterType;
+
 class MonsterStats
 {
 public:
-  MonsterStats(int level, int hp, int hpMax, int damage, int deathProtection);
+  MonsterStats(MonsterType type, int level, int dungeonMultiplier);
+  MonsterStats(int level, int hpMax, int damage, int deathProtection);
 
   int getLevel() const;
 

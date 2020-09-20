@@ -3,14 +3,28 @@
 #include <algorithm>
 #include <utility>
 
+#include "MonsterTypes.hpp"
+
+Monster::Monster(MonsterType type, int level, int dungeonMultiplier)
+  : name(std::string(toString(type)) + " level " + std::to_string(level))
+  , stats(type, level, dungeonMultiplier)
+  , defence(type)
+  , traits(type)
+{
+}
+
 Monster::Monster(std::string name, MonsterStats stats, Defence damage, MonsterTraits traits)
   : name(std::move(name))
   , stats(std::move(stats))
   , defence(std::move(damage))
   , status{}
   , traits(std::move(traits))
-{  
-  defence.setCorrosion(getCorroded());
+{
+}
+
+Monster::Monster(int level, int hp, int damage)
+  : Monster("Monster Level " + std::to_string(level), {level, hp, damage, 0}, {}, {})
+{
 }
 
 const char* Monster::getName() const

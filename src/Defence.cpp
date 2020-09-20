@@ -1,6 +1,13 @@
 #include "Defence.hpp"
 
+#include "MonsterTypes.hpp"
+
 #include <algorithm>
+
+Defence::Defence(MonsterType type)
+  : Defence(getPhysicalResistancePercent(type), getMagicalResistancePercent(type), 100, 100)
+{
+}
 
 Defence::Defence(int physicalResistPercent,
                  int magicalResistPercent,

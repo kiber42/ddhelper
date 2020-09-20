@@ -2,10 +2,9 @@
 #include "../include/ImguiApp.hpp"
 
 #include "Combat.hpp"
-#include "Defence.hpp"
 #include "Hero.hpp"
 #include "Monster.hpp"
-#include "MonsterFactory.hpp"
+#include "MonsterTypes.hpp"
 #include "Spells.hpp"
 
 #include <array>
@@ -343,7 +342,7 @@ std::optional<Monster> MonsterSelection::run()
 
 Monster MonsterSelection::get() const
 {
-  return makeMonster(type, level, dungeonMultiplier);
+  return {type, level, dungeonMultiplier};
 }
 
 CustomHeroBuilder::CustomHeroBuilder()
@@ -451,13 +450,19 @@ std::optional<Monster> CustomMonsterBuilder::run()
 
 Monster CustomMonsterBuilder::get() const
 {
-  Monster monster("Level " + std::to_string(data[0]) + " monster",
-                  makeGenericMonsterStats(data[0] /* level */, data[2] /* max hp */, data[3] /* damage */,
-                                          0 /* death protection */),
-                  {data[4] /* physical resistance */, data[5] /* magical resistance */}, traits);
-  if (data[1] < data[2])
-    monster.takeDamage(data[2] - data[1], false);
-  return monster;
+  const int level = data[0];
+  std::string name = "Level " + std::to_string(level) + " monster";
+  const int hp = data[1];
+  const int maxHp = data[2];
+  const int damage = data[3];
+  const int deathProtection = data[4];
+  auto stats = MonsterStats{level, maxHp, damage, deathProtection};
+  if (hp < maxHp)
+    stats.loseHitPoints(maxHp - hp);
+  else if (hp > maxHp)
+    stats.healHitPoints(hp - maxHp, true);
+  auto defence = Defence{data[5], data[6]};
+  return {std::move(name), std::move(stats), std::move(defence), traits};
 }
 
 void Arena::enter(Hero&& newHero)

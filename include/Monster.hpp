@@ -10,7 +10,9 @@
 class Monster
 {
 public:
+  Monster(MonsterType type, int level, int dungeonMultiplier = 100);
   Monster(std::string name, MonsterStats, Defence, MonsterTraits);
+  Monster(int level, int hp, int damage);
 
   const char* getName() const;
   int getLevel() const;

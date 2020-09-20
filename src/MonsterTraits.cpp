@@ -1,5 +1,7 @@
 #include "MonsterTraits.hpp"
 
+#include "MonsterTypes.hpp"
+
 #include <utility>
 
 MonsterTraits::MonsterTraits()
@@ -15,6 +17,11 @@ MonsterTraits::MonsterTraits()
   , lifeStealPercent(0)
   , undead(false)
   , bloodless(false)
+{
+}
+
+MonsterTraits::MonsterTraits(MonsterType type)
+  : MonsterTraits(getTraits(type))
 {
 }
 

@@ -47,10 +47,10 @@ add_library(
     src/HeroStats.cpp
     src/ItemClass.cpp
     src/Monster.cpp
-    src/MonsterFactory.cpp
     src/MonsterStats.cpp
     src/MonsterStatus.cpp
     src/MonsterTraits.cpp
+    src/MonsterTypes.cpp
     src/Spells.cpp
 )
 target_include_directories(DDHelperLibrary PUBLIC include)

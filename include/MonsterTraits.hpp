@@ -1,5 +1,6 @@
 #pragma once
 
+enum class MonsterType;
 class MonsterTraitsBuilder;
 
 struct MonsterTraits
@@ -69,7 +70,7 @@ struct MonsterTraits
   bool bloodless;
 
   MonsterTraits();
-
+  MonsterTraits(MonsterType type);
   MonsterTraits(MonsterTraitsBuilder&& builder);
 };
 

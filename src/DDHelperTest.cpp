@@ -2,11 +2,9 @@
 
 #include "Combat.hpp"
 #include "Dungeon.hpp"
-#include "Experience.hpp"
 #include "Hero.hpp"
-#include "HeroStatus.hpp"
 #include "Monster.hpp"
-#include "MonsterFactory.hpp"
+#include "MonsterTypes.hpp"
 
 using namespace bandit;
 using namespace snowhouse;
@@ -114,7 +112,7 @@ void testHeroExperience()
 void testMonsterBasics()
 {
   describe("Monster", [] {
-    Monster monster = makeGenericMonster(2, 10, 3);
+    Monster monster(2, 10, 3);
     it("used for test should have level 2 and 10 HP", [&] {
       AssertThat(monster.getLevel(), Equals(2));
       AssertThat(monster.getHitPoints(), Equals(10));
@@ -192,7 +190,7 @@ void testDefenceBasics()
 {
   describe("Monster", [] {
     describe("Physical resistance", [] {
-      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), Defence(50, 0), {});
+      Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 0}, {});
       it("should reduce damage according to resistance %", [&] {
         AssertThat(monster.getPhysicalResistPercent(), Equals(50));
         monster.takeDamage(10, false);
@@ -204,7 +202,7 @@ void testDefenceBasics()
       });
     });
     describe("Magical resistance", [] {
-      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), Defence(0, 75), {});
+      Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{0, 75}, {});
       it("should be adjusted for magical damage, resisted damage is rounded down", [&] {
         AssertThat(monster.getMagicalResistPercent(), Equals(75));
         monster.takeDamage(5 * 4 + 1, true);
@@ -214,7 +212,7 @@ void testDefenceBasics()
     describe("Corrosion", [] {
       it("should add 1 damage point per level", [] {
         Hero hero;
-        Monster monster = makeGenericMonster(1, 20, 1);
+        Monster monster(1, 20, 1);
         monster.corrode();
         monster.takeDamage(1, false);
         AssertThat(monster.getHitPoints(), Equals(18));
@@ -225,7 +223,7 @@ void testDefenceBasics()
     });
     describe("Resistance crushing", [] {
       it("should reduce resistances by 3 percentage points", [&] {
-        Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), Defence(50, 75), {});
+        Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 75}, {});
         monster.erodeResitances();
         AssertThat(monster.getPhysicalResistPercent(), Equals(47));
         AssertThat(monster.getMagicalResistPercent(), Equals(72));
@@ -241,7 +239,7 @@ void testDefenceBasics()
       });
     });
     describe("Death protection", [] {
-      Monster monster("", makeGenericMonsterStats(1, 10, 10, 2), {}, {});
+      Monster monster("", MonsterStats{1, 10, 10, 2}, {}, {});
       it("should prevent defeat", [&] {
         monster.takeDamage(100, false);
         AssertThat(monster.isDefeated(), IsFalse());
@@ -354,7 +352,7 @@ void testMelee()
 {
   describe("Melee outcome prediction", [] {
     Hero hero;
-    Monster monster = makeGenericMonster(3, 15, 5);
+    Monster monster(3, 15, 5);
     it("should work for outcome 'safe' (simple case)",
        [&] { AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Safe)); });
     it("should work for outcome 'hero dies' (simple case)", [&] {
@@ -370,7 +368,7 @@ void testMelee()
     });
     it("of hitpoint loss should work", [] {
       Hero hero;
-      Monster monster = makeGenericMonster(3, 15, 9);
+      Monster monster(3, 15, 9);
       const auto outcome = Combat::predictOutcome(hero, monster);
       AssertThat(hero.getHitPoints(), Equals(10));
       AssertThat(monster.getHitPoints(), Equals(15));
@@ -382,7 +380,7 @@ void testMelee()
   describe("Monster death gaze", [] {
     it("should petrify hero with low health (<50%)", [] {
       Hero hero;
-      Monster gorgon = makeMonster(MonsterType::Gorgon, 1);
+      Monster gorgon(MonsterType::Gorgon, 1);
       auto outcome = Combat::predictOutcome(hero, gorgon);
       AssertThat(outcome.summary, Equals(Outcome::Summary::Win));
       hero.takeDamage(6, false);
@@ -392,17 +390,21 @@ void testMelee()
     it("should be available with 100% intensity", [] {
       Hero hero;
       auto traits = MonsterTraitsBuilder().setDeathGazePercent(100).get();
-      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), {}, traits);
+      Monster monster("", {1, 10, 1, 0}, {}, std::move(traits));
       auto outcome = Combat::predictOutcome(hero, monster);
       AssertThat(outcome.summary, Equals(Outcome::Summary::Safe));
       hero.takeDamage(1, false);
       outcome = Combat::predictOutcome(hero, monster);
       AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
+      hero.addStatus(HeroStatus::DeathProtection);
+      outcome = Combat::predictOutcome(hero, monster);
+      AssertThat(outcome.summary, Equals(Outcome::Summary::Safe));
+      AssertThat(outcome.debuffs.count(Outcome::Debuff::LostDeathProtection), Equals(1));
     });
     it("should be available with 101% intensity", [] {
       Hero hero;
       auto traits = MonsterTraitsBuilder().setDeathGazePercent(101).get();
-      Monster monster("", makeGenericMonsterStats(1, 10, 1, 0), {}, traits);
+      Monster monster("", {1, 10, 1, 0}, {}, std::move(traits));
       const auto outcome = Combat::predictOutcome(hero, monster);
       AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
     });
@@ -421,7 +423,7 @@ void testStatusEffects()
         AssertThat(hero.doesMagicalDamage(), IsTrue());
       });
       it("should wear off", [&] {
-        Monster monster("", makeGenericMonsterStats(1, 5, 1, 0), {100, 0}, {});
+        Monster monster("", MonsterStats{1, 5, 1, 0}, Defence{100, 0}, {});
         const auto outcome = Combat::predictOutcome(hero, monster);
         AssertThat(outcome.monster.isDefeated(), IsTrue());
         AssertThat(outcome.hero.doesMagicalDamage(), IsFalse());
@@ -442,11 +444,11 @@ void testStatusEffects()
       it("should be added/removed when cursed/not-cursed monster is defeated", [] {
         Hero hero;
         hero.changeBaseDamage(100);
-        Monster monster("", makeGenericMonsterStats(1, 10, 3, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
+        Monster monster("", MonsterStats{1, 10, 3, 0}, {}, std::move(MonsterTraitsBuilder().addCurse()));
         hero = Combat::predictOutcome(hero, monster).hero;
         // One curse from hit, one from killing
         AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
-        Monster monster2 = makeGenericMonster(1, 10, 3);
+        Monster monster2(1, 10, 3);
         hero = Combat::predictOutcome(hero, monster2).hero;
         AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
       });
@@ -455,7 +457,7 @@ void testStatusEffects()
         hero.gainLevel();
         const int health = hero.getHitPoints();
         hero.setPhysicalResistPercent(50);
-        Monster monster("", makeGenericMonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
+        Monster monster("", MonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
         hero = Combat::predictOutcome(hero, monster).hero;
         AssertThat(hero.hasStatus(HeroStatus::Cursed), IsTrue());
         AssertThat(hero.getHitPoints(), Equals(health - 10));
@@ -479,7 +481,7 @@ void testStatusEffects()
         Hero hero;
         hero.takeDamage(6, false);
         hero.addStatus(HeroStatus::DeathGazeImmune);
-        Monster gorgon = makeMonster(MonsterType::Gorgon, 1);
+        Monster gorgon(MonsterType::Gorgon, 1);
         auto outcome = Combat::predictOutcome(hero, gorgon);
         AssertThat(outcome.summary, Equals(Outcome::Summary::Win));
       });
@@ -489,14 +491,14 @@ void testStatusEffects()
     describe("First Strike", [] {
       it("should give initiative versus regular monsters of any level", [&] {
         Hero hero;
-        Monster boss = makeMonster(MonsterType::Goat, 10);
+        Monster boss(MonsterType::Goat, 10);
         hero.addStatus(HeroStatus::FirstStrike);
         AssertThat(hero.hasInitiativeVersus(boss), IsTrue());
       });
       it("should not give initiative versus first-strike monsters of any level", [] {
         Hero hero;
         hero.gainLevel();
-        Monster goblin = makeMonster(MonsterType::Goblin, 1);
+        Monster goblin(MonsterType::Goblin, 1);
         hero.addStatus(HeroStatus::FirstStrike);
         AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
       });
@@ -541,7 +543,7 @@ void testStatusEffects()
       it("should cause 2 hits", [] {
         Hero hero;
         hero.addStatus(HeroStatus::Reflexes);
-        Monster monster = makeGenericMonster(1, 2 * hero.getDamageVersusStandard(), 1);
+        Monster monster(1, 2 * hero.getDamageVersusStandard(), 1);
         AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
       });
     });
@@ -549,8 +551,8 @@ void testStatusEffects()
     describe("Schadenfreude", [] {});
     describe("Slow Strike", [] {
       Hero hero({}, {}, Experience(10));
-      Monster meatMan = makeMonster(MonsterType::MeatMan, 1);
-      Monster goblin = makeMonster(MonsterType::Goblin, 1);
+      Monster meatMan(MonsterType::MeatMan, 1);
+      Monster goblin(MonsterType::Goblin, 1);
       it("should give initiative to regular monsters of any level", [&] {
         hero.addStatus(HeroStatus::SlowStrike);
         AssertThat(hero.hasInitiativeVersus(meatMan), IsFalse());
@@ -603,8 +605,8 @@ void testCombatInitiative()
 {
   describe("Initiative", [] {
     Hero hero;
-    Monster boss = makeGenericMonster(10, 10, 3);
-    Monster monster = makeGenericMonster(1, 10, 3);
+    Monster boss(10, 10, 3);
+    Monster monster(1, 10, 3);
     it("should go to the monster of higher level", [&] { //
       AssertThat(hero.hasInitiativeVersus(boss), IsFalse());
     });
@@ -622,7 +624,7 @@ void testDungeonBasics()
 {
   describe("Dungeon", [] {
     Dungeon dungeon(3, 3);
-    auto monster = std::make_shared<Monster>(makeGenericMonster(3, 30, 10));
+    auto monster = std::make_shared<Monster>(3, 30, 10);
     auto monster2 = std::make_shared<Monster>(*monster);
     it("should allow adding monsters if there is space", [&] {
       dungeon.add(monster, dungeon.randomFreePosition().value());

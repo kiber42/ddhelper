@@ -1,10 +1,21 @@
 #include "MonsterStats.hpp"
 
+#include "MonsterTypes.hpp"
+
 #include <algorithm>
 
-MonsterStats::MonsterStats(int level, int hp, int hpMax, int damage, int deathProtection)
+MonsterStats::MonsterStats(MonsterType type, int level, int dungeonMultiplier)
+  : MonsterStats(level,
+                 // HP sometimes appears to be 1 too high (at least for "Shifting Passages")
+                 (level * (level + 6) - 1) * dungeonMultiplier / 100 * getHPMultiplierPercent(type) / 100,
+                 (level * (level + 5) / 2) * dungeonMultiplier / 100 * getDamageMultiplierPercent(type) / 100,
+                 0)
+{
+}
+
+MonsterStats::MonsterStats(int level, int hpMax, int damage, int deathProtection)
   : level(level)
-  , hp(hp)
+  , hp(hpMax)
   , hpMax(hpMax)
   , damage(damage)
   , deathProtection(deathProtection)
