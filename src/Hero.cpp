@@ -457,6 +457,7 @@ bool Hero::isTraitActive(HeroTrait trait) const
 void Hero::removeOneTimeAttackEffects()
 {
   removeStatus(HeroStatus::ConsecratedStrike, true);
+  removeStatus(HeroStatus::CrushingBlow, true);
   removeStatus(HeroStatus::Might, true);
   removeStatus(HeroStatus::SpiritStrength, true);
 

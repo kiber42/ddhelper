@@ -444,7 +444,35 @@ void testStatusEffects()
         AssertThat(outcome.hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
       });
     });
-    describe("Crushing Blow", [] {});
+    describe("Crushing Blow", [] {
+      Hero hero;
+      hero.addStatus(HeroStatus::CrushingBlow);
+      hero.addStatus(HeroStatus::DeathProtection);
+      it("should reduce the monster's health to 75%", [&] {
+        Monster monster(MonsterType::MeatMan, 10);
+        const auto outcome = Combat::predictOutcome(hero, monster);
+        AssertThat(outcome.monster->getHitPoints(), Equals(outcome.monster->getHitPointsMax() * 3 / 4));
+      });
+      it("should ignore immunities", [&] {
+        Monster monster("", MonsterStats{1, 100, 1, 0}, Defence{100, 100}, {});
+        auto outcome = Combat::predictOutcome(hero, monster);
+        AssertThat(outcome.monster->getHitPoints(), Equals(75));
+        hero.addStatus(HeroStatus::MagicalAttack);
+        outcome = Combat::predictOutcome(hero, monster);
+        AssertThat(outcome.monster->getHitPoints(), Equals(75));
+      });
+      it("should not affect monsters below 75% health", [&] {
+        Monster monster(MonsterType::MeatMan, 1);
+        monster.takeDamage(monster.getHitPoints() - 1, false);
+        const auto outcome = Combat::predictOutcome(hero, monster);
+        AssertThat(outcome.monster->getHitPoints(), Equals(1));
+      });
+      it("should wear off", [&] {
+        Monster monster(MonsterType::MeatMan, 10);
+        const auto outcome = Combat::predictOutcome(hero, monster);
+        AssertThat(outcome.hero.hasStatus(HeroStatus::CrushingBlow), IsFalse());
+      });
+    });
     describe("Cursed", [] {
       it("should negate resistances", [] {
         Hero hero;
