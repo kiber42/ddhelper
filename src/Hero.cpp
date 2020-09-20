@@ -136,6 +136,30 @@ int Hero::getManaPointsMax() const
   return stats.getManaPointsMax();
 }
 
+void Hero::drinkHealthPotion()
+{
+  stats.healHitPoints(getHitPointsMax() * 4 / 10, false);
+  removeStatus(HeroStatus::Poisoned, true);
+  if (hasTrait(HeroTrait::Survivor))
+    stats.recoverManaPoints(getManaPointsMax() * 2 / 10);
+}
+
+void Hero::drinkManaPotion()
+{
+  if (hasTrait(HeroTrait::PowerHungry))
+  {
+    stats.recoverManaPoints(getManaPointsMax() * 6 / 10);
+    addStatus(HeroStatus::Sanguine, 2);
+  }
+  else
+    stats.recoverManaPoints(getManaPointsMax() * 4 / 10);
+  removeStatus(HeroStatus::ManaBurned, true);
+  if (hasTrait(HeroTrait::Courageous))
+    addStatus(HeroStatus::Might);
+  if (hasTrait(HeroTrait::Survivor))
+    stats.healHitPoints(getHitPointsMax() * 2 / 10, false);
+}
+
 int Hero::getBaseDamage() const
 {
   const int modifiers = getStatusIntensity(HeroStatus::SpiritStrength) - getStatusIntensity(HeroStatus::Weakened);

@@ -35,6 +35,9 @@ public:
   int getManaPoints() const;
   int getManaPointsMax() const;
 
+  void drinkHealthPotion();
+  void drinkManaPotion();
+
   int getBaseDamage() const;
   void changeBaseDamage(int deltaDamagePoints);
   int getDamageBonusPercent() const;

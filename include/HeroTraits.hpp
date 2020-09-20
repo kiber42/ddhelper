@@ -10,7 +10,7 @@ enum class HeroTrait
   AzureBody,
   Bloodlust,
   Colourants,
-  Courageous, // not implemented: drinking a mana potion will cause the next attack to do +30% damage
+  Courageous,
   Damned,
   Dangerous,
   Defiant,
@@ -50,7 +50,7 @@ enum class HeroTrait
   Negotiator,
   PitDog,
   PoisonedBlade,
-  PowerHungry, // not implemented: Mana Potions are 60% effective and boost Sanguine
+  PowerHungry,
   Preservatives,
   Prototype,
   RegalHygiene,
@@ -63,7 +63,7 @@ enum class HeroTrait
   Spellkill,
   SpiritSword,
   Stabber,
-  Survivor, // not implemented: All Health and Mana Potions restore both health AND mana
+  Survivor,
   SwiftHand,
   Undead,
   Veteran,
