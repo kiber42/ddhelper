@@ -128,7 +128,7 @@ int Hero::getHitPointsMax() const
 
 int Hero::getManaPoints() const
 {
-  return hasStatus(HeroStatus::ManaBurned) ? 0 : stats.getManaPoints();
+  return stats.getManaPoints();
 }
 
 int Hero::getManaPointsMax() const
@@ -339,24 +339,38 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
   if (newIntensity == getStatusIntensity(status))
     return;
   if (newIntensity > 0)
+  {
+    switch (status)
+    {
+    case HeroStatus::Cursed:
+      if (hasStatus(HeroStatus::CurseImmune))
+        return;
+      break;
+    case HeroStatus::CurseImmune:
+      removeStatus(HeroStatus::Cursed, true);
+      break;
+    case HeroStatus::ManaBurned:
+      if (hasStatus(HeroStatus::ManaBurnImmune))
+        return;
+      loseManaPoints(getManaPoints());
+      break;
+    case HeroStatus::ManaBurnImmune:
+      removeStatus(HeroStatus::ManaBurned, true);
+      break;
+    case HeroStatus::Poisoned:
+      if (hasStatus(HeroStatus::PoisonImmune))
+        return;
+      break;
+    case HeroStatus::PoisonImmune:
+      removeStatus(HeroStatus::Poisoned, true);
+      break;
+    default:
+      break;
+    }
     statuses[status] = newIntensity;
+  }
   else
     statuses.erase(status);
-  if (status == HeroStatus::Cursed || status == HeroStatus::CurseImmune)
-  {
-    if (hasStatus(HeroStatus::CurseImmune))
-      statuses.erase(HeroStatus::Cursed);
-  }
-  else if (status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune)
-  {
-    if (hasStatus(HeroStatus::ManaBurnImmune))
-      statuses.erase(HeroStatus::ManaBurned);
-  }
-  else if (status == HeroStatus::Poisoned || status == HeroStatus::PoisonImmune)
-  {
-    if (hasStatus(HeroStatus::PoisonImmune))
-      statuses.erase(HeroStatus::Poisoned);
-  }
   propagateStatus(status, newIntensity);
 }
 
