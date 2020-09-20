@@ -489,7 +489,8 @@ void Arena::run()
       auto outcome = outcomeProvider();
       if (outcome.summary != Summary::NotPossible)
       {
-        history.emplace_back(std::move(title), outcome.summary, std::move(outcome.debuffs), std::move(hero), std::move(monster));
+        history.emplace_back(std::move(title), outcome.summary, std::move(outcome.debuffs), std::move(hero),
+                             std::move(monster));
         hero = std::move(outcome.hero);
         monster = std::move(outcome.monster);
       }
@@ -554,17 +555,20 @@ void Arena::run()
          {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,
           Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
     {
-      if (!withMonster && Cast::needsMonster(spell))
+      const bool possible = (withMonster && Cast::isPossible(*hero, *monster, spell)) ||
+                            (!withMonster && !Cast::needsMonster(spell) && Cast::isPossible(*hero, spell));
+      if (!possible)
         continue;
-      if (count++ % 4 != 0)
+      if (count++ % 5 != 0)
         ImGui::SameLine();
       if (withMonster)
         addActionButton(toString(spell), [&] { return Cast::predictOutcome(*hero, *monster, spell); });
-      else if (ImGui::Button(toString(spell)) && Cast::isPossible(*hero, spell))
+      else
       {
-        Hero heroAfter = Cast::untargeted(*hero, spell);
-        history.emplace_back(toString(spell), Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
-        hero = heroAfter;
+        addActionButton(toString(spell), [&] {
+          Hero heroAfter = Cast::untargeted(*hero, spell);
+          return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
+        });
       }
     }
   }

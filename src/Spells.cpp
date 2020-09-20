@@ -110,7 +110,8 @@ namespace Cast
            (spell != Spell::Cydstepp ||
             (!hero.hasStatus(HeroStatus::DeathProtection) &&
              (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant)))) &&
-           (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrikeTemporary));
+           (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrikeTemporary)) &&
+           (spell != Spell::Halpmeh || hero.hasStatus(HeroStatus::Poisoned) || hero.getHitPoints() < hero.getHitPointsMax());
   }
 
   bool isPossible(const Hero& hero, const Monster& monster, Spell spell)
