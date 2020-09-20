@@ -171,6 +171,12 @@ namespace Combat
                           ? Outcome::Summary::Petrified
                           : summaryAndExperience(outcome.hero, outcome.monster, monsterWasSlowed);
 
+    // Level gain may remove some debuffs
+    if (outcome.debuffs.count(Outcome::Debuff::Poisoned) && !outcome.hero.hasStatus(HeroStatus::Poisoned))
+      outcome.debuffs.erase(Outcome::Debuff::Poisoned);
+    if (outcome.debuffs.count(Outcome::Debuff::ManaBurned) && !outcome.hero.hasStatus(HeroStatus::ManaBurned))
+      outcome.debuffs.erase(Outcome::Debuff::ManaBurned);
+
     return outcome;
   }
 
