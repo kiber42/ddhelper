@@ -483,13 +483,13 @@ void Arena::run()
 {
   using Summary = Outcome::Summary;
 
-  auto addActionButton = [&](const char* title, auto outcomeProvider) {
-    if (ImGui::Button(title))
+  auto addActionButton = [&](std::string title, auto outcomeProvider) {
+    if (ImGui::Button(title.c_str()))
     {
       auto outcome = outcomeProvider();
       if (outcome.summary != Summary::NotPossible)
       {
-        history.emplace_back(title, outcome.summary, std::move(outcome.debuffs), std::move(hero), std::move(monster));
+        history.emplace_back(std::move(title), outcome.summary, std::move(outcome.debuffs), std::move(hero), std::move(monster));
         hero = std::move(outcome.hero);
         monster = std::move(outcome.monster);
       }
@@ -523,29 +523,31 @@ void Arena::run()
       ImGui::SameLine();
       addActionButton("Attack Other", [&] { return Combat::attackOther(*hero, *monster); });
       ImGui::SameLine();
-      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(*hero, *monster, 1); });
-      ImGui::SameLine();
     }
-    else
+    const int numSquares = hero->numSquaresForFullRecovery();
+    if (numSquares > 0)
     {
-      const int numSquares = hero->numSquaresForFullRecovery();
-      if (numSquares > 0 && ImGui::Button("Uncover Tile"))
-      {
-        Hero heroAfter = Combat::uncoverTiles(hero.value(), 1);
-        history.emplace_back("Uncover Tile", Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
-        hero = heroAfter;
-      }
-      if (numSquares > 1)
+      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(*hero, monster, 1); });
+      ImGui::SameLine();
+      if (numSquares > 1 && !withMonster)
       {
         const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-        if (ImGui::Button(label.c_str()))
-        {
-          Hero heroAfter = Combat::uncoverTiles(hero.value(), numSquares);
-          history.emplace_back(label, Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
-          hero = heroAfter;
-        }
+        addActionButton(label, [&] { return Combat::uncoverTiles(*hero, monster, numSquares); });
+        ImGui::SameLine();
       }
     }
+
+    addActionButton("Health Potion", [&] {
+      Hero heroAfter = *hero;
+      heroAfter.drinkHealthPotion();
+      return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
+    });
+    ImGui::SameLine();
+    addActionButton("Mana Potion", [&] {
+      Hero heroAfter = *hero;
+      heroAfter.drinkManaPotion();
+      return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
+    });
 
     int count = 0;
     for (Spell spell :

@@ -3,6 +3,7 @@
 #include "Hero.hpp"
 #include "Monster.hpp"
 
+#include <optional>
 #include <ostream>
 #include <set>
 
@@ -30,7 +31,7 @@ struct Outcome
   Summary summary;
   Debuffs debuffs;
   Hero hero;
-  Monster monster;
+  std::optional<Monster> monster;
 };
 
 constexpr const char* toString(Outcome::Summary status)

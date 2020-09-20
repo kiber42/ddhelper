@@ -211,34 +211,34 @@ namespace Cast
         switch (spell)
         {
         case Spell::Apheelsik:
-          outcome.monster.poison(10 * hero.getLevel());
+          outcome.monster->poison(10 * hero.getLevel());
           break;
         case Spell::Burndayraz:
-          outcome.debuffs = burndayraz(outcome.hero, outcome.monster);
+          outcome.debuffs = burndayraz(outcome.hero, *outcome.monster);
           break;
         case Spell::Imawal:
-          outcome.monster.petrify();
+          outcome.monster->petrify();
           outcome.hero.addStatus(HeroStatus::ExperienceBoost);
           break;
         case Spell::Lemmisi:
         {
           const int uncoveredTiles = 3;
           outcome.hero.recover(uncoveredTiles);
-          outcome.monster.recover(uncoveredTiles);
+          outcome.monster->recover(uncoveredTiles);
           break;
         }
         case Spell::Pisorf:
           // 60% of base damage as knockback damage if against wall
           // (TODO?) 50% of base damage as knockback damage if against enemy
-          outcome.monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
+          outcome.monster->takeDamage(hero.getBaseDamage() * 6 / 10, false);
           break;
         case Spell::Weytwut:
           // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
-          outcome.monster.slow();
+          outcome.monster->slow();
           break;
         case Spell::Wonafyt:
           // adds Slowed to monster, can only be cast against same or lower level
-          outcome.monster.slow();
+          outcome.monster->slow();
           break;
         default:
           assert(false);
@@ -247,7 +247,7 @@ namespace Cast
 
         applyCastingSideEffects(outcome.hero, manaCosts);
 
-        outcome.summary = Combat::summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
+        outcome.summary = Combat::summaryAndExperience(outcome.hero, *outcome.monster, monster.isSlowed());
       }
     }
 

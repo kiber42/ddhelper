@@ -387,7 +387,7 @@ void testMelee()
       AssertThat(hero.getHitPoints(), Equals(10));
       AssertThat(monster.getHitPoints(), Equals(15));
       AssertThat(outcome.hero.getHitPoints(), Equals(10 - monster.getDamage()));
-      AssertThat(outcome.monster.getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
+      AssertThat(outcome.monster->getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
     });
   });
 
@@ -439,7 +439,7 @@ void testStatusEffects()
       it("should wear off", [&] {
         Monster monster("", MonsterStats{1, 5, 1, 0}, Defence{100, 0}, {});
         const auto outcome = Combat::predictOutcome(hero, monster);
-        AssertThat(outcome.monster.isDefeated(), IsTrue());
+        AssertThat(outcome.monster->isDefeated(), IsTrue());
         AssertThat(outcome.hero.doesMagicalDamage(), IsFalse());
         AssertThat(outcome.hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
       });

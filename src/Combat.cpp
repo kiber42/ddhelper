@@ -93,7 +93,7 @@ namespace Combat
 
     if (swiftHand)
     {
-      outcome.monster.die();
+      outcome.monster->die();
     }
     else if (petrified)
     {
@@ -103,12 +103,12 @@ namespace Combat
     else if (hero.hasInitiativeVersus(monster))
     {
       if (hero.hasStatus(HeroStatus::CrushingBlow))
-        outcome.monster.receiveCrushingBlow();
+        outcome.monster->receiveCrushingBlow();
       else
-        outcome.monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+        outcome.monster->takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
       if (hero.hasStatus(HeroStatus::Might))
-        outcome.monster.erodeResitances();
-      if (!outcome.monster.isDefeated())
+        outcome.monster->erodeResitances();
+      if (!outcome.monster->isDefeated())
       {
         // If monster is defeated beyond this point, it was not slowed before the final blow
         monsterWasSlowed = false;
@@ -118,11 +118,11 @@ namespace Combat
         if (!outcome.hero.isDefeated())
         {
           if (hero.hasTrait(HeroTrait::ManaShield))
-            outcome.monster.takeManaShieldDamage(hero.getLevel());
+            outcome.monster->takeManaShieldDamage(hero.getLevel());
           if (hero.hasStatus(HeroStatus::Reflexes))
           {
             outcome.hero.removeOneTimeAttackEffects();
-            outcome.monster.takeDamage(outcome.hero.getDamageVersus(outcome.monster), outcome.hero.doesMagicalDamage());
+            outcome.monster->takeDamage(outcome.hero.getDamageVersus(*outcome.monster), outcome.hero.doesMagicalDamage());
           }
         }
       }
@@ -134,16 +134,16 @@ namespace Combat
       if (!outcome.hero.isDefeated())
       {
         if (hero.hasTrait(HeroTrait::ManaShield))
-          outcome.monster.takeManaShieldDamage(hero.getLevel());
+          outcome.monster->takeManaShieldDamage(hero.getLevel());
         if (hero.hasStatus(HeroStatus::CrushingBlow))
-          outcome.monster.receiveCrushingBlow();
+          outcome.monster->receiveCrushingBlow();
         else
         {
           const int damage = damageAccountingForDetermined(hero, outcome.hero, monster);
-          outcome.monster.takeDamage(damage, hero.doesMagicalDamage());
+          outcome.monster->takeDamage(damage, hero.doesMagicalDamage());
         }
         if (hero.hasStatus(HeroStatus::Might))
-          outcome.monster.erodeResitances();
+          outcome.monster->erodeResitances();
         if (monster.bearsCurse())
           outcome.hero.addStatus(HeroStatus::Cursed);
       }
@@ -154,7 +154,7 @@ namespace Combat
 
     if (hero.hasStatus(HeroStatus::DeathProtection) && !outcome.hero.hasStatus(HeroStatus::DeathProtection))
       outcome.debuffs.insert(Outcome::Debuff::LostDeathProtection);
-    if (outcome.monster.isDefeated())
+    if (outcome.monster->isDefeated())
     {
       if (monster.bearsCurse())
       {
@@ -169,7 +169,7 @@ namespace Combat
 
     outcome.summary = petrified && outcome.hero.isDefeated()
                           ? Outcome::Summary::Petrified
-                          : summaryAndExperience(outcome.hero, outcome.monster, monsterWasSlowed);
+                          : summaryAndExperience(outcome.hero, *outcome.monster, monsterWasSlowed);
 
     // Level gain may remove some debuffs
     if (outcome.debuffs.count(Outcome::Debuff::Poisoned) && !outcome.hero.hasStatus(HeroStatus::Poisoned))
@@ -195,12 +195,12 @@ namespace Combat
   Outcome attackOther(const Hero& hero, const Monster& monster)
   {
     Outcome outcome{Outcome::Summary::Safe, {}, hero, monster};
-    outcome.monster.burnDown();
+    outcome.monster->burnDown();
     outcome.hero.removeOneTimeAttackEffects();
-    if (outcome.monster.isDefeated())
+    if (outcome.monster->isDefeated())
     {
-      outcome.summary = summaryAndExperience(outcome.hero, outcome.monster, monster.isSlowed());
-      if (outcome.monster.bearsCurse())
+      outcome.summary = summaryAndExperience(outcome.hero, *outcome.monster, monster.isSlowed());
+      if (outcome.monster->bearsCurse())
       {
         outcome.hero.addStatus(HeroStatus::Cursed);
         outcome.debuffs.insert(Outcome::Debuff::Cursed);
@@ -211,18 +211,13 @@ namespace Combat
     return outcome;
   }
 
-  Outcome uncoverTiles(const Hero& hero, const Monster& monster, int numTiles)
+  Outcome uncoverTiles(const Hero& hero, const std::optional<Monster>& monster, int numTiles)
   {
     Outcome outcome{Outcome::Summary::Safe, {}, hero, monster};
     outcome.hero.recover(numTiles);
-    outcome.monster.recover(numTiles);
+    if (outcome.monster)
+      outcome.monster->recover(numTiles);
     return outcome;
-  }
-
-  Hero uncoverTiles(Hero hero, int numTiles)
-  {
-    hero.recover(numTiles);
-    return hero;
   }
 
   Outcome::Summary summaryAndExperience(Hero& heroAfterFight, const Monster& monsterAfterFight, bool monsterWasSlowed)
