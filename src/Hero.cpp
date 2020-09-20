@@ -100,13 +100,10 @@ void Hero::gainExperience(int xpGained, bool monsterWasSlowed)
 
 void Hero::gainLevel()
 {
-  int level = getLevel();
+  const int initialLevel = getLevel();
   experience.gainLevel();
-  while (getLevel() > level)
-  {
+  if (getLevel() > initialLevel)
     levelGainedUpdate();
-    ++level;
-  }
 }
 
 void Hero::modifyLevelBy(int delta)
