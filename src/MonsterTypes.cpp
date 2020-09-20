@@ -27,8 +27,10 @@ MonsterTraits getTraits(MonsterType type)
     break;
   case MonsterType::Serpent:
     traits.addPoisonous();
+    break;
   case MonsterType::Warlock:
     traits.addMagicalDamage();
+    break;
   case MonsterType::Wraith:
     traits.addUndead().addManaBurn().addMagicalDamage();
     break;
