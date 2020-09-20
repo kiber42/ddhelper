@@ -519,11 +519,12 @@ void Arena::run()
     const bool withMonster = monster.has_value() && !monster->isDefeated();
     if (withMonster)
     {
-      addActionButton("Attack", [&] { return Combat::predictOutcome(hero.value(), monster.value()); });
+      addActionButton("Attack", [&] { return Combat::predictOutcome(*hero, *monster); });
       ImGui::SameLine();
-      addActionButton("Attack Other", [&] { return Combat::attackOther(hero.value(), monster.value()); });
+      addActionButton("Attack Other", [&] { return Combat::attackOther(*hero, *monster); });
       ImGui::SameLine();
-      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(hero.value(), monster.value(), 1); });
+      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(*hero, *monster, 1); });
+      ImGui::SameLine();
     }
     else
     {
@@ -556,10 +557,10 @@ void Arena::run()
       if (count++ % 4 != 0)
         ImGui::SameLine();
       if (withMonster)
-        addActionButton(toString(spell), [&] { return Cast::predictOutcome(hero.value(), monster.value(), spell); });
-      else if (ImGui::Button(toString(spell)) && Cast::isPossible(hero.value(), spell))
+        addActionButton(toString(spell), [&] { return Cast::predictOutcome(*hero, *monster, spell); });
+      else if (ImGui::Button(toString(spell)) && Cast::isPossible(*hero, spell))
       {
-        Hero heroAfter = Cast::untargeted(hero.value(), spell);
+        Hero heroAfter = Cast::untargeted(*hero, spell);
         history.emplace_back(toString(spell), Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
         hero = heroAfter;
       }
