@@ -280,6 +280,21 @@ void Hero::recover(int nSquares)
   }
 }
 
+int Hero::numSquaresForFullRecovery() const
+{
+  int numHP = 0;
+  if (!hasStatus(HeroStatus::Poisoned))
+  {
+    int multiplier = getLevel() * (hasTrait(HeroTrait::Discipline) ? 2 : 1);
+    if (hasTrait(HeroTrait::Damned))
+      multiplier = 1;
+    // TODO: Add +1 for Bloody Sigil
+    numHP = (getHitPointsMax() - getHitPoints() + multiplier - 1 /* always round up */) / multiplier;
+  }
+  const int numMP = hasStatus(HeroStatus::ManaBurned) ? 0 : getManaPointsMax() - getManaPoints();
+  return std::max(numHP, numMP);
+}
+
 void Hero::healHitPoints(int amountPointsHealed, bool mayOverheal)
 {
   stats.healHitPoints(amountPointsHealed, mayOverheal);

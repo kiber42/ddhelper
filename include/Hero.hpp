@@ -55,6 +55,7 @@ public:
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
   void recover(int nSquares);
+  int numSquaresForFullRecovery() const;
 
   void healHitPoints(int amountPointsHealed, bool mayOverheal = false);
   void loseHitPointsOutsideOfFight(int amountPointsLost);

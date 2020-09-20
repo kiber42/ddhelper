@@ -527,11 +527,22 @@ void Arena::run()
     }
     else
     {
-      if (ImGui::Button("Uncover Tile"))
+      const int numSquares = hero->numSquaresForFullRecovery();
+      if (numSquares > 0 && ImGui::Button("Uncover Tile"))
       {
         Hero heroAfter = Combat::uncoverTiles(hero.value(), 1);
         history.emplace_back("Uncover Tile", Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
         hero = heroAfter;
+      }
+      if (numSquares > 1)
+      {
+        const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
+        if (ImGui::Button(label.c_str()))
+        {
+          Hero heroAfter = Combat::uncoverTiles(hero.value(), numSquares);
+          history.emplace_back(label, Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
+          hero = heroAfter;
+        }
       }
     }
 
