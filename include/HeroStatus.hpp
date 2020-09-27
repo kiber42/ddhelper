@@ -22,7 +22,7 @@ enum class HeroStatus
   // Indulgence
   // Knockback
   Learning,
-  // LifeSteal
+  LifeSteal,
   MagicalAttack,
   ManaBurned,
   ManaBurnImmune,
@@ -74,6 +74,8 @@ constexpr const char* toString(HeroStatus status)
     return "Heavy Fireball";
   case HeroStatus::Learning:
     return "Learning";
+  case HeroStatus::LifeSteal:
+    return "Life Steal";
   case HeroStatus::MagicalAttack:
     return "Magical Attack";
   case HeroStatus::ManaBurned:
@@ -107,6 +109,7 @@ constexpr bool canHaveMultiple(HeroStatus status)
 {
   return status == HeroStatus::Corrosion || status == HeroStatus::CrushingBlow || status == HeroStatus::Cursed ||
          status == HeroStatus::DamageReduction || status == HeroStatus::DodgePermanent ||
-         status == HeroStatus::DodgeTemporary || status == HeroStatus::Learning || status == HeroStatus::Sanguine ||
-         status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin || status == HeroStatus::Weakened;
+         status == HeroStatus::DodgeTemporary || status == HeroStatus::Learning || status == HeroStatus::LifeSteal ||
+         status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin ||
+         status == HeroStatus::Weakened;
 }
