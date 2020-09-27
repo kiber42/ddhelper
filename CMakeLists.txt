@@ -43,6 +43,7 @@ add_library(
     src/Defence.cpp
     src/Dungeon.cpp
     src/Experience.cpp
+    src/Faith.cpp
     src/Hero.cpp
     src/HeroStats.cpp
     src/ItemClass.cpp

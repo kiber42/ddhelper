@@ -1,7 +1,6 @@
 #pragma once
 
-// Traits are usually available from the beginning (except for god boons)
-// and cannot be removed
+// Traits are available from the beginning and cannot be removed
 enum class HeroTrait
 {
   Additives,
@@ -67,11 +66,6 @@ enum class HeroTrait
   SwiftHand,
   Undead,
   Veteran,
-
-  // Boons
-  BloodCurse, // Dracul
-  Flames,     // Mystera Annur
-  Humility,   // Glowing Guardian
 };
 
 constexpr const char* toString(HeroTrait trait)
@@ -204,12 +198,5 @@ constexpr const char* toString(HeroTrait trait)
     return "Undead";
   case HeroTrait::Veteran:
     return "Veteran";
-
-  case HeroTrait::BloodCurse:
-    return "Blood Curse";
-  case HeroTrait::Flames:
-    return "Flames";
-  case HeroTrait::Humility:
-    return "Humility";
   }
 }

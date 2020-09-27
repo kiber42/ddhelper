@@ -28,7 +28,7 @@ namespace Cast
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
       const int multiplier =
-          4 + hero.hasTrait(HeroTrait::Flames) + (heavy ? 4 : 0) /* + (hero.hasItem(Items::BattlemageRing) ? 1 : 0) */;
+          4 + hero.hasBoon(Boon::Flames) + (heavy ? 4 : 0) /* + (hero.hasItem(Items::BattlemageRing) ? 1 : 0) */;
       monster.takeFireballDamage(hero.getLevel(), multiplier);
       const int maxBurnStackSize = 2 * hero.getLevel();
       if (heavy)
@@ -147,10 +147,13 @@ namespace Cast
     {
     case Spell::Bludtupowa:
     {
-      // uncover 3 tiles without health recovery (neither hero nor monsters)
-      const int uncoveredTiles = 3;
-      hero.loseHitPointsOutsideOfFight(3 * hero.getLevel());
-      hero.recoverManaPoints(uncoveredTiles);
+      if (hero.getFollowedDeity() != God::GlowingGuardian)
+      {
+        // uncover 3 tiles without health recovery (neither hero nor monsters)
+        const int uncoveredTiles = 3;
+        hero.loseHitPointsOutsideOfFight(3 * hero.getLevel());
+        hero.recoverManaPoints(uncoveredTiles);
+      }
       break;
     }
     case Spell::Bysseps:

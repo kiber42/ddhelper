@@ -12,6 +12,7 @@ Hero::Hero(HeroClass theClass)
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
+  , faith()
   , statuses()
   , traits(startingTraits(theClass))
 /*
@@ -56,6 +57,9 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , stats(std::move(stats))
   , defence(std::move(defence))
   , experience(std::move(experience))
+  , faith()
+  , statuses()
+  , traits()
 {
 }
 
@@ -104,11 +108,6 @@ void Hero::gainLevel()
   experience.gainLevel();
   if (getLevel() > initialLevel)
     levelGainedUpdate();
-}
-
-void Hero::modifyLevelBy(int delta)
-{
-  experience.modifyLevelBy(delta);
 }
 
 bool Hero::isDefeated() const
@@ -426,15 +425,6 @@ void Hero::addTrait(HeroTrait trait)
     return;
   }
   traits.emplace_back(trait);
-
-  if (trait == HeroTrait::BloodCurse)
-  {
-    experience.modifyLevelBy(+1);
-  }
-  else if (trait == HeroTrait::Humility)
-  {
-    experience.modifyLevelBy(-1);
-  }
 }
 
 bool Hero::hasTrait(HeroTrait trait) const
@@ -452,6 +442,16 @@ bool Hero::isTraitActive(HeroTrait trait) const
     throw std::runtime_error("Not implemented");
   // Most traits are always active
   return true;
+}
+
+std::optional<God> Hero::getFollowedDeity() const
+{
+  return faith.getFollowedDeity();
+}
+
+bool Hero::hasBoon(Boon boon) const
+{
+  return faith.hasBoon(boon);
 }
 
 void Hero::removeOneTimeAttackEffects()
@@ -489,4 +489,19 @@ void Hero::addDodgeChangePercent(int percent, bool isPermanent)
 int Hero::getDodgeChangePercent() const
 {
   return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
+}
+
+void Hero::modifyLevelBy(int delta)
+{
+  experience.modifyLevelBy(delta);
+}
+
+void Hero::setHitPointsMax(int hitPointsMax)
+{
+  stats.setHitPointsMax(hitPointsMax);
+}
+
+void Hero::setManaPointsMax(int manaPointsMax)
+{
+  stats.setManaPointsMax(manaPointsMax);
 }
