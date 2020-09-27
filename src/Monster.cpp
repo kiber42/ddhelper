@@ -5,8 +5,11 @@
 
 #include "MonsterTypes.hpp"
 
+int Monster::lastId = 0;
+
 Monster::Monster(MonsterType type, int level, int dungeonMultiplier)
   : name(std::string(toString(type)) + " level " + std::to_string(level))
+  , id(++lastId)
   , stats(type, level, dungeonMultiplier)
   , defence(type)
   , traits(type)
@@ -15,6 +18,7 @@ Monster::Monster(MonsterType type, int level, int dungeonMultiplier)
 
 Monster::Monster(std::string name, MonsterStats stats, Defence damage, MonsterTraits traits)
   : name(std::move(name))
+  , id(++lastId)
   , stats(std::move(stats))
   , defence(std::move(damage))
   , status{}
@@ -30,6 +34,11 @@ Monster::Monster(int level, int hp, int damage)
 const char* Monster::getName() const
 {
   return name.c_str();
+}
+
+int Monster::getID() const
+{
+  return id;
 }
 
 int Monster::getLevel() const

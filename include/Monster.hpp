@@ -15,6 +15,7 @@ public:
   Monster(int level, int hp, int damage);
 
   const char* getName() const;
+  int getID() const;
   int getLevel() const;
   bool isDefeated() const;
 
@@ -65,13 +66,19 @@ public:
   bool isUndead() const;
   bool isBloodless() const;
 
+  // TODO: Add non xp-valuable monsters, and plants
+  bool grantsXP() const { return true; }
+
 private:
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
 
   std::string name;
+  int id;
 
   MonsterStats stats;
   Defence defence;
   MonsterStatus status;
   MonsterTraits traits;
+
+  static int lastId;
 };
