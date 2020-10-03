@@ -43,10 +43,11 @@ add_library(
     src/Defence.cpp
     src/Dungeon.cpp
     src/Experience.cpp
-    src/Faith.cpp
+    src/Faith.cpp    
     src/Hero.cpp
     src/HeroStats.cpp
     src/ItemClass.cpp
+    src/Jehora.cpp
     src/Monster.cpp
     src/MonsterStats.cpp
     src/MonsterStatus.cpp
