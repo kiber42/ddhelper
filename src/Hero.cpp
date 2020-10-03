@@ -46,6 +46,13 @@ Hero::Hero(HeroClass theClass)
   if (hasTrait(HeroTrait::PoisonedBlade))
     changeDamageBonusPercent(-20);
 
+  if (hasTrait(HeroTrait::GoodHealth))
+  {
+    stats.addHealthBonus(1);
+    stats.addHealthBonus(1);
+    stats.addHealthBonus(1);
+  }
+
   // Defiant: Add Cyddstepp glyph
   // Magic Attunement: Add Burndayraz glyph
   // Insane: Add Bludtupowa glyph
@@ -137,7 +144,10 @@ int Hero::getManaPointsMax() const
 
 void Hero::drinkHealthPotion()
 {
-  stats.healHitPoints(getHitPointsMax() * 4 / 10, false);
+  if (hasTrait(HeroTrait::GoodDrink))
+    stats.healHitPoints(getHitPointsMax(), false);
+  else
+    stats.healHitPoints(getHitPointsMax() * 4 / 10, false);
   removeStatus(HeroStatus::Poisoned, true);
   if (hasTrait(HeroTrait::Survivor))
     stats.recoverManaPoints(getManaPointsMax() * 2 / 10);
@@ -199,6 +209,8 @@ int Hero::getDamageVersus(const Monster& monster) const
     damage = damage * 13 / 10;
   if (hasTrait(HeroTrait::PoisonedBlade) && monster.isPoisoned())
     damage = damage * 14 / 10;
+  if (hasTrait(HeroTrait::GoodGolly) && monster.isUndead())
+    damage += getBaseDamage();
   return damage;
 }
 

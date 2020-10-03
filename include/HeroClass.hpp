@@ -105,7 +105,7 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   case HeroClass::Assassin:
     return {HeroTrait::PoisonedBlade, HeroTrait::LightFoot, HeroTrait::SwiftHand};
   case HeroClass::Priest:
-    // return {HeroTrait::GoodHealth, HeroTrait::GoodDrink, HeroTrait::GoodGolly};
+    return {HeroTrait::GoodHealth, HeroTrait::GoodDrink, HeroTrait::GoodGolly};
   case HeroClass::Monk:
     // return {HeroTrait::HandToHand, HeroTrait::Discipline, HeroTrait::DiamondBody};
   case HeroClass::Paladin:
