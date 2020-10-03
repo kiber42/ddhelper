@@ -6,6 +6,26 @@
 #include <algorithm>
 #include <cassert>
 
+PietyChange::PietyChange(int deltaPoints)
+  : value(deltaPoints)
+{
+}
+
+PietyChange::PietyChange(JehoraTriggered)
+  : value(std::nullopt)
+{
+}
+
+int PietyChange::operator()() const
+{
+  return value.value_or(0);
+}
+
+bool PietyChange::randomJehoraEvent() const
+{
+  return !value.has_value();
+}
+
 bool Faith::followDeity(God god, Hero& hero)
 {
   if (hero.hasTrait(HeroTrait::Damned) || hero.hasTrait(HeroTrait::Scapegoat))
@@ -72,21 +92,24 @@ void Faith::losePiety(int pointsLost, Hero& hero)
   }
 }
 
-void Faith::applyRandomPunishment(Hero& hero)
+void Faith::applyRandomJehoraEvent(Hero& hero)
 {
-  jehora.applyRandomPunishment(hero);
+  const int result = jehora();
+  if (result > 0)
+    gainPiety(result);
+  else
+    jehora.applyRandomPunishment(hero);
 }
 
-void Faith::updatePiety(std::optional<int> deltaPoints, Hero& hero)
+void Faith::apply(PietyChange change, Hero& hero)
 {
-  if (!deltaPoints)
-    return;
-  if (*deltaPoints > 0)
-    gainPiety(*deltaPoints);
-  else if (*deltaPoints < 0)
-    losePiety(-*deltaPoints, hero);
-  else
-    applyRandomPunishment(hero);
+  const int value = change();
+  if (value > 0)
+    gainPiety(value);
+  else if (value < 0)
+    losePiety(-value, hero);
+  else if (change.randomJehoraEvent())
+    applyRandomJehoraEvent(hero);
 }
 
 // bool request(Boon boon);
@@ -178,11 +201,11 @@ void Faith::desecrate(God altar, Hero& hero)
   indulgence += 3;
 }
 
-std::optional<int> Faith::monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning)
+PietyChange Faith::monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning)
 {
   ++numMonstersKilled;
   if (!followedDeity)
-    return std::nullopt;
+    return {};
   switch (*followedDeity)
   {
   case God::Dracul:
@@ -200,7 +223,7 @@ std::optional<int> Faith::monsterKilled(const Monster& monster, int heroLevel, b
   break;
   case God::JehoraJeheyu:
     if (monster.grantsXP())
-      return jehora();
+      return JehoraTriggered{};
     break;
   case God::MysteraAnnur:
     if (monster.doesMagicalDamage())
@@ -215,14 +238,12 @@ std::optional<int> Faith::monsterKilled(const Monster& monster, int heroLevel, b
   default:
     break;
   }
-  return std::nullopt;
+  return {};
 }
 
-std::optional<int> Faith::monsterPoisoned(const Monster& monster)
+PietyChange Faith::monsterPoisoned(const Monster& monster)
 {
-  if (!followedDeity)
-    return std::nullopt;
-  if (*followedDeity == God::TikkiTooki)
+  if (followedDeity == God::TikkiTooki)
   {
     auto& events = pietyEvents[monster.getID()];
     if (!events.becamePoisoned)
@@ -231,16 +252,16 @@ std::optional<int> Faith::monsterPoisoned(const Monster& monster)
       return 1;
     }
   }
-  else if (*followedDeity == God::GlowingGuardian)
+  else if (followedDeity == God::GlowingGuardian)
     return -10;
-  return std::nullopt;
+  return {};
 }
 
-std::optional<int> Faith::spellCast(Spell spell, int manaCost)
+PietyChange Faith::spellCast(Spell spell, int manaCost)
 {
   ++numSpellsCast;
   if (!followedDeity)
-    return std::nullopt;
+    return {};
   switch (*followedDeity)
   {
   case God::BinlorIronshield:
@@ -264,7 +285,7 @@ std::optional<int> Faith::spellCast(Spell spell, int manaCost)
   case God::JehoraJeheyu:
     if (spell == Spell::Apheelsik || spell == Spell::Bysseps || spell == Spell::Cydstepp || spell == Spell::Getindare ||
         spell == Spell::Weytwut || spell == Spell::Wonafyt)
-      return jehora();
+      return JehoraTriggered{};
     break;
   case God::MysteraAnnur:
     numManaPointsSpent += manaCost;
@@ -282,86 +303,98 @@ std::optional<int> Faith::spellCast(Spell spell, int manaCost)
       return 1;
     break;
   }
-  return std::nullopt;
+  return {};
 }
 
-std::optional<int> Faith::imawalCreateWall(int manaCost)
+PietyChange Faith::imawalCreateWall(int manaCost)
 {
   if (followedDeity == God::BinlorIronshield)
     return -5;
   if (followedDeity == God::TheEarthmother)
-    return std::nullopt;
+    return {};
   return spellCast(Spell::Imawal, manaCost);
 }
 
-std::optional<int> Faith::imawalPetrifyPlant(int manaCost)
+PietyChange Faith::imawalPetrifyPlant(int manaCost)
 {
   if (followedDeity == God::TheEarthmother)
     return 5;
   return spellCast(Spell::Imawal, manaCost);
 }
 
-std::optional<int> Faith::levelGained()
+PietyChange Faith::levelGained()
 {
   if (followedDeity == God::BinlorIronshield)
     return -10;
   if (followedDeity == God::GlowingGuardian)
   {
-    // Preparation penalty for Glowing Guardian: reduce level-up bonus to 2 * (N - 1)
+    // TODO: Preparation penalty for Glowing Guardian: reduce level-up bonus to 2 * (N - 1)
     ++numConsecutiveLevelUpsWithGlowingGuardian;
     return 3 * numConsecutiveLevelUpsWithGlowingGuardian;
   }
-  return std::nullopt;
+  return {};
 }
 
-std::optional<int> Faith::potionConsumed(/* Potion potion */) {
-  return std::nullopt;
+PietyChange Faith::potionConsumed(/* Potion potion */)
+{
+  return {};
 }
 
-std::optional<int> Faith::lifeStolen(const Monster& monster) {
-    return std::nullopt;
+PietyChange Faith::lifeStolen(const Monster& monster)
+{
+  return {};
 }
 
-std::optional<int> Faith::becamePoisoned() {
-    return std::nullopt;
+PietyChange Faith::becamePoisoned()
+{
+  return {};
 }
 
-std::optional<int> Faith::manaBurned() {
-    return std::nullopt;
+PietyChange Faith::manaBurned()
+{
+  return {};
 }
 
-//std::optional<int> Faith::converted(Item item) {}
+// PietyChange Faith::converted(Item item) {}
 
-std::optional<int> Faith::converted(/* Potion potion */) {
-    return std::nullopt;
+PietyChange Faith::converted(/* Potion potion */)
+{
+  return {};
 }
 
-std::optional<int> Faith::converted(Spell spell) {
-    return std::nullopt;
+PietyChange Faith::converted(Spell spell)
+{
+  return {};
 }
 
-std::optional<int> Faith::wallDestroyed() {
-    return std::nullopt;
+PietyChange Faith::wallDestroyed()
+{
+  return {};
 }
 
-std::optional<int> Faith::bloodPoolConsumed() {
-    return std::nullopt;
+PietyChange Faith::bloodPoolConsumed()
+{
+  return {};
 }
 
-std::optional<int> Faith::plantDestroyed() {
-    return std::nullopt;
+PietyChange Faith::plantDestroyed()
+{
+  return {};
 }
 
-std::optional<int> Faith::receivedHit(const Monster& monster) {
-    return std::nullopt;
+PietyChange Faith::receivedHit(const Monster& monster)
+{
+  return {};
 }
 
-std::optional<int> Faith::dodgedAttack() {
-    return std::nullopt;
+PietyChange Faith::dodgedAttack()
+{
+  return {};
 }
 
-std::optional<int> Faith::deathProtectionTriggered() {
-    return std::nullopt;
+PietyChange Faith::deathProtectionTriggered()
+{
+  return {};
 }
 
 /*
@@ -398,6 +431,8 @@ Faith::Jehora::Jehora()
   , thresholdCorrosion(0)
   , thresholdCursed(0)
 {
+  // Jehora's reward / punish mechanics gratefully implemented based on DDwiki:
+  // http://www.qcfdesign.com/wiki/DesktopDungeons/index.php?title=Jehora_Jeheyu
 }
 
 int Faith::Jehora::initialPietyBonus(int heroLevel)

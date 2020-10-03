@@ -32,6 +32,7 @@ struct Outcome
   Debuffs debuffs;
   Hero hero;
   std::optional<Monster> monster;
+  std::optional<int> pietyChange;
 };
 
 constexpr const char* toString(Outcome::Summary status)

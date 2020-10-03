@@ -74,6 +74,22 @@ constexpr const char* toString(Boon boon)
 class Hero;
 enum class Spell;
 
+struct JehoraTriggered
+{
+};
+
+struct [[nodiscard]] PietyChange
+{
+public:
+  PietyChange(int deltaPoints = 0);
+  PietyChange(JehoraTriggered);
+  int operator()() const;
+  bool randomJehoraEvent() const;
+
+private:
+  std::optional<int> value;
+};
+
 class Faith
 {
 public:
@@ -87,14 +103,10 @@ public:
   void gainPiety(int pointsGained);
   void losePiety(int pointsLost, Hero& hero);
 
-  // Apply one of Jehora's random punishments
-  void applyRandomPunishment(Hero& hero);
+  // Apply one of Jehora's random event (piety gain or punishment)
+  void applyRandomJehoraEvent(Hero& hero);
 
-  // Award or remove piety points (deltaPoints >0 or <0, respectively).
-  // If points drop below 0, the corresponding punishment is applied.
-  // Use deltaPoints = 0 to apply a random punishment by Jehora.
-  // If deltaPoints is nullopt, do nothing.
-  void updatePiety(std::optional<int> deltaPoints, Hero& hero);
+  void apply(PietyChange, Hero& hero);
 
   // bool request(Boon boon, Hero& hero);
   // int getCosts(Boon boon, const Hero& hero) const;
@@ -103,45 +115,42 @@ public:
   void desecrate(God altar, Hero& hero);
 
   // The following methods address the gods' likes and dislikes.
-  // The optional return value indicates piety awarded or removed.
-  // A non-nullopt return value of 0 indicates a random punishment by Jehora.
-  // See the updatePiety helper method.
-  std::optional<int> monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning);
-  std::optional<int> monsterPoisoned(const Monster& monster);
+  PietyChange monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning);
+  PietyChange monsterPoisoned(const Monster& monster);
   // Regular spells (no target or targeting monster), including Imawal
-  std::optional<int> spellCast(Spell spell, int manaCost);
+  PietyChange spellCast(Spell spell, int manaCost);
   // Imawal cast on empty space
-  std::optional<int> imawalCreateWall(int manaCost);
+  PietyChange imawalCreateWall(int manaCost);
   // Imawal cast on a plant
-  std::optional<int> imawalPetrifyPlant(int manaCost);
-  std::optional<int> levelGained();
+  PietyChange imawalPetrifyPlant(int manaCost);
+  PietyChange levelGained();
 
-  std::optional<int> potionConsumed(/* Potion potion */);
-  std::optional<int> lifeStolen(const Monster& monster);
-  std::optional<int> becamePoisoned();
-  std::optional<int> manaBurned();
+  PietyChange potionConsumed(/* Potion potion */);
+  PietyChange lifeStolen(const Monster& monster);
+  PietyChange becamePoisoned();
+  PietyChange manaBurned();
 
-  // TODO std::optional<int> converted(Item item);
-  std::optional<int> converted(/* Potion potion */);
-  std::optional<int> converted(Spell spell);
+  // TODO PietyChange converted(Item item);
+  PietyChange converted(/* Potion potion */);
+  PietyChange converted(Spell spell);
 
   // specific to Binlor
-  std::optional<int> wallDestroyed();
-  std::optional<int> wallCreated();
+  PietyChange wallDestroyed();
+  PietyChange wallCreated();
 
   // specific to Dracul
-  std::optional<int> bloodPoolConsumed();
+  PietyChange bloodPoolConsumed();
 
   // specific to Earthmother
-  std::optional<int> plantDestroyed();
+  PietyChange plantDestroyed();
 
   // specific to Jehora
-  std::optional<int> monsterRevealed();
+  PietyChange monsterRevealed();
 
   // specific to Tikki Tooki
-  std::optional<int> receivedHit(const Monster& monster);
-  std::optional<int> dodgedAttack();
-  std::optional<int> deathProtectionTriggered();
+  PietyChange receivedHit(const Monster& monster);
+  PietyChange dodgedAttack();
+  PietyChange deathProtectionTriggered();
 
 private:
   void initialBoon(God god, Hero& hero);
