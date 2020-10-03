@@ -1,0 +1,100 @@
+#include "Inventory.hpp"
+
+#include "Items.hpp"
+#include "Spells.hpp"
+
+#include <algorithm>
+#include <numeric>
+
+Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, bool allItemsLarge)
+  : numSlots(numSlots)
+  , spellConversionPoints(spellConversionPoints)
+  , spellsSmall(spellsSmall)
+  , allItemsLarge(allItemsLarge)
+{
+}
+
+void Inventory::add(Item item)
+{
+  if (canGroup(item))
+  {
+    auto it = find(item);
+    if (it != end(entries))
+    {
+      it->count++;
+      return;
+    }
+  }
+  entries.emplace_back(Entry{{item}, !allItemsLarge && isSmall(item), 1, conversionPointsInitial(item)});
+}
+
+bool Inventory::remove(Item item)
+{
+  auto it = find(item);
+  if (it == end(entries))
+    return false;
+  it->count--;
+  if (it->count <= 0)
+    entries.erase(it);
+  return true;
+}
+
+bool Inventory::has(Item item) const
+{
+  return find(item) != end(entries);
+}
+
+bool Inventory::hasRoomFor(Item item) const
+{
+  const int smallSlotsNeeded = !allItemsLarge && isSmall(item) ? 1 : 5;
+  return smallSlotsNeeded <= smallSlotsLeft();
+}
+
+void Inventory::add(Spell spell)
+{
+  entries.emplace_back(Entry{spell, !allItemsLarge && spellsSmall, 1, spellConversionPoints});
+}
+
+bool Inventory::remove(Spell spell)
+{
+  auto it = find(spell);
+  if (it == end(entries))
+    return false;
+  entries.erase(it);
+  return true;
+}
+
+bool Inventory::has(Spell spell) const
+{
+  return find(spell) != end(entries);
+}
+
+bool Inventory::hasRoomFor(Spell spell) const
+{
+  const int smallSlotsNeeded = !allItemsLarge && spellsSmall ? 1 : 5;
+  return smallSlotsNeeded <= smallSlotsLeft();
+}
+
+int Inventory::smallSlotsLeft() const
+{
+  const int roomTaken = std::transform_reduce(begin(entries), end(entries), 0, std::plus<>(),
+                                              [](auto& entry) { return entry.isSmall ? 1 : 5; });
+  return numSlots * 5 - roomTaken;
+}
+
+void Inventory::clear()
+{
+  entries.clear();
+}
+
+auto Inventory::find(ItemOrSpell itemOrSpell) -> std::vector<Entry>::iterator
+{
+  return std::find_if(begin(entries), end(entries),
+                      [&itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell; });
+}
+
+auto Inventory::find(ItemOrSpell itemOrSpell) const -> std::vector<Entry>::const_iterator
+{
+  return std::find_if(begin(entries), end(entries),
+                      [&itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell; });
+}

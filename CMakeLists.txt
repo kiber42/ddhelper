@@ -46,7 +46,7 @@ add_library(
     src/Faith.cpp    
     src/Hero.cpp
     src/HeroStats.cpp
-    src/ItemClass.cpp
+    src/Inventory.cpp
     src/Jehora.cpp
     src/Monster.cpp
     src/MonsterStats.cpp
