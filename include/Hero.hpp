@@ -107,10 +107,12 @@ private:
   Faith faith;
   std::map<HeroStatus, int> statuses;
   std::vector<HeroTrait> traits;
+  int conversionPoints;
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
+  void apply(PietyChange pietyChange);
 
   /*
           int gold;

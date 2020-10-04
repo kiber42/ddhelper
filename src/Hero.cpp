@@ -488,6 +488,11 @@ void Hero::levelGainedUpdate()
   changeBaseDamage(+5);
 }
 
+void Hero::apply(PietyChange pietyChange)
+{
+  faith.apply(pietyChange, *this);
+}
+
 void Hero::addDodgeChangePercent(int percent, bool isPermanent)
 {
   const int permanent = getStatusIntensity(HeroStatus::DodgePermanent);
@@ -530,21 +535,21 @@ void Hero::receive(Spell spell)
 
 void Hero::convert(Item item)
 {
-  const auto conversionPoints = inventory.remove(item);
-  if (conversionPoints.has_value())
+  const auto conversionValue = inventory.remove(item);
+  if (conversionValue.has_value())
   {
-    // TODO: conversion points
-    faith.apply(faith.converted(item), *this);
+    conversionPoints += *conversionValue;
+    apply(faith.converted(item));
   }
 }
 
 void Hero::convert(Spell spell)
 {
-  const auto conversionPoints = inventory.remove(spell);
-  if (conversionPoints.has_value())
+  const auto conversionValue = inventory.remove(spell);
+  if (conversionValue.has_value())
   {
-    // TODO: conversion points
-    faith.apply(faith.converted(spell), *this);
+    conversionPoints += *conversionValue;
+    apply(faith.converted(spell));
   }
 }
 
