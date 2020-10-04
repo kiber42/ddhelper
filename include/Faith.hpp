@@ -72,6 +72,7 @@ constexpr const char* toString(Boon boon)
 // TODO: Add pacts
 
 class Hero;
+enum class Item;
 enum class Spell;
 
 struct JehoraTriggered
@@ -125,21 +126,19 @@ public:
   PietyChange imawalPetrifyPlant(int manaCost);
   PietyChange levelGained();
 
-  PietyChange potionConsumed(/* Potion potion */);
+  PietyChange itemUsed(Item item);
   PietyChange lifeStolen(const Monster& monster);
+  PietyChange bloodPoolConsumed(int numBloodTithe);
   PietyChange becamePoisoned();
-  PietyChange manaBurned();
+  PietyChange becameManaBurned();
+  PietyChange manaPointsBurned(int pointsLost);
 
-  // TODO PietyChange converted(Item item);
-  PietyChange converted(/* Potion potion */);
+  PietyChange converted(Item item);
   PietyChange converted(Spell spell);
 
   // specific to Binlor
   PietyChange wallDestroyed();
   PietyChange wallCreated();
-
-  // specific to Dracul
-  PietyChange bloodPoolConsumed();
 
   // specific to Earthmother
   PietyChange plantDestroyed();
@@ -170,7 +169,7 @@ private:
   int numManaPointsSpent;
   int numConsecutiveLevelUpsWithGlowingGuardian;
 
-  struct PietyEvents
+  struct MonsterPietyHistory
   {
     // for Dracul
     bool hadLifeStolen;
@@ -178,7 +177,7 @@ private:
     bool hitHero;
     bool becamePoisoned;
   };
-  std::map<int, PietyEvents> pietyEvents;
+  std::map<int, MonsterPietyHistory> history;
 
   Jehora jehora;
 };

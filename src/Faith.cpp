@@ -1,6 +1,7 @@
 #include "Faith.hpp"
 
 #include "Hero.hpp"
+#include "Items.hpp"
 #include "Spells.hpp"
 
 #include <algorithm>
@@ -112,9 +113,10 @@ void Faith::apply(PietyChange change, Hero& hero)
     applyRandomJehoraEvent(hero);
 }
 
-// bool request(Boon boon);
-// int getCosts(Boon boon) const;
-// int isAvailable(Boon boon) const;
+// TODO
+// bool Faith::request(Boon boon);
+// int Faith::getCosts(Boon boon) const;
+// int Faith::isAvailable(Boon boon) const;
 
 void Faith::initialBoon(God god, Hero& hero)
 {
@@ -245,10 +247,10 @@ PietyChange Faith::monsterPoisoned(const Monster& monster)
 {
   if (followedDeity == God::TikkiTooki)
   {
-    auto& events = pietyEvents[monster.getID()];
-    if (!events.becamePoisoned)
+    auto& monsterHistory = history[monster.getID()];
+    if (!monsterHistory.becamePoisoned)
     {
-      events.becamePoisoned = true;
+      monsterHistory.becamePoisoned = true;
       return 1;
     }
   }
@@ -335,88 +337,162 @@ PietyChange Faith::levelGained()
   return {};
 }
 
-PietyChange Faith::potionConsumed(/* Potion potion */)
+PietyChange Faith::itemUsed(Item item)
 {
+  if (item == Item::HealthPotion)
+  {
+    if (followedDeity == God::Dracul)
+      return -5;
+    if (followedDeity == God::GlowingGuardian)
+      return -10;
+  }
+  else if (item == Item::ManaPotion)
+  {
+    if (followedDeity == God::GlowingGuardian)
+      return -10;
+  }
   return {};
 }
 
 PietyChange Faith::lifeStolen(const Monster& monster)
 {
+  if (followedDeity == God::Dracul && monster.grantsXP())
+  {
+    auto& monsterHistory = history[monster.getID()];
+    if (!monsterHistory.hadLifeStolen)
+    {
+      monsterHistory.hadLifeStolen = true;
+      return 1;
+    }
+  }
+  else if (followedDeity == God::TheEarthmother)
+    return -5;
+  else if (followedDeity == God::GlowingGuardian)
+    return -10;
+  return {};
+}
+
+PietyChange Faith::bloodPoolConsumed(int numBloodTithe)
+{
+  if (followedDeity == God::Dracul)
+    return numBloodTithe;
+  else if (followedDeity == God::GlowingGuardian)
+    return -10;
   return {};
 }
 
 PietyChange Faith::becamePoisoned()
 {
+  if (followedDeity == God::GlowingGuardian)
+    return 2;
   return {};
 }
 
-PietyChange Faith::manaBurned()
+PietyChange Faith::becameManaBurned()
 {
+  if (followedDeity == God::GlowingGuardian)
+    return 2;
+  else if (followedDeity == God::MysteraAnnur)
+    return -1;
   return {};
 }
 
-// PietyChange Faith::converted(Item item) {}
-
-PietyChange Faith::converted(/* Potion potion */)
+PietyChange Faith::manaPointsBurned(int pointsLost)
 {
+  if (followedDeity == God::MysteraAnnur)
+    return -pointsLost;
   return {};
+}
+
+PietyChange Faith::converted(Item item)
+{
+  if (!followedDeity)
+    return {};
+  switch (*followedDeity)
+  {
+  case God::Dracul:
+    if (item == Item::HealthPotion)
+      return 5;
+    return {};
+  case God::GlowingGuardian:
+    return isSmall(item) ? 2 : 5;
+  case God::JehoraJeheyu:
+    return JehoraTriggered();
+  case God::Taurog:
+    // TODO: Converting any of Taurog's items: -10 (except potentially in triple quests)
+  default:
+    return {};
+  }
 }
 
 PietyChange Faith::converted(Spell spell)
 {
-  return {};
+  if (!followedDeity)
+    return {};
+  switch (*followedDeity)
+  {
+  case God::Dracul:
+    if (spell == Spell::Cydstepp || spell == Spell::Halpmeh)
+      return 10;
+    return {};
+  case God::GlowingGuardian:
+    return spell == Spell::Apheelsik || spell == Spell::Bludtupowa ? 10 : 5;
+  case God::JehoraJeheyu:
+    return JehoraTriggered();
+  case God::Taurog:
+    return 10;
+  default:
+    return {};
+  }
 }
 
 PietyChange Faith::wallDestroyed()
 {
+  // Also applies for petrified monsters
+  if (followedDeity == God::BinlorIronshield)
+    return 5;
   return {};
 }
 
-PietyChange Faith::bloodPoolConsumed()
+PietyChange Faith::wallCreated()
 {
+  if (followedDeity == God::BinlorIronshield)
+    return -5;
   return {};
 }
 
 PietyChange Faith::plantDestroyed()
 {
+  if (followedDeity == God::TheEarthmother)
+    return -15;
   return {};
 }
 
 PietyChange Faith::receivedHit(const Monster& monster)
 {
+  if (followedDeity == God::TikkiTooki)
+  {
+    // TODO: If Tikki Tooki was equipped, any hit results in a penalty
+    auto& monsterHistory = history[monster.getID()];
+    if (monsterHistory.hitHero)
+      return -3;
+    monsterHistory.hitHero = true;
+  }
   return {};
 }
 
 PietyChange Faith::dodgedAttack()
 {
+  if (followedDeity == God::JehoraJeheyu)
+    return JehoraTriggered{};
+  if (followedDeity == God::TikkiTooki)
+    return 3;
   return {};
 }
 
 PietyChange Faith::deathProtectionTriggered()
 {
+  if (followedDeity == God::TikkiTooki)
+    return -10;
   return {};
 }
-
-/*
-if (!followedDeity)
-  return;
-switch (*followedDeity)
-{
-case God::BinlorIronshield:
-  break;
-case God::Dracul:
-  break;
-case God::TheEarthmother:
-  break;
-case God::GlowingGuardian:
-  break;
-case God::JehoraJeheyu:
-  break;
-case God::MysteraAnnur:
-  break;
-case God::Taurog:
-  break;
-case God::TikkiTooki:
-  break;
-}
-*/
