@@ -517,3 +517,48 @@ void Hero::setManaPointsMax(int manaPointsMax)
 {
   stats.setManaPointsMax(manaPointsMax);
 }
+
+void Hero::receive(Item item)
+{
+  inventory.add(item);
+}
+
+void Hero::receive(Spell spell)
+{
+  inventory.add(spell);
+}
+
+void Hero::convert(Item item)
+{
+  const auto conversionPoints = inventory.remove(item);
+  if (conversionPoints.has_value())
+  {
+    // TODO: conversion points
+    faith.apply(faith.converted(item), *this);
+  }
+}
+
+void Hero::convert(Spell spell)
+{
+  const auto conversionPoints = inventory.remove(spell);
+  if (conversionPoints.has_value())
+  {
+    // TODO: conversion points
+    faith.apply(faith.converted(spell), *this);
+  }
+}
+
+void Hero::use(Item item)
+{
+  // TODO
+}
+
+void Hero::receiveFreeSpell(Spell spell)
+{
+  inventory.addFree(spell);
+}
+
+void Hero::loseAllItems()
+{
+  inventory.clear();
+}

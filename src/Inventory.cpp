@@ -28,15 +28,16 @@ void Inventory::add(Item item)
   entries.emplace_back(Entry{{item}, !allItemsLarge && isSmall(item), 1, conversionPointsInitial(item)});
 }
 
-bool Inventory::remove(Item item)
+std::optional<int> Inventory::remove(Item item)
 {
   auto it = find(item);
   if (it == end(entries))
-    return false;
+    return std::nullopt;
+  const int conversionPoints = it->conversionPoints;
   it->count--;
   if (it->count <= 0)
     entries.erase(it);
-  return true;
+  return conversionPoints;
 }
 
 bool Inventory::has(Item item) const
@@ -55,13 +56,19 @@ void Inventory::add(Spell spell)
   entries.emplace_back(Entry{spell, !allItemsLarge && spellsSmall, 1, spellConversionPoints});
 }
 
-bool Inventory::remove(Spell spell)
+void Inventory::addFree(Spell spell)
+{
+  entries.emplace_back(Entry{spell, !allItemsLarge && spellsSmall, 1, 0});
+}
+
+std::optional<int> Inventory::remove(Spell spell)
 {
   auto it = find(spell);
   if (it == end(entries))
-    return false;
+    return std::nullopt;
+  const int conversionPoints = it->conversionPoints;
   entries.erase(it);
-  return true;
+  return conversionPoints;
 }
 
 bool Inventory::has(Spell spell) const

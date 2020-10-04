@@ -7,6 +7,7 @@
 #include "HeroStats.hpp"
 #include "HeroStatus.hpp"
 #include "HeroTraits.hpp"
+#include "Inventory.hpp"
 
 #include <map>
 #include <string>
@@ -88,11 +89,21 @@ public:
   void setManaPointsMax(int manaPointsMax);
   void modifyLevelBy(int delta);
 
+  void receive(Item item);
+  void receive(Spell spell);
+  void convert(Item item);
+  void convert(Spell spell);
+  void use(Item item);
+
+  void receiveFreeSpell(Spell spell);
+  void loseAllItems();
+
 private:
   std::string name;
   HeroStats stats;
   Defence defence;
   Experience experience;
+  Inventory inventory;
   Faith faith;
   std::map<HeroStatus, int> statuses;
   std::vector<HeroTrait> traits;
@@ -104,7 +115,5 @@ private:
   /*
           int gold;
           int conversionPoints;
-
-          std::unique_ptr<Inventory> inventory;
           */
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <variant>
 #include <vector>
 
@@ -12,12 +13,15 @@ public:
   explicit Inventory(int numSlots = 6, int spellConversionPoints = 100, bool spellsSmall = false, bool allItemsLarge = false);
 
   void add(Item item);
-  bool remove(Item item);
+  // Returns conversion value of item; or nullopt if item was not in inventory
+  std::optional<int> remove(Item item);
   bool has(Item item) const;
   bool hasRoomFor(Item item) const;
 
   void add(Spell spell);
-  bool remove(Spell spell);
+  void addFree(Spell spell);
+  // Returns conversion value of item; or nullopt if item was not in inventory
+  std::optional<int> remove(Spell spell);
   bool has(Spell spell) const;
   bool hasRoomFor(Spell spell) const;
 
