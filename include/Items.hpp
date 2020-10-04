@@ -11,6 +11,16 @@ enum class Item
   Spoon,
   TowerShield,
   TrollHeart,
+  // Potions
+  HealthPotion,
+  ManaPotion,
+  FortitudeTonic,
+  BurnSalve,
+  StrengthPotion,
+  Schadenfreude,
+  QuicksilverPotion,
+  ReflexPotion,
+  CanOfWhupaz,
 };
 
 constexpr const char* toString(Item item)
@@ -33,6 +43,25 @@ constexpr const char* toString(Item item)
     return "Tower Shield";
   case Item::TrollHeart:
     return "Troll Heart";
+
+  case Item::HealthPotion:
+    return "Health Potion";
+  case Item::ManaPotion:
+    return "Mana Potion";
+  case Item::FortitudeTonic:
+    return "Fortitude Tonic";
+  case Item::BurnSalve:
+    return "Burn Salve";
+  case Item::StrengthPotion:
+    return "Strength Potion";
+  case Item::Schadenfreude:
+    return "Schadenfreude";
+  case Item::QuicksilverPotion:
+    return "Quicksilver Potion";
+  case Item::ReflexPotion:
+    return "Reflex Potion";
+  case Item::CanOfWhupaz:
+    return "Can of Whupaz";
   }
 }
 
@@ -61,6 +90,25 @@ constexpr int price(Item item)
     return 14;
   case Item::TrollHeart:
     return 16;
+
+  case Item::HealthPotion:
+    return 10;
+  case Item::ManaPotion:
+    return 10;
+  case Item::FortitudeTonic:
+    return 8;
+  case Item::BurnSalve:
+    return 8;
+  case Item::StrengthPotion:
+    return 15;
+  case Item::Schadenfreude:
+    return 15;
+  case Item::QuicksilverPotion:
+    return 15;
+  case Item::ReflexPotion:
+    return 15;
+  case Item::CanOfWhupaz:
+    return 20;
   }
 }
 
@@ -84,6 +132,25 @@ constexpr int conversionPointsInitial(Item item)
     return 35;
   case Item::TrollHeart:
     return 55;
+
+  case Item::HealthPotion:
+    return 10;
+  case Item::ManaPotion:
+    return 10;
+  case Item::FortitudeTonic:
+    return 10;
+  case Item::BurnSalve:
+    return 10;
+  case Item::StrengthPotion:
+    return 10;
+  case Item::Schadenfreude:
+    return 10;
+  case Item::QuicksilverPotion:
+    return 10;
+  case Item::ReflexPotion:
+    return 10;
+  case Item::CanOfWhupaz:
+    return 10;
   }
 }
 
