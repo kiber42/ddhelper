@@ -123,7 +123,7 @@ void Faith::initialBoon(God god, Hero& hero)
   switch (god)
   {
   case God::BinlorIronshield:
-    // TODO: hero.receiveFreeSpell(Spell::Pisorf);
+    hero.receiveFreeSpell(Spell::Pisorf);
     // TODO: gainPiety(numRevealedTiles / 10);
     break;
   case God::Dracul:
@@ -131,14 +131,14 @@ void Faith::initialBoon(God god, Hero& hero)
     break;
   case God::TheEarthmother:
     gainPiety(5);
-    // TODO: hero.receiveFreeSpell(Spell::Imawal);
+    hero.receiveFreeSpell(Spell::Imawal);
     break;
   case God::GlowingGuardian:
     gainPiety(5 * hero.getLevel());
     break;
   case God::JehoraJeheyu:
     // TODO: Random piety based on level
-    // TODO: hero.receiveFreeSpell(Spell::Weytwut);
+    hero.receiveFreeSpell(Spell::Weytwut);
     break;
   case God::MysteraAnnur:
     gainPiety(numSpellsCast);
@@ -147,7 +147,7 @@ void Faith::initialBoon(God god, Hero& hero)
     gainPiety(2 * numMonstersKilled);
     break;
   case God::TikkiTooki:
-    // TODO: hero.receiveFreeSpell(Spell::Getindare);
+    hero.receiveFreeSpell(Spell::Getindare);
     break;
   }
 }
@@ -168,7 +168,7 @@ void Faith::punish(God god, Hero& hero)
     hero.addStatus(HeroStatus::Corrosion, 5);
     break;
   case God::GlowingGuardian:
-    // TODO: hero.loseAllItems();
+    hero.loseAllItems();
     break;
   case God::JehoraJeheyu:
     // TODO: 50% chance
