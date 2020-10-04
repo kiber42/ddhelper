@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Conversion.hpp"
 #include "Defence.hpp"
 #include "Experience.hpp"
 #include "Faith.hpp"
@@ -47,6 +48,10 @@ public:
   int getDamageVersusStandard() const;
   int getDamageVersus(const Monster& monster) const;
 
+  void addHealthBonus();
+  void addManaBonus();
+  void addDamageBonus();
+
   int getPhysicalResistPercent() const;
   int getMagicalResistPercent() const;
   void setPhysicalResistPercent(int physicalResistPercent);
@@ -66,6 +71,7 @@ public:
   void loseHitPointsOutsideOfFight(int amountPointsLost);
   void recoverManaPoints(int amountPointsRecovered);
   void loseManaPoints(int amountPointsLost);
+  void fullHealthAndMana();
 
   void addStatus(HeroStatus status, int addedIntensity = 1);
   void removeStatus(HeroStatus status, bool completely);
@@ -105,11 +111,10 @@ private:
   Defence defence;
   Experience experience;
   Inventory inventory;
+  Conversion conversion;
   Faith faith;
   std::map<HeroStatus, int> statuses;
   std::vector<HeroTrait> traits;
-  int conversionPoints;
-  int conversionThreshold;
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);

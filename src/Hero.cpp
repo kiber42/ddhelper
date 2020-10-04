@@ -18,11 +18,10 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   , defence(0, 0, 65, 65)
   , experience()
   , inventory()
+  , conversion(theClass, race)
   , faith()
   , statuses()
   , traits(startingTraits(theClass))
-  , conversionPoints(0)
-  , conversionThreshold(initialConversionThreshold(theClass, race))
 {
   if (hasTrait(HeroTrait::Veteran))
     experience = Experience(Experience::IsVeteran{});
@@ -68,11 +67,10 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , defence(std::move(defence))
   , experience(std::move(experience))
   , inventory()
+  , conversion(HeroClass::Guard, HeroRace::Human)
   , faith()
   , statuses()
   , traits()
-  , conversionPoints(0)
-  , conversionThreshold(100)
 {
 }
 
@@ -220,6 +218,21 @@ int Hero::getDamageVersus(const Monster& monster) const
   return damage;
 }
 
+void Hero::addHealthBonus()
+{
+  stats.addHealthBonus(experience.getUnmodifiedLevel());
+}
+
+void Hero::addManaBonus()
+{
+  stats.setManaPointsMax(stats.getManaPointsMax() + 1);
+}
+
+void Hero::addDamageBonus()
+{
+  changeDamageBonusPercent(+10);
+}
+
 int Hero::getPhysicalResistPercent() const
 {
   return std::min(defence.getPhysicalResistPercent() + 20 * getStatusIntensity(HeroStatus::StoneSkin),
@@ -352,6 +365,11 @@ void Hero::recoverManaPoints(int amountPointsRecovered)
 void Hero::loseManaPoints(int amountPointsLost)
 {
   stats.loseManaPoints(amountPointsLost);
+}
+
+void Hero::fullHealthAndMana()
+{
+  stats.refresh();
 }
 
 void Hero::addStatus(HeroStatus status, int addedIntensity)
@@ -544,7 +562,8 @@ void Hero::convert(Item item)
   const auto conversionValue = inventory.remove(item);
   if (conversionValue.has_value())
   {
-    conversionPoints += *conversionValue;
+    if (conversion.addPoints(*conversionValue))
+      conversion.applyBonus(*this);
     apply(faith.converted(item));
   }
 }
@@ -554,7 +573,8 @@ void Hero::convert(Spell spell)
   const auto conversionValue = inventory.remove(spell);
   if (conversionValue.has_value())
   {
-    conversionPoints += *conversionValue;
+    if (conversion.addPoints(*conversionValue))
+      conversion.applyBonus(*this);
     apply(faith.converted(spell));
   }
 }

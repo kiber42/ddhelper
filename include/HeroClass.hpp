@@ -167,39 +167,3 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   }
   throw std::runtime_error("not implemented");
 }
-
-constexpr int initialConversionThreshold(HeroClass theClass, HeroRace race)
-{
-  switch (theClass)
-  {
-  case HeroClass::Vampire:
-    return 100;
-  case HeroClass::HalfDragon:
-    return 120;
-  case HeroClass::Gorgon:
-    return 100;
-  case HeroClass::RatMonarch:
-    return 80;
-  case HeroClass::Goatperson:
-    return 100;
-  default:
-    break;
-  }
-  switch (race)
-  {
-  case HeroRace::Human:
-    return 100;
-  case HeroRace::Elf:
-    return 70;
-  case HeroRace::Dwarf:
-    return 80;
-  case HeroRace::Halfling:
-    return 80;
-  case HeroRace::Gnome:
-    return 90;
-  case HeroRace::Orc:
-    return 80;
-  case HeroRace::Goblin:
-    return 85;
-  };
-}

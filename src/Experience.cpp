@@ -5,6 +5,7 @@
 
 Experience::Experience(int initialLevel)
   : level(1)
+  , unmodifiedLevel(1)
   , prestige(0)
   , veteran(false)
   , xp(0)
@@ -17,13 +18,13 @@ Experience::Experience(int initialLevel)
 
 Experience::Experience(IsVeteran)
   : level(1)
+  , unmodifiedLevel(1)
   , prestige(0)
   , veteran(true)
   , xp(0)
   , xpStep(4)
   , xpNext(4)
 {
-
 }
 
 void Experience::gain(int xpGained, int xpBonus, bool xpBoost)
@@ -44,7 +45,10 @@ void Experience::gain(int xpGained, int xpBonus, bool xpBoost)
 void Experience::gainLevel()
 {
   if (level < 10)
+  {
     ++level;
+    ++unmodifiedLevel;
+  }
   else
     ++prestige;
   xp = 0;
@@ -59,6 +63,11 @@ void Experience::gainLevel()
 void Experience::modifyLevelBy(int delta)
 {
   level = std::min(std::max(level + delta, 1), 10);
+}
+
+int Experience::getUnmodifiedLevel() const
+{
+  return unmodifiedLevel;
 }
 
 int Experience::forHeroAndMonsterLevels(int heroLevel, int monsterLevel)

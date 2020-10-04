@@ -5,11 +5,12 @@ enum class HeroStatus
   // BurningStrike,
   ConsecratedStrike,
   Corrosion,
-  // Corrosive,
+  CorrosiveStrike, // TODO
   CrushingBlow,
   Cursed,
   CurseImmune,
   DamageReduction,
+  DeathGaze, // TODO
   DeathGazeImmune,
   DeathProtection,
   DodgePermanent,
@@ -19,8 +20,7 @@ enum class HeroStatus
   FirstStrike, // temporary or permanent (Dexterous trait)
   FirstStrikeTemporary,
   HeavyFireball,
-  // Indulgence
-  // Knockback
+  Knockback, // TODO
   Learning,
   LifeSteal,
   MagicalAttack,
@@ -48,6 +48,8 @@ constexpr const char* toString(HeroStatus status)
     return "Consecrated Strike";
   case HeroStatus::Corrosion:
     return "Corrosion";
+  case HeroStatus::CorrosiveStrike:
+    return "Corrosive Strike";
   case HeroStatus::CrushingBlow:
     return "Crushing Blow";
   case HeroStatus::Cursed:
@@ -56,6 +58,8 @@ constexpr const char* toString(HeroStatus status)
     return "Curse Immune";
   case HeroStatus::DamageReduction:
     return "Damage Reduction";
+  case HeroStatus::DeathGaze:
+    return "Death Gaze";
   case HeroStatus::DeathGazeImmune:
     return "Death Gaze Immune";
   case HeroStatus::DodgePermanent:
@@ -72,6 +76,8 @@ constexpr const char* toString(HeroStatus status)
     return "First Strike";
   case HeroStatus::HeavyFireball:
     return "Heavy Fireball";
+  case HeroStatus::Knockback:
+    return "Knockback";
   case HeroStatus::Learning:
     return "Learning";
   case HeroStatus::LifeSteal:
@@ -107,9 +113,10 @@ constexpr const char* toString(HeroStatus status)
 
 constexpr bool canHaveMultiple(HeroStatus status)
 {
-  return status == HeroStatus::Corrosion || status == HeroStatus::CrushingBlow || status == HeroStatus::Cursed ||
-         status == HeroStatus::DamageReduction || status == HeroStatus::DodgePermanent ||
-         status == HeroStatus::DodgeTemporary || status == HeroStatus::Learning || status == HeroStatus::LifeSteal ||
-         status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin ||
-         status == HeroStatus::Weakened;
+  return status == HeroStatus::Corrosion || status == HeroStatus::CorrosiveStrike ||
+         status == HeroStatus::CrushingBlow || status == HeroStatus::Cursed || status == HeroStatus::DamageReduction ||
+         status == HeroStatus::DeathGaze || status == HeroStatus::DodgePermanent ||
+         status == HeroStatus::DodgeTemporary || status == HeroStatus::Knockback || status == HeroStatus::Learning ||
+         status == HeroStatus::LifeSteal || status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength ||
+         status == HeroStatus::StoneSkin || status == HeroStatus::Weakened;
 }
