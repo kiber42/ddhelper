@@ -7,19 +7,22 @@
 #include <cassert>
 #include <utility>
 
-Hero::Hero(HeroClass theClass)
+Hero::Hero()
+  : Hero(HeroClass::Guard, HeroRace::Human)
+{
+}
+
+Hero::Hero(HeroClass theClass, HeroRace race)
   : name(toString(theClass))
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
+  , inventory()
   , faith()
   , statuses()
   , traits(startingTraits(theClass))
-/*
- , piety(0)
- , gold(20)
- , conversionPoints(0)
-*/
+  , conversionPoints(0)
+  , conversionThreshold(initialConversionThreshold(theClass, race))
 {
   if (hasTrait(HeroTrait::Veteran))
     experience = Experience(Experience::IsVeteran{});
@@ -64,9 +67,12 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , stats(std::move(stats))
   , defence(std::move(defence))
   , experience(std::move(experience))
+  , inventory()
   , faith()
   , statuses()
   , traits()
+  , conversionPoints(0)
+  , conversionThreshold(100)
 {
 }
 

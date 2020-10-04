@@ -253,7 +253,7 @@ std::optional<Hero> HeroSelection::run()
 
 Hero HeroSelection::get() const
 {
-  Hero hero(selectedClass);
+  Hero hero(selectedClass, HeroRace::Human);
   for (int i = 1; i < level; ++i)
     hero.gainLevel();
   return hero;

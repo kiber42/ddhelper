@@ -18,7 +18,8 @@ class Monster;
 class Hero
 {
 public:
-  Hero(HeroClass theClass = HeroClass::Guard);
+  Hero();
+  Hero(HeroClass, HeroRace);
   Hero(HeroStats, Defence, Experience);
 
   std::string getName() const;
@@ -108,6 +109,7 @@ private:
   std::map<HeroStatus, int> statuses;
   std::vector<HeroTrait> traits;
   int conversionPoints;
+  int conversionThreshold;
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
