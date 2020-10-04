@@ -31,6 +31,17 @@ enum class HeroClass
   Guard,
 };
 
+enum class HeroRace
+{
+  Human,
+  Elf,
+  Dwarf,
+  Halfling,
+  Gnome,
+  Orc,
+  Goblin
+};
+
 constexpr const char* toString(HeroClass theClass)
 {
   switch (theClass)
@@ -81,6 +92,27 @@ constexpr const char* toString(HeroClass theClass)
     return "Guard";
   }
 }
+
+constexpr const char* toString(HeroRace race)
+{
+  switch (race)
+  {
+  case HeroRace::Human:
+    return "Human";
+  case HeroRace::Elf:
+    return "Elf";
+  case HeroRace::Dwarf:
+    return "Dwarf";
+  case HeroRace::Halfling:
+    return "Halfling";
+  case HeroRace::Gnome:
+    return "Gnome";
+  case HeroRace::Orc:
+    return "Orc";
+  case HeroRace::Goblin:
+    return "Goblin";
+  };
+};
 
 inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
 {
