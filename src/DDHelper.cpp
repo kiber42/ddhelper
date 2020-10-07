@@ -484,15 +484,19 @@ Monster CustomMonsterBuilder::get() const
 
 void Arena::enter(Hero&& newHero)
 {
+  using namespace std::string_literals;
   if (hero.has_value())
-    history.emplace_back("Hero enters", Outcome::Summary::Safe, Outcome::Debuffs{}, std::move(hero), monster);
+    history.emplace_back(newHero.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, std::move(hero),
+                         monster);
   hero.emplace(newHero);
 }
 
 void Arena::enter(Monster&& newMonster)
 {
+  using namespace std::string_literals;
   if (hero.has_value() || monster.has_value())
-    history.emplace_back("Monster enters", Outcome::Summary::Safe, Outcome::Debuffs{}, hero, std::move(monster));
+    history.emplace_back(newMonster.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, hero,
+                         std::move(monster));
   monster.emplace(newMonster);
 }
 

@@ -70,6 +70,8 @@ inline std::string toString(Outcome::Summary summary, const Outcome::Debuffs& de
   // Only one debuff is shown in string
   if (debuffs.count(Debuff::LostDeathProtection))
   {
+    if (summary == Summary::LevelUp)
+      return "Barely Level";
     if (summary == Summary::Win)
       return "Barely Win";
     if (summary == Summary::Safe)
