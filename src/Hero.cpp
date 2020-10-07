@@ -1,6 +1,7 @@
 #include "Hero.hpp"
 
 #include "Experience.hpp"
+#include "Items.hpp"
 #include "Monster.hpp"
 #include "Spells.hpp"
 
@@ -584,9 +585,85 @@ void Hero::convert(Spell spell)
   }
 }
 
+bool Hero::canUse(Item item) const
+{
+  switch (item)
+  {
+  // Basic Items
+  case Item::BadgeOfHonour:
+    return !hasStatus(HeroStatus::DeathProtection);
+
+  // Potions
+  case Item::HealthPotion:
+  case Item::ManaPotion:
+  case Item::FortitudeTonic:
+  case Item::BurnSalve:
+  case Item::StrengthPotion:
+  case Item::Schadenfreude:
+  case Item::QuicksilverPotion:
+  case Item::ReflexPotion:
+  case Item::CanOfWhupaz:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
 void Hero::use(Item item)
 {
-  // TODO
+  bool consumed = true;
+
+  switch (item)
+  {
+  // Basic Items
+  case Item::BadgeOfHonour:
+    if (hasStatus(HeroStatus::DeathProtection))
+      consumed = false;
+    else
+      addStatus(HeroStatus::DeathProtection);
+
+  // Potions
+  case Item::HealthPotion:
+    drinkHealthPotion();
+    break;
+  case Item::ManaPotion:
+    drinkManaPotion();
+    break;
+  case Item::FortitudeTonic:
+    removeStatus(HeroStatus::Poisoned, true);
+    removeStatus(HeroStatus::Weakened, true);
+    break;
+  case Item::BurnSalve:
+    removeStatus(HeroStatus::ManaBurned, true);
+    removeStatus(HeroStatus::Corrosion, true);
+    break;
+  case Item::StrengthPotion:
+  {
+    const int mp = getManaPoints();
+    stats.loseManaPoints(mp); // lose MP without other side-effects
+    addStatus(HeroStatus::SpiritStrength, getLevel() + mp);
+  }
+  break;
+  case Item::Schadenfreude:
+    addStatus(HeroStatus::Schadenfreude);
+    break;
+  case Item::QuicksilverPotion:
+    addStatus(HeroStatus::DodgeTemporary, 50);
+    break;
+  case Item::ReflexPotion:
+    addStatus(HeroStatus::Reflexes);
+    break;
+  case Item::CanOfWhupaz:
+    addStatus(HeroStatus::CrushingBlow);
+    break;
+
+  default:
+    break;
+  }
+
+  if (consumed)
+    inventory.remove(item);
 }
 
 void Hero::receiveFreeSpell(Spell spell)

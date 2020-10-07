@@ -100,6 +100,7 @@ public:
   void receive(Spell spell);
   void convert(Item item);
   void convert(Spell spell);
+  bool canUse(Item item) const;
   void use(Item item);
 
   void receiveFreeSpell(Spell spell);
