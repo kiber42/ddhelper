@@ -39,7 +39,7 @@ enum class HeroTrait
   LightFoot, // not implemented: exploring the area around a monster grants first strike
   Macguyver,
   Mageslay,
-  MagicAffinity, // partially implemented, missing: glyphs donate 10 points to other conversions
+  MagicAffinity,
   MagicAttunement,
   MagicSense, // not implemented: can see locations of all glyphs from level start, all glyphs are small items
   ManaShield,

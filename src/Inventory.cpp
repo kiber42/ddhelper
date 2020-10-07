@@ -36,6 +36,8 @@ std::optional<int> Inventory::remove(Item item)
   if (it == end(entries))
     return std::nullopt;
   const int conversionPoints = it->conversionPoints;
+  if (conversionPoints < 0)
+    return std::nullopt;
   it->count--;
   if (it->count <= 0)
     entries.erase(it);
@@ -63,13 +65,26 @@ void Inventory::addFree(Spell spell)
   entries.emplace_back(Entry{spell, !allItemsLarge && spellsSmall, 1, 0});
 }
 
-std::optional<int> Inventory::remove(Spell spell)
+std::optional<int> Inventory::remove(Spell spell, bool magicAffinity)
 {
   auto it = find(spell);
   if (it == end(entries))
     return std::nullopt;
-  const int conversionPoints = it->conversionPoints;
+  int conversionPoints = it->conversionPoints;
+  if (conversionPoints < 0)
+    return std::nullopt;
   entries.erase(it);
+  if (magicAffinity)
+  {
+    // All remaining spells donate 10 of their conversion points
+    for (auto& entry : entries)
+    {
+      if (entry.itemOrSpell.index() == 0 /* Item */ || entry.conversionPoints < 10)
+        continue;
+      entry.conversionPoints -= 10;
+      conversionPoints += 10;
+    }
+  }
   return conversionPoints;
 }
 
