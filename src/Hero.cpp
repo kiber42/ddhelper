@@ -2,6 +2,7 @@
 
 #include "Experience.hpp"
 #include "Monster.hpp"
+#include "Spells.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -55,10 +56,14 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     stats.addHealthBonus(1);
   }
 
-  // Defiant: Add Cyddstepp glyph
-  // Magic Attunement: Add Burndayraz glyph
-  // Insane: Add Bludtupowa glyph
-  // PoisonedBlade: Add Apheelsik glyph
+  if (hasTrait(HeroTrait::Defiant))
+    inventory.add(Spell::Cydstepp);
+  if (hasTrait(HeroTrait::MagicAttunement))
+    inventory.add(Spell::Burndayraz);
+  if (hasTrait(HeroTrait::Insane))
+    inventory.add(Spell::Bludtupowa);
+  if (hasTrait(HeroTrait::PoisonedBlade))
+    inventory.add(Spell::Apheelsik);
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
