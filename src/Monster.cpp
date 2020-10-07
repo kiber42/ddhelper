@@ -113,6 +113,8 @@ void Monster::receiveCrushingBlow()
 
 void Monster::recover(int nSquares)
 {
+  if (isDefeated())
+    return;
   int recoverPoints = nSquares * (getLevel() - static_cast<int>(status.isBurning()));
   if (status.isPoisoned())
   {
