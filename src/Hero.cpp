@@ -13,7 +13,7 @@ Hero::Hero()
 }
 
 Hero::Hero(HeroClass theClass, HeroRace race)
-  : name(toString(theClass))
+  : name(toString(race) + std::string(" ") + toString(theClass))
   , stats()
   , defence(0, 0, 65, 65)
   , experience()

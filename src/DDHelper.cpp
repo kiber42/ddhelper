@@ -21,6 +21,7 @@ public:
 
 private:
   HeroClass selectedClass;
+  HeroRace selectedRace;
   int selectedClassIndex;
   int level;
 };
@@ -215,6 +216,7 @@ void DDHelperApp::populateFrame()
 
 HeroSelection::HeroSelection()
   : selectedClass(HeroClass::Fighter)
+  , selectedRace(HeroRace::Human)
   , selectedClassIndex(0)
   , level(1)
 {
@@ -241,6 +243,18 @@ std::optional<Hero> HeroSelection::run()
     }
     ImGui::EndCombo();
   }
+
+  if (ImGui::BeginCombo("Race", toString(selectedRace)))
+  {
+    for (int n = 0; n < 7; ++n)
+    {
+      HeroRace race = static_cast<HeroRace>(n);
+      if (ImGui::Selectable(toString(race), race == selectedRace))
+        selectedRace = race;
+    }
+    ImGui::EndCombo();
+  }
+
   if (ImGui::InputInt("Level", &level, 1, 1))
     level = std::min(std::max(level, 1), 10);
 
@@ -253,7 +267,7 @@ std::optional<Hero> HeroSelection::run()
 
 Hero HeroSelection::get() const
 {
-  Hero hero(selectedClass, HeroRace::Human);
+  Hero hero(selectedClass, selectedRace);
   for (int i = 1; i < level; ++i)
     hero.gainLevel();
   return hero;
