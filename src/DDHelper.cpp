@@ -3,6 +3,7 @@
 
 #include "Combat.hpp"
 #include "Hero.hpp"
+#include "Items.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
 #include "Spells.hpp"
@@ -568,40 +569,12 @@ void Arena::run()
     {
       ImGui::Text("Potions");
       ImGui::Separator();
-      addPotionAction(
-          "Health Potion", [](Hero& hero) { hero.drinkHealthPotion(); }, 0);
-      addPotionAction(
-          "Mana Potion", [](Hero& hero) { hero.drinkManaPotion(); }, 1);
-      addPotionAction(
-          "Fortitude Tonic",
-          [](Hero& hero) {
-            hero.removeStatus(HeroStatus::Poisoned, true);
-            hero.removeStatus(HeroStatus::Weakened, true);
-          },
-          2);
-      addPotionAction(
-          "Burn Salve",
-          [](Hero& hero) {
-            hero.removeStatus(HeroStatus::ManaBurned, true);
-            hero.removeStatus(HeroStatus::Corrosion, true);
-          },
-          3);
-      addPotionAction(
-          "Strength Potion",
-          [](Hero& hero) {
-            const int mp = hero.getManaPoints();
-            hero.loseManaPoints(mp);
-            hero.addStatus(HeroStatus::SpiritStrength, hero.getLevel() + mp);
-          },
-          4);
-      addPotionAction(
-          "Schadenfreude", [](Hero& hero) { hero.addStatus(HeroStatus::Schadenfreude); }, 5);
-      addPotionAction(
-          "Dodge Potion", [](Hero& hero) { hero.addStatus(HeroStatus::DodgeTemporary, 50); }, 6);
-      addPotionAction(
-          "Reflex Potion", [](Hero& hero) { hero.addStatus(HeroStatus::Reflexes); }, 7);
-      addPotionAction(
-          "Can of Whupaz", [](Hero& hero) { hero.addStatus(HeroStatus::CrushingBlow); }, 8);
+      int index = -1;
+      for (auto potion :
+           {Item::HealthPotion, Item::ManaPotion, Item::FortitudeTonic, Item::BurnSalve, Item::StrengthPotion,
+            Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
+        addPotionAction(
+            toString(potion), [potion](Hero& hero) { hero.use(potion); }, ++index);
       if (!ImGui::IsAnyMouseDown() && selectedPotion != -1)
         ImGui::CloseCurrentPopup();
       ImGui::EndPopup();
