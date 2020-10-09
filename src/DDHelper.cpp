@@ -81,7 +81,7 @@ private:
       std::tuple<std::string, Outcome::Summary, Outcome::Debuffs, std::optional<Hero>, std::optional<Monster>>;
   std::vector<HistoryItem> history;
 
-  int selectedPotion;
+  int selectedPopupItem;
 };
 
 class DDHelperApp : public ImguiApp
@@ -111,6 +111,8 @@ namespace
   static ImVec4 colorDebuffedSafe(0, 0.5f, 0.5f, 1);
   static ImVec4 colorDebuffedWin(0, 0.8f, 0.8f, 1);
   static ImVec4 colorDebuffedLevelUp(0, 1, 1, 1);
+
+  static ImVec4 colorUnavailable(0.7f, 0.7f, 0.7f, 1);
 
   inline const ImVec4& summaryColor(Outcome::Summary summary, bool debuffed)
   {
@@ -503,6 +505,7 @@ void Arena::enter(Monster&& newMonster)
 void Arena::run()
 {
   using Summary = Outcome::Summary;
+  using namespace std::string_literals;
 
   auto addAction = [&](std::string title, auto outcomeProvider, bool activated) {
     if (activated)
@@ -537,17 +540,18 @@ void Arena::run()
     const bool button = ImGui::Button(title.c_str());
     addAction(std::move(title), std::move(outcomeProvider), button);
   };
-  auto addPotionAction = [&](std::string title, auto heroModifier, int potionIndex) {
+  auto addPopupAction = [&](std::string title, auto outcomeProvider, bool wasSelected) {
     const bool mouseDown = ImGui::IsAnyMouseDown();
     const bool becameSelected = (ImGui::Selectable(title.c_str()) || (ImGui::IsItemHovered() && mouseDown));
-    auto outcomeProvider = [&] {
+    addAction(std::move(title), std::move(outcomeProvider), wasSelected && !mouseDown);
+    return becameSelected;
+  };
+  auto makeProvider = [&](auto heroModifier) {
+    return [&, heroModifier = std::move(heroModifier)]() {
       Hero heroAfter = *hero;
       heroModifier(heroAfter);
       return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
     };
-    addAction(std::move(title), std::move(outcomeProvider), selectedPotion == potionIndex && !mouseDown);
-    if (becameSelected)
-      selectedPotion = potionIndex;
   };
 
   ImGui::Begin("Arena");
@@ -563,23 +567,117 @@ void Arena::run()
       ImGui::SameLine();
     }
 
-    ImGui::Button("Drink");
+    ImGui::Button("Cast");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("CastPopup");
+      selectedPopupItem = -1;
+    }
+    if (ImGui::BeginPopup("CastPopup"))
+    {
+      ImGui::Text("Spells");
+      ImGui::Separator();
+      int index = -1;
+      for (const auto& entry : hero->getSpells())
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        const auto spell = std::get<Spell>(entry.itemOrSpell);
+        const bool possible = (withMonster && Cast::isPossible(*hero, *monster, spell)) ||
+                              (!withMonster && !Cast::needsMonster(spell) && Cast::isPossible(*hero, spell));
+        if (!possible)
+        {
+          ImGui::TextColored(colorUnavailable, "%s", toString(spell));
+          continue;
+        }
+
+        bool becameSelected;
+        if (withMonster)
+          becameSelected = addPopupAction(
+              toString(spell), [&] { return Cast::predictOutcome(*hero, *monster, spell); }, isSelected);
+        else
+          becameSelected = addPopupAction(
+              toString(spell),
+              [&] {
+                Hero heroAfter = Cast::untargeted(*hero, spell);
+                return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
+              },
+              isSelected);
+        if (becameSelected)
+          selectedPopupItem = index;
+      }
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+    ImGui::Button("Use");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("UseItemPopup");
+      selectedPopupItem = -1;
+    }
+    if (ImGui::BeginPopup("UseItemPopup"))
+    {
+      ImGui::Text("Items");
+      ImGui::Separator();
+      int index = -1;
+      for (const auto& entry : hero->getItems())
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        const auto item = std::get<Item>(entry.itemOrSpell);
+        if (addPopupAction(toString(item), makeProvider([item](Hero& hero) { hero.use(item); }), isSelected))
+          selectedPopupItem = index;
+      }
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+    ImGui::Button("Potion");
     if (ImGui::IsItemActive())
     {
       ImGui::OpenPopup("PotionPopup");
-      selectedPotion = -1;
+      selectedPopupItem = -1;
     }
     if (ImGui::BeginPopup("PotionPopup"))
     {
-      ImGui::Text("Potions");
-      ImGui::Separator();
       int index = -1;
       for (auto potion :
            {Item::HealthPotion, Item::ManaPotion, Item::FortitudeTonic, Item::BurnSalve, Item::StrengthPotion,
             Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
-        addPotionAction(
-            toString(potion), [potion](Hero& hero) { hero.use(potion); }, ++index);
-      if (!ImGui::IsAnyMouseDown() && selectedPotion != -1)
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        if (addPopupAction("Find "s + toString(potion), makeProvider([potion](Hero& hero) { hero.receive(potion); }),
+                           isSelected))
+          selectedPopupItem = index;
+      }
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+    ImGui::Button("Spell");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("SpellPopup");
+      selectedPopupItem = -1;
+    }
+    if (ImGui::BeginPopup("SpellPopup"))
+    {
+      int index = -1;
+      for (Spell spell :
+           {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,
+            Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        if (addPopupAction("Find "s + toString(spell), makeProvider([spell](Hero& hero) { hero.receive(spell); }),
+                           isSelected))
+          selectedPopupItem = index;
+      }
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
       ImGui::EndPopup();
     }
@@ -596,29 +694,8 @@ void Arena::run()
         addActionButton(label, [&] { return Combat::uncoverTiles(*hero, monster, numSquares); });
       }
     }
-
-    int count = 0;
-    for (Spell spell :
-         {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,
-          Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
-    {
-      const bool possible = (withMonster && Cast::isPossible(*hero, *monster, spell)) ||
-                            (!withMonster && !Cast::needsMonster(spell) && Cast::isPossible(*hero, spell));
-      if (!possible)
-        continue;
-      if (count++ % 5 != 0)
-        ImGui::SameLine();
-      if (withMonster)
-        addActionButton(toString(spell), [&] { return Cast::predictOutcome(*hero, *monster, spell); });
-      else
-      {
-        addActionButton(toString(spell), [&] {
-          Hero heroAfter = Cast::untargeted(*hero, spell);
-          return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
-        });
-      }
-    }
   }
+
   if (!history.empty() && ImGui::Button("Undo"))
   {
     auto restore = history.back();
