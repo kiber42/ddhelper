@@ -111,6 +111,29 @@ void Inventory::clear()
   entries.clear();
 }
 
+auto Inventory::getEntries() const -> std::vector<Entry>
+{
+  return entries;
+}
+
+auto Inventory::getItems() const -> std::vector<Entry>
+{
+  std::vector<Entry> items(entries.size());
+  auto it = std::copy_if(begin(entries), end(entries), begin(items),
+                         [](const auto& entry) { return entry.itemOrSpell.index() == 0; });
+  items.erase(it, end(items));
+  return items;
+}
+
+auto Inventory::getSpells() const -> std::vector<Entry>
+{
+  std::vector<Entry> spells(entries.size());
+  auto it = std::copy_if(begin(entries), end(entries), begin(spells),
+                         [](const auto& entry) { return entry.itemOrSpell.index() == 1; });
+  spells.erase(it, end(spells));
+  return spells;
+}
+
 auto Inventory::find(ItemOrSpell itemOrSpell) -> std::vector<Entry>::iterator
 {
   return std::find_if(begin(entries), end(entries),

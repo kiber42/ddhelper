@@ -28,7 +28,6 @@ public:
   int smallSlotsLeft() const;
   void clear();
 
-private:
   using ItemOrSpell = std::variant<Item, Spell>;
   struct Entry
   {
@@ -38,6 +37,11 @@ private:
     int conversionPoints;
   };
 
+  std::vector<Entry> getEntries() const;
+  std::vector<Entry> getItems() const;
+  std::vector<Entry> getSpells() const;
+
+private:
   std::vector<Entry> entries;
   std::vector<Entry>::iterator find(ItemOrSpell itemOrSpell);
   std::vector<Entry>::const_iterator find(ItemOrSpell itemOrSpell) const;

@@ -96,6 +96,10 @@ public:
   void setManaPointsMax(int manaPointsMax);
   void modifyLevelBy(int delta);
 
+  // Inventory management
+  std::vector<Inventory::Entry> getItems() const;
+  std::vector<Inventory::Entry> getSpells() const;
+
   void receive(Item item);
   void receive(Spell spell);
   void convert(Item item);

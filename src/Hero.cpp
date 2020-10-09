@@ -543,6 +543,16 @@ void Hero::modifyLevelBy(int delta)
   experience.modifyLevelBy(delta);
 }
 
+std::vector<Inventory::Entry> Hero::getItems() const
+{
+  return inventory.getItems();
+}
+
+std::vector<Inventory::Entry> Hero::getSpells() const
+{
+  return inventory.getSpells();
+}
+
 void Hero::setHitPointsMax(int hitPointsMax)
 {
   stats.setHitPointsMax(hitPointsMax);
