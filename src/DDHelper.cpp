@@ -635,6 +635,52 @@ void Arena::run()
     }
 
     ImGui::SameLine();
+    ImGui::Button("Convert");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("ConvertPopup");
+      selectedPopupItem = -1;
+    }
+    if (ImGui::BeginPopup("ConvertPopup"))
+    {
+      ImGui::Text("Items");
+      ImGui::Separator();
+      int index = -1;
+      for (const auto& entry : hero->getItems())
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        const auto item = std::get<Item>(entry.itemOrSpell);
+        if (entry.conversionPoints >= 0)
+        {
+          const std::string title = "Convert "s + toString(item) + " (" + std::to_string(entry.conversionPoints) + " CP)";
+          if (addPopupAction(title, makeProvider([item](Hero& hero) { hero.convert(item); }), isSelected))
+            selectedPopupItem = index;
+        }
+        else
+          ImGui::TextUnformatted("%s", toString(item));
+      }
+      ImGui::Separator();
+      ImGui::Text("Spells");
+      ImGui::Separator();
+      for (const auto& entry : hero->getSpells())
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        const auto spell = std::get<Spell>(entry.itemOrSpell);
+        if (entry.conversionPoints >= 0)
+        {
+          const std::string title = "Convert "s + toString(spell) + " (" + std::to_string(entry.conversionPoints) + " CP)";
+          if (addPopupAction(title, makeProvider([spell](Hero& hero) { hero.convert(spell); }), isSelected))
+            selectedPopupItem = index;
+        }
+        else
+          ImGui::TextUnformatted("%s", toString(spell));
+      }
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
     ImGui::Button("Potion");
     if (ImGui::IsItemActive())
     {
