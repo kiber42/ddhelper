@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 
+using namespace std::string_literals;
+
 class HeroSelection
 {
 public:
@@ -31,8 +33,10 @@ class MonsterSelection
 {
 public:
   MonsterSelection();
-  std::optional<Monster> run();
+  void run();
   Monster get() const;
+  [[nodiscard]] std::optional<Monster> toArena();
+  [[nodiscard]] std::optional<Monster> toPool();
 
 private:
   MonsterType type;
@@ -40,6 +44,8 @@ private:
   int dungeonMultiplier;
   int selectedTypeIndex;
   int selectedDungeonIndex;
+  std::optional<Monster> arenaMonster;
+  std::optional<Monster> poolMonster;
 };
 
 class CustomHeroBuilder
@@ -58,12 +64,26 @@ class CustomMonsterBuilder
 {
 public:
   CustomMonsterBuilder();
-  std::optional<Monster> run();
-  Monster get() const;
+  void run();
+  [[nodiscard]] Monster get() const;
+  [[nodiscard]] std::optional<Monster> toArena();
+  [[nodiscard]] std::optional<Monster> toPool();
 
 private:
   std::array<int, 6> data;
   MonsterTraits traits;
+  std::optional<Monster> arenaMonster;
+  std::optional<Monster> poolMonster;
+};
+
+class MonsterPool
+{
+public:
+  void add(Monster&&);
+  std::optional<Monster> run();
+
+private:
+  std::vector<Monster> monsters;
 };
 
 class Arena
@@ -71,14 +91,15 @@ class Arena
 public:
   void enter(Hero&&);
   void enter(Monster&&);
-  void run();
+  [[nodiscard]] std::optional<Monster> swap(Monster&&);
+  std::optional<Monster> run();
 
 private:
   std::optional<Hero> hero;
   std::optional<Monster> monster;
 
   using HistoryItem =
-      std::tuple<std::string, Outcome::Summary, Outcome::Debuffs, std::optional<Hero>, std::optional<Monster>>;
+      std::tuple<std::string, Outcome::Summary, Outcome::Debuffs, std::optional<Hero>, std::optional<Monster>, bool>;
   std::vector<HistoryItem> history;
 
   int selectedPopupItem;
@@ -88,7 +109,6 @@ class DDHelperApp : public ImguiApp
 {
 public:
   DDHelperApp();
-  Monster monsterFromForm();
 
 private:
   void populateFrame() override;
@@ -97,6 +117,7 @@ private:
   MonsterSelection monsterSelection;
   CustomHeroBuilder heroBuilder;
   CustomMonsterBuilder monsterBuilder;
+  MonsterPool monsterPool;
   Arena arena;
 };
 
@@ -200,21 +221,39 @@ void DDHelperApp::populateFrame()
 {
   auto hero = heroSelection.run();
   if (hero.has_value())
-    arena.enter(std::move(hero.value()));
+    arena.enter(std::move(*hero));
 
   auto customHero = heroBuilder.run();
   if (customHero.has_value())
-    arena.enter(std::move(customHero.value()));
+    arena.enter(std::move(*customHero));
 
-  auto monster = monsterSelection.run();
+  monsterSelection.run();
+  auto monster = monsterSelection.toArena();
   if (monster.has_value())
-    arena.enter(std::move(monster.value()));
+    arena.enter(std::move(*monster));
+  monster = monsterSelection.toPool();
+  if (monster.has_value())
+    monsterPool.add(std::move(*monster));
 
-  auto customMonster = monsterBuilder.run();
-  if (customMonster.has_value())
-    arena.enter(std::move(customMonster.value()));
+  monsterBuilder.run();
+  monster = monsterBuilder.toArena();
+  if (monster.has_value())
+    arena.enter(std::move(*monster));
+  monster = monsterBuilder.toPool();
+  if (monster.has_value())
+    monsterPool.add(std::move(*monster));
 
-  arena.run();
+  auto poolMonster = monsterPool.run();
+  if (poolMonster.has_value())
+  {
+    auto oldMonster = arena.swap(std::move(poolMonster.value()));
+    if (oldMonster.has_value())
+      monsterPool.add(std::move(*oldMonster));
+  }
+
+  auto undoMonster = arena.run();
+  if (undoMonster.has_value())
+    monsterPool.add(std::move(*undoMonster));
 }
 
 HeroSelection::HeroSelection()
@@ -285,7 +324,7 @@ MonsterSelection::MonsterSelection()
 {
 }
 
-std::optional<Monster> MonsterSelection::run()
+void MonsterSelection::run()
 {
   constexpr std::array allTypes = {
       MonsterType::Bandit,  MonsterType::DragonSpawn, MonsterType::Goat,   MonsterType::Goblin,
@@ -351,17 +390,30 @@ std::optional<Monster> MonsterSelection::run()
     }
     ImGui::EndCombo();
   }
-
-  std::optional<Monster> newMonster;
   if (ImGui::Button("Send to Arena"))
-    newMonster.emplace(get());
+    arenaMonster.emplace(get());
+  if (ImGui::Button("Send to Pool"))
+    poolMonster.emplace(get());
   ImGui::End();
-  return newMonster;
 }
 
 Monster MonsterSelection::get() const
 {
   return {type, level, dungeonMultiplier};
+}
+
+std::optional<Monster> MonsterSelection::toArena()
+{
+  std::optional<Monster> monster;
+  std::swap(monster, arenaMonster);
+  return monster;
+}
+
+std::optional<Monster> MonsterSelection::toPool()
+{
+  std::optional<Monster> monster;
+  std::swap(monster, poolMonster);
+  return monster;
 }
 
 CustomHeroBuilder::CustomHeroBuilder()
@@ -442,7 +494,7 @@ CustomMonsterBuilder::CustomMonsterBuilder()
 {
 }
 
-std::optional<Monster> CustomMonsterBuilder::run()
+void CustomMonsterBuilder::run()
 {
   ImGui::Begin("Custom Monster");
   ImGui::DragInt("Level", &data[0], 0.2f, 1, 10);
@@ -464,11 +516,11 @@ std::optional<Monster> CustomMonsterBuilder::run()
     traits.deathGazePercent = std::min(std::max(traits.deathGazePercent, 0), 100);
   if (ImGui::InputInt("Life Steal %", &traits.lifeStealPercent))
     traits.lifeStealPercent = std::min(std::max(traits.lifeStealPercent, 0), 100);
-  std::optional<Monster> monster;
   if (ImGui::Button("Send to Arena"))
-    monster.emplace(get());
+    arenaMonster.emplace(get());
+  if (ImGui::Button("Send to Pool"))
+    poolMonster.emplace(get());
   ImGui::End();
-  return monster;
 }
 
 Monster CustomMonsterBuilder::get() const
@@ -488,28 +540,72 @@ Monster CustomMonsterBuilder::get() const
   return {std::move(name), std::move(stats), std::move(defence), traits};
 }
 
+std::optional<Monster> CustomMonsterBuilder::toArena()
+{
+  std::optional<Monster> monster;
+  std::swap(monster, arenaMonster);
+  return monster;
+}
+
+std::optional<Monster> CustomMonsterBuilder::toPool()
+{
+  std::optional<Monster> monster;
+  std::swap(monster, poolMonster);
+  return monster;
+}
+
+void MonsterPool::add(Monster&& newMonster)
+{
+  monsters.emplace_back(std::move(newMonster));
+}
+
+std::optional<Monster> MonsterPool::run()
+{
+  ImGui::Begin("Monster Pool");
+  auto selected = end(monsters);
+  int index = 0;
+  for (auto monsterIt = begin(monsters); monsterIt != end(monsters); ++monsterIt)
+  {
+    // Button labels need to be unique
+    if (ImGui::Button((std::to_string(++index) + ") " + monsterIt->getName()).c_str()))
+      selected = monsterIt;
+  }
+  ImGui::End();
+  if (selected != end(monsters))
+  {
+    auto monster = *selected;
+    monsters.erase(selected);
+    return monster;
+  }
+  return std::nullopt;
+}
+
 void Arena::enter(Hero&& newHero)
 {
-  using namespace std::string_literals;
-  if (hero.has_value())
-    history.emplace_back(newHero.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, std::move(hero),
-                         monster);
+  history.emplace_back(newHero.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, std::move(hero),
+                       monster, false);
   hero.emplace(newHero);
 }
 
 void Arena::enter(Monster&& newMonster)
 {
-  using namespace std::string_literals;
-  if (hero.has_value() || monster.has_value())
-    history.emplace_back(newMonster.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, hero,
-                         std::move(monster));
+  history.emplace_back(newMonster.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, hero,
+                       std::move(monster), false);
   monster.emplace(newMonster);
 }
 
-void Arena::run()
+std::optional<Monster> Arena::swap(Monster&& newMonster)
+{
+  auto oldMonster = std::move(monster);
+  history.emplace_back(newMonster.getName() + " enters (pool)"s, Outcome::Summary::Safe, Outcome::Debuffs{}, hero,
+                       oldMonster, true);
+  monster.emplace(std::move(newMonster));
+  return oldMonster;
+}
+
+std::optional<Monster> Arena::run()
 {
   using Summary = Outcome::Summary;
-  using namespace std::string_literals;
 
   auto addAction = [&](std::string title, auto outcomeProvider, bool activated) {
     if (activated)
@@ -518,7 +614,7 @@ void Arena::run()
       if (outcome.summary != Summary::NotPossible)
       {
         history.emplace_back(std::move(title), outcome.summary, std::move(outcome.debuffs), std::move(hero),
-                             std::move(monster));
+                             std::move(monster), false);
         hero = std::move(outcome.hero);
         monster = std::move(outcome.monster);
       }
@@ -656,7 +752,8 @@ void Arena::run()
         const auto item = std::get<Item>(entry.itemOrSpell);
         if (entry.conversionPoints >= 0)
         {
-          const std::string title = "Convert "s + toString(item) + " (" + std::to_string(entry.conversionPoints) + " CP)";
+          const std::string title =
+              "Convert "s + toString(item) + " (" + std::to_string(entry.conversionPoints) + " CP)";
           if (addPopupAction(title, makeProvider([item](Hero& hero) { hero.convert(item); }), isSelected))
             selectedPopupItem = index;
         }
@@ -672,7 +769,8 @@ void Arena::run()
         const auto spell = std::get<Spell>(entry.itemOrSpell);
         if (entry.conversionPoints >= 0)
         {
-          const std::string title = "Convert "s + toString(spell) + " (" + std::to_string(entry.conversionPoints) + " CP)";
+          const std::string title =
+              "Convert "s + toString(spell) + " (" + std::to_string(entry.conversionPoints) + " CP)";
           if (addPopupAction(title, makeProvider([spell](Hero& hero) { hero.convert(spell); }), isSelected))
             selectedPopupItem = index;
         }
@@ -746,10 +844,14 @@ void Arena::run()
     }
   }
 
+  std::optional<Monster> undoMonster;
   if (!history.empty() && ImGui::Button("Undo"))
   {
     auto restore = history.back();
+    const bool monsterToPool = std::get<5>(restore);
     hero = std::move(std::get<3>(restore));
+    if (monsterToPool)
+      undoMonster = std::move(monster);
     monster = std::move(std::get<4>(restore));
     history.pop_back();
   }
@@ -787,6 +889,8 @@ void Arena::run()
     }
   }
   ImGui::End();
+
+  return undoMonster;
 }
 
 int main()
