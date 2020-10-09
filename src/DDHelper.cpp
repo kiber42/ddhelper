@@ -50,7 +50,7 @@ public:
   Hero get() const;
 
 private:
-  std::array<int, 8> data;
+  std::array<int, 9> data;
   std::map<HeroStatus, int> statuses;
 };
 
@@ -365,7 +365,7 @@ Monster MonsterSelection::get() const
 }
 
 CustomHeroBuilder::CustomHeroBuilder()
-  : data{1, 10, 10, 10, 10, 5, 0, 0}
+  : data{1, 10, 10, 10, 10, 5, 0, 0, 0}
 {
 }
 
@@ -380,6 +380,7 @@ std::optional<Hero> CustomHeroBuilder::run()
   ImGui::DragInt("Attack", &data[5], 0.5f, 0, 300);
   ImGui::DragInt("Physical Resistance", &data[6], 0.2f, 0, 80);
   ImGui::DragInt("Magical Resistance", &data[7], 0.2f, 0, 80);
+  ImGui::DragInt("XP", &data[8], 0.1f, 0, 50);
 
   for (HeroStatus status :
        {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
@@ -415,7 +416,10 @@ Hero CustomHeroBuilder::get() const
   const int damage = data[5];
   const int physicalResistance = data[6];
   const int magicalResistance = data[7];
+  const int xp = data[8];
   Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
+  hero.loseAllItems();
+  hero.gainExperience(xp);
 
   const int deltaHp = maxHp - data[1];
   const int deltaMp = maxMp - data[3];
