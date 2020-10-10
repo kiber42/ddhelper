@@ -15,6 +15,7 @@ git clone git@github.com:banditcpp/bandit.git
 git clone git@github.com:banditcpp/snowhouse.git
 cp -r snowhouse/include/snowhouse/* bandit/bandit/assertion_frameworks/snowhouse
 rm -rf snowhouse
+mv bandit engine
 
 Visual Studio Code
 + C/C++ Extension
