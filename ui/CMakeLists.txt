@@ -14,7 +14,14 @@ endif()
 target_include_directories(imguiapp PUBLIC include)
 target_link_libraries(imguiapp dearimgui)
 
-add_executable(ddhelper src/DDHelper.cpp)
+add_executable(
+    ddhelper
+    src/Arena.cpp
+    src/DDHelper.cpp
+    src/HeroSelection.cpp
+    src/MonsterPool.cpp
+    src/MonsterSelection.cpp
+)
 target_link_libraries(ddhelper ddhelperengine imguiapp)
 target_include_directories(ddhelper PUBLIC imgui)
 target_include_directories(ddhelper PUBLIC /usr/include/SDL2)
