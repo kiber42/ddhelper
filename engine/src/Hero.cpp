@@ -212,13 +212,14 @@ int Hero::getDamageVersusStandard() const
 
 int Hero::getDamageVersus(const Monster& monster) const
 {
-  int damage = getDamageVersusStandard();
+  const int standardDamage = getDamageVersusStandard();
+  int damage = standardDamage;
   if (hasTrait(HeroTrait::Bloodlust) && monster.getLevel() > getLevel())
-    damage = damage * 12 / 10;
+    damage += standardDamage * 2 / 10;
   if (hasTrait(HeroTrait::Stabber) && monster.getHitPoints() >= monster.getHitPointsMax())
-    damage = damage * 13 / 10;
+    damage += standardDamage * 3 / 10;
   if (hasTrait(HeroTrait::PoisonedBlade) && monster.isPoisoned())
-    damage = damage * 14 / 10;
+    damage += standardDamage * 4 / 10;
   if (hasTrait(HeroTrait::GoodGolly) && monster.isUndead())
     damage += getBaseDamage();
   return damage;
