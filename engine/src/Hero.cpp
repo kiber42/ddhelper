@@ -24,6 +24,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   , faith()
   , statuses()
   , traits(startingTraits(theClass))
+  , collectedPiety()
 {
   if (hasTrait(HeroTrait::Veteran))
     experience = Experience(Experience::IsVeteran{});
@@ -77,6 +78,7 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , faith()
   , statuses()
   , traits()
+  , collectedPiety()
 {
 }
 
@@ -308,6 +310,7 @@ void Hero::loseHitPoints(int amountPointsLost)
   {
     stats.barelySurvive();
     removeStatus(HeroStatus::DeathProtection, false);
+    applyOrCollect(faith.deathProtectionTriggered());
   }
 }
 
@@ -402,8 +405,6 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
     newIntensity = 1;
   else if (newIntensity < 0)
     newIntensity = 0;
-  if (newIntensity == getStatusIntensity(status))
-    return;
   if (newIntensity > 0)
   {
     switch (status)
@@ -416,16 +417,26 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
       removeStatus(HeroStatus::Cursed, true);
       break;
     case HeroStatus::ManaBurned:
+    {
       if (hasStatus(HeroStatus::ManaBurnImmune))
         return;
-      loseManaPoints(getManaPoints());
+      PietyChange pietyChange;
+      if (statuses[status] == 0)
+        pietyChange += faith.becameManaBurned();
+      const int mp = getManaPoints();
+      pietyChange += faith.manaPointsBurned(mp);
+      loseManaPoints(mp);
+      applyOrCollect(pietyChange);
       break;
+    }
     case HeroStatus::ManaBurnImmune:
       removeStatus(HeroStatus::ManaBurned, true);
       break;
     case HeroStatus::Poisoned:
       if (hasStatus(HeroStatus::PoisonImmune))
         return;
+      if (statuses[status] == 0)
+        applyOrCollect(faith.becamePoisoned());
       break;
     case HeroStatus::PoisonImmune:
       removeStatus(HeroStatus::Poisoned, true);
@@ -517,11 +528,7 @@ void Hero::levelGainedUpdate()
   removeStatus(HeroStatus::Poisoned, true);
   removeStatus(HeroStatus::ManaBurned, true);
   changeBaseDamage(+5);
-}
-
-void Hero::apply(PietyChange pietyChange)
-{
-  faith.apply(pietyChange, *this);
+  applyOrCollect(faith.levelGained());
 }
 
 void Hero::addDodgeChangePercent(int percent, bool isPermanent)
@@ -537,6 +544,43 @@ void Hero::addDodgeChangePercent(int percent, bool isPermanent)
 int Hero::getDodgeChangePercent() const
 {
   return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
+}
+
+void Hero::startPietyCollection()
+{
+  assert(!collectedPiety);
+  collectedPiety.emplace();
+}
+
+void Hero::collect(PietyChange pietyChange)
+{
+  assert(collectedPiety);
+  *collectedPiety += pietyChange;
+}
+
+Faith& Hero::getFaith()
+{
+  return faith;
+}
+
+void Hero::applyCollectedPiety()
+{
+  assert(collectedPiety);
+  apply(*collectedPiety);
+  collectedPiety.reset();
+}
+
+void Hero::apply(PietyChange pietyChange)
+{
+  faith.apply(pietyChange, *this);
+}
+
+void Hero::applyOrCollect(PietyChange pietyChange)
+{
+  if (collectedPiety)
+    *collectedPiety += pietyChange;
+  else
+    faith.apply(pietyChange, *this);
 }
 
 void Hero::modifyLevelBy(int delta)

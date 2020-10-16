@@ -91,6 +91,14 @@ public:
   void addDodgeChangePercent(int percent, bool isPermanent);
   int getDodgeChangePercent() const;
 
+  // Functions to group all piety events belonging to one action.
+  // Make sure each call to startPietyCollection is followed by a call to applyCollectedPiety
+  void startPietyCollection();
+  void collect(PietyChange);
+  void applyCollectedPiety();
+
+  Faith& getFaith();
+
   // Methods required to apply side effects of boons and punishments
   void setHitPointsMax(int hitPointsMax);
   void setManaPointsMax(int manaPointsMax);
@@ -120,11 +128,13 @@ private:
   Faith faith;
   std::map<HeroStatus, int> statuses;
   std::vector<HeroTrait> traits;
+  std::optional<PietyChange> collectedPiety;
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
   void apply(PietyChange pietyChange);
+  void applyOrCollect(PietyChange pietyChange);
 
   /*
           int gold;

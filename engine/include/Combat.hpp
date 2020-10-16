@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hero.hpp"
+#include "Faith.hpp"
 #include "Monster.hpp"
 #include "Outcome.hpp"
 

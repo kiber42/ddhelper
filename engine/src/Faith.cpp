@@ -27,6 +27,15 @@ bool PietyChange::randomJehoraEvent() const
   return !value.has_value();
 }
 
+PietyChange& PietyChange::operator+=(const PietyChange& other)
+{
+  if (!value || !other.value)
+    value.reset();
+  else
+    value = *value + *other.value;
+  return *this;
+}
+
 bool Faith::followDeity(God god, Hero& hero)
 {
   if (hero.hasTrait(HeroTrait::Damned) || hero.hasTrait(HeroTrait::Scapegoat))

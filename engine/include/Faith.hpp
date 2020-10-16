@@ -86,6 +86,7 @@ public:
   PietyChange(JehoraTriggered);
   int operator()() const;
   bool randomJehoraEvent() const;
+  PietyChange& operator+=(const PietyChange&);
 
 private:
   std::optional<int> value;

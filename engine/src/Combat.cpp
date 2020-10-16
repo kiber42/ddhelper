@@ -9,7 +9,7 @@ namespace Combat
   {
     void inflictDebuffs(Hero& hero, const Monster& monster, bool includeCurse)
     {
-      if (monster.isPoisonous())
+      if (monster.isPoisonous() && !hero.hasStatus(HeroStatus::Poisoned))
         hero.addStatus(HeroStatus::Poisoned);
       if (monster.hasManaBurn())
         hero.addStatus(HeroStatus::ManaBurned);
@@ -35,6 +35,8 @@ namespace Combat
       return Summary::NotPossible;
     }
 
+    hero.startPietyCollection();
+
     // TODO Handle attack with Flaming Sword
     // TODO Handle evasion?
     // TODO Handle knockback?
@@ -48,6 +50,7 @@ namespace Combat
 
     // Bonus experience is added if the monster was slowed before the attack
     bool monsterWasSlowed = monster.isSlowed();
+    bool monsterWasBurning = monster.isBurning();
     bool heroReceivedHit = false;
 
     const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
@@ -65,12 +68,18 @@ namespace Combat
         monster.receiveCrushingBlow();
       else
         monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+      if (hero.hasStatus(HeroStatus::Poisonous))
+      {
+        monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous));
+        hero.collect(hero.getFaith().monsterPoisoned(monster));
+      }
       if (hero.hasStatus(HeroStatus::Might))
         monster.erodeResitances();
       if (!monster.isDefeated())
       {
         // If monster is defeated beyond this point, it was not slowed before the final blow
         monsterWasSlowed = false;
+        monsterWasBurning = false; // TODO: Account for burning strike
         if (monster.bearsCurse())
           hero.addStatus(HeroStatus::Cursed);
         if (willPetrify)
@@ -89,6 +98,8 @@ namespace Combat
           {
             hero.removeOneTimeAttackEffects();
             monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+            if (hero.hasStatus(HeroStatus::Poisonous))
+              monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous));
           }
         }
       }
@@ -112,6 +123,11 @@ namespace Combat
           monster.receiveCrushingBlow();
         else
           monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+        if (hero.hasStatus(HeroStatus::Poisonous))
+        {
+          monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous));
+          hero.collect(hero.getFaith().monsterPoisoned(monster));
+        }
         if (hero.hasStatus(HeroStatus::Might))
           monster.erodeResitances();
         if (monster.bearsCurse())
@@ -120,11 +136,19 @@ namespace Combat
     }
 
     if (heroReceivedHit)
+    {
       inflictDebuffs(hero, monster, false);
+      hero.collect(hero.getFaith().receivedHit(monster));
+    }
+
+    if (monster.isDefeated())
+      hero.collect(hero.getFaith().monsterKilled(monster, hero.getLevel(), monsterWasBurning));
 
     hero.removeOneTimeAttackEffects();
     detail::monsterDefeatedCurse(hero, monster);
-    return detail::summaryAndExperience(hero, monster, monsterWasSlowed);
+    const auto summary = detail::summaryAndExperience(hero, monster, monsterWasSlowed);
+    hero.applyCollectedPiety();
+    return summary;
   }
 
   Summary attackOther(Hero& hero, Monster& monster)
