@@ -111,3 +111,8 @@ inline std::ostream& operator<<(std::ostream& os, const Debuff& debuff)
 {
   return os << toString(debuff);
 }
+
+inline bool operator==(const Outcome& left, const Outcome& right)
+{
+  return left.summary == right.summary && left.debuffs == right.debuffs && left.pietyChange == right.pietyChange;
+}
