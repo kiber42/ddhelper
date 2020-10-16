@@ -364,30 +364,30 @@ void testDefenceBasics()
 
 void testMelee()
 {
-  describe("Melee outcome prediction", [] {
+  describe("Melee simulation", [] {
     Hero hero;
     Monster monster(3, 15, 5);
-    it("should work for outcome 'safe' (simple case)",
-       [&] { AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Safe)); });
-    it("should work for outcome 'hero dies' (simple case)", [&] {
-      hero.loseHitPointsOutsideOfFight(5);
-      AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Death));
-    });
-    it("should work for outcome 'hero wins' (one shot, monster has lower level)", [&] {
+    it("should correctly predict safe outcome (simple case)",
+       [&] { AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe)); });
+    it("should correctly predict death outcome (simple case)",
+       [&] { AssertThat(Combat::attack(hero, monster), Equals(Summary::Death)); });
+    it("should correctly predict win outcome (one shot, monster has lower level)", [&] {
+      Hero hero;
       hero.gainExperience(30);
       AssertThat(hero.getLevel(), Equals(4));
       AssertThat(hero.getXP(), Equals(0));
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);
-      AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
+      monster.recover(100);
+      AssertThat(Combat::attack(hero, monster), Equals(Summary::Win));
     });
-    it("of hitpoint loss should work", [] {
+    it("should correctly predict hitpoint loss (simple case)", [] {
       Hero hero;
       Monster monster(3, 15, 9);
-      const auto outcome = Combat::predictOutcome(hero, monster);
       AssertThat(hero.getHitPoints(), Equals(10));
       AssertThat(monster.getHitPoints(), Equals(15));
-      AssertThat(outcome.hero.getHitPoints(), Equals(10 - monster.getDamage()));
-      AssertThat(outcome.monster->getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
+      Combat::attack(hero, monster);
+      AssertThat(hero.getHitPoints(), Equals(10 - monster.getDamage()));
+      AssertThat(monster.getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
     });
   });
 
@@ -395,32 +395,32 @@ void testMelee()
     it("should petrify hero with low health (<50%)", [] {
       Hero hero;
       Monster gorgon(MonsterType::Gorgon, 1);
-      auto outcome = Combat::predictOutcome(hero, gorgon);
-      AssertThat(outcome.summary, Equals(Outcome::Summary::Win));
-      hero.takeDamage(6, false);
-      outcome = Combat::predictOutcome(hero, gorgon);
-      AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
+      AssertThat(Combat::attack(hero, gorgon), Equals(Summary::Win));
+      hero.loseHitPointsOutsideOfFight(3);
+      AssertThat(hero.getHitPoints(), Equals(4));
+      Monster gorgon2(MonsterType::Gorgon, 1);
+      AssertThat(Combat::attack(hero, gorgon2), Equals(Summary::Petrified));
     });
     it("should be available with 100% intensity", [] {
       Hero hero;
       auto traits = MonsterTraitsBuilder().setDeathGazePercent(100).get();
-      Monster monster("", {1, 10, 1, 0}, {}, std::move(traits));
-      auto outcome = Combat::predictOutcome(hero, monster);
-      AssertThat(outcome.summary, Equals(Outcome::Summary::Safe));
-      hero.takeDamage(1, false);
-      outcome = Combat::predictOutcome(hero, monster);
-      AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
+      Monster monster("", {1, 100, 1, 0}, {}, std::move(traits));
       hero.addStatus(HeroStatus::DeathProtection);
-      outcome = Combat::predictOutcome(hero, monster);
-      AssertThat(outcome.summary, Equals(Outcome::Summary::Safe));
-      AssertThat(outcome.debuffs.count(Outcome::Debuff::LostDeathProtection), Equals(1));
+      AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+      AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsTrue());
+      hero.recover(100);
+      hero.loseHitPointsOutsideOfFight(1);
+      AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+      AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsFalse());
+      hero.recover(100);
+      hero.loseHitPointsOutsideOfFight(1);
+      AssertThat(Combat::attack(hero, monster), Equals(Summary::Petrified));
     });
     it("should be available with 101% intensity", [] {
       Hero hero;
       auto traits = MonsterTraitsBuilder().setDeathGazePercent(101).get();
       Monster monster("", {1, 10, 1, 0}, {}, std::move(traits));
-      const auto outcome = Combat::predictOutcome(hero, monster);
-      AssertThat(outcome.summary, Equals(Outcome::Summary::Petrified));
+      AssertThat(Combat::attack(hero, monster), Equals(Summary::Petrified));
     });
   });
 }
@@ -438,39 +438,44 @@ void testStatusEffects()
       });
       it("should wear off", [&] {
         Monster monster("", MonsterStats{1, 5, 1, 0}, Defence{100, 0}, {});
-        const auto outcome = Combat::predictOutcome(hero, monster);
-        AssertThat(outcome.monster->isDefeated(), IsTrue());
-        AssertThat(outcome.hero.doesMagicalDamage(), IsFalse());
-        AssertThat(outcome.hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
+        Combat::attack(hero, monster);
+        AssertThat(monster.isDefeated(), IsTrue());
+        AssertThat(hero.doesMagicalDamage(), IsFalse());
+        AssertThat(hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
       });
     });
     describe("Crushing Blow", [] {
       Hero hero;
-      hero.addStatus(HeroStatus::CrushingBlow);
-      hero.addStatus(HeroStatus::DeathProtection);
+      before_each([&] {
+        hero.addStatus(HeroStatus::CrushingBlow);
+        hero.addStatus(HeroStatus::DeathProtection);
+      });
       it("should reduce the monster's health to 75%", [&] {
         Monster monster(MonsterType::MeatMan, 10);
-        const auto outcome = Combat::predictOutcome(hero, monster);
-        AssertThat(outcome.monster->getHitPoints(), Equals(outcome.monster->getHitPointsMax() * 3 / 4));
+        Combat::attack(hero, monster);
+        AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax() * 3 / 4));
       });
-      it("should ignore immunities", [&] {
+      it("should ignore physical immunity", [&] {
         Monster monster("", MonsterStats{1, 100, 1, 0}, Defence{100, 100}, {});
-        auto outcome = Combat::predictOutcome(hero, monster);
-        AssertThat(outcome.monster->getHitPoints(), Equals(75));
+        Combat::attack(hero, monster);
+        AssertThat(monster.getHitPoints(), Equals(75));
+      });
+      it("should ignore magical immunity", [&] {
+        Monster monster("", MonsterStats{1, 100, 1, 0}, Defence{100, 100}, {});
         hero.addStatus(HeroStatus::MagicalAttack);
-        outcome = Combat::predictOutcome(hero, monster);
-        AssertThat(outcome.monster->getHitPoints(), Equals(75));
+        Combat::attack(hero, monster);
+        AssertThat(monster.getHitPoints(), Equals(75));
       });
       it("should not affect monsters below 75% health", [&] {
         Monster monster(MonsterType::MeatMan, 1);
         monster.takeDamage(monster.getHitPoints() - 1, false);
-        const auto outcome = Combat::predictOutcome(hero, monster);
-        AssertThat(outcome.monster->getHitPoints(), Equals(1));
+        Combat::attack(hero, monster);
+        AssertThat(monster.getHitPoints(), Equals(1));
       });
       it("should wear off", [&] {
         Monster monster(MonsterType::MeatMan, 10);
-        const auto outcome = Combat::predictOutcome(hero, monster);
-        AssertThat(outcome.hero.hasStatus(HeroStatus::CrushingBlow), IsFalse());
+        Combat::attack(hero, monster);
+        AssertThat(hero.hasStatus(HeroStatus::CrushingBlow), IsFalse());
       });
     });
     describe("Cursed", [] {
@@ -487,11 +492,11 @@ void testStatusEffects()
         Hero hero;
         hero.changeBaseDamage(100);
         Monster monster("", MonsterStats{1, 10, 3, 0}, {}, std::move(MonsterTraitsBuilder().addCurse()));
-        hero = Combat::predictOutcome(hero, monster).hero;
+        Combat::attack(hero, monster);
         // One curse from hit, one from killing
         AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
         Monster monster2(1, 10, 3);
-        hero = Combat::predictOutcome(hero, monster2).hero;
+        Combat::attack(hero, monster2);
         AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
       });
       it("should take effect immediately after hero's attack", [] {
@@ -500,7 +505,7 @@ void testStatusEffects()
         const int health = hero.getHitPoints();
         hero.setPhysicalResistPercent(50);
         Monster monster("", MonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
-        hero = Combat::predictOutcome(hero, monster).hero;
+        Combat::attack(hero, monster);
         AssertThat(hero.hasStatus(HeroStatus::Cursed), IsTrue());
         AssertThat(hero.getHitPoints(), Equals(health - 10));
       });
@@ -524,8 +529,7 @@ void testStatusEffects()
         hero.takeDamage(6, false);
         hero.addStatus(HeroStatus::DeathGazeImmune);
         Monster gorgon(MonsterType::Gorgon, 1);
-        auto outcome = Combat::predictOutcome(hero, gorgon);
-        AssertThat(outcome.summary, Equals(Outcome::Summary::Win));
+        AssertThat(Combat::attack(hero, gorgon), Equals(Summary::Win));
       });
     });
     describe("Dodge", [] {});
@@ -586,7 +590,7 @@ void testStatusEffects()
         Hero hero;
         hero.addStatus(HeroStatus::Reflexes);
         Monster monster(1, 2 * hero.getDamageVersusStandard(), 1);
-        AssertThat(Combat::predictOutcome(hero, monster).summary, Equals(Outcome::Summary::Win));
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Win));
       });
     });
     describe("Sanguine", [] {});

@@ -46,13 +46,7 @@ namespace Cast
       }
 
       // Curses
-      if (monster.isDefeated())
-      {
-        if (monster.bearsCurse())
-          hero.addStatus(HeroStatus::Cursed);
-        else
-          hero.removeStatus(HeroStatus::Cursed, false);
-      }
+      Combat::detail::monsterDefeatedCurse(hero, monster);
     }
   } // namespace
 
@@ -210,8 +204,6 @@ namespace Cast
       return Summary::Safe;
     }
 
-    Hero heroBefore = hero;
-
     const bool monsterWasSlowed = monster.isSlowed();
 
     const int manaCosts = spellCosts(spell, hero);
@@ -256,6 +248,6 @@ namespace Cast
 
     applyCastingSideEffects(hero, manaCosts);
 
-    return Combat::detail::summaryAndExperience(heroBefore, hero, monster, monsterWasSlowed);
+    return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed);
   }
 } // namespace Cast

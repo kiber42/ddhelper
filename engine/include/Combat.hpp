@@ -4,10 +4,12 @@
 #include "Monster.hpp"
 #include "Outcome.hpp"
 
+#include <optional>
+
 namespace Combat
 {
   // Predict outcome of melee attack
-  Summary predictOutcome(Hero&, Monster&);
+  Summary attack(Hero&, Monster&);
 
   // Predicts outcome for current monster if hero were to attack another monster
   Summary attackOther(Hero&, Monster& current);
@@ -22,6 +24,9 @@ namespace Combat
   {
     // Determines outcome summary and awards experience if applicable.
     // Helper used by Combat::attack and Cast::targeted, do not call directly.
-    Summary summaryAndExperience(const Hero& heroBeforeFight, Hero& heroAfterFight, const Monster& monsterAfterFight, bool monsterWasSlowed);
+    Summary summaryAndExperience(Hero& heroAfterFight, const Monster& monsterAfterFight, bool monsterWasSlowed);
+
+    // If the monster was defeated, applies or lifts curse
+    void monsterDefeatedCurse(Hero& hero, const Monster& monster);
   }
 } // namespace Combat
