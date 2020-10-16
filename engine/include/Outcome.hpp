@@ -1,101 +1,106 @@
 #pragma once
 
-#include "Hero.hpp"
-#include "Monster.hpp"
-
 #include <optional>
 #include <ostream>
 #include <set>
 
-struct Outcome
+enum class Summary
 {
-  enum class Summary
-  {
-    Safe,
-    Win,
-    Death,
-    Petrified,
-    LevelUp,
-    NotPossible
-  };
-  enum class Debuff
-  {
-    LostDeathProtection,
-    Cursed,
-    ManaBurned,
-    Poisoned,
-    Corroded,
-    Weakened,
-  };
-  using Debuffs = std::set<Debuff>;
-  Summary summary;
-  Debuffs debuffs;
-  Hero hero;
-  std::optional<Monster> monster;
-  std::optional<int> pietyChange;
+  Safe,
+  Win,
+  Death,
+  Petrified,
+  LevelUp,
+  NotPossible
 };
 
-constexpr const char* toString(Outcome::Summary status)
+enum class Debuff
 {
-  using Summary = Outcome::Summary;
+  LostDeathProtection,
+  Cursed,
+  ManaBurned,
+  Poisoned,
+  Corroded,
+  Weakened,
+};
+using Debuffs = std::set<Debuff>;
+
+constexpr const char* toString(Summary status)
+{
   switch (status)
   {
-    case Summary::Safe: return "Safe";
-    case Summary::Win: return "Win";
-    case Summary::Death: return "Death";
-    case Summary::Petrified: return "Petrified";
-    case Summary::LevelUp: return "Level Up";
-    case Summary::NotPossible: return "Not Possible";
+  case Summary::Safe:
+    return "Safe";
+  case Summary::Win:
+    return "Win";
+  case Summary::Death:
+    return "Death";
+  case Summary::Petrified:
+    return "Petrified";
+  case Summary::LevelUp:
+    return "Level Up";
+  case Summary::NotPossible:
+    return "Not Possible";
   }
 }
 
-constexpr const char* toString(Outcome::Debuff debuff)
+constexpr const char* toString(Debuff debuff)
 {
-  using Debuff = Outcome::Debuff;
   switch (debuff)
   {
-    case Debuff::LostDeathProtection: return "Lost Death Protection";
-    case Debuff::Cursed: return "Cursed";
-    case Debuff::ManaBurned: return "Mana Burned";
-    case Debuff::Poisoned: return "Poisoned";
-    case Debuff::Corroded: return "Corroded";
-    case Debuff::Weakened: return "Weakened";
+  case Debuff::LostDeathProtection:
+    return "Lost Death Protection";
+  case Debuff::Cursed:
+    return "Cursed";
+  case Debuff::ManaBurned:
+    return "Mana Burned";
+  case Debuff::Poisoned:
+    return "Poisoned";
+  case Debuff::Corroded:
+    return "Corroded";
+  case Debuff::Weakened:
+    return "Weakened";
   }
 }
 
-inline std::string toString(Outcome::Summary summary, const Outcome::Debuffs& debuffs)
+inline std::string toString(Summary summary, const Debuffs& debuffs, std::optional<int> pietyChange)
 {
-  using Summary = Outcome::Summary;
-  using Debuff = Outcome::Debuff;
+  std::string result;
   // Only one debuff is shown in string
   if (debuffs.count(Debuff::LostDeathProtection))
   {
     if (summary == Summary::LevelUp)
-      return "Barely Level";
-    if (summary == Summary::Win)
-      return "Barely Win";
-    if (summary == Summary::Safe)
-      return "Barely Alive";
+      result = "Barely Level";
+    else if (summary == Summary::Win)
+      result = "Barely Win";
+    else if (summary == Summary::Safe)
+      result = "Barely Alive";
   }
-  if (debuffs.count(Debuff::Cursed))
-    return toString(summary) + std::string(" Cursed");
-  if (debuffs.count(Debuff::ManaBurned))
-    return toString(summary) + std::string(" Mana Burn");
-  if (debuffs.count(Debuff::Poisoned))
-    return toString(summary) + std::string(" Poison");
-  if (debuffs.count(Debuff::Corroded))
-    return toString(summary) + std::string(" Corroded");
-  if (debuffs.count(Debuff::Weakened))
-    return toString(summary) + std::string(" Weaken");
-  return toString(summary);
+  else
+  {
+    const std::string summaryStr = toString(summary);
+    if (debuffs.count(Debuff::Cursed))
+      result = summaryStr + " Cursed";
+    else if (debuffs.count(Debuff::ManaBurned))
+      result = summaryStr + " Mana Burn";
+    else if (debuffs.count(Debuff::Poisoned))
+      result = summaryStr + " Poison";
+    else if (debuffs.count(Debuff::Corroded))
+      result = summaryStr + " Corroded";
+    else if (debuffs.count(Debuff::Weakened))
+      result = summaryStr + " Weaken";
+  }
+  if (pietyChange.has_value())
+    result += " " + std::to_string(*pietyChange) + " piety";
+  return result;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Outcome::Summary& summary)
+inline std::ostream& operator<<(std::ostream& os, const Summary& summary)
 {
   return os << toString(summary);
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Outcome::Debuff& debuff)
+inline std::ostream& operator<<(std::ostream& os, const Debuff& debuff)
 {
   return os << toString(debuff);
 }
