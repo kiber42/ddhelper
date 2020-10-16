@@ -45,9 +45,9 @@ namespace
   {
     if (!hero.isDefeated())
     {
-      ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i damage", hero.getName().c_str(), hero.getLevel(),
+      ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i piety, %i damage", hero.getName().c_str(), hero.getLevel(),
                   hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
-                  hero.getXP(), hero.getXPforNextLevel(), hero.getDamageVersusStandard());
+                  hero.getXP(), hero.getXPforNextLevel(), hero.getFaith().getPiety(), hero.getDamageVersusStandard());
       if (hero.hasStatus(HeroStatus::FirstStrike))
         ImGui::Text("  has first strike");
       if (hero.hasStatus(HeroStatus::DeathProtection))
@@ -355,6 +355,32 @@ Arena::StateUpdate Arena::run(const State& currentState)
         }
         else
           ImGui::TextUnformatted("%s", toString(spell));
+      }
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+    ImGui::Button("Gods");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("GodsPopup");
+      selectedPopupItem = -1;
+    }
+    if (ImGui::BeginPopup("GodsPopup"))
+    {
+      for (int index = 0; index < 8; ++index)
+      {
+        const God deity = static_cast<God>(index);
+        const bool isSelected = index == selectedPopupItem;
+        if (addPopupAction(
+                "Follow "s + toString(deity),
+                [deity](Hero& hero) {
+                  return hero.getFaith().followDeity(deity, hero) ? Summary::Safe : Summary::NotPossible;
+                },
+                isSelected))
+          selectedPopupItem = index;
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
