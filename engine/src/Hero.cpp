@@ -546,6 +546,26 @@ int Hero::getDodgeChangePercent() const
   return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
 }
 
+Faith& Hero::getFaith()
+{
+  return faith;
+}
+
+const Faith& Hero::getFaith() const
+{
+  return faith;
+}
+
+bool Hero::followDeity(God god)
+{
+  return faith.followDeity(god, *this);
+}
+
+void Hero::desecrate(God altar)
+{
+  faith.desecrate(altar, *this);
+}
+
 void Hero::startPietyCollection()
 {
   assert(!collectedPiety);
@@ -556,11 +576,6 @@ void Hero::collect(PietyChange pietyChange)
 {
   assert(collectedPiety);
   *collectedPiety += pietyChange;
-}
-
-Faith& Hero::getFaith()
-{
-  return faith;
 }
 
 void Hero::applyCollectedPiety()

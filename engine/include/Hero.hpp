@@ -91,13 +91,17 @@ public:
   void addDodgeChangePercent(int percent, bool isPermanent);
   int getDodgeChangePercent() const;
 
+  Faith& getFaith();
+  const Faith& getFaith() const;
+
+  bool followDeity(God god);
+  void desecrate(God altar);
+
   // Functions to group all piety events belonging to one action.
   // Make sure each call to startPietyCollection is followed by a call to applyCollectedPiety
   void startPietyCollection();
   void collect(PietyChange);
   void applyCollectedPiety();
-
-  Faith& getFaith();
 
   // Methods required to apply side effects of boons and punishments
   void setHitPointsMax(int hitPointsMax);
