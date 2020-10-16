@@ -22,32 +22,37 @@ namespace Cast
     // - Battlemage Ring, +1 dmg per caster level
     // - Witchalok pendant: add stone skin when burndayraz is cast
     // Note: Attack counts for Crusader's momentum
-    Outcome::Debuffs burndayraz(Hero& hero, Monster& monster)
+    void burndayraz(Hero& hero, Monster& monster)
     {
-      using Summary = Outcome::Summary;
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
       const int multiplier =
           4 + hero.hasBoon(Boon::Flames) + (heavy ? 4 : 0) /* + (hero.hasItem(Items::BattlemageRing) ? 1 : 0) */;
+
+      // Damage and burning
       monster.takeFireballDamage(hero.getLevel(), multiplier);
       const int maxBurnStackSize = 2 * hero.getLevel();
       if (heavy)
         monster.burnMax(maxBurnStackSize);
       else if (hero.hasTrait(HeroTrait::MagicAttunement))
         monster.burn(maxBurnStackSize);
+
+      // Retaliation
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
-        return Combat::retaliate(hero, monster);
+      {
+        hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
+        if (hero.hasTrait(HeroTrait::ManaShield))
+          monster.takeManaShieldDamage(hero.getLevel());
+      }
+
+      // Curses
       if (monster.isDefeated())
       {
         if (monster.bearsCurse())
-        {
           hero.addStatus(HeroStatus::Cursed);
-          return {Outcome::Debuff::Cursed};
-        }
         else
           hero.removeStatus(HeroStatus::Cursed, false);
       }
-      return {};
     }
   } // namespace
 
@@ -111,7 +116,8 @@ namespace Cast
             (!hero.hasStatus(HeroStatus::DeathProtection) &&
              (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant)))) &&
            (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrikeTemporary)) &&
-           (spell != Spell::Halpmeh || hero.hasStatus(HeroStatus::Poisoned) || hero.getHitPoints() < hero.getHitPointsMax());
+           (spell != Spell::Halpmeh || hero.hasStatus(HeroStatus::Poisoned) ||
+            hero.getHitPoints() < hero.getHitPointsMax());
   }
 
   bool isPossible(const Hero& hero, const Monster& monster, Spell spell)
@@ -135,10 +141,10 @@ namespace Cast
     // God Likes and Dislikes
   }
 
-  Hero untargeted(Hero hero, Spell spell)
+  void untargeted(Hero hero, Spell spell)
   {
     if (!isPossible(hero, spell))
-      return hero;
+      return;
 
     const int manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
@@ -191,70 +197,65 @@ namespace Cast
     }
 
     applyCastingSideEffects(hero, manaCosts);
-    return hero;
   }
 
-  Outcome predictOutcome(const Hero& hero, const Monster& monster, Spell spell)
+  Summary targeted(Hero& hero, Monster& monster, Spell spell)
   {
-    using Summary = Outcome::Summary;
-    Outcome outcome{Summary::Safe, {}, hero, monster};
-
     if (!isPossible(hero, monster, spell))
+      return Summary::NotPossible;
+
+    if (!needsMonster(spell) && !monsterIsOptional(spell))
     {
-      outcome.summary = Summary::NotPossible;
-    }
-    else
-    {
-      if (!needsMonster(spell) && !monsterIsOptional(spell))
-        outcome.hero = untargeted(std::move(outcome.hero), spell);
-      else
-      {
-        const int manaCosts = spellCosts(spell, hero);
-        outcome.hero.loseManaPoints(manaCosts);
-
-        switch (spell)
-        {
-        case Spell::Apheelsik:
-          outcome.monster->poison(10 * hero.getLevel());
-          break;
-        case Spell::Burndayraz:
-          outcome.debuffs = burndayraz(outcome.hero, *outcome.monster);
-          break;
-        case Spell::Imawal:
-          outcome.monster->petrify();
-          outcome.hero.addStatus(HeroStatus::ExperienceBoost);
-          break;
-        case Spell::Lemmisi:
-        {
-          const int uncoveredTiles = 3;
-          outcome.hero.recover(uncoveredTiles);
-          outcome.monster->recover(uncoveredTiles);
-          break;
-        }
-        case Spell::Pisorf:
-          // 60% of base damage as knockback damage if against wall
-          // (TODO?) 50% of base damage as knockback damage if against enemy
-          outcome.monster->takeDamage(hero.getBaseDamage() * 6 / 10, false);
-          break;
-        case Spell::Weytwut:
-          // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
-          outcome.monster->slow();
-          break;
-        case Spell::Wonafyt:
-          // adds Slowed to monster, can only be cast against same or lower level
-          outcome.monster->slow();
-          break;
-        default:
-          assert(false);
-          break;
-        }
-
-        applyCastingSideEffects(outcome.hero, manaCosts);
-
-        outcome.summary = Combat::summaryAndExperience(outcome.hero, *outcome.monster, monster.isSlowed());
-      }
+      untargeted(hero, spell);
+      return Summary::Safe;
     }
 
-    return outcome;
+    Hero heroBefore = hero;
+
+    const bool monsterWasSlowed = monster.isSlowed();
+
+    const int manaCosts = spellCosts(spell, hero);
+    hero.loseManaPoints(manaCosts);
+
+    switch (spell)
+    {
+    case Spell::Apheelsik:
+      monster.poison(10 * hero.getLevel());
+      break;
+    case Spell::Burndayraz:
+      burndayraz(hero, monster);
+      break;
+    case Spell::Imawal:
+      monster.petrify();
+      hero.addStatus(HeroStatus::ExperienceBoost);
+      break;
+    case Spell::Lemmisi:
+    {
+      const int uncoveredTiles = 3;
+      hero.recover(uncoveredTiles);
+      monster.recover(uncoveredTiles);
+      break;
+    }
+    case Spell::Pisorf:
+      // 60% of base damage as knockback damage if against wall
+      // (TODO?) 50% of base damage as knockback damage if against enemy
+      monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
+      break;
+    case Spell::Weytwut:
+      // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
+      monster.slow();
+      break;
+    case Spell::Wonafyt:
+      // adds Slowed to monster, can only be cast against same or lower level
+      monster.slow();
+      break;
+    default:
+      assert(false);
+      break;
+    }
+
+    applyCastingSideEffects(hero, manaCosts);
+
+    return Combat::detail::summaryAndExperience(heroBefore, hero, monster, monsterWasSlowed);
   }
 } // namespace Cast

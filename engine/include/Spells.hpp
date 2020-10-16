@@ -61,10 +61,10 @@ namespace Cast
   bool isPossible(const Hero& hero, const Monster& monster, Spell spell);
 
   // Cast spell that does not target a monster
-  Hero untargeted(Hero hero, Spell spell);
+  void untargeted(Hero hero, Spell spell);
 
   // Predict outcome of casting spell on monster
-  Outcome predictOutcome(const Hero& hero, const Monster& monster, Spell spell);
+  Summary targeted(Hero& hero, Monster& monster, Spell spell);
 
   // Spells that need to target a monster
   constexpr bool needsMonster(Spell spell)
