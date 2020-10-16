@@ -25,6 +25,13 @@ enum class Debuff
 };
 using Debuffs = std::set<Debuff>;
 
+struct Outcome
+{
+  Summary summary;
+  Debuffs debuffs;
+  std::optional<int> pietyChange;
+};
+
 constexpr const char* toString(Summary status)
 {
   switch (status)
@@ -63,35 +70,35 @@ constexpr const char* toString(Debuff debuff)
   }
 }
 
-inline std::string toString(Summary summary, const Debuffs& debuffs, std::optional<int> pietyChange)
+inline std::string toString(const Outcome& outcome)
 {
   std::string result;
   // Only one debuff is shown in string
-  if (debuffs.count(Debuff::LostDeathProtection))
+  if (outcome.debuffs.count(Debuff::LostDeathProtection))
   {
-    if (summary == Summary::LevelUp)
+    if (outcome.summary == Summary::LevelUp)
       result = "Barely Level";
-    else if (summary == Summary::Win)
+    else if (outcome.summary == Summary::Win)
       result = "Barely Win";
-    else if (summary == Summary::Safe)
+    else if (outcome.summary == Summary::Safe)
       result = "Barely Alive";
   }
   else
   {
-    const std::string summaryStr = toString(summary);
-    if (debuffs.count(Debuff::Cursed))
+    const std::string summaryStr = toString(outcome.summary);
+    if (outcome.debuffs.count(Debuff::Cursed))
       result = summaryStr + " Cursed";
-    else if (debuffs.count(Debuff::ManaBurned))
+    else if (outcome.debuffs.count(Debuff::ManaBurned))
       result = summaryStr + " Mana Burn";
-    else if (debuffs.count(Debuff::Poisoned))
+    else if (outcome.debuffs.count(Debuff::Poisoned))
       result = summaryStr + " Poison";
-    else if (debuffs.count(Debuff::Corroded))
+    else if (outcome.debuffs.count(Debuff::Corroded))
       result = summaryStr + " Corroded";
-    else if (debuffs.count(Debuff::Weakened))
+    else if (outcome.debuffs.count(Debuff::Weakened))
       result = summaryStr + " Weaken";
   }
-  if (pietyChange.has_value())
-    result += " " + std::to_string(*pietyChange) + " piety";
+  if (outcome.pietyChange)
+    result += " " + std::to_string(*outcome.pietyChange) + " piety";
   return result;
 }
 
