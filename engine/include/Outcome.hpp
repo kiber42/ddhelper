@@ -96,6 +96,8 @@ inline std::string toString(const Outcome& outcome)
       result = summaryStr + " Corroded";
     else if (outcome.debuffs.count(Debuff::Weakened))
       result = summaryStr + " Weaken";
+    else
+      result = summaryStr;
   }
   if (outcome.pietyChange)
     result += " " + std::to_string(*outcome.pietyChange) + " piety";

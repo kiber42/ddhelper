@@ -4,8 +4,6 @@
 #include "Monster.hpp"
 #include "Outcome.hpp"
 
-#include <optional>
-
 namespace Combat
 {
   // Predict outcome of melee attack
@@ -15,7 +13,7 @@ namespace Combat
   Summary attackOther(Hero&, Monster& current);
 
   // Predicts recovery of hero and monster when uncovering tiles
-  Summary uncoverTiles(Hero&, std::optional<Monster>&, int numTiles=1);
+  Summary uncoverTiles(Hero&, Monster*, int numTiles=1);
 
   // Determines which debuffs the hero received due to a fight or other action
   Debuffs findDebuffs(const Hero& heroBefore, const Hero& heroAfter);

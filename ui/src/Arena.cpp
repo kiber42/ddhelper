@@ -9,8 +9,6 @@
 
 #include "imgui.h"
 
-using namespace std::string_literals;
-
 namespace
 {
   static ImVec4 colorSafe(0, 0.5f, 0, 1);
@@ -25,9 +23,8 @@ namespace
 
   static ImVec4 colorUnavailable(0.7f, 0.7f, 0.7f, 1);
 
-  inline const ImVec4& summaryColor(Outcome::Summary summary, bool debuffed)
+  inline const ImVec4& summaryColor(Summary summary, bool debuffed)
   {
-    using Summary = Outcome::Summary;
     switch (summary)
     {
     case Summary::Safe:
@@ -44,148 +41,188 @@ namespace
     }
   }
 
-  void showStatus(const std::optional<Hero>& hero, const std::optional<Monster>& monster)
+  void showStatus(const Hero& hero)
   {
-    if (hero.has_value())
+    if (!hero.isDefeated())
     {
-      if (!hero->isDefeated())
-      {
-        ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i damage", hero->getName().c_str(),
-                    hero->getLevel(), hero->getHitPoints(), hero->getHitPointsMax(), hero->getManaPoints(),
-                    hero->getManaPointsMax(), hero->getXP(), hero->getXPforNextLevel(),
-                    hero->getDamageVersusStandard());
-        if (hero->hasStatus(HeroStatus::FirstStrike))
-          ImGui::Text("  has first strike");
-        if (hero->hasStatus(HeroStatus::DeathProtection))
-          ImGui::Text("  has death protection");
-        if (hero->hasStatus(HeroStatus::Poisoned))
-          ImGui::Text("  is poisoned");
-        if (hero->hasStatus(HeroStatus::ManaBurned))
-          ImGui::Text("  is mana burned");
-        if (hero->hasStatus(HeroStatus::Cursed))
-          ImGui::Text("  is cursed (x%i)", hero->getStatusIntensity(HeroStatus::Cursed));
-      }
-      else
-        ImGui::Text("Hero defeated.");
+      ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i damage", hero.getName().c_str(), hero.getLevel(),
+                  hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
+                  hero.getXP(), hero.getXPforNextLevel(), hero.getDamageVersusStandard());
+      if (hero.hasStatus(HeroStatus::FirstStrike))
+        ImGui::Text("  has first strike");
+      if (hero.hasStatus(HeroStatus::DeathProtection))
+        ImGui::Text("  has death protection");
+      if (hero.hasStatus(HeroStatus::Poisoned))
+        ImGui::Text("  is poisoned");
+      if (hero.hasStatus(HeroStatus::ManaBurned))
+        ImGui::Text("  is mana burned");
+      if (hero.hasStatus(HeroStatus::Cursed))
+        ImGui::Text("  is cursed (x%i)", hero.getStatusIntensity(HeroStatus::Cursed));
     }
-    if (monster.has_value())
+    else
+      ImGui::Text("Hero defeated.");
+  }
+
+  void showStatus(const Monster& monster)
+  {
+    if (!monster.isDefeated())
     {
-      if (!monster->isDefeated())
-      {
-        ImGui::Text("%s has %i/%i HP and does %i damage", monster->getName(), monster->getHitPoints(),
-                    monster->getHitPointsMax(), monster->getDamage());
-        if (monster->getPhysicalResistPercent() > 0)
-          ImGui::Text("  Physical resist %i%%", monster->getPhysicalResistPercent());
-        if (monster->getMagicalResistPercent() > 0)
-          ImGui::Text("  Magical resist %i%%", monster->getMagicalResistPercent());
-        if (monster->isPoisonous())
-          ImGui::Text("  Poisonous");
-        if (monster->hasManaBurn())
-          ImGui::Text("  Mana Burn");
-        if (monster->bearsCurse())
-          ImGui::Text("  Curse bearer");
-        if (monster->getDeathGazePercent() > 0)
-          ImGui::Text("  Death Gaze %i%%", monster->getDeathGazePercent());
-        if (monster->getDeathProtection() > 0)
-          ImGui::Text("  Death protection (x%i)", monster->getDeathProtection());
-        if (monster->isBurning())
-          ImGui::Text("  is burning (burn stack size %i)", monster->getBurnStackSize());
-        if (monster->isPoisoned())
-          ImGui::Text("  is poisoned (amount: %i)", monster->getPoisonAmount());
-        if (monster->isSlowed())
-          ImGui::Text("  is slowed");
-      }
-      else
-        ImGui::Text("%s defeated.", monster->getName());
+      ImGui::Text("%s has %i/%i HP and does %i damage", monster.getName(), monster.getHitPoints(),
+                  monster.getHitPointsMax(), monster.getDamage());
+      if (monster.getPhysicalResistPercent() > 0)
+        ImGui::Text("  Physical resist %i%%", monster.getPhysicalResistPercent());
+      if (monster.getMagicalResistPercent() > 0)
+        ImGui::Text("  Magical resist %i%%", monster.getMagicalResistPercent());
+      if (monster.isPoisonous())
+        ImGui::Text("  Poisonous");
+      if (monster.hasManaBurn())
+        ImGui::Text("  Mana Burn");
+      if (monster.bearsCurse())
+        ImGui::Text("  Curse bearer");
+      if (monster.getDeathGazePercent() > 0)
+        ImGui::Text("  Death Gaze %i%%", monster.getDeathGazePercent());
+      if (monster.getDeathProtection() > 0)
+        ImGui::Text("  Death protection (x%i)", monster.getDeathProtection());
+      if (monster.isBurning())
+        ImGui::Text("  is burning (burn stack size %i)", monster.getBurnStackSize());
+      if (monster.isPoisoned())
+        ImGui::Text("  is poisoned (amount: %i)", monster.getPoisonAmount());
+      if (monster.isSlowed())
+        ImGui::Text("  is slowed");
     }
+    else
+      ImGui::Text("%s defeated.", monster.getName());
+  }
+
+  void showStatus(const State& state)
+  {
+    if (state.hero)
+      showStatus(*state.hero);
+    if (state.monster)
+      showStatus(*state.monster);
   }
 
 } // namespace
 
-void Arena::enter(Hero&& newHero)
+void History::add(State previous, ActionEntry entry)
 {
-  history.emplace_back(newHero.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, std::move(hero),
-                       monster, false);
-  hero.emplace(newHero);
+  history.emplace_back(std::tuple(std::move(previous), std::move(entry)));
 }
 
-void Arena::enter(Monster&& newMonster)
+bool History::run()
 {
-  history.emplace_back(newMonster.getName() + " enters"s, Outcome::Summary::Safe, Outcome::Debuffs{}, hero,
-                       std::move(monster), false);
-  monster.emplace(newMonster);
-}
-
-std::optional<Monster> Arena::swap(Monster&& newMonster)
-{
-  auto oldMonster = std::move(monster);
-  history.emplace_back(newMonster.getName() + " enters (pool)"s, Outcome::Summary::Safe, Outcome::Debuffs{}, hero,
-                       oldMonster, true);
-  monster.emplace(std::move(newMonster));
-  return oldMonster;
-}
-
-std::optional<Monster> Arena::run()
-{
-  using Summary = Outcome::Summary;
-
-  auto addAction = [&](std::string title, auto outcomeProvider, bool activated) {
-    if (activated)
+  ImGui::Begin("History");
+  int repeated = 1;
+  for (unsigned i = 0; i < history.size(); ++i)
+  {
+    const auto& entry = std::get<ActionEntry>(history[i]);
+    if (i < history.size() - 1)
     {
-      auto outcome = outcomeProvider();
-      if (outcome.summary != Summary::NotPossible)
+      const auto next = std::get<ActionEntry>(history[i + 1]);
+      if (std::get<0>(entry) == std::get<0>(next) && std::get<2>(entry) == std::get<2>(next))
       {
-        history.emplace_back(std::move(title), outcome.summary, std::move(outcome.debuffs), std::move(hero),
-                             std::move(monster), false);
-        hero = std::move(outcome.hero);
-        monster = std::move(outcome.monster);
+        ++repeated;
+        continue;
       }
     }
-    else if (ImGui::IsItemHovered())
+    ImGui::TextUnformatted(std::get<std::string>(entry).c_str());
+    const auto outcome = std::get<Outcome>(entry);
+    if (outcome.summary != Summary::Safe)
     {
-      const auto outcome = outcomeProvider();
+      const auto color = summaryColor(outcome.summary, !outcome.debuffs.empty());
+      ImGui::SameLine();
+      ImGui::TextColored(color, "%s", toString(outcome).c_str());
+    }
+    if (repeated > 1)
+    {
+      ImGui::SameLine();
+      ImGui::Text("(x%i)", repeated);
+      repeated = 1;
+    }
+  }
+
+  const bool undoRequested = !history.empty() && ImGui::Button("Undo");
+  ImGui::End();
+
+  return undoRequested;
+}
+
+bool History::empty() const
+{
+  return history.empty();
+}
+
+std::pair<State, std::optional<Monster>> History::undo()
+{
+  assert(!history.empty());
+  std::optional<Monster> undoMonster;
+  auto& restore = history.back();
+  AnyAction& action = std::get<AnyAction>(std::get<ActionEntry>(restore));
+  if (auto monster = std::get_if<MonsterFromPool>(&action))
+    undoMonster.emplace(std::move(*monster));
+  auto previousState = std::move(std::get<State>(restore));
+  history.pop_back();
+  return std::pair{std::move(previousState), std::move(undoMonster)};
+}
+
+Arena::StateUpdate Arena::run(const State& currentState)
+{
+  using namespace std::string_literals;
+
+  Arena::StateUpdate result;
+
+  auto addAction = [&](std::string title, AnyAction action, bool activated) {
+    if (!activated && !ImGui::IsItemHovered())
+      return;
+    Summary summary;
+    State newState{currentState.hero, currentState.monster};
+    if (auto heroAction = std::get_if<HeroAction>(&action))
+      summary = (*heroAction)(*newState.hero);
+    else if (auto attackAction = std::get_if<AttackAction>(&action))
+      summary = (*attackAction)(*newState.hero, *newState.monster);
+    Outcome outcome = {summary, Combat::findDebuffs(*currentState.hero, *newState.hero), std::nullopt};
+    if (!activated)
+    {
       ImGui::BeginTooltip();
       ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-      if (outcome.summary == Summary::NotPossible)
+      if (summary == Summary::NotPossible)
         ImGui::TextUnformatted("Not possible");
       else
       {
-        const auto color = summaryColor(outcome.summary, !outcome.debuffs.empty());
-        ImGui::TextColored(color, "%s", toString(outcome.summary, outcome.debuffs).c_str());
-        showStatus(outcome.hero, outcome.monster);
+        const auto color = summaryColor(summary, !outcome.debuffs.empty());
+        ImGui::TextColored(color, "%s", toString(outcome).c_str());
+        showStatus(newState);
       }
       ImGui::PopTextWrapPos();
       ImGui::EndTooltip();
     }
+    else if (summary != Summary::NotPossible)
+    {
+      ActionEntry entry{std::move(title), std::move(action), std::move(outcome)};
+      result.emplace(std::pair(std::move(entry), std::move(newState)));
+    }
   };
-  auto addActionButton = [&](std::string title, auto outcomeProvider) {
-    const bool button = ImGui::Button(title.c_str());
-    addAction(std::move(title), std::move(outcomeProvider), button);
+  auto addActionButton = [&](std::string title, AnyAction action) {
+    const bool buttonPressed = ImGui::Button(title.c_str());
+    addAction(std::move(title), std::move(action), buttonPressed);
   };
-  auto addPopupAction = [&](std::string title, auto outcomeProvider, bool wasSelected) {
+  auto addPopupAction = [&](std::string title, AnyAction action, bool wasSelected) {
     const bool mouseDown = ImGui::IsAnyMouseDown();
     const bool becameSelected = (ImGui::Selectable(title.c_str()) || (ImGui::IsItemHovered() && mouseDown));
-    addAction(std::move(title), std::move(outcomeProvider), wasSelected && !mouseDown);
+    addAction(std::move(title), std::move(action), wasSelected && !mouseDown);
     return becameSelected;
-  };
-  auto makeProvider = [&](auto heroModifier) {
-    return [&, heroModifier = std::move(heroModifier)]() {
-      Hero heroAfter = *hero;
-      heroModifier(heroAfter);
-      return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
-    };
   };
 
   ImGui::Begin("Arena");
-  showStatus(hero, monster);
-  if (hero.has_value() && !hero->isDefeated())
+  showStatus(currentState);
+  if (currentState.hero && !currentState.hero->isDefeated())
   {
-    const bool withMonster = monster.has_value() && !monster->isDefeated();
+    const bool withMonster = currentState.monster && !currentState.monster->isDefeated();
     if (withMonster)
     {
-      addActionButton("Attack", [&] { return Combat::predictOutcome(*hero, *monster); });
+      addActionButton("Attack", [](Hero& hero, Monster& monster) { return Combat::attack(hero, monster); });
       ImGui::SameLine();
-      addActionButton("Attack Other", [&] { return Combat::attackOther(*hero, *monster); });
+      addActionButton("Attack Other", [](Hero& hero, Monster& current) { return Combat::attackOther(hero, current); });
       ImGui::SameLine();
     }
 
@@ -200,12 +237,13 @@ std::optional<Monster> Arena::run()
       ImGui::Text("Spells");
       ImGui::Separator();
       int index = -1;
-      for (const auto& entry : hero->getSpells())
+      for (const auto& entry : currentState.hero->getSpells())
       {
         const bool isSelected = ++index == selectedPopupItem;
         const auto spell = std::get<Spell>(entry.itemOrSpell);
-        const bool possible = (withMonster && Cast::isPossible(*hero, *monster, spell)) ||
-                              (!withMonster && !Cast::needsMonster(spell) && Cast::isPossible(*hero, spell));
+        const bool possible =
+            (withMonster && Cast::isPossible(*currentState.hero, *currentState.monster, spell)) ||
+            (!withMonster && !Cast::needsMonster(spell) && Cast::isPossible(*currentState.hero, spell));
         if (!possible)
         {
           ImGui::TextColored(colorUnavailable, "%s", toString(spell));
@@ -215,13 +253,14 @@ std::optional<Monster> Arena::run()
         bool becameSelected;
         if (withMonster)
           becameSelected = addPopupAction(
-              toString(spell), [&] { return Cast::predictOutcome(*hero, *monster, spell); }, isSelected);
+              toString(spell), [spell](Hero& hero, Monster& monster) { return Cast::targeted(hero, monster, spell); },
+              isSelected);
         else
           becameSelected = addPopupAction(
               toString(spell),
-              [&] {
-                Hero heroAfter = Cast::untargeted(*hero, spell);
-                return Outcome{Outcome::Summary::Safe, {}, std::move(heroAfter), monster};
+              [spell](Hero& hero) {
+                Cast::untargeted(hero, spell);
+                return Summary::Safe;
               },
               isSelected);
         if (becameSelected)
@@ -244,11 +283,17 @@ std::optional<Monster> Arena::run()
       ImGui::Text("Items");
       ImGui::Separator();
       int index = -1;
-      for (const auto& entry : hero->getItems())
+      for (const auto& entry : currentState.hero->getItems())
       {
         const bool isSelected = ++index == selectedPopupItem;
         const auto item = std::get<Item>(entry.itemOrSpell);
-        if (addPopupAction(toString(item), makeProvider([item](Hero& hero) { hero.use(item); }), isSelected))
+        if (addPopupAction(
+                toString(item),
+                [item](Hero& hero) {
+                  hero.use(item);
+                  return Summary::Safe;
+                },
+                isSelected))
           selectedPopupItem = index;
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
@@ -268,7 +313,7 @@ std::optional<Monster> Arena::run()
       ImGui::Text("Items");
       ImGui::Separator();
       int index = -1;
-      for (const auto& entry : hero->getItems())
+      for (const auto& entry : currentState.hero->getItems())
       {
         const bool isSelected = ++index == selectedPopupItem;
         const auto item = std::get<Item>(entry.itemOrSpell);
@@ -276,7 +321,13 @@ std::optional<Monster> Arena::run()
         {
           const std::string title =
               "Convert "s + toString(item) + " (" + std::to_string(entry.conversionPoints) + " CP)";
-          if (addPopupAction(title, makeProvider([item](Hero& hero) { hero.convert(item); }), isSelected))
+          if (addPopupAction(
+                  title,
+                  [item](Hero& hero) {
+                    hero.convert(item);
+                    return Summary::Safe;
+                  },
+                  isSelected))
             selectedPopupItem = index;
         }
         else
@@ -285,7 +336,7 @@ std::optional<Monster> Arena::run()
       ImGui::Separator();
       ImGui::Text("Spells");
       ImGui::Separator();
-      for (const auto& entry : hero->getSpells())
+      for (const auto& entry : currentState.hero->getSpells())
       {
         const bool isSelected = ++index == selectedPopupItem;
         const auto spell = std::get<Spell>(entry.itemOrSpell);
@@ -293,7 +344,13 @@ std::optional<Monster> Arena::run()
         {
           const std::string title =
               "Convert "s + toString(spell) + " (" + std::to_string(entry.conversionPoints) + " CP)";
-          if (addPopupAction(title, makeProvider([spell](Hero& hero) { hero.convert(spell); }), isSelected))
+          if (addPopupAction(
+                  title,
+                  [spell](Hero& hero) {
+                    hero.convert(spell);
+                    return Summary::Safe;
+                  },
+                  isSelected))
             selectedPopupItem = index;
         }
         else
@@ -319,8 +376,13 @@ std::optional<Monster> Arena::run()
             Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
       {
         const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction("Find "s + toString(potion), makeProvider([potion](Hero& hero) { hero.receive(potion); }),
-                           isSelected))
+        if (addPopupAction(
+                "Find "s + toString(potion),
+                [potion](Hero& hero) {
+                  hero.receive(potion);
+                  return Summary::Safe;
+                },
+                isSelected))
           selectedPopupItem = index;
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
@@ -343,8 +405,13 @@ std::optional<Monster> Arena::run()
             Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
       {
         const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction("Find "s + toString(spell), makeProvider([spell](Hero& hero) { hero.receive(spell); }),
-                           isSelected))
+        if (addPopupAction(
+                "Find "s + toString(spell),
+                [spell](Hero& hero) {
+                  hero.receive(spell);
+                  return Summary::Safe;
+                },
+                isSelected))
           selectedPopupItem = index;
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
@@ -352,65 +419,28 @@ std::optional<Monster> Arena::run()
       ImGui::EndPopup();
     }
 
-    const int numSquares = hero->numSquaresForFullRecovery();
+    const int numSquares = currentState.hero->numSquaresForFullRecovery();
     if (numSquares > 0)
     {
       ImGui::SameLine();
-      addActionButton("Uncover Tile", [&] { return Combat::uncoverTiles(*hero, monster, 1); });
-      if (numSquares > 1 && !withMonster)
+      if (withMonster)
       {
-        const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-        ImGui::SameLine();
-        addActionButton(label, [&] { return Combat::uncoverTiles(*hero, monster, numSquares); });
+        addActionButton("Uncover Tile",
+                        [](Hero& hero, Monster& monster) { return Combat::uncoverTiles(hero, &monster, 1); });
       }
-    }
-  }
-
-  std::optional<Monster> undoMonster;
-  if (!history.empty() && ImGui::Button("Undo"))
-  {
-    auto restore = history.back();
-    const bool monsterToPool = std::get<5>(restore);
-    hero = std::move(std::get<3>(restore));
-    if (monsterToPool)
-      undoMonster = std::move(monster);
-    monster = std::move(std::get<4>(restore));
-    history.pop_back();
-  }
-  ImGui::End();
-
-  ImGui::Begin("Protocol");
-  int repeated = 1;
-  for (unsigned i = 0; i < history.size(); ++i)
-  {
-    const auto& item = history[i];
-    if (i < history.size() - 1)
-    {
-      const auto next = history[i + 1];
-      if (std::get<0>(item) == std::get<0>(next) && std::get<1>(item) == std::get<1>(next) &&
-          std::get<2>(item) == std::get<2>(next))
+      else
       {
-        ++repeated;
-        continue;
+        addActionButton("Uncover Tile", [](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, 1); });
+        if (numSquares > 1)
+        {
+          const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
+          ImGui::SameLine();
+          addActionButton(label, [numSquares](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, numSquares); });
+        }
       }
-    }
-    ImGui::TextUnformatted(std::get<0>(item).c_str());
-    const auto summary = std::get<1>(item);
-    if (summary != Summary::Safe)
-    {
-      const auto debuffs = std::get<2>(item);
-      const auto color = summaryColor(summary, !debuffs.empty());
-      ImGui::SameLine();
-      ImGui::TextColored(color, "%s", toString(summary, debuffs).c_str());
-    }
-    if (repeated > 1)
-    {
-      ImGui::SameLine();
-      ImGui::Text("(x%i)", repeated);
-      repeated = 1;
     }
   }
   ImGui::End();
 
-  return undoMonster;
+  return result;
 }

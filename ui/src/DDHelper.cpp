@@ -22,6 +22,8 @@ private:
   CustomHeroBuilder heroBuilder;
   CustomMonsterBuilder monsterBuilder;
   MonsterPool monsterPool;
+  State state;
+  History history;
   Arena arena;
 };
 
@@ -32,41 +34,69 @@ DDHelperApp::DDHelperApp()
 
 void DDHelperApp::populateFrame()
 {
-  auto hero = heroSelection.run();
-  if (hero.has_value())
-    arena.enter(std::move(*hero));
+  using namespace std::string_literals;
 
-  auto customHero = heroBuilder.run();
-  if (customHero.has_value())
-    arena.enter(std::move(*customHero));
+  auto hero = heroSelection.run();
+  if (!hero.has_value())
+    hero = heroBuilder.run();
+  if (hero.has_value())
+  {
+    HeroAction action = [newHero = *hero](Hero& hero) {
+      hero = std::move(newHero);
+      return Summary::Safe;
+    };
+    ActionEntry entry(hero->getName() + " enters"s, std::move(action), {});
+    history.add(state, std::move(entry));
+    state.hero = std::move(hero);
+  }
 
   monsterSelection.run();
-  auto monster = monsterSelection.toArena();
-  if (monster.has_value())
-    arena.enter(std::move(*monster));
-  monster = monsterSelection.toPool();
-  if (monster.has_value())
-    monsterPool.add(std::move(*monster));
-
   monsterBuilder.run();
-  monster = monsterBuilder.toArena();
+  auto monster = monsterSelection.toArena();
+  if (!monster.has_value())
+    monster = monsterBuilder.toArena();
   if (monster.has_value())
-    arena.enter(std::move(*monster));
-  monster = monsterBuilder.toPool();
+  {
+    AttackAction action = [newMonster = *monster](Hero&, Monster& monster) {
+      monster = std::move(newMonster);
+      return Summary::Safe;
+    };
+    ActionEntry entry(monster->getName() + " enters"s, std::move(action), {});
+    history.add(state, std::move(entry));
+    state.monster = std::move(monster);
+  }
+
+  monster = monsterSelection.toPool();
+  if (!monster.has_value())
+    monster = monsterBuilder.toPool();
   if (monster.has_value())
     monsterPool.add(std::move(*monster));
 
   auto poolMonster = monsterPool.run();
   if (poolMonster.has_value())
   {
-    auto oldMonster = arena.swap(std::move(poolMonster.value()));
-    if (oldMonster.has_value())
-      monsterPool.add(std::move(*oldMonster));
+    MonsterFromPool action = *poolMonster;
+    ActionEntry entry(poolMonster->getName() + " enters (from pool)"s, std::move(action), {});
+    history.add(state, std::move(entry));
+    if (state.monster && !state.monster->isDefeated())
+      monsterPool.add(std::move(*state.monster));
+    state.monster = std::move(poolMonster);
   }
 
-  auto undoMonster = arena.run();
-  if (undoMonster.has_value())
-    monsterPool.add(std::move(*undoMonster));
+  Arena::StateUpdate result = arena.run(state);
+  if (result.has_value())
+  {
+    history.add(std::move(state), result->first);
+    state = std::move(result->second);
+  }
+
+  if (history.run())
+  {
+    auto undoInfo = history.undo();
+    state = std::move(undoInfo.first);
+    if (undoInfo.second)
+      monsterPool.add(std::move(*undoInfo.second));
+  }
 }
 
 int main()

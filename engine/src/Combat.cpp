@@ -136,7 +136,7 @@ namespace Combat
     return detail::summaryAndExperience(hero, monster, monsterWasSlowed);
   }
 
-  Summary uncoverTiles(Hero& hero, std::optional<Monster>& monster, int numTiles)
+  Summary uncoverTiles(Hero& hero, Monster* monster, int numTiles)
   {
     hero.recover(numTiles);
     if (monster)
