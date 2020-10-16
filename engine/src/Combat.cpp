@@ -144,6 +144,24 @@ namespace Combat
     return Summary::Safe;
   }
 
+  Debuffs findDebuffs(const Hero& before, const Hero& after)
+  {
+    Debuffs debuffs;
+    if (before.hasStatus(HeroStatus::DeathProtection) && !after.hasStatus(HeroStatus::DeathProtection))
+      debuffs.insert(Debuff::LostDeathProtection);
+    if (before.getStatusIntensity(HeroStatus::Cursed) < after.getStatusIntensity(HeroStatus::Cursed))
+      debuffs.insert(Debuff::Cursed);
+    if (before.hasStatus(HeroStatus::ManaBurned) && !after.hasStatus(HeroStatus::ManaBurned))
+      debuffs.insert(Debuff::ManaBurned);
+    if (before.hasStatus(HeroStatus::Poisoned) && !after.hasStatus(HeroStatus::Poisoned))
+      debuffs.insert(Debuff::Poisoned);
+    if (before.getStatusIntensity(HeroStatus::Corrosion) < after.getStatusIntensity(HeroStatus::Corrosion))
+      debuffs.insert(Debuff::Corroded);
+    if (before.getStatusIntensity(HeroStatus::Weakened) < after.getStatusIntensity(HeroStatus::Weakened))
+      debuffs.insert(Debuff::Weakened);
+    return debuffs;
+  }
+
   namespace detail
   {
     Summary summaryAndExperience(Hero& hero, const Monster& monster, bool monsterWasSlowed)
