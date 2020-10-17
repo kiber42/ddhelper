@@ -57,6 +57,12 @@ void showStatus(const Monster& monster)
   {
     ImGui::Text("%s has %i/%i HP and does %i damage", monster.getName(), monster.getHitPoints(),
                 monster.getHitPointsMax(), monster.getDamage());
+    if (monster.hasFirstStrike() && !monster.isSlowed())
+      ImGui::Text("  First Strike");
+    if (monster.doesMagicalDamage())
+      ImGui::Text("  Magical Attack");
+    if (monster.doesRetaliate() && !monster.isSlowed())
+      ImGui::Text("  Retaliate: Fireball");
     if (monster.getPhysicalResistPercent() > 0)
       ImGui::Text("  Physical resist %i%%", monster.getPhysicalResistPercent());
     if (monster.getMagicalResistPercent() > 0)
@@ -67,16 +73,32 @@ void showStatus(const Monster& monster)
       ImGui::Text("  Mana Burn");
     if (monster.bearsCurse())
       ImGui::Text("  Curse bearer");
+    if (monster.isCorrosive())
+      ImGui::Text("  Corrosive");
+    if (monster.isWeakening())
+      ImGui::Text("  Weakening Blow");
     if (monster.getDeathGazePercent() > 0)
       ImGui::Text("  Death Gaze %i%%", monster.getDeathGazePercent());
     if (monster.getDeathProtection() > 0)
       ImGui::Text("  Death protection (x%i)", monster.getDeathProtection());
+    if (monster.getLifeStealPercent() > 0)
+      ImGui::Text("  Life Steal (%i%%)", monster.getLifeStealPercent());
     if (monster.isBurning())
-      ImGui::Text("  is burning (burn stack size %i)", monster.getBurnStackSize());
+      ImGui::Text("  Burning (burn stack size %i)", monster.getBurnStackSize());
     if (monster.isPoisoned())
-      ImGui::Text("  is poisoned (amount: %i)", monster.getPoisonAmount());
+      ImGui::Text("  Poisoned (amount: %i)", monster.getPoisonAmount());
     if (monster.isSlowed())
-      ImGui::Text("  is slowed");
+      ImGui::Text("  Slowed");
+    if (monster.getCorroded() > 0)
+      ImGui::Text("  Corroded (x%i)", monster.getCorroded());
+    if (monster.getWeakened() > 0)
+      ImGui::Text("  Weakened (x%i)", monster.getWeakened());
+    if (monster.isUndead())
+      ImGui::Text("  Undead");
+    if (monster.isBloodless())
+      ImGui::Text("  Bloodless");
+    if (!monster.grantsXP())
+      ImGui::Text("  No Experience");
   }
   else
     ImGui::Text("%s defeated.", monster.getName());
