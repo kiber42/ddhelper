@@ -58,6 +58,17 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     stats.addHealthBonus(1);
   }
 
+  if (hasTrait(HeroTrait::HandToHand))
+  {
+    stats.setBaseDamage(3);
+    changeDamageBonusPercent(-30);
+  }
+  if (hasTrait(HeroTrait::DiamondBody))
+  {
+    defence.setPhysicalResistPercent(50);
+    defence.setPhysicalResistPercentMax(75);
+  }
+
   if (hasTrait(HeroTrait::Defiant))
     inventory.add(Spell::Cydstepp);
   if (hasTrait(HeroTrait::MagicAttunement))
@@ -330,6 +341,8 @@ void Hero::recover(int nSquares)
   if (!hasStatus(HeroStatus::Poisoned))
   {
     int multiplier = getLevel() * (hasTrait(HeroTrait::Discipline) ? 2 : 1);
+    if (hasTrait(HeroTrait::Discipline))
+      multiplier *= 2;
     if (hasTrait(HeroTrait::Damned))
       multiplier = 1;
     // TODO: Add +1 for Bloody Sigil
@@ -528,7 +541,7 @@ void Hero::levelGainedUpdate()
   stats.refresh();
   removeStatus(HeroStatus::Poisoned, true);
   removeStatus(HeroStatus::ManaBurned, true);
-  changeBaseDamage(+5);
+  changeBaseDamage(hasTrait(HeroTrait::HandToHand) ? +3 : +5);
   applyOrCollect(faith.levelGained());
 }
 
