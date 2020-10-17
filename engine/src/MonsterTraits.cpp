@@ -95,6 +95,12 @@ MonsterTraitsBuilder& MonsterTraitsBuilder::setLifeStealPercent(int newLifeSteal
   return *this;
 }
 
+MonsterTraitsBuilder& MonsterTraitsBuilder::setBerserkPercent(int newBerserkPercent)
+{
+  traits.berserkPercent = newBerserkPercent;
+  return *this;
+}
+
 MonsterTraitsBuilder& MonsterTraitsBuilder::addUndead()
 {
   traits.undead = true;
@@ -107,62 +113,8 @@ MonsterTraitsBuilder& MonsterTraitsBuilder::addBloodless()
   return *this;
 }
 
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeMagicalDamage()
+MonsterTraitsBuilder& MonsterTraitsBuilder::addFastRegen()
 {
-  traits.magicalDamage = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeRetaliate()
-{
-  traits.retaliate = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removePoisonous()
-{
-  traits.poisonous = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeManaBurn()
-{
-  traits.manaBurn = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeCurse()
-{
-  traits.curse = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeCorrosive()
-{
-  traits.corrosive = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeWeakening()
-{
-  traits.weakening = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeFirstStrike()
-{
-  traits.firstStrike = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeUndead()
-{
-  traits.undead = false;
-  return *this;
-}
-
-MonsterTraitsBuilder& MonsterTraitsBuilder::removeBloodless()
-{
-  traits.bloodless = false;
+  traits.fastRegen = true;
   return *this;
 }

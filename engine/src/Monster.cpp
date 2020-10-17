@@ -63,7 +63,10 @@ int Monster::getHitPointsMax() const
 
 int Monster::getDamage() const
 {
-  return stats.getDamage();
+  const int standardDamage = stats.getDamage();
+  if (getHitPoints() <= traits.getBerserkPercent() * getHitPointsMax())
+    return standardDamage * 3 / 2;
+  return standardDamage;
 }
 
 int Monster::getPhysicalResistPercent() const
@@ -116,6 +119,8 @@ void Monster::recover(int nSquares)
   if (isDefeated())
     return;
   int recoverPoints = nSquares * (getLevel() - static_cast<int>(status.isBurning()));
+  if (traits.hasFastRegen())
+    recoverPoints *= 2;
   if (status.isPoisoned())
   {
     int poison = status.getPoisonAmount();

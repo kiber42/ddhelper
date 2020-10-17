@@ -9,7 +9,7 @@ MonsterStats::MonsterStats(MonsterType type, int level, int dungeonMultiplier)
                  // HP sometimes appears to be 1 too high (at least for "Shifting Passages")
                  (level * (level + 6) - 1) * dungeonMultiplier / 100 * getHPMultiplierPercent(type) / 100,
                  (level * (level + 5) / 2) * dungeonMultiplier / 100 * getDamageMultiplierPercent(type) / 100,
-                 0)
+                 getDeathProtectionInitial(type, level))
 {
 }
 
