@@ -85,4 +85,6 @@ namespace Cast
   {
     return spell == Spell::Imawal || spell == Spell::Weytwut || spell == Spell::Wonafyt;
   }
+
+  int spellCosts(Spell spell, const Hero& hero);
 } // namespace Cast

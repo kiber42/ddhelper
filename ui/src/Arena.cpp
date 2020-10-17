@@ -26,7 +26,8 @@ Arena::StateUpdate Arena::run(const State& currentState)
       summary = (*heroAction)(*newState.hero);
     else if (auto attackAction = std::get_if<AttackAction>(&action))
       summary = (*attackAction)(*newState.hero, *newState.monster);
-    Outcome outcome = {summary, Combat::findDebuffs(*currentState.hero, *newState.hero), std::nullopt};
+    Outcome outcome = {summary, Combat::findDebuffs(*currentState.hero, *newState.hero),
+                       std::nullopt /* TODO: report piety change */};
     if (!activated)
     {
       ImGui::BeginTooltip();
@@ -52,10 +53,10 @@ Arena::StateUpdate Arena::run(const State& currentState)
     const bool buttonPressed = ImGui::Button(title.c_str());
     addAction(std::move(title), std::move(action), buttonPressed);
   };
-  auto addPopupAction = [&](std::string title, AnyAction action, bool wasSelected) {
+  auto addPopupAction = [&](std::string itemLabel, std::string historyTitle, AnyAction action, bool wasSelected) {
     const bool mouseDown = ImGui::IsAnyMouseDown();
-    const bool becameSelected = (ImGui::Selectable(title.c_str()) || (ImGui::IsItemHovered() && mouseDown));
-    addAction(std::move(title), std::move(action), wasSelected && !mouseDown);
+    const bool becameSelected = (ImGui::Selectable(itemLabel.c_str()) || (ImGui::IsItemHovered() && mouseDown));
+    addAction(std::move(historyTitle), std::move(action), wasSelected && !mouseDown);
     return becameSelected;
   };
 
@@ -88,20 +89,22 @@ Arena::StateUpdate Arena::run(const State& currentState)
         const bool possible =
             (withMonster && Cast::isPossible(*currentState.hero, *currentState.monster, spell)) ||
             (!withMonster && !Cast::needsMonster(spell) && Cast::isPossible(*currentState.hero, spell));
+        const int costs = Cast::spellCosts(spell, *currentState.hero);
+        const std::string label = toString(spell) + " ("s + std::to_string(costs) + " MP)";
         if (!possible)
         {
-          ImGui::TextColored(colorUnavailable, "%s", toString(spell));
+          ImGui::TextColored(colorUnavailable, "%s", label.c_str());
           continue;
         }
-
+        const std::string historyTitle = "Cast "s + toString(spell);
         bool becameSelected;
         if (withMonster)
           becameSelected = addPopupAction(
-              toString(spell), [spell](Hero& hero, Monster& monster) { return Cast::targeted(hero, monster, spell); },
-              isSelected);
+              label, historyTitle,
+              [spell](Hero& hero, Monster& monster) { return Cast::targeted(hero, monster, spell); }, isSelected);
         else
           becameSelected = addPopupAction(
-              toString(spell),
+              label, historyTitle,
               [spell](Hero& hero) {
                 Cast::untargeted(hero, spell);
                 return Summary::Safe;
@@ -131,11 +134,12 @@ Arena::StateUpdate Arena::run(const State& currentState)
       {
         const bool isSelected = ++index == selectedPopupItem;
         const auto item = std::get<Item>(entry.itemOrSpell);
-        std::string label = toString(item);
+        const std::string historyTitle = toString(item);
+        std::string label = historyTitle;
         if (entry.count > 1)
           label += " (x" + std::to_string(entry.count) + ")";
         if (addPopupAction(
-                std::move(label),
+                std::move(label), historyTitle,
                 [item](Hero& hero) {
                   hero.use(item);
                   return Summary::Safe;
@@ -166,10 +170,10 @@ Arena::StateUpdate Arena::run(const State& currentState)
         const auto item = std::get<Item>(entry.itemOrSpell);
         if (entry.conversionPoints >= 0)
         {
-          const std::string title =
-              "Convert "s + toString(item) + " (" + std::to_string(entry.conversionPoints) + " CP)";
+          const std::string label = toString(item) + " ("s + std::to_string(entry.conversionPoints) + " CP)";
+          const std::string historyTitle = "Convert " + label;
           if (addPopupAction(
-                  title,
+                  label, historyTitle,
                   [item](Hero& hero) {
                     hero.convert(item);
                     return Summary::Safe;
@@ -189,10 +193,10 @@ Arena::StateUpdate Arena::run(const State& currentState)
         const auto spell = std::get<Spell>(entry.itemOrSpell);
         if (entry.conversionPoints >= 0)
         {
-          const std::string title =
-              "Convert "s + toString(spell) + " (" + std::to_string(entry.conversionPoints) + " CP)";
+          const std::string label = toString(spell) + " ("s + std::to_string(entry.conversionPoints) + " CP)";
+          const std::string historyTitle = "Convert " + label;
           if (addPopupAction(
-                  title,
+                  label, historyTitle,
                   [spell](Hero& hero) {
                     hero.convert(spell);
                     return Summary::Safe;
@@ -248,7 +252,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
         const Spell spell = static_cast<Spell>(index);
         const bool isSelected = index == selectedPopupItem;
         if (addPopupAction(
-                "Find "s + toString(spell),
+                toString(spell), "Find "s + toString(spell),
                 [spell](Hero& hero) {
                   hero.receive(spell);
                   return Summary::Safe;
@@ -265,7 +269,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
       {
         const bool isSelected = ++index == selectedPopupItem;
         if (addPopupAction(
-                "Find "s + toString(potion),
+                toString(potion), "Find "s + toString(potion),
                 [potion](Hero& hero) {
                   hero.receive(potion);
                   return Summary::Safe;
@@ -293,7 +297,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
         const God deity = static_cast<God>(index);
         const bool isSelected = index == selectedPopupItem;
         if (addPopupAction(
-                "Follow "s + toString(deity),
+                toString(deity), "Follow "s + toString(deity),
                 [deity](Hero& hero) {
                   return hero.getFaith().followDeity(deity, hero) ? Summary::Safe : Summary::NotPossible;
                 },
@@ -303,7 +307,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
       if (currentState.hero->getFollowedDeity())
       {
         ImGui::Separator();
-        ImGui::Text("Boons");
+        ImGui::Text("Request Boon");
         ImGui::Separator();
         for (int index = 0; index <= static_cast<int>(Boon::Last); ++index)
         {
@@ -312,8 +316,10 @@ Arena::StateUpdate Arena::run(const State& currentState)
             continue;
           const bool isSelected = index + 100 == selectedPopupItem;
           const int costs = currentState.hero->getBoonCosts(boon);
+          const std::string label = toString(boon) + " ("s + std::to_string(costs) + ")";
+          const std::string historyTitle = "Request "s + toString(boon);
           if (addPopupAction(
-                  "Request "s + toString(boon) + " (" + std::to_string(costs) + ")",
+                  label, historyTitle,
                   [boon](Hero& hero) {
                     return hero.getFaith().request(boon, hero) ? Summary::Safe : Summary::NotPossible;
                   },
