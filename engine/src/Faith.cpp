@@ -455,21 +455,6 @@ PietyChange Faith::converted(Spell spell)
   }
 }
 
-PietyChange Faith::wallDestroyed()
-{
-  // Also applies for petrified monsters
-  if (followedDeity == God::BinlorIronshield)
-    return 5;
-  return {};
-}
-
-PietyChange Faith::wallCreated()
-{
-  if (followedDeity == God::BinlorIronshield)
-    return -5;
-  return {};
-}
-
 PietyChange Faith::plantDestroyed()
 {
   if (followedDeity == God::TheEarthmother)

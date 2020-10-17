@@ -137,7 +137,6 @@ private:
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
-  void apply(PietyChange pietyChange);
   void applyOrCollect(PietyChange pietyChange);
 
   /*

@@ -24,7 +24,7 @@ public:
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage, int burnStackSize) const;
 
   void setCorrosion(int numCorrosionLayers);
-
+  void setStoneSkin(int stoneSkinLayers);
   void setCursed(bool isCursed);
 
 private:
@@ -33,5 +33,6 @@ private:
   int physicalResistPercentMax;
   int magicalResistPercentMax;
   int numCorrosionLayers;
+  int numStoneSkinLayers;
   bool isCursed;
 };

@@ -70,8 +70,8 @@ namespace Combat
         monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
       if (hero.hasStatus(HeroStatus::Poisonous))
       {
-        monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous));
-        hero.collect(hero.getFaith().monsterPoisoned(monster));
+        if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous)))
+          hero.collect(hero.getFaith().monsterPoisoned(monster));
       }
       if (hero.hasStatus(HeroStatus::Might))
         monster.erodeResitances();
@@ -125,8 +125,8 @@ namespace Combat
           monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
         if (hero.hasStatus(HeroStatus::Poisonous))
         {
-          monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous));
-          hero.collect(hero.getFaith().monsterPoisoned(monster));
+          if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous)))
+            hero.collect(hero.getFaith().monsterPoisoned(monster));
         }
         if (hero.hasStatus(HeroStatus::Might))
           monster.erodeResitances();

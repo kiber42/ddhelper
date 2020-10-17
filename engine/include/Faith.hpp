@@ -119,11 +119,11 @@ public:
   // The following methods address the gods' likes and dislikes.
   PietyChange monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning);
   PietyChange monsterPoisoned(const Monster& monster);
-  // Regular spells (no target or targeting monster), including Imawal
+  // Regular spells (no target or targeting monster), including Imawal cast on monster
   PietyChange spellCast(Spell spell, int manaCost);
-  // Imawal cast on empty space
+  // Imawal cast on empty space (Binlor)
   PietyChange imawalCreateWall(int manaCost);
-  // Imawal cast on a plant
+  // Imawal cast on a plant (Earthmother)
   PietyChange imawalPetrifyPlant(int manaCost);
   PietyChange levelGained();
 
@@ -136,10 +136,6 @@ public:
 
   PietyChange converted(Item item);
   PietyChange converted(Spell spell);
-
-  // specific to Binlor
-  PietyChange wallDestroyed();
-  PietyChange wallCreated();
 
   // specific to Earthmother
   PietyChange plantDestroyed();

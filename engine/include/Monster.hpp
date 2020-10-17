@@ -34,7 +34,8 @@ public:
   void burn(int nMaxStacks);
   void burnMax(int nMaxStacks);
   void burnDown();
-  void poison(int addedPoisonAmount);
+  // returns false for undead monsters as they cannot be poisoned
+  bool poison(int addedPoisonAmount);
   void slow();
   void erodeResitances();
   void petrify();

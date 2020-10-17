@@ -26,6 +26,7 @@ namespace Cast
     {
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
+      const bool monsterWasBurning = monster.isBurning();
       const int multiplier =
           4 + hero.hasBoon(Boon::Flames) + (heavy ? 4 : 0) /* + (hero.hasItem(Items::BattlemageRing) ? 1 : 0) */;
 
@@ -44,6 +45,9 @@ namespace Cast
         if (hero.hasTrait(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
       }
+
+      if (monster.isDefeated())
+        hero.collect(hero.getFaith().monsterKilled(monster, hero.getLevel(), monsterWasBurning));
 
       // Curses
       Combat::detail::monsterDefeatedCurse(hero, monster);
@@ -132,16 +136,17 @@ namespace Cast
       hero.healHitPoints(2 * manaCosts);
     // Transmuter: Gain conversion points (Inner Focus)
     // Dragon Soul (15% free cast chance)
-    // God Likes and Dislikes
   }
 
-  void untargeted(Hero hero, Spell spell)
+  void untargeted(Hero& hero, Spell spell)
   {
     if (!isPossible(hero, spell))
       return;
 
     const int manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
+
+    hero.startPietyCollection();
 
     switch (spell)
     {
@@ -163,7 +168,7 @@ namespace Cast
       hero.addStatus(HeroStatus::DeathProtection);
       break;
     case Spell::Endiswal:
-      hero.changePhysicalResistPercent(+20);
+      hero.addStatus(HeroStatus::StoneSkin);
       break;
     case Spell::Getindare:
       // first strike, +5% dodge chance (until actual dodge)
@@ -176,7 +181,6 @@ namespace Cast
       hero.removeStatus(HeroStatus::Poisoned, true);
       break;
     case Spell::Imawal:
-      // No real effect if not targeting monster
       hero.recoverManaPoints(2);
       break;
     case Spell::Lemmisi:
@@ -189,6 +193,13 @@ namespace Cast
     default:
       assert(false);
     }
+
+    // Imawal changes its function when cast without target
+    if (spell != Spell::Imawal)
+      hero.collect(hero.getFaith().spellCast(spell, manaCosts));
+    else
+      hero.collect(hero.getFaith().imawalCreateWall(manaCosts));
+    hero.applyCollectedPiety();
 
     applyCastingSideEffects(hero, manaCosts);
   }
@@ -209,10 +220,13 @@ namespace Cast
     const int manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
 
+    hero.startPietyCollection();
+
     switch (spell)
     {
     case Spell::Apheelsik:
-      monster.poison(10 * hero.getLevel());
+      if (monster.poison(10 * hero.getLevel()))
+        hero.collect(hero.getFaith().monsterPoisoned(monster));
       break;
     case Spell::Burndayraz:
       burndayraz(hero, monster);
@@ -245,6 +259,9 @@ namespace Cast
       assert(false);
       break;
     }
+
+    hero.collect(hero.getFaith().spellCast(spell, manaCosts));
+    hero.applyCollectedPiety();
 
     applyCastingSideEffects(hero, manaCosts);
 

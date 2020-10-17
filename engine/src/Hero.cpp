@@ -244,8 +244,7 @@ void Hero::addDamageBonus()
 
 int Hero::getPhysicalResistPercent() const
 {
-  return std::min(defence.getPhysicalResistPercent() + 20 * getStatusIntensity(HeroStatus::StoneSkin),
-                  defence.getPhysicalResistPercentMax());
+  return defence.getPhysicalResistPercent();
 }
 
 int Hero::getMagicalResistPercent() const
@@ -466,6 +465,8 @@ void Hero::propagateStatus(HeroStatus status, int intensity)
     break;
   case HeroStatus::Cursed:
     defence.setCursed(intensity > 0);
+  case HeroStatus::StoneSkin:
+    defence.setStoneSkin(intensity);
   default:
     break;
   }
@@ -581,13 +582,8 @@ void Hero::collect(PietyChange pietyChange)
 void Hero::applyCollectedPiety()
 {
   assert(collectedPiety);
-  apply(*collectedPiety);
+  faith.apply(*collectedPiety, *this);
   collectedPiety.reset();
-}
-
-void Hero::apply(PietyChange pietyChange)
-{
-  faith.apply(pietyChange, *this);
 }
 
 void Hero::applyOrCollect(PietyChange pietyChange)
@@ -640,7 +636,7 @@ void Hero::convert(Item item)
   {
     if (conversion.addPoints(*conversionValue))
       conversion.applyBonus(*this);
-    apply(faith.converted(item));
+    applyOrCollect(faith.converted(item));
   }
 }
 
@@ -651,7 +647,7 @@ void Hero::convert(Spell spell)
   {
     if (conversion.addPoints(*conversionValue))
       conversion.applyBonus(*this);
-    apply(faith.converted(spell));
+    applyOrCollect(faith.converted(spell));
   }
 }
 
@@ -731,6 +727,8 @@ void Hero::use(Item item)
   default:
     break;
   }
+
+  applyOrCollect(faith.itemUsed(item));
 
   if (consumed)
     inventory.remove(item);

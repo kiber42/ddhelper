@@ -154,9 +154,12 @@ void Monster::burnDown()
   }
 }
 
-void Monster::poison(int addedPoisonAmount)
+bool Monster::poison(int addedPoisonAmount)
 {
+  if (isUndead())
+    return false;
   status.setPoison(status.getPoisonAmount() + addedPoisonAmount);
+  return true;
 }
 
 void Monster::slow()

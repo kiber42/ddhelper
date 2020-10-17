@@ -18,13 +18,14 @@ Defence::Defence(int physicalResistPercent,
   , physicalResistPercentMax(physicalResistPercentMax)
   , magicalResistPercentMax(magicalResistPercentMax)
   , numCorrosionLayers(0)
+  , numStoneSkinLayers(0)
   , isCursed(false)
 {
 }
 
 int Defence::getPhysicalResistPercent() const
 {
-  return physicalResistPercent;
+  return std::min(physicalResistPercent + 20 * numStoneSkinLayers, physicalResistPercentMax);
 }
 
 int Defence::getMagicalResistPercent() const
@@ -71,7 +72,7 @@ int Defence::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage, 
   int damage = attackerDamageOutput + burnStackSize;
   if (!isCursed)
   {
-    const int resist = isMagicalDamage ? magicalResistPercent : physicalResistPercent;
+    const int resist = isMagicalDamage ? getMagicalResistPercent() : getPhysicalResistPercent();
     const int resistedPoints = (attackerDamageOutput * resist + burnStackSize * magicalResistPercent) / 100;
     damage -= resistedPoints;
   }
@@ -83,6 +84,11 @@ int Defence::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage, 
 void Defence::setCorrosion(int corrosion)
 {
   numCorrosionLayers = corrosion;
+}
+
+void Defence::setStoneSkin(int stoneSkinLayers)
+{
+  numStoneSkinLayers = stoneSkinLayers;
 }
 
 void Defence::setCursed(bool cursed)
