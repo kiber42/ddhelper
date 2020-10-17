@@ -2,12 +2,10 @@
 
 #include "Arena.hpp"
 #include "HeroSelection.hpp"
+#include "History.hpp"
 #include "MonsterPool.hpp"
 #include "MonsterSelection.hpp"
-
-#include <optional>
-#include <utility>
-#include <vector>
+#include "State.hpp"
 
 class DDHelperApp : public ImguiApp
 {

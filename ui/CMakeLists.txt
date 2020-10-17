@@ -19,8 +19,10 @@ add_executable(
     src/Arena.cpp
     src/DDHelper.cpp
     src/HeroSelection.cpp
+    src/History.cpp
     src/MonsterPool.cpp
     src/MonsterSelection.cpp
+    src/Utils.cpp
 )
 target_link_libraries(ddhelper ddhelperengine imguiapp)
 target_include_directories(ddhelper PUBLIC imgui)
