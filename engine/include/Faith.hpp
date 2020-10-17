@@ -16,7 +16,8 @@ enum class God
   JehoraJeheyu,
   MysteraAnnur,
   Taurog,
-  TikkiTooki
+  TikkiTooki,
+  Last = TikkiTooki
 };
 
 enum class Boon
@@ -29,6 +30,7 @@ enum class Boon
   Petition,
   // Mystera Annur
   Flames,
+  Last = Flames
 };
 
 constexpr const char* toString(God god)
@@ -69,6 +71,26 @@ constexpr const char* toString(Boon boon)
   }
 }
 
+constexpr bool canHaveMultiple(Boon boon)
+{
+  return false;
+}
+
+constexpr God deity(Boon boon)
+{
+  switch (boon)
+  {
+  case Boon::BloodCurse:
+    return God::Dracul;
+  case Boon::Flames:
+    return God::MysteraAnnur;
+  case Boon::Humility:
+    return God::GlowingGuardian;
+  case Boon::Petition:
+    return God::JehoraJeheyu;
+  }
+}
+
 // TODO: Add pacts
 
 class Hero;
@@ -100,7 +122,7 @@ public:
 
   int getPiety() const;
   int getMaxPiety() const;
-  bool hasBoon(Boon) const;
+  int hasBoon(Boon) const;
 
   void gainPiety(int pointsGained);
   void losePiety(int pointsLost, Hero& hero);
@@ -110,9 +132,9 @@ public:
 
   void apply(PietyChange, Hero& hero);
 
-  // bool request(Boon boon, Hero& hero);
-  // int getCosts(Boon boon, const Hero& hero) const;
-  // int isAvailable(Boon boon, const Hero& hero) const;
+  bool request(Boon boon, Hero& hero);
+  int getCosts(Boon boon, const Hero& hero) const;
+  int isAvailable(Boon boon, const Hero& hero) const;
 
   void desecrate(God altar, Hero& hero);
 

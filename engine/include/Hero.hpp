@@ -83,9 +83,6 @@ public:
   bool hasTrait(HeroTrait trait) const;
   bool isTraitActive(HeroTrait trait) const;
 
-  std::optional<God> getFollowedDeity() const;
-  bool hasBoon(Boon boon) const;
-
   void removeOneTimeAttackEffects();
 
   void addDodgeChangePercent(int percent, bool isPermanent);
@@ -93,6 +90,10 @@ public:
 
   Faith& getFaith();
   const Faith& getFaith() const;
+
+  std::optional<God> getFollowedDeity() const;
+  bool hasBoon(Boon boon) const;
+  int getBoonCosts(Boon boon) const;
 
   bool followDeity(God god);
   void desecrate(God altar);

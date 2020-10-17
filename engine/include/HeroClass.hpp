@@ -118,9 +118,8 @@ constexpr const char* toString(HeroRace race)
 
 constexpr bool isMonsterClass(HeroClass theClass)
 {
-  return theClass == HeroClass::Vampire || theClass == HeroClass::HalfDragon ||
-         theClass == HeroClass::Gorgon || theClass == HeroClass::RatMonarch ||
-         theClass == HeroClass::Goatperson;
+  return theClass == HeroClass::Vampire || theClass == HeroClass::HalfDragon || theClass == HeroClass::Gorgon ||
+         theClass == HeroClass::RatMonarch || theClass == HeroClass::Goatperson;
 }
 
 inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
@@ -150,7 +149,7 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   case HeroClass::Monk:
     return {HeroTrait::HandToHand, HeroTrait::Discipline, HeroTrait::DiamondBody};
   case HeroClass::Paladin:
-    // return {HeroTrait::HolyWork, HeroTrait::HolyHands, HeroTrait::HolyShield};
+    return {HeroTrait::HolyWork, HeroTrait::HolyHands, HeroTrait::HolyShield};
   case HeroClass::Crusader:
     // return {HeroTrait::Scars, HeroTrait::Momentum, HeroTrait::Martyr};
   case HeroClass::Transmuter:

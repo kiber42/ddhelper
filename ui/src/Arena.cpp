@@ -45,9 +45,10 @@ namespace
   {
     if (!hero.isDefeated())
     {
-      ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i piety, %i damage", hero.getName().c_str(), hero.getLevel(),
-                  hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
-                  hero.getXP(), hero.getXPforNextLevel(), hero.getFaith().getPiety(), hero.getDamageVersusStandard());
+      ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i piety, %i damage", hero.getName().c_str(),
+                  hero.getLevel(), hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(),
+                  hero.getManaPointsMax(), hero.getXP(), hero.getXPforNextLevel(), hero.getFaith().getPiety(),
+                  hero.getDamageVersusStandard());
       if (hero.hasStatus(HeroStatus::FirstStrike))
         ImGui::Text("  has first strike");
       if (hero.hasStatus(HeroStatus::DeathProtection))
@@ -370,7 +371,9 @@ Arena::StateUpdate Arena::run(const State& currentState)
     }
     if (ImGui::BeginPopup("GodsPopup"))
     {
-      for (int index = 0; index < 8; ++index)
+      ImGui::Text("Worship");
+      ImGui::Separator();
+      for (int index = 0; index <= static_cast<int>(God::Last); ++index)
       {
         const God deity = static_cast<God>(index);
         const bool isSelected = index == selectedPopupItem;
@@ -381,6 +384,27 @@ Arena::StateUpdate Arena::run(const State& currentState)
                 },
                 isSelected))
           selectedPopupItem = index;
+      }
+      if (currentState.hero->getFollowedDeity())
+      {
+        ImGui::Separator();
+        ImGui::Text("Boons");
+        ImGui::Separator();
+        for (int index = 0; index <= static_cast<int>(Boon::Last); ++index)
+        {
+          const Boon boon = static_cast<Boon>(index);
+          if (deity(boon) != currentState.hero->getFollowedDeity())
+            continue;
+          const bool isSelected = index + 100 == selectedPopupItem;
+          const int costs = currentState.hero->getBoonCosts(boon);
+          if (addPopupAction(
+                  "Request "s + toString(boon) + " (" + std::to_string(costs) + ")",
+                  [boon](Hero& hero) {
+                    return hero.getFaith().request(boon, hero) ? Summary::Safe : Summary::NotPossible;
+                  },
+                  isSelected))
+            selectedPopupItem = index + 100;
+        }
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();

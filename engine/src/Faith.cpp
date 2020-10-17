@@ -40,8 +40,10 @@ bool Faith::followDeity(God god, Hero& hero)
 {
   if (hero.hasTrait(HeroTrait::Damned) || hero.hasTrait(HeroTrait::Scapegoat))
     return false;
-  if (followedDeity.has_value() && *followedDeity != god)
+  if (followedDeity.has_value())
   {
+    if (followedDeity == god)
+      return false;
     if (hero.hasTrait(HeroTrait::HolyWork))
       return false;
     if (piety < 50)
@@ -73,9 +75,11 @@ int Faith::getMaxPiety() const
   return consensus ? 50 : 100;
 }
 
-bool Faith::hasBoon(Boon boon) const
+int Faith::hasBoon(Boon boon) const
 {
-  return std::find(begin(boons), end(boons), boon) != end(boons);
+  if (!canHaveMultiple(boon))
+    return std::find(begin(boons), end(boons), boon) != end(boons) ? 1 : 0;
+  return std::count(begin(boons), end(boons), boon);
 }
 
 void Faith::gainPiety(int pointsGained)
@@ -122,10 +126,48 @@ void Faith::apply(PietyChange change, Hero& hero)
     applyRandomJehoraEvent(hero);
 }
 
-// TODO
-// bool Faith::request(Boon boon);
-// int Faith::getCosts(Boon boon) const;
-// int Faith::isAvailable(Boon boon) const;
+bool Faith::request(Boon boon, Hero& hero)
+{
+  if (!isAvailable(boon, hero))
+    return false;
+  const int costs = getCosts(boon, hero);
+  if (costs > piety)
+    return false;
+  piety -= costs;
+  boons.push_back(boon);
+  // Apply immediate effects
+  if (boon == Boon::BloodCurse)
+    hero.modifyLevelBy(+1);
+  else if (boon == Boon::Humility)
+    hero.modifyLevelBy(-1);
+  return true;
+}
+
+int Faith::getCosts(Boon boon, const Hero& hero) const
+{
+  const int baseCosts = [boon] {
+    switch (boon)
+    {
+    case Boon::BloodCurse:
+      return -20;
+    case Boon::Humility:
+      return 15;
+    case Boon::Petition:
+      return 45;
+    case Boon::Flames:
+      return 20;
+    }
+  }();
+  if (hero.hasTrait(HeroTrait::HolyWork))
+    return baseCosts * 8 / 10;
+  return baseCosts;
+}
+
+int Faith::isAvailable(Boon boon, const Hero& hero) const
+{
+  return deity(boon) == followedDeity && (canHaveMultiple(boon) || !hasBoon(boon)) &&
+         (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1);
+}
 
 void Faith::initialBoon(God god, Hero& hero)
 {
@@ -163,6 +205,8 @@ void Faith::initialBoon(God god, Hero& hero)
 
 void Faith::punish(God god, Hero& hero)
 {
+  if (hero.hasTrait(HeroTrait::HolyWork))
+    return;
   switch (god)
   {
   case God::BinlorIronshield:

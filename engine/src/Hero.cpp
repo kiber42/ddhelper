@@ -68,6 +68,8 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     defence.setPhysicalResistPercent(50);
     defence.setPhysicalResistPercentMax(75);
   }
+  if (hasTrait(HeroTrait::HolyShield))
+    defence.setPhysicalResistPercent(25);
 
   if (hasTrait(HeroTrait::Defiant))
     inventory.add(Spell::Cydstepp);
@@ -77,6 +79,8 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     inventory.add(Spell::Bludtupowa);
   if (hasTrait(HeroTrait::PoisonedBlade))
     inventory.add(Spell::Apheelsik);
+  if (hasTrait(HeroTrait::HolyHands))
+    inventory.add(Spell::Halpmeh);
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -512,16 +516,6 @@ bool Hero::isTraitActive(HeroTrait trait) const
   return true;
 }
 
-std::optional<God> Hero::getFollowedDeity() const
-{
-  return faith.getFollowedDeity();
-}
-
-bool Hero::hasBoon(Boon boon) const
-{
-  return faith.hasBoon(boon);
-}
-
 void Hero::removeOneTimeAttackEffects()
 {
   removeStatus(HeroStatus::ConsecratedStrike, true);
@@ -568,6 +562,21 @@ Faith& Hero::getFaith()
 const Faith& Hero::getFaith() const
 {
   return faith;
+}
+
+std::optional<God> Hero::getFollowedDeity() const
+{
+  return faith.getFollowedDeity();
+}
+
+bool Hero::hasBoon(Boon boon) const
+{
+  return faith.hasBoon(boon);
+}
+
+int Hero::getBoonCosts(Boon boon) const
+{
+  return faith.getCosts(boon, *this);
 }
 
 bool Hero::followDeity(God god)
