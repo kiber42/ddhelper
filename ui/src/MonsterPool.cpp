@@ -2,9 +2,16 @@
 
 #include "imgui.h"
 
-void MonsterPool::add(Monster&& newMonster)
+#include <algorithm>
+
+void MonsterPool::add(Monster newMonster)
 {
-  monsters.emplace_back(std::move(newMonster));
+  // Undo functionality could result in duplicate entries
+  const bool duplicate = std::find_if(cbegin(monsters), cend(monsters), [id = newMonster.getID()](const auto& poolMonster) {
+        return poolMonster.getID() == id;
+      }) != cend(monsters);
+  if (!duplicate)
+    monsters.emplace_back(std::move(newMonster));
 }
 
 std::optional<Monster> MonsterPool::run()

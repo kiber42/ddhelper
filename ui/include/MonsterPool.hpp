@@ -8,7 +8,7 @@
 class MonsterPool
 {
 public:
-  void add(Monster&&);
+  void add(Monster);
   std::optional<Monster> run();
 
 private:
