@@ -34,3 +34,8 @@ std::optional<Monster> MonsterPool::run()
   }
   return std::nullopt;
 }
+
+void MonsterPool::reset()
+{
+  monsters.clear();
+}

@@ -5,6 +5,7 @@
 #include "History.hpp"
 #include "MonsterPool.hpp"
 #include "MonsterSelection.hpp"
+#include "Scenario.hpp"
 #include "State.hpp"
 
 class DDHelperApp : public ImguiApp
@@ -95,6 +96,10 @@ void DDHelperApp::populateFrame()
     if (undoInfo.second)
       monsterPool.add(std::move(*undoInfo.second));
   }
+
+  auto scenario = runScenarioSelection();
+  if (scenario)
+    prepareScenario(state, monsterPool, *scenario);
 }
 
 int main()

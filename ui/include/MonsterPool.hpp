@@ -10,6 +10,7 @@ class MonsterPool
 public:
   void add(Monster);
   std::optional<Monster> run();
+  void reset();
 
 private:
   std::vector<Monster> monsters;

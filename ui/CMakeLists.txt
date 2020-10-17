@@ -22,6 +22,7 @@ add_executable(
     src/History.cpp
     src/MonsterPool.cpp
     src/MonsterSelection.cpp
+    src/Scenario.cpp
     src/Utils.cpp
 )
 target_link_libraries(ddhelper ddhelperengine imguiapp)
