@@ -36,7 +36,7 @@ void DDHelperApp::populateFrame()
 
   auto hero = heroSelection.run();
   if (!hero.has_value())
-    hero.emplace(*heroBuilder.run());
+    hero = std::move(heroBuilder.run());
   if (hero.has_value())
   {
     HeroAction action = [newHero = Hero(*hero)](Hero& hero) {
@@ -73,7 +73,7 @@ void DDHelperApp::populateFrame()
   auto poolMonster = monsterPool.run();
   if (poolMonster.has_value())
   {
-    MonsterFromPool action = std::move(*poolMonster);
+    MonsterFromPool action = Monster(*poolMonster);
     ActionEntry entry(poolMonster->getName() + " enters (from pool)"s, std::move(action), {});
     history.add(state, std::move(entry));
     if (state.monster && !state.monster->isDefeated())
