@@ -99,7 +99,10 @@ void DDHelperApp::populateFrame()
 
   auto scenario = runScenarioSelection();
   if (scenario)
+  {
+    history.reset();
     prepareScenario(state, monsterPool, *scenario);
+  }
 }
 
 int main()

@@ -47,11 +47,6 @@ bool History::run()
   return undoRequested;
 }
 
-bool History::empty() const
-{
-  return history.empty();
-}
-
 std::pair<State, std::optional<Monster>> History::undo()
 {
   assert(!history.empty());
@@ -63,4 +58,14 @@ std::pair<State, std::optional<Monster>> History::undo()
   auto previousState = std::move(std::get<State>(restore));
   history.pop_back();
   return std::pair{std::move(previousState), std::move(undoMonster)};
+}
+
+bool History::empty() const
+{
+  return history.empty();
+}
+
+void History::reset()
+{
+  history.clear();
 }
