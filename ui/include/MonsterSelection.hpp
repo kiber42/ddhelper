@@ -34,7 +34,7 @@ public:
   [[nodiscard]] std::optional<Monster> toPool();
 
 private:
-  std::array<int, 6> data;
+  std::array<int, 7> data;
   MonsterTraits traits;
   std::optional<Monster> arenaMonster;
   std::optional<Monster> poolMonster;

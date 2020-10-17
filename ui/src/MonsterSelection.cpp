@@ -14,12 +14,6 @@ MonsterSelection::MonsterSelection()
 
 void MonsterSelection::run()
 {
-  constexpr std::array allTypes = {
-      MonsterType::Bandit,  MonsterType::DragonSpawn, MonsterType::Goat,   MonsterType::Goblin,
-      MonsterType::Golem,   MonsterType::GooBlob,     MonsterType::Gorgon, MonsterType::MeatMan,
-      MonsterType::Serpent, MonsterType::Warlock,     MonsterType::Wraith, MonsterType::Zombie,
-  };
-
   ImGui::Begin("Monster");
   ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
   if (ImGui::BeginCombo("Type", toString(selectedType)))
@@ -103,18 +97,19 @@ std::optional<Monster> MonsterSelection::toPool()
 }
 
 CustomMonsterBuilder::CustomMonsterBuilder()
-  : data{1, 6, 6, 3, 0, 0}
+  : data{1, 6, 6, 3, 0, 0, 0}
 {
 }
 
 void CustomMonsterBuilder::run()
 {
   ImGui::Begin("Custom Monster");
-  ImGui::DragInt("Level", &data[0], 0.2f, 1, 10);
+  ImGui::DragInt("Level", &data[0], 0.1f, 1, 10);
   ImGui::DragInt2("HP / max", &data[1], 0.5f, 0, 300);
   ImGui::DragInt("Attack", &data[3], 0.5f, 0, 300);
   ImGui::DragInt("Physical Resistance", &data[4], 0.2f, 0, 100);
   ImGui::DragInt("Magical Resistance", &data[5], 0.2f, 0, 100);
+  ImGui::DragInt("Death Protection", &data[6], 0.1f, 1, 50);
   ImGui::Checkbox("First Strike", &traits.firstStrike);
   ImGui::Checkbox("Magical Attack", &traits.magicalDamage);
   ImGui::Checkbox("Retaliate", &traits.retaliate);
@@ -129,6 +124,8 @@ void CustomMonsterBuilder::run()
     traits.deathGazePercent = std::min(std::max(traits.deathGazePercent, 0), 100);
   if (ImGui::InputInt("Life Steal %", &traits.lifeStealPercent))
     traits.lifeStealPercent = std::min(std::max(traits.lifeStealPercent, 0), 100);
+  if (ImGui::InputInt("Berserk at %", &traits.berserkPercent))
+    traits.berserkPercent = std::min(std::max(traits.berserkPercent, 0), 100);
   if (ImGui::Button("Send to Arena"))
     arenaMonster.emplace(get());
   if (ImGui::Button("Send to Pool"))
@@ -143,13 +140,13 @@ Monster CustomMonsterBuilder::get() const
   const int hp = data[1];
   const int maxHp = data[2];
   const int damage = data[3];
-  const int deathProtection = data[4];
+  const int deathProtection = data[6];
   auto stats = MonsterStats{level, maxHp, damage, deathProtection};
   if (hp < maxHp)
     stats.loseHitPoints(maxHp - hp);
   else if (hp > maxHp)
     stats.healHitPoints(hp - maxHp, true);
-  auto defence = Defence{data[5], data[6]};
+  auto defence = Defence{data[4], data[5]};
   return {std::move(name), std::move(stats), std::move(defence), traits};
 }
 
