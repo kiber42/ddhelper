@@ -21,8 +21,8 @@ Hero getHeroForScenario(Scenario scenario)
     hero.loseAllItems();
     for (int i = 0; i < 8; ++i)
       hero.receive(Item::ManaPotion);
-    hero.receive(Spell::Burndayraz);
-    hero.receive(Spell::Weytwut);
+    hero.receiveFreeSpell(Spell::Burndayraz);
+    hero.receiveFreeSpell(Spell::Weytwut);
     return hero;
   }
   }
@@ -35,9 +35,9 @@ void fillMonsterPoolForScenario(MonsterPool& pool, Scenario scenario)
   case Scenario::AgbaarsAcademySlowingPart2:
   {
     pool.add({MonsterType::Goblin, 1});
-    pool.add({"Djinn", {1, 19, 99, 0}, {}, MonsterTraitsBuilder().addRetaliate().get()});
-    pool.add({"Zombie", {2, 10, 27, 0}, {}, MonsterTraitsBuilder().addUndead().addBloodless().get()});
-    pool.add({"Eeblis", {3, 28, 999, 0}, {}, MonsterTraitsBuilder().addFirstStrike().addRetaliate().get()});
+    pool.add({"Djinn level 1", {1, 19, 99, 0}, {}, MonsterTraitsBuilder().addRetaliate().get()});
+    pool.add({"Zombie level 2", {2, 10, 27, 0}, {}, MonsterTraitsBuilder().addUndead().addBloodless().get()});
+    pool.add({"Eeblis (level 3)", {3, 28, 999, 0}, {}, MonsterTraitsBuilder().addFirstStrike().addRetaliate().get()});
   }
   break;
   }
