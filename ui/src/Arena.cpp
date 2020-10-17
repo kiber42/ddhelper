@@ -68,8 +68,6 @@ Arena::StateUpdate Arena::run(const State& currentState)
     {
       addActionButton("Attack", [](Hero& hero, Monster& monster) { return Combat::attack(hero, monster); });
       ImGui::SameLine();
-      addActionButton("Attack Other", [](Hero& hero, Monster& current) { return Combat::attackOther(hero, current); });
-      ImGui::SameLine();
     }
 
     ImGui::Button("Cast");
@@ -210,6 +208,75 @@ Arena::StateUpdate Arena::run(const State& currentState)
       ImGui::EndPopup();
     }
 
+    // Second line: actions that may or may not be available in actual game
+
+    const int numSquares = currentState.hero->numSquaresForFullRecovery();
+    if (numSquares > 0)
+    {
+      if (withMonster)
+      {
+        addActionButton("Uncover Tile",
+                        [](Hero& hero, Monster& monster) { return Combat::uncoverTiles(hero, &monster, 1); });
+        ImGui::SameLine();
+      }
+      else
+      {
+        addActionButton("Uncover Tile", [](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, 1); });
+        ImGui::SameLine();
+        if (numSquares > 1)
+        {
+          const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
+          addActionButton(label, [numSquares](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, numSquares); });
+          ImGui::SameLine();
+        }
+      }
+    }
+
+    ImGui::Button("Find");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("FindPopup");
+      selectedPopupItem = -1;
+    }
+    if (ImGui::BeginPopup("FindPopup"))
+    {
+      ImGui::Text("Spells");
+      ImGui::Separator();
+      int index;
+      for (index = 0; index <= static_cast<int>(Spell::Last); ++index)
+      {
+        const Spell spell = static_cast<Spell>(index);
+        const bool isSelected = index == selectedPopupItem;
+        if (addPopupAction(
+                "Find "s + toString(spell),
+                [spell](Hero& hero) {
+                  hero.receive(spell);
+                  return Summary::Safe;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+      ImGui::Separator();
+      ImGui::Text("Potions");
+      ImGui::Separator();
+      for (auto potion :
+           {Item::HealthPotion, Item::ManaPotion, Item::FortitudeTonic, Item::BurnSalve, Item::StrengthPotion,
+            Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        if (addPopupAction(
+                "Find "s + toString(potion),
+                [potion](Hero& hero) {
+                  hero.receive(potion);
+                  return Summary::Safe;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
     ImGui::SameLine();
     ImGui::Button("Gods");
     if (ImGui::IsItemActive())
@@ -259,83 +326,10 @@ Arena::StateUpdate Arena::run(const State& currentState)
       ImGui::EndPopup();
     }
 
-    ImGui::SameLine();
-    ImGui::Button("Potion");
-    if (ImGui::IsItemActive())
-    {
-      ImGui::OpenPopup("PotionPopup");
-      selectedPopupItem = -1;
-    }
-    if (ImGui::BeginPopup("PotionPopup"))
-    {
-      int index = -1;
-      for (auto potion :
-           {Item::HealthPotion, Item::ManaPotion, Item::FortitudeTonic, Item::BurnSalve, Item::StrengthPotion,
-            Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
-      {
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                "Find "s + toString(potion),
-                [potion](Hero& hero) {
-                  hero.receive(potion);
-                  return Summary::Safe;
-                },
-                isSelected))
-          selectedPopupItem = index;
-      }
-      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
-        ImGui::CloseCurrentPopup();
-      ImGui::EndPopup();
-    }
-
-    ImGui::SameLine();
-    ImGui::Button("Spell");
-    if (ImGui::IsItemActive())
-    {
-      ImGui::OpenPopup("SpellPopup");
-      selectedPopupItem = -1;
-    }
-    if (ImGui::BeginPopup("SpellPopup"))
-    {
-      int index = -1;
-      for (Spell spell :
-           {Spell::Burndayraz, Spell::Apheelsik, Spell::Bludtupowa, Spell::Bysseps, Spell::Cydstepp, Spell::Endiswal,
-            Spell::Getindare, Spell::Halpmeh, Spell::Lemmisi, Spell::Pisorf, Spell::Weytwut})
-      {
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                "Find "s + toString(spell),
-                [spell](Hero& hero) {
-                  hero.receive(spell);
-                  return Summary::Safe;
-                },
-                isSelected))
-          selectedPopupItem = index;
-      }
-      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
-        ImGui::CloseCurrentPopup();
-      ImGui::EndPopup();
-    }
-
-    const int numSquares = currentState.hero->numSquaresForFullRecovery();
-    if (numSquares > 0)
+    if (withMonster)
     {
       ImGui::SameLine();
-      if (withMonster)
-      {
-        addActionButton("Uncover Tile",
-                        [](Hero& hero, Monster& monster) { return Combat::uncoverTiles(hero, &monster, 1); });
-      }
-      else
-      {
-        addActionButton("Uncover Tile", [](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, 1); });
-        if (numSquares > 1)
-        {
-          const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-          ImGui::SameLine();
-          addActionButton(label, [numSquares](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, numSquares); });
-        }
-      }
+      addActionButton("Attack Other", [](Hero& hero, Monster& current) { return Combat::attackOther(hero, current); });
     }
   }
   ImGui::End();

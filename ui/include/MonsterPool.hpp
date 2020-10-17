@@ -15,4 +15,3 @@ public:
 private:
   std::vector<Monster> monsters;
 };
-

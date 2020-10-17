@@ -18,7 +18,8 @@ enum class Spell
   Lemmisi,
   Pisorf,
   Weytwut,
-  Wonafyt
+  Wonafyt,
+  Last = Wonafyt
 };
 
 constexpr const char* toString(Spell spell)
