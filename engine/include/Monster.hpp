@@ -13,10 +13,6 @@ public:
   Monster(MonsterType type, int level, int dungeonMultiplier = 100);
   Monster(std::string name, MonsterStats, Defence, MonsterTraits);
   Monster(int level, int hp, int damage);
-  explicit Monster(const Monster&) = default;
-  Monster(Monster&&) = default;
-  Monster& operator=(const Monster&) = delete;
-  Monster& operator=(Monster&&) = default;
 
   const char* getName() const;
   int getID() const;
