@@ -133,8 +133,11 @@ Arena::StateUpdate Arena::run(const State& currentState)
       {
         const bool isSelected = ++index == selectedPopupItem;
         const auto item = std::get<Item>(entry.itemOrSpell);
+        std::string label = toString(item);
+        if (entry.count > 1)
+          label += " (x" + std::to_string(entry.count) + ")";
         if (addPopupAction(
-                toString(item),
+                std::move(label),
                 [item](Hero& hero) {
                   hero.use(item);
                   return Summary::Safe;

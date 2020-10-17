@@ -154,7 +154,14 @@ constexpr int conversionPointsInitial(Item item)
   }
 }
 
+constexpr bool isPotion(Item item)
+{
+  return item == Item::HealthPotion || item == Item::ManaPotion || item == Item::FortitudeTonic ||
+         item == Item::BurnSalve || item == Item::StrengthPotion || item == Item::Schadenfreude ||
+         item == Item::QuicksilverPotion || item == Item::ReflexPotion || item == Item::CanOfWhupaz;
+}
+
 constexpr bool canGroup(Item item)
 {
-  return false;
+  return isPotion(item);
 }
