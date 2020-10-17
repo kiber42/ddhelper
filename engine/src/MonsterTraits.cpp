@@ -4,22 +4,6 @@
 
 #include <utility>
 
-MonsterTraits::MonsterTraits()
-  : magicalDamage(false)
-  , retaliate(false)
-  , poisonous(false)
-  , manaBurn(false)
-  , curse(false)
-  , corrosive(false)
-  , weakening(false)
-  , firstStrike(false)
-  , deathGazePercent(0)
-  , lifeStealPercent(0)
-  , undead(false)
-  , bloodless(false)
-{
-}
-
 MonsterTraits::MonsterTraits(MonsterType type)
   : MonsterTraits(getTraits(type))
 {

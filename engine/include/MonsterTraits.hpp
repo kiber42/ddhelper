@@ -66,22 +66,22 @@ struct MonsterTraits
     return fastRegen;
   }
 
-  bool magicalDamage;
-  bool retaliate;
-  bool poisonous;
-  bool manaBurn;
-  bool curse;
-  bool corrosive;
-  bool weakening;
-  bool firstStrike;
-  int deathGazePercent;
-  int lifeStealPercent;
-  int berserkPercent;
-  bool undead;
-  bool bloodless;
-  bool fastRegen;
+  bool magicalDamage{false};
+  bool retaliate{false};
+  bool poisonous{false};
+  bool manaBurn{false};
+  bool curse{false};
+  bool corrosive{false};
+  bool weakening{false};
+  bool firstStrike{false};
+  int deathGazePercent{0};
+  int lifeStealPercent{0};
+  int berserkPercent{0};
+  bool undead{false};
+  bool bloodless{false};
+  bool fastRegen{false};
 
-  MonsterTraits();
+  MonsterTraits() = default;
   MonsterTraits(MonsterType type);
   MonsterTraits(MonsterTraitsBuilder&& builder);
 };
