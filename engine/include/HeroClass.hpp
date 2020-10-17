@@ -29,6 +29,7 @@ enum class HeroClass
   RatMonarch,
   Goatperson,
   Guard,
+  Last = Guard
 };
 
 enum class HeroRace
@@ -39,7 +40,8 @@ enum class HeroRace
   Halfling,
   Gnome,
   Orc,
-  Goblin
+  Goblin,
+  Last = Goblin
 };
 
 constexpr const char* toString(HeroClass theClass)
@@ -114,6 +116,13 @@ constexpr const char* toString(HeroRace race)
   };
 };
 
+constexpr bool isMonsterClass(HeroClass theClass)
+{
+  return theClass == HeroClass::Vampire || theClass == HeroClass::HalfDragon ||
+         theClass == HeroClass::Gorgon || theClass == HeroClass::RatMonarch ||
+         theClass == HeroClass::Goatperson;
+}
+
 inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
 {
   switch (theClass)
@@ -165,5 +174,6 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
     // Tutorial class without traits, also used for unit tests
     return {};
   }
-  throw std::runtime_error("not implemented");
+  using namespace std::string_literals;
+  throw std::runtime_error("Traits for "s + toString(theClass) + " not implemented");
 }

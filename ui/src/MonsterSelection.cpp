@@ -5,10 +5,9 @@
 #include "imgui.h"
 
 MonsterSelection::MonsterSelection()
-  : type(MonsterType::Bandit)
+  : selectedType(MonsterType::Bandit)
   , level(1)
   , dungeonMultiplier(100)
-  , selectedTypeIndex(0)
   , selectedDungeonIndex(1)
 {
 }
@@ -22,17 +21,14 @@ void MonsterSelection::run()
   };
 
   ImGui::Begin("Monster");
-  if (ImGui::BeginCombo("Type", toString(type)))
+  ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
+  if (ImGui::BeginCombo("Type", toString(selectedType)))
   {
-    int n = 0;
-    for (auto aType : allTypes)
+    for (int n = 0; n <= static_cast<int>(MonsterType::Last); ++n)
     {
-      if (ImGui::Selectable(toString(aType), n == selectedTypeIndex))
-      {
-        type = aType;
-        selectedTypeIndex = n;
-      }
-      ++n;
+      const auto type = static_cast<MonsterType>(n);
+      if (ImGui::Selectable(toString(type), type == selectedType))
+        selectedType = type;
     }
     ImGui::EndCombo();
   }
@@ -63,6 +59,7 @@ void MonsterSelection::run()
       {"Halls of Steel", 120},
   };
 
+  ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
   if (ImGui::BeginCombo("Dungeon", dungeons[selectedDungeonIndex].first))
   {
     int n = 0;
@@ -88,7 +85,7 @@ void MonsterSelection::run()
 
 Monster MonsterSelection::get() const
 {
-  return {type, level, dungeonMultiplier};
+  return {selectedType, level, dungeonMultiplier};
 }
 
 std::optional<Monster> MonsterSelection::toArena()

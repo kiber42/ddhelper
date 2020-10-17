@@ -46,6 +46,7 @@ enum class MonsterType
   Thrall,
   Tokoloshe,
   Vampire,
+  Last = Vampire
 };
 
 constexpr const char* toString(MonsterType type)

@@ -12,31 +12,24 @@ HeroSelection::HeroSelection()
 
 std::optional<Hero> HeroSelection::run()
 {
-  constexpr std::array allClasses = {HeroClass::Fighter, HeroClass::Berserker, HeroClass::Warlord,
-                                     HeroClass::Wizard,  HeroClass::Sorcerer,  HeroClass::Bloodmage,
-                                     HeroClass::Thief,   HeroClass::Rogue,     HeroClass::Assassin};
-
   ImGui::Begin("Hero");
+  ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
   if (ImGui::BeginCombo("Class", toString(selectedClass)))
   {
-    int n = 0;
-    for (auto theClass : allClasses)
+    for (int n = 0; n <= static_cast<int>(HeroClass::Last); ++n)
     {
-      if (ImGui::Selectable(toString(theClass), n == selectedClassIndex))
-      {
+      const HeroClass theClass = static_cast<HeroClass>(n);
+      if (ImGui::Selectable(toString(theClass), theClass == selectedClass))
         selectedClass = theClass;
-        selectedClassIndex = n;
-      }
-      ++n;
     }
     ImGui::EndCombo();
   }
 
-  if (ImGui::BeginCombo("Race", toString(selectedRace)))
+  if (!isMonsterClass(selectedClass) && ImGui::BeginCombo("Race", toString(selectedRace)))
   {
-    for (int n = 0; n < 7; ++n)
+    for (int n = 0; n <= static_cast<int>(HeroRace::Last); ++n)
     {
-      HeroRace race = static_cast<HeroRace>(n);
+      const HeroRace race = static_cast<HeroRace>(n);
       if (ImGui::Selectable(toString(race), race == selectedRace))
         selectedRace = race;
     }

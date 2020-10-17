@@ -16,10 +16,9 @@ public:
   [[nodiscard]] std::optional<Monster> toPool();
 
 private:
-  MonsterType type;
+  MonsterType selectedType;
   int level;
   int dungeonMultiplier;
-  int selectedTypeIndex;
   int selectedDungeonIndex;
   std::optional<Monster> arenaMonster;
   std::optional<Monster> poolMonster;
