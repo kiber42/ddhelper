@@ -41,7 +41,7 @@ namespace Cast
       // Retaliation
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
       {
-        hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
+        hero.takeDamage(monster.getDamage() / 2, monster.doesMagicalDamage());
         if (hero.hasTrait(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
       }
