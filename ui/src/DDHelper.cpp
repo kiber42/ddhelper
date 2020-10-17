@@ -36,11 +36,11 @@ void DDHelperApp::populateFrame()
 
   auto hero = heroSelection.run();
   if (!hero.has_value())
-    hero = heroBuilder.run();
+    hero.emplace(*heroBuilder.run());
   if (hero.has_value())
   {
-    HeroAction action = [newHero = *hero](Hero& hero) {
-      hero = std::move(newHero);
+    HeroAction action = [newHero = Hero(*hero)](Hero& hero) {
+      hero = Hero(newHero);
       return Summary::Safe;
     };
     ActionEntry entry(hero->getName() + " enters"s, std::move(action), {});
@@ -55,8 +55,8 @@ void DDHelperApp::populateFrame()
     monster = monsterBuilder.toArena();
   if (monster.has_value())
   {
-    AttackAction action = [newMonster = *monster](Hero&, Monster& monster) {
-      monster = std::move(newMonster);
+    AttackAction action = [newMonster = Monster(*monster)](Hero&, Monster& monster) {
+      monster = Monster(newMonster);
       return Summary::Safe;
     };
     ActionEntry entry(monster->getName() + " enters"s, std::move(action), {});
@@ -73,7 +73,7 @@ void DDHelperApp::populateFrame()
   auto poolMonster = monsterPool.run();
   if (poolMonster.has_value())
   {
-    MonsterFromPool action = *poolMonster;
+    MonsterFromPool action = std::move(*poolMonster);
     ActionEntry entry(poolMonster->getName() + " enters (from pool)"s, std::move(action), {});
     history.add(state, std::move(entry));
     if (state.monster && !state.monster->isDefeated())

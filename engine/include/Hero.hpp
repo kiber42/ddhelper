@@ -22,6 +22,10 @@ public:
   Hero();
   Hero(HeroClass, HeroRace);
   Hero(HeroStats, Defence, Experience);
+  explicit Hero(const Hero&) = default;
+  Hero(Hero&&) = default;
+  Hero& operator=(const Hero&) = delete;
+  Hero& operator=(Hero&&) = default;
 
   std::string getName() const;
 

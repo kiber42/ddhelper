@@ -28,7 +28,7 @@ std::optional<Monster> MonsterPool::run()
   ImGui::End();
   if (selected != end(monsters))
   {
-    auto monster = *selected;
+    auto monster = std::move(*selected);
     monsters.erase(selected);
     return monster;
   }
