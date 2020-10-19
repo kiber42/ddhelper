@@ -126,6 +126,7 @@ public:
   void use(Item item);
 
   void receiveFreeSpell(Spell spell);
+  void receiveEnlightenment();
   void loseAllItems();
 
 private:
@@ -147,6 +148,5 @@ private:
 
   /*
           int gold;
-          int conversionPoints;
           */
 };

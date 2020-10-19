@@ -787,6 +787,18 @@ void Hero::receiveFreeSpell(Spell spell)
   inventory.addFree(spell);
 }
 
+void Hero::receiveEnlightenment()
+{
+  const int enchantedBeads = inventory.enchantPrayerBeads();
+  changeHitPointsMax(enchantedBeads);
+  changeDamageBonusPercent(+enchantedBeads);
+  changeManaPointsMax(+5);
+  if (conversion.addPoints(10 * enchantedBeads))
+    conversion.applyBonus(*this);
+  experience.gain(+enchantedBeads, 0, false);
+  removeStatus(HeroStatus::Cursed, true);
+}
+
 void Hero::loseAllItems()
 {
   inventory.clear();

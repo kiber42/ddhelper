@@ -212,6 +212,29 @@ bool Faith::request(Boon boon, Hero& hero)
   case Boon::Humility:
     hero.modifyLevelBy(-1);
     break;
+  case Boon::Absolution:
+    // TODO: Precondition: Removes one monster of <= hero's level (except undead, bosses, other dungeon levels)
+    hero.changeHitPointsMax(4);
+    hero.receive(Item::PrayerBead);
+    break;
+  case Boon::Cleansing:
+    hero.removeStatus(HeroStatus::Poisoned, true);
+    hero.removeStatus(HeroStatus::ManaBurned, true);
+    hero.removeStatus(HeroStatus::Weakened, false);
+    hero.removeStatus(HeroStatus::Corrosion, false);
+    hero.addStatus(HeroStatus::ConsecratedStrike);
+    hero.receive(Item::PrayerBead);
+    break;
+  case Boon::Protection:
+    hero.healHitPoints(hero.getHitPointsMax() * 35 / 100);
+    hero.recoverManaPoints(hero.getManaPointsMax() * 35 / 100);
+    hero.receive(Item::PrayerBead);
+    break;
+  case Boon::Enlightenment:
+  {
+    hero.receiveEnlightenment();
+    break;
+  }
 
   case Boon::Flames:
     hero.changeDamageBonusPercent(-50);
@@ -224,53 +247,63 @@ bool Faith::request(Boon boon, Hero& hero)
 
 int Faith::getCosts(Boon boon, const Hero& hero) const
 {
-  const int baseCosts = [boon, count = boonCount(boon)] {
+  const auto [baseCosts, increase] = [boon]() -> std::pair<int, int> {
     switch (boon)
     {
     case Boon::StoneSoup:
-      return 35;
+      return {35, 0};
     case Boon::StoneSkin:
-      return 15;
+      return {15, 0};
     case Boon::StoneForm:
-      return 25;
+      return {25, 0};
     case Boon::StoneFist:
-      return 40;
+      return {40, 0};
     case Boon::StoneHeart:
-      return 10;
+      return {10, 0};
 
     case Boon::BloodCurse:
-      return -20;
+      return {-20, 0};
     case Boon::BloodTithe:
-      return 10 + count * 15;
+      return {10, 15};
     case Boon::BloodHunger:
-      return 20 + count * 25;
+      return {20, 25};
     case Boon::BloodShield:
-      return 40;
+      return {40, 0};
     case Boon::BloodSwell:
-      return 20 + count * 10;
+      return {20, 10};
 
     case Boon::Plantation:
-      return 5;
+      return {5, 0};
     case Boon::Clearance:
-      return 5 + count * 5;
+      return {5, 5};
     case Boon::Greenblood:
-      return 5 + count * 3;
+      return {5, 3};
     case Boon::Entanglement:
-      return 5;
+      return {5, 0};
     case Boon::VineForm:
-      return 5 + count * 3;
+      return {5, 3};
 
     case Boon::Humility:
-      return 15;
+      return {15, 0};
+    case Boon::Absolution:
+      return {2, 2};
+    case Boon::Cleansing:
+      return {10, 0};
+    case Boon::Protection:
+      return {10, 5};
+    case Boon::Enlightenment:
+      return {100, 0};
+
     case Boon::Petition:
-      return 45;
+      return {45, 0};
     case Boon::Flames:
-      return 20;
+      return {20, 0};
     }
   }();
+  const int count = boonCount(boon);
   if (hero.hasTrait(HeroTrait::HolyWork))
-    return baseCosts * 8 / 10;
-  return baseCosts;
+    return baseCosts * 8 / 10 + (increase * 8 / 10) * count;
+  return baseCosts + increase * count;
 }
 
 int Faith::isAvailable(Boon boon, const Hero& hero) const
@@ -579,7 +612,7 @@ PietyChange Faith::converted(Item item)
       return 5;
     return {};
   case God::GlowingGuardian:
-    return isSmall(item) ? 2 : 5;
+    return isPotion(item) || !isSmall(item) ? 5 : 2;
   case God::JehoraJeheyu:
     return JehoraTriggered();
   case God::Taurog:

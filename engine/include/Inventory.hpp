@@ -28,6 +28,9 @@ public:
   int smallSlotsLeft() const;
   void clear();
 
+  // Replace prayer beads by enchanted prayer beads, return number of beads enchanted
+  int enchantPrayerBeads();
+
   using ItemOrSpell = std::variant<Item, Spell>;
   struct Entry
   {

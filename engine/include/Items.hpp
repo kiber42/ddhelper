@@ -21,6 +21,9 @@ enum class Item
   QuicksilverPotion,
   ReflexPotion,
   CanOfWhupaz,
+  // Special
+  PrayerBead,
+  EnchantedPrayerBead,
 };
 
 constexpr const char* toString(Item item)
@@ -62,12 +65,12 @@ constexpr const char* toString(Item item)
     return "Reflex Potion";
   case Item::CanOfWhupaz:
     return "Can of Whupaz";
-  }
-}
 
-constexpr bool isSmall(Item item)
-{
-  return item == Item::Spoon;
+  case Item::PrayerBead:
+    return "Prayer Bead";
+  case Item::EnchantedPrayerBead:
+    return "Enchanted Prayer Bead";
+  }
 }
 
 constexpr int price(Item item)
@@ -109,6 +112,10 @@ constexpr int price(Item item)
     return 15;
   case Item::CanOfWhupaz:
     return 20;
+
+  case Item::PrayerBead:
+  case Item::EnchantedPrayerBead:
+    return 0;
   }
 }
 
@@ -151,6 +158,11 @@ constexpr int conversionPointsInitial(Item item)
     return 10;
   case Item::CanOfWhupaz:
     return 10;
+
+  case Item::PrayerBead:
+    return -1;
+  case Item::EnchantedPrayerBead:
+    return -1;
   }
 }
 
@@ -159,6 +171,11 @@ constexpr bool isPotion(Item item)
   return item == Item::HealthPotion || item == Item::ManaPotion || item == Item::FortitudeTonic ||
          item == Item::BurnSalve || item == Item::StrengthPotion || item == Item::Schadenfreude ||
          item == Item::QuicksilverPotion || item == Item::ReflexPotion || item == Item::CanOfWhupaz;
+}
+
+constexpr bool isSmall(Item item)
+{
+  return isPotion(item) || item == Item::Spoon || item == Item::PrayerBead || item == Item::EnchantedPrayerBead;
 }
 
 constexpr bool canGroup(Item item)

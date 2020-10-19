@@ -45,6 +45,11 @@ enum class Boon
 
   // Glowing Guardian
   Humility,
+  Absolution,
+  Cleansing,
+  Protection,
+  Enlightenment,
+
   // Jehora
   Petition,
   // Mystera Annur
@@ -112,10 +117,19 @@ constexpr const char* toString(Boon boon)
   case Boon::VineForm:
     return "Vine Form";
 
-  case Boon::Flames:
-    return "Flames";
   case Boon::Humility:
     return "Humility";
+  case Boon::Absolution:
+    return "Absolution";
+  case Boon::Cleansing:
+    return "Cleansing";
+  case Boon::Protection:
+    return "Protection";
+  case Boon::Enlightenment:
+    return "Enlightenment";
+
+  case Boon::Flames:
+    return "Flames";
   case Boon::Petition:
     return "Petition";
   }
@@ -125,7 +139,8 @@ constexpr bool allowRepeatedUse(Boon boon)
 {
   return boon == Boon::StoneSkin || boon == Boon::StoneHeart || boon == Boon::BloodTithe || boon == Boon::BloodHunger ||
          boon == Boon::BloodSwell || boon == Boon::Plantation || boon == Boon::Clearance || boon == Boon::Greenblood ||
-         boon == Boon::Entanglement || boon == Boon::VineForm;
+         boon == Boon::Entanglement || boon == Boon::VineForm || boon == Boon::Absolution || boon == Boon::Cleansing ||
+         boon == Boon::Protection || boon == Boon::Absolution || boon == Boon::Cleansing || boon == Boon::Protection;
 }
 
 constexpr God deity(Boon boon)
@@ -153,10 +168,15 @@ constexpr God deity(Boon boon)
   case Boon::VineForm:
     return God::TheEarthmother;
 
+  case Boon::Humility:
+  case Boon::Absolution:
+  case Boon::Cleansing:
+  case Boon::Protection:
+  case Boon::Enlightenment:
+    return God::GlowingGuardian;
+
   case Boon::Flames:
     return God::MysteraAnnur;
-  case Boon::Humility:
-    return God::GlowingGuardian;
   case Boon::Petition:
     return God::JehoraJeheyu;
   }

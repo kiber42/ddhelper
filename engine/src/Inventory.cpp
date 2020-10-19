@@ -111,6 +111,20 @@ void Inventory::clear()
   entries.clear();
 }
 
+int Inventory::enchantPrayerBeads()
+{
+  int count = 0;
+  for (auto& entry : entries)
+  {
+    if (entry.itemOrSpell == ItemOrSpell{Item::PrayerBead})
+    {
+      entry.itemOrSpell = Item::EnchantedPrayerBead;
+      ++count;
+    }
+  }
+  return count;
+}
+
 auto Inventory::getEntries() const -> std::vector<Entry>
 {
   return entries;
