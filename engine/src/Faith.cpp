@@ -166,6 +166,24 @@ bool Faith::request(Boon boon, Hero& hero)
   case Boon::BloodCurse:
     hero.modifyLevelBy(+1);
     break;
+  case Boon::BloodTithe:
+    hero.addStatus(HeroStatus::Sanguine, 5);
+    hero.changeHitPointsMax(-5);
+    hero.changeBaseDamage(+1);
+    break;
+  case Boon::BloodHunger:
+    hero.addStatus(HeroStatus::LifeSteal);
+    hero.changePhysicalResistPercentMax(-20);
+    hero.changeMagicalResistPercentMax(-20);
+    break;
+  case Boon::BloodShield:
+    hero.changePhysicalResistPercent(+15);
+    hero.changeMagicalResistPercent(+15);
+    break;
+  case Boon::BloodSwell:
+    hero.healHitPoints(hero.getHitPointsMax());
+    hero.addStatus(HeroStatus::Cursed);
+    break;
 
   case Boon::Humility:
     hero.modifyLevelBy(-1);
@@ -182,7 +200,7 @@ bool Faith::request(Boon boon, Hero& hero)
 
 int Faith::getCosts(Boon boon, const Hero& hero) const
 {
-  const int baseCosts = [boon] {
+  const int baseCosts = [boon, count = boonCount(boon)] {
     switch (boon)
     {
     case Boon::StoneSoup:
@@ -195,8 +213,18 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
       return 40;
     case Boon::StoneHeart:
       return 10;
+
     case Boon::BloodCurse:
       return -20;
+    case Boon::BloodTithe:
+      return 10 + count * 15;
+    case Boon::BloodHunger:
+      return 20 + count * 25;
+    case Boon::BloodShield:
+      return 40;
+    case Boon::BloodSwell:
+      return 20 + count * 10;
+
     case Boon::Humility:
       return 15;
     case Boon::Petition:
@@ -212,6 +240,7 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
 
 int Faith::isAvailable(Boon boon, const Hero& hero) const
 {
+  // TODO: Check number of available walls / petrified enemies for Binlor's boons
   return deity(boon) == followedDeity && (allowRepeatedUse(boon) || !boonCount(boon)) &&
          (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1);
 }
@@ -262,7 +291,7 @@ void Faith::punish(God god, Hero& hero)
     break;
   case God::Dracul:
     hero.removeStatus(HeroStatus::LifeSteal, false);
-    hero.setHitPointsMax(std::max(1, hero.getHitPointsMax() - 20));
+    hero.changeHitPointsMax(-20);
     break;
   case God::TheEarthmother:
     hero.addStatus(HeroStatus::Corrosion, 5);

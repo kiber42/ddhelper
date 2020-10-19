@@ -108,6 +108,10 @@ public:
   // Methods required to apply side effects of boons and punishments
   void setHitPointsMax(int hitPointsMax);
   void setManaPointsMax(int manaPointsMax);
+  void changeHitPointsMax(int deltaPoints);
+  void changeManaPointsMax(int deltaPoints);
+  void changePhysicalResistPercentMax(int deltaPoints);
+  void changeMagicalResistPercentMax(int deltaPoints);
   void modifyLevelBy(int delta);
 
   // Inventory management

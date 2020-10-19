@@ -622,6 +622,36 @@ void Hero::applyOrCollect(PietyChange pietyChange)
     faith.apply(pietyChange, *this);
 }
 
+void Hero::setHitPointsMax(int hitPointsMax)
+{
+  stats.setHitPointsMax(hitPointsMax);
+}
+
+void Hero::setManaPointsMax(int manaPointsMax)
+{
+  stats.setManaPointsMax(manaPointsMax);
+}
+
+void Hero::changeHitPointsMax(int deltaPoints)
+{
+  stats.setHitPointsMax(stats.getHitPointsMax() + deltaPoints);
+}
+
+void Hero::changeManaPointsMax(int deltaPoints)
+{
+  stats.setManaPointsMax(stats.getManaPointsMax() + deltaPoints);
+}
+
+void Hero::changePhysicalResistPercentMax(int deltaPoints)
+{
+  defence.setPhysicalResistPercentMax(defence.getPhysicalResistPercentMax() + deltaPoints);
+}
+
+void Hero::changeMagicalResistPercentMax(int deltaPoints)
+{
+  defence.setMagicalResistPercentMax(defence.getMagicalResistPercentMax() + deltaPoints);
+}
+
 void Hero::modifyLevelBy(int delta)
 {
   experience.modifyLevelBy(delta);
@@ -635,16 +665,6 @@ std::vector<Inventory::Entry> Hero::getItems() const
 std::vector<Inventory::Entry> Hero::getSpells() const
 {
   return inventory.getSpells();
-}
-
-void Hero::setHitPointsMax(int hitPointsMax)
-{
-  stats.setHitPointsMax(hitPointsMax);
-}
-
-void Hero::setManaPointsMax(int manaPointsMax)
-{
-  stats.setManaPointsMax(manaPointsMax);
 }
 
 void Hero::receive(Item item)

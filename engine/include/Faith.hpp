@@ -30,6 +30,10 @@ enum class Boon
   StoneHeart,
   // Dracul
   BloodCurse,
+  BloodTithe,
+  BloodHunger,
+  BloodShield,
+  BloodSwell,
   // Glowing Guardian
   Humility,
   // Jehora
@@ -79,6 +83,15 @@ constexpr const char* toString(Boon boon)
 
   case Boon::BloodCurse:
     return "Blood Curse";
+  case Boon::BloodTithe:
+    return "Blood Tithe";
+  case Boon::BloodHunger:
+    return "Blood Hunger";
+  case Boon::BloodShield:
+    return "Blood Shield";
+  case Boon::BloodSwell:
+    return "Blood Swell";
+
   case Boon::Flames:
     return "Flames";
   case Boon::Humility:
@@ -90,7 +103,8 @@ constexpr const char* toString(Boon boon)
 
 constexpr bool allowRepeatedUse(Boon boon)
 {
-  return boon == Boon::StoneSkin || boon == Boon::StoneHeart;
+  return boon == Boon::StoneSkin || boon == Boon::StoneHeart || boon == Boon::BloodTithe || boon == Boon::BloodHunger ||
+         boon == Boon::BloodSwell;
 }
 
 constexpr God deity(Boon boon)
@@ -103,8 +117,14 @@ constexpr God deity(Boon boon)
   case Boon::StoneFist:
   case Boon::StoneHeart:
     return God::BinlorIronshield;
+
   case Boon::BloodCurse:
+  case Boon::BloodTithe:
+  case Boon::BloodHunger:
+  case Boon::BloodShield:
+  case Boon::BloodSwell:
     return God::Dracul;
+
   case Boon::Flames:
     return God::MysteraAnnur;
   case Boon::Humility:
