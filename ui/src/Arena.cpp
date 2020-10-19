@@ -138,14 +138,19 @@ Arena::StateUpdate Arena::run(const State& currentState)
         std::string label = historyTitle;
         if (entry.count > 1)
           label += " (x" + std::to_string(entry.count) + ")";
-        if (addPopupAction(
-                std::move(label), historyTitle,
-                [item](Hero& hero) {
-                  hero.use(item);
-                  return Summary::Safe;
-                },
-                isSelected))
-          selectedPopupItem = index;
+        if (currentState.hero->canUse(item))
+        {
+          if (addPopupAction(
+                  std::move(label), historyTitle,
+                  [item](Hero& hero) {
+                    hero.use(item);
+                    return Summary::Safe;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
+        else
+          ImGui::TextColored(colorUnavailable, "%s", label.c_str());
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
@@ -182,7 +187,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
             selectedPopupItem = index;
         }
         else
-          ImGui::TextUnformatted("%s", toString(item));
+          ImGui::TextColored(colorUnavailable, "%s", toString(item));
       }
       ImGui::Separator();
       ImGui::Text("Spells");
@@ -205,7 +210,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
             selectedPopupItem = index;
         }
         else
-          ImGui::TextUnformatted("%s", toString(spell));
+          ImGui::TextColored(colorUnavailable, "%s", toString(spell));
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
