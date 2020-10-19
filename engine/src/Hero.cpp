@@ -571,7 +571,13 @@ std::optional<God> Hero::getFollowedDeity() const
 
 bool Hero::hasBoon(Boon boon) const
 {
-  return faith.hasBoon(boon);
+  assert(!allowRepeatedUse(boon));
+  return faith.boonCount(boon) > 0;
+}
+
+int Hero::receivedBoonCount(Boon boon) const
+{
+  return faith.boonCount(boon);
 }
 
 int Hero::getBoonCosts(Boon boon) const

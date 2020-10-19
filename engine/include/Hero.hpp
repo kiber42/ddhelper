@@ -93,6 +93,7 @@ public:
 
   std::optional<God> getFollowedDeity() const;
   bool hasBoon(Boon boon) const;
+  int receivedBoonCount(Boon boon) const;
   int getBoonCosts(Boon boon) const;
 
   bool followDeity(God god);

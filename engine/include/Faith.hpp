@@ -71,7 +71,7 @@ constexpr const char* toString(Boon boon)
   }
 }
 
-constexpr bool canHaveMultiple(Boon boon)
+constexpr bool allowRepeatedUse(Boon boon)
 {
   return false;
 }
@@ -122,7 +122,7 @@ public:
 
   int getPiety() const;
   int getMaxPiety() const;
-  int hasBoon(Boon) const;
+  int boonCount(Boon) const;
 
   void gainPiety(int pointsGained);
   void losePiety(int pointsLost, Hero& hero);

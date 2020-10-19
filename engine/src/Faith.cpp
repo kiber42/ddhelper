@@ -75,9 +75,9 @@ int Faith::getMaxPiety() const
   return consensus ? 50 : 100;
 }
 
-int Faith::hasBoon(Boon boon) const
+int Faith::boonCount(Boon boon) const
 {
-  if (!canHaveMultiple(boon))
+  if (!allowRepeatedUse(boon))
     return std::find(begin(boons), end(boons), boon) != end(boons) ? 1 : 0;
   return std::count(begin(boons), end(boons), boon);
 }
@@ -165,7 +165,7 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
 
 int Faith::isAvailable(Boon boon, const Hero& hero) const
 {
-  return deity(boon) == followedDeity && (canHaveMultiple(boon) || !hasBoon(boon)) &&
+  return deity(boon) == followedDeity && (allowRepeatedUse(boon) || !boonCount(boon)) &&
          (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1);
 }
 
