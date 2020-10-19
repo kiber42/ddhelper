@@ -135,11 +135,48 @@ bool Faith::request(Boon boon, Hero& hero)
     return false;
   piety -= costs;
   boons.push_back(boon);
-  // Apply immediate effects
-  if (boon == Boon::BloodCurse)
+  // Apply immediate effects.
+  switch (boon)
+  {
+  case Boon::StoneSoup:
+    hero.receiveFreeSpell(Spell::Endiswal);
+    break;
+  case Boon::StoneSkin:
+    // TODO: Destroys 3 nearby walls
+    hero.addStatus(HeroStatus::StoneSkin, 3);
+    hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
+    break;
+  case Boon::StoneForm:
+    // TODO: Destroys 10 nearby walls
+    // TODO: Might is added whenever walls are destroyed
+    hero.addStatus(HeroStatus::Might);
+    hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 5);
+    break;
+  case Boon::StoneFist:
+    // TODO: Destroys 20 nearby walls
+    hero.addStatus(HeroStatus::Knockback, 50);
+    hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 5);
+    break;
+  case Boon::StoneHeart:
+    // TODO: Destroys 15 nearby walls
+    // TODO: Lower resistances of all enemies on current dungeon level by 5%
+    hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
+    break;
+
+  case Boon::BloodCurse:
     hero.modifyLevelBy(+1);
-  else if (boon == Boon::Humility)
+    break;
+
+  case Boon::Humility:
     hero.modifyLevelBy(-1);
+    break;
+
+  case Boon::Flames:
+    hero.changeDamageBonusPercent(-50);
+
+  default:
+    break;
+  }
   return true;
 }
 
@@ -148,6 +185,16 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
   const int baseCosts = [boon] {
     switch (boon)
     {
+    case Boon::StoneSoup:
+      return 35;
+    case Boon::StoneSkin:
+      return 15;
+    case Boon::StoneForm:
+      return 25;
+    case Boon::StoneFist:
+      return 40;
+    case Boon::StoneHeart:
+      return 10;
     case Boon::BloodCurse:
       return -20;
     case Boon::Humility:

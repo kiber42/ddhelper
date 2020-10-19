@@ -22,6 +22,12 @@ enum class God
 
 enum class Boon
 {
+  // Binlor Ironshield
+  StoneSoup,
+  StoneSkin,
+  StoneForm,
+  StoneFist,
+  StoneHeart,
   // Dracul
   BloodCurse,
   // Glowing Guardian
@@ -60,6 +66,17 @@ constexpr const char* toString(Boon boon)
 {
   switch (boon)
   {
+  case Boon::StoneSoup:
+    return "Stone Soup";
+  case Boon::StoneSkin:
+    return "Stone Skin";
+  case Boon::StoneForm:
+    return "Stone Form";
+  case Boon::StoneFist:
+    return "Stone Fist";
+  case Boon::StoneHeart:
+    return "Stone Heart";
+
   case Boon::BloodCurse:
     return "Blood Curse";
   case Boon::Flames:
@@ -73,13 +90,19 @@ constexpr const char* toString(Boon boon)
 
 constexpr bool allowRepeatedUse(Boon boon)
 {
-  return false;
+  return boon == Boon::StoneSkin || boon == Boon::StoneHeart;
 }
 
 constexpr God deity(Boon boon)
 {
   switch (boon)
   {
+  case Boon::StoneSoup:
+  case Boon::StoneSkin:
+  case Boon::StoneForm:
+  case Boon::StoneFist:
+  case Boon::StoneHeart:
+    return God::BinlorIronshield;
   case Boon::BloodCurse:
     return God::Dracul;
   case Boon::Flames:
