@@ -185,6 +185,30 @@ bool Faith::request(Boon boon, Hero& hero)
     hero.addStatus(HeroStatus::Cursed);
     break;
 
+  case Boon::Plantation:
+    // TODO: Grow plants on each visible bloodstain, receive 5 piety per new plant
+    gainPiety(10);
+    break;
+  case Boon::Clearance:
+    // TODO: Remove up to 10 plants, restore 1 MP per removed plant
+    hero.recoverManaPoints(5);
+    break;
+  case Boon::Greenblood:
+    // TODO: Every monster receives +1 Corrosion
+    hero.changeBaseDamage(1); // TODO: Remove
+    // TODO: Spawns 3 random plants
+    hero.removeStatus(HeroStatus::Cursed, false);
+    break;
+  case Boon::Entanglement:
+    // TODO: Every monster is slowed
+    // TODO: Spawns 5 random plants
+    break;
+  case Boon::VineForm:
+    hero.changeHitPointsMax(+4);
+    hero.addStatus(HeroStatus::DamageReduction);
+    // TODO: Spawns 2 random plants
+    break;
+
   case Boon::Humility:
     hero.modifyLevelBy(-1);
     break;
@@ -224,6 +248,17 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
       return 40;
     case Boon::BloodSwell:
       return 20 + count * 10;
+
+    case Boon::Plantation:
+      return 5;
+    case Boon::Clearance:
+      return 5 + count * 5;
+    case Boon::Greenblood:
+      return 5 + count * 3;
+    case Boon::Entanglement:
+      return 5;
+    case Boon::VineForm:
+      return 5 + count * 3;
 
     case Boon::Humility:
       return 15;

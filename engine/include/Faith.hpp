@@ -28,12 +28,21 @@ enum class Boon
   StoneForm,
   StoneFist,
   StoneHeart,
+
   // Dracul
   BloodCurse,
   BloodTithe,
   BloodHunger,
   BloodShield,
   BloodSwell,
+
+  // The Earthmother
+  Plantation,
+  Clearance,
+  Greenblood,
+  Entanglement,
+  VineForm,
+
   // Glowing Guardian
   Humility,
   // Jehora
@@ -92,6 +101,17 @@ constexpr const char* toString(Boon boon)
   case Boon::BloodSwell:
     return "Blood Swell";
 
+  case Boon::Plantation:
+    return "Plantation";
+  case Boon::Clearance:
+    return "Clearance";
+  case Boon::Greenblood:
+    return "Greenblood";
+  case Boon::Entanglement:
+    return "Entanglement";
+  case Boon::VineForm:
+    return "Vine Form";
+
   case Boon::Flames:
     return "Flames";
   case Boon::Humility:
@@ -104,7 +124,8 @@ constexpr const char* toString(Boon boon)
 constexpr bool allowRepeatedUse(Boon boon)
 {
   return boon == Boon::StoneSkin || boon == Boon::StoneHeart || boon == Boon::BloodTithe || boon == Boon::BloodHunger ||
-         boon == Boon::BloodSwell;
+         boon == Boon::BloodSwell || boon == Boon::Plantation || boon == Boon::Clearance || boon == Boon::Greenblood ||
+         boon == Boon::Entanglement || boon == Boon::VineForm;
 }
 
 constexpr God deity(Boon boon)
@@ -124,6 +145,13 @@ constexpr God deity(Boon boon)
   case Boon::BloodShield:
   case Boon::BloodSwell:
     return God::Dracul;
+
+  case Boon::Plantation:
+  case Boon::Clearance:
+  case Boon::Greenblood:
+  case Boon::Entanglement:
+  case Boon::VineForm:
+    return God::TheEarthmother;
 
   case Boon::Flames:
     return God::MysteraAnnur;
