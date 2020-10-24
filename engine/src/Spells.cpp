@@ -234,8 +234,7 @@ namespace Cast
       burndayraz(hero, monster);
       break;
     case Spell::Imawal:
-      monster.petrify();
-      hero.addStatus(HeroStatus::ExperienceBoost);
+      // Imawal is handled below, since no XP is awarded for the kill (except +1 bonus XP for slowing)
       break;
     case Spell::Lemmisi:
     {
@@ -267,6 +266,14 @@ namespace Cast
 
     applyCastingSideEffects(hero, manaCosts);
 
-    return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed);
+    if (spell != Spell::Imawal)
+      return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed);
+
+    const bool levelBefore = hero.getLevel() + hero.getPrestige();
+    if (monster.isSlowed())
+      hero.gainExperience(0, true);
+    monster.petrify();
+    hero.addStatus(HeroStatus::ExperienceBoost);
+    return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
   }
 } // namespace Cast

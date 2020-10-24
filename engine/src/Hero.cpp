@@ -125,10 +125,18 @@ int Hero::getXPforNextLevel() const
 void Hero::gainExperience(int xpGained, bool monsterWasSlowed)
 {
   int level = experience.getLevel();
-  const int bonuses =
-      getStatusIntensity(HeroStatus::Learning) + (int)hasTrait(HeroTrait::Veteran) + (int)monsterWasSlowed;
-  experience.gain(xpGained, bonuses, hasStatus(HeroStatus::ExperienceBoost));
-  removeStatus(HeroStatus::ExperienceBoost, true);
+  if (xpGained > 0)
+  {
+    const int bonuses =
+        getStatusIntensity(HeroStatus::Learning) + (int)hasTrait(HeroTrait::Veteran) + (int)monsterWasSlowed;
+    experience.gain(xpGained, bonuses, hasStatus(HeroStatus::ExperienceBoost));
+    removeStatus(HeroStatus::ExperienceBoost, true);
+  }
+  else if (monsterWasSlowed)
+  {
+    // Slowed monster killed by petrification
+    experience.gain(0, 1, false);
+  }
   while (getLevel() > level)
   {
     levelGainedUpdate();
