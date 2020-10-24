@@ -282,6 +282,15 @@ Arena::StateUpdate Arena::run(const State& currentState)
                 isSelected))
           selectedPopupItem = index;
       }
+      ImGui::Separator();
+      if (addPopupAction(
+              "+50 piety", "Cheat: +50 piety",
+              [](Hero& hero) {
+                hero.getFaith().gainPiety(50);
+                return Summary::Safe;
+              },
+              ++index == selectedPopupItem))
+        selectedPopupItem = index;
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
       ImGui::EndPopup();
