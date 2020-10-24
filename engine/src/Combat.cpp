@@ -28,7 +28,7 @@ namespace Combat
         const int multiplier = monster.getLevel() < hero.getLevel() ? 2 : 1;
         const int damageDealt = monsterHitPointsBefore - monster.getHitPoints();
         const int healthStolen =
-            std::min(hero.getStatusIntensity(HeroStatus::LifeSteal) * hero.getLevel(), damageDealt);
+            std::min(hero.getStatusIntensity(HeroStatus::LifeSteal) * hero.getLevel() * multiplier, damageDealt);
         if (healthStolen > 0)
         {
           hero.healHitPoints(healthStolen, true);
