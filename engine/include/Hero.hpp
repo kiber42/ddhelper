@@ -113,10 +113,14 @@ public:
   void changePhysicalResistPercentMax(int deltaPoints);
   void changeMagicalResistPercentMax(int deltaPoints);
   void modifyLevelBy(int delta);
+  void addConversionPoints(int points);
+  bool lose(Item item);
 
   // Inventory management
   std::vector<Inventory::Entry> getItems() const;
   std::vector<Inventory::Entry> getSpells() const;
+  bool has(Item item) const;
+  bool has(Spell spell) const;
 
   void receive(Item item);
   void receive(Spell spell);

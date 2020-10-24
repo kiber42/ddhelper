@@ -20,7 +20,7 @@ public:
 
   void add(Spell spell);
   void addFree(Spell spell);
-  // Returns conversion value of item; or nullopt if item was not in inventory
+  // Returns conversion value of spell; or nullopt if spell was not in inventory
   std::optional<int> remove(Spell spell, bool magicAffinity = false);
   bool has(Spell spell) const;
   bool hasRoomFor(Spell spell) const;

@@ -52,6 +52,11 @@ enum class Boon
 
   // Jehora
   Petition,
+  LastChance,
+  BoostHealth,
+  BoostMana,
+  ChaosAvatar,
+
   // Mystera Annur
   Flames,
   Last = Flames
@@ -128,10 +133,19 @@ constexpr const char* toString(Boon boon)
   case Boon::Enlightenment:
     return "Enlightenment";
 
-  case Boon::Flames:
-    return "Flames";
   case Boon::Petition:
     return "Petition";
+  case Boon::LastChance:
+    return "Last Chance";
+  case Boon::BoostHealth:
+    return "Boost Health";
+  case Boon::BoostMana:
+    return "Boost Mana";
+  case Boon::ChaosAvatar:
+    return "Chaos Avatar";
+
+  case Boon::Flames:
+    return "Flames";
   }
 }
 
@@ -140,7 +154,7 @@ constexpr bool allowRepeatedUse(Boon boon)
   return boon == Boon::StoneSkin || boon == Boon::StoneHeart || boon == Boon::BloodTithe || boon == Boon::BloodHunger ||
          boon == Boon::BloodSwell || boon == Boon::Plantation || boon == Boon::Clearance || boon == Boon::Greenblood ||
          boon == Boon::Entanglement || boon == Boon::VineForm || boon == Boon::Absolution || boon == Boon::Cleansing ||
-         boon == Boon::Protection || boon == Boon::Absolution || boon == Boon::Cleansing || boon == Boon::Protection;
+         boon == Boon::Protection || boon == Boon::BoostHealth || boon == Boon::BoostMana;
 }
 
 constexpr God deity(Boon boon)
@@ -175,10 +189,15 @@ constexpr God deity(Boon boon)
   case Boon::Enlightenment:
     return God::GlowingGuardian;
 
+  case Boon::Petition:
+  case Boon::LastChance:
+  case Boon::BoostHealth:
+  case Boon::BoostMana:
+  case Boon::ChaosAvatar:
+    return God::JehoraJeheyu;
+
   case Boon::Flames:
     return God::MysteraAnnur;
-  case Boon::Petition:
-    return God::JehoraJeheyu;
   }
 }
 

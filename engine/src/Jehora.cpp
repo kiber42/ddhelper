@@ -22,6 +22,12 @@ int Jehora::initialPietyBonus(int heroLevel)
   return initialBonus(generator) * heroLevel * heroLevel / 100;
 }
 
+bool Jehora::lastChanceSuccessful(int remainingPiety)
+{
+  // TODO: Currently simplified to avoid dealing with randomness
+  return remainingPiety >= 50;
+}
+
 int Jehora::operator()()
 {
   // Randomly award 2-4 XP or apply random punishment

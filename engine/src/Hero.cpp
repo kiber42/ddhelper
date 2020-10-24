@@ -657,6 +657,17 @@ void Hero::modifyLevelBy(int delta)
   experience.modifyLevelBy(delta);
 }
 
+void Hero::addConversionPoints(int points)
+{
+  if (conversion.addPoints(points))
+    conversion.applyBonus(*this);
+}
+
+bool Hero::lose(Item item)
+{
+  return inventory.remove(item) != std::nullopt;
+}
+
 std::vector<Inventory::Entry> Hero::getItems() const
 {
   return inventory.getItems();
@@ -665,6 +676,16 @@ std::vector<Inventory::Entry> Hero::getItems() const
 std::vector<Inventory::Entry> Hero::getSpells() const
 {
   return inventory.getSpells();
+}
+
+bool Hero::has(Item item) const
+{
+  return inventory.has(item);
+}
+
+bool Hero::has(Spell spell) const
+{
+  return inventory.has(spell);
 }
 
 void Hero::receive(Item item)

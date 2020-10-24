@@ -236,8 +236,30 @@ bool Faith::request(Boon boon, Hero& hero)
     break;
   }
 
+  case Boon::LastChance:
+    if (jehora.lastChanceSuccessful(costs))
+      hero.fullHealthAndMana();
+    break;
+  case Boon::BoostHealth:
+    hero.lose(Item::HealthPotion);
+    hero.changeHitPointsMax(+20);
+    break;
+  case Boon::BoostMana:
+    hero.lose(Item::ManaPotion);
+    hero.changeManaPointsMax(+3);
+    break;
+  case Boon::ChaosAvatar:
+    hero.gainLevel();
+    hero.fullHealthAndMana(); // for Goatperson
+    hero.addConversionPoints(100);
+    hero.removeStatus(HeroStatus::Weakened, true);
+    hero.removeStatus(HeroStatus::Corrosion, true);
+    // TODO: -20% physical and magic resist for all monsters on current level
+    break;
+
   case Boon::Flames:
     hero.changeDamageBonusPercent(-50);
+    break;
 
   default:
     break;
@@ -296,10 +318,22 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
 
     case Boon::Petition:
       return {45, 0};
+    case Boon::LastChance:
+      return {-1, 0};
+    case Boon::BoostHealth:
+      return {20, 25};
+    case Boon::BoostMana:
+      return {20, 25};
+    case Boon::ChaosAvatar:
+      return {80, 0};
+
     case Boon::Flames:
       return {20, 0};
     }
   }();
+  // Last Chance uses all remaining piety points
+  if (baseCosts == -1)
+    return getPiety();
   const int count = boonCount(boon);
   if (hero.hasTrait(HeroTrait::HolyWork))
     return baseCosts * 8 / 10 + (increase * 8 / 10) * count;
@@ -310,7 +344,9 @@ int Faith::isAvailable(Boon boon, const Hero& hero) const
 {
   // TODO: Check number of available walls / petrified enemies for Binlor's boons
   return deity(boon) == followedDeity && (allowRepeatedUse(boon) || !boonCount(boon)) &&
-         (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1);
+         (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1) &&
+         (boon != Boon::BoostHealth || hero.has(Item::HealthPotion)) &&
+         (boon != Boon::BoostMana || hero.has(Item::ManaPotion));
 }
 
 void Faith::initialBoon(God god, Hero& hero)
@@ -332,7 +368,7 @@ void Faith::initialBoon(God god, Hero& hero)
     gainPiety(5 * hero.getLevel());
     break;
   case God::JehoraJeheyu:
-    // TODO: Random piety based on level
+    gainPiety(jehora.initialPietyBonus(hero.getLevel()));
     hero.receiveFreeSpell(Spell::Weytwut);
     break;
   case God::MysteraAnnur:
