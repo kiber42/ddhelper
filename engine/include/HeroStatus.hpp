@@ -22,7 +22,7 @@ enum class HeroStatus
   HeavyFireball,
   Knockback, // TODO
   Learning,
-  LifeSteal, // TODO?
+  LifeSteal,
   MagicalAttack,
   ManaBurned,
   ManaBurnImmune,

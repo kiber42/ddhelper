@@ -20,6 +20,23 @@ namespace Combat
       if (includeCurse && monster.bearsCurse())
         hero.addStatus(HeroStatus::Cursed);
     }
+
+    void applyLifeSteal(Hero& hero, const Monster& monster, int monsterHitPointsBefore)
+    {
+      if (hero.hasStatus(HeroStatus::LifeSteal) && !monster.isBloodless())
+      {
+        const int multiplier = monster.getLevel() < hero.getLevel() ? 2 : 1;
+        const int damageDealt = monsterHitPointsBefore - monster.getHitPoints();
+        const int healthStolen =
+            std::min(hero.getStatusIntensity(HeroStatus::LifeSteal) * hero.getLevel(), damageDealt);
+        if (healthStolen > 0)
+        {
+          hero.healHitPoints(healthStolen, true);
+          hero.collect(hero.getFaith().lifeStolen(monster));
+        }
+      }
+    }
+
   } // namespace
 
   Summary attack(Hero& hero, Monster& monster)
@@ -64,10 +81,12 @@ namespace Combat
     else if (hero.hasInitiativeVersus(monster))
     {
       const int monsterDamageInitial = monster.getDamage();
+      const int monsterHPBefore = monster.getHitPoints();
       if (hero.hasStatus(HeroStatus::CrushingBlow))
         monster.receiveCrushingBlow();
       else
         monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+      applyLifeSteal(hero, monster, monsterHPBefore);
       if (hero.hasStatus(HeroStatus::Poisonous))
       {
         if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous)))
@@ -97,7 +116,9 @@ namespace Combat
           if (hero.hasStatus(HeroStatus::Reflexes))
           {
             hero.removeOneTimeAttackEffects();
+            const int monsterHPBefore = monster.getHitPoints();
             monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+            applyLifeSteal(hero, monster, monsterHPBefore);
             if (hero.hasStatus(HeroStatus::Poisonous))
               monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous));
           }
@@ -119,10 +140,12 @@ namespace Combat
       {
         if (hero.hasTrait(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
+        const int monsterHPBefore = monster.getHitPoints();
         if (hero.hasStatus(HeroStatus::CrushingBlow))
           monster.receiveCrushingBlow();
         else
           monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+        applyLifeSteal(hero, monster, monsterHPBefore);
         if (hero.hasStatus(HeroStatus::Poisonous))
         {
           if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous)))
