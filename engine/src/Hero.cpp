@@ -15,7 +15,7 @@ Hero::Hero()
 }
 
 Hero::Hero(HeroClass theClass, HeroRace race)
-  : name(toString(race) + std::string(" ") + toString(theClass))
+  : name(isMonsterClass(theClass) ? toString(theClass) : (toString(race) + std::string(" ") + toString(theClass)))
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
@@ -70,6 +70,17 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   }
   if (hasTrait(HeroTrait::HolyShield))
     defence.setPhysicalResistPercent(25);
+
+  if (hasTrait(HeroTrait::Undead))
+  {
+    addStatus(HeroStatus::PoisonImmune);
+    addStatus(HeroStatus::ManaBurnImmune);
+  }
+  if (hasTrait(HeroTrait::EternalThirst))
+  {
+    addStatus(HeroStatus::Sanguine, 5);
+    addStatus(HeroStatus::LifeSteal, 1);
+  }
 
   if (hasTrait(HeroTrait::Defiant))
     inventory.add(Spell::Cydstepp);
@@ -360,7 +371,7 @@ void Hero::recover(int nSquares)
     // TODO: Add +1 for Bloody Sigil
     stats.healHitPoints(nSquares * multiplier, false);
   }
-  if (!hasStatus(HeroStatus::ManaBurned))
+  if (!hasStatus(HeroStatus::ManaBurned) && !hasStatus(HeroStatus::Exhausted))
   {
     stats.recoverManaPoints(nSquares);
   }
@@ -375,9 +386,11 @@ int Hero::numSquaresForFullRecovery() const
     if (hasTrait(HeroTrait::Damned))
       multiplier = 1;
     // TODO: Add +1 for Bloody Sigil
-    numHP = (getHitPointsMax() - getHitPoints() + multiplier - 1 /* always round up */) / multiplier;
+    numHP = (getHitPointsMax() - getHitPoints() + (multiplier - 1) /* always round up */) / multiplier;
   }
   const int numMP = hasStatus(HeroStatus::ManaBurned) ? 0 : getManaPointsMax() - getManaPoints();
+  if (hasTrait(HeroTrait::Damned))
+    return numHP + numMP;
   return std::max(numHP, numMP);
 }
 
@@ -477,6 +490,10 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
 
 int Hero::getStatusIntensity(HeroStatus status) const
 {
+  // Compute Exhausted status when needed instead of updating it all the time
+  if (status == HeroStatus::Exhausted)
+    return hasTrait(HeroTrait::Damned) && getHitPoints() < getHitPointsMax();
+
   auto iter = statuses.find(status);
   return iter != statuses.end() ? iter->second : 0;
 }
@@ -676,6 +693,28 @@ bool Hero::lose(Item item)
   return inventory.remove(item) != std::nullopt;
 }
 
+void Hero::receiveFreeSpell(Spell spell)
+{
+  inventory.addFree(spell);
+}
+
+void Hero::receiveEnlightenment()
+{
+  const int enchantedBeads = inventory.enchantPrayerBeads();
+  changeHitPointsMax(enchantedBeads);
+  changeDamageBonusPercent(+enchantedBeads);
+  changeManaPointsMax(+5);
+  if (conversion.addPoints(10 * enchantedBeads))
+    conversion.applyBonus(*this);
+  experience.gain(+enchantedBeads, 0, false);
+  removeStatus(HeroStatus::Cursed, true);
+}
+
+void Hero::loseAllItems()
+{
+  inventory.clear();
+}
+
 std::vector<Inventory::Entry> Hero::getItems() const
 {
   return inventory.getItems();
@@ -811,24 +850,12 @@ void Hero::use(Item item)
     inventory.remove(item);
 }
 
-void Hero::receiveFreeSpell(Spell spell)
+int Hero::getConversionPoints() const
 {
-  inventory.addFree(spell);
+  return conversion.getPoints();
 }
 
-void Hero::receiveEnlightenment()
+int Hero::getConversionThreshold() const
 {
-  const int enchantedBeads = inventory.enchantPrayerBeads();
-  changeHitPointsMax(enchantedBeads);
-  changeDamageBonusPercent(+enchantedBeads);
-  changeManaPointsMax(+5);
-  if (conversion.addPoints(10 * enchantedBeads))
-    conversion.applyBonus(*this);
-  experience.gain(+enchantedBeads, 0, false);
-  removeStatus(HeroStatus::Cursed, true);
-}
-
-void Hero::loseAllItems()
-{
-  inventory.clear();
+  return conversion.getThreshold();
 }

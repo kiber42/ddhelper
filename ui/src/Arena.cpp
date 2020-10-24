@@ -220,24 +220,21 @@ Arena::StateUpdate Arena::run(const State& currentState)
     // Second line: actions that may or may not be available in actual game
 
     const int numSquares = currentState.hero->numSquaresForFullRecovery();
-    if (numSquares > 0)
+    if (withMonster)
     {
-      if (withMonster)
+      addActionButton("Uncover Tile",
+                      [](Hero& hero, Monster& monster) { return Combat::uncoverTiles(hero, &monster, 1); });
+      ImGui::SameLine();
+    }
+    else if (numSquares > 0)
+    {
+      addActionButton("Uncover Tile", [](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, 1); });
+      ImGui::SameLine();
+      if (numSquares > 1)
       {
-        addActionButton("Uncover Tile",
-                        [](Hero& hero, Monster& monster) { return Combat::uncoverTiles(hero, &monster, 1); });
+        const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
+        addActionButton(label, [numSquares](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, numSquares); });
         ImGui::SameLine();
-      }
-      else
-      {
-        addActionButton("Uncover Tile", [](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, 1); });
-        ImGui::SameLine();
-        if (numSquares > 1)
-        {
-          const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-          addActionButton(label, [numSquares](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, numSquares); });
-          ImGui::SameLine();
-        }
       }
     }
 

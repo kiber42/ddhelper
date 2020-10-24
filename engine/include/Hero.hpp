@@ -105,7 +105,7 @@ public:
   void collect(PietyChange);
   void applyCollectedPiety();
 
-  // Methods required to apply side effects of boons and punishments
+  // Methods required to apply side effects of worship, boons and punishments
   void setHitPointsMax(int hitPointsMax);
   void setManaPointsMax(int manaPointsMax);
   void changeHitPointsMax(int deltaPoints);
@@ -115,6 +115,9 @@ public:
   void modifyLevelBy(int delta);
   void addConversionPoints(int points);
   bool lose(Item item);
+  void receiveFreeSpell(Spell spell);
+  void receiveEnlightenment();
+  void loseAllItems();
 
   // Inventory management
   std::vector<Inventory::Entry> getItems() const;
@@ -129,9 +132,8 @@ public:
   bool canUse(Item item) const;
   void use(Item item);
 
-  void receiveFreeSpell(Spell spell);
-  void receiveEnlightenment();
-  void loseAllItems();
+  int getConversionPoints() const;
+  int getConversionThreshold() const;
 
 private:
   std::string name;

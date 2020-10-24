@@ -5,35 +5,45 @@
 #include "HeroStatus.hpp"
 #include "Items.hpp"
 
+#include <cassert>
+
 Conversion::Conversion(HeroClass theClass, HeroRace race)
   : points(0)
   , threshold(100)
 {
-  switch (theClass)
+  if (isMonsterClass(theClass))
   {
-  case HeroClass::Vampire:
-    threshold = 100;
-    bonus = [](Hero& hero) { hero.addStatus(HeroStatus::LifeSteal); };
-    break;
-  case HeroClass::HalfDragon:
-    threshold = 120;
-    bonus = [](Hero& hero) { hero.addStatus(HeroStatus::Knockback, 20); };
-    break;
-  case HeroClass::Gorgon:
-    threshold = 100;
-    bonus = [](Hero& hero) { hero.addStatus(HeroStatus::DeathGaze, 5); };
-    break;
-  case HeroClass::RatMonarch:
-    threshold = 80;
-    bonus = [](Hero& hero) { hero.addStatus(HeroStatus::CorrosiveStrike); };
-    break;
-  case HeroClass::Goatperson:
-    threshold = 100;
-    bonus = [&](Hero& hero) { threshold += 10; hero.fullHealthAndMana(); };
-    break;
-  default:
-    break;
+    switch (theClass)
+    {
+    case HeroClass::Vampire:
+      threshold = 120;
+      bonus = [](Hero& hero) { hero.addStatus(HeroStatus::LifeSteal); };
+      break;
+    case HeroClass::HalfDragon:
+      threshold = 120;
+      bonus = [](Hero& hero) { hero.addStatus(HeroStatus::Knockback, 20); };
+      break;
+    case HeroClass::Gorgon:
+      threshold = 100;
+      bonus = [](Hero& hero) { hero.addStatus(HeroStatus::DeathGaze, 5); };
+      break;
+    case HeroClass::RatMonarch:
+      threshold = 80;
+      bonus = [](Hero& hero) { hero.addStatus(HeroStatus::CorrosiveStrike); };
+      break;
+    case HeroClass::Goatperson:
+      threshold = 100;
+      bonus = [&](Hero& hero) {
+        threshold += 10;
+        hero.fullHealthAndMana();
+      };
+      break;
+    default:
+      assert(false);
+    }
+    return;
   }
+
   switch (race)
   {
   case HeroRace::Human:
@@ -62,7 +72,10 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
     break;
   case HeroRace::Goblin:
     threshold = 85;
-    bonus = [xp=5] (Hero& hero) mutable { hero.gainExperience(xp); ++xp;};
+    bonus = [xp = 5](Hero& hero) mutable {
+      hero.gainExperience(xp);
+      ++xp;
+    };
     break;
   };
 }

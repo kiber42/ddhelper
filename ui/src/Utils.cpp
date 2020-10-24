@@ -32,17 +32,17 @@ void showStatus(const Hero& hero)
 {
   if (!hero.isDefeated())
   {
-    ImGui::Text("%s level %i has %i/%i HP, %i/%i MP, %i/%i XP, %i piety, %i damage", hero.getName().c_str(),
+    ImGui::Text("%s level %i   %i/%i HP  %i/%i MP  %i damage  %i/%i XP  %i/%i CP  %i piety", hero.getName().c_str(),
                 hero.getLevel(), hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(),
-                hero.getManaPointsMax(), hero.getXP(), hero.getXPforNextLevel(), hero.getFaith().getPiety(),
-                hero.getDamageVersusStandard());
+                hero.getManaPointsMax(), hero.getDamageVersusStandard(), hero.getXP(), hero.getXPforNextLevel(), hero.getConversionPoints(),
+                hero.getConversionThreshold(), hero.getFaith().getPiety());
     for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
     {
       auto status = static_cast<HeroStatus>(i);
       if (hero.hasStatus(status))
       {
         const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
-                           status == HeroStatus::DeathGazeImmune || /* TODO status == HeroStatus::Exhausted || */
+                           status == HeroStatus::DeathGazeImmune || status == HeroStatus::Exhausted ||
                            status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||
                            status == HeroStatus::Poisoned || status == HeroStatus::Poisonous ||
                            status == HeroStatus::PoisonImmune || status == HeroStatus::Weakened;

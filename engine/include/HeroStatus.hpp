@@ -15,7 +15,7 @@ enum class HeroStatus
   DeathProtection,
   DodgePermanent,
   DodgeTemporary,
-  // Exhausted,
+  Exhausted,
   ExperienceBoost,
   FirstStrike, // temporary or permanent (Dexterous trait)
   FirstStrikeTemporary,
@@ -63,12 +63,14 @@ constexpr const char* toString(HeroStatus status)
     return "Death Gaze";
   case HeroStatus::DeathGazeImmune:
     return "Death Gaze Immune";
-  case HeroStatus::DodgePermanent:
-    return "Dodge change";
-  case HeroStatus::DodgeTemporary:
-    return "Dodge change";
   case HeroStatus::DeathProtection:
     return "Death Protection";
+  case HeroStatus::DodgePermanent:
+    return "Permanent Dodge Chance";
+  case HeroStatus::DodgeTemporary:
+    return "Dodge Chance";
+  case HeroStatus::Exhausted:
+    return "Exhausted";
   case HeroStatus::ExperienceBoost:
     return "Experience Boost";
   case HeroStatus::FirstStrike:

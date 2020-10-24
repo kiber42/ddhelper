@@ -159,7 +159,7 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   case HeroClass::Chemist:
     // return {HeroTrait::Additives, HeroTrait::Preservatives, HeroTrait::Colourants};
   case HeroClass::Vampire:
-    // return {HeroTrait::Undead, HeroTrait::Damned, HeroTrait::EternalThirst};
+    return {HeroTrait::Undead, HeroTrait::Damned, HeroTrait::EternalThirst};
   case HeroClass::HalfDragon:
     // return {HeroTrait::DragonBreath, HeroTrait::DragonTail, HeroTrait::DragonStature};
   case HeroClass::Gorgon:
