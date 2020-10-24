@@ -36,16 +36,28 @@ void showStatus(const Hero& hero)
                 hero.getLevel(), hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(),
                 hero.getManaPointsMax(), hero.getXP(), hero.getXPforNextLevel(), hero.getFaith().getPiety(),
                 hero.getDamageVersusStandard());
-    if (hero.hasStatus(HeroStatus::FirstStrike))
-      ImGui::Text("  has first strike");
-    if (hero.hasStatus(HeroStatus::DeathProtection))
-      ImGui::Text("  has death protection");
-    if (hero.hasStatus(HeroStatus::Poisoned))
-      ImGui::Text("  is poisoned");
-    if (hero.hasStatus(HeroStatus::ManaBurned))
-      ImGui::Text("  is mana burned");
-    if (hero.hasStatus(HeroStatus::Cursed))
-      ImGui::Text("  is cursed (x%i)", hero.getStatusIntensity(HeroStatus::Cursed));
+    for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
+    {
+      auto status = static_cast<HeroStatus>(i);
+      if (hero.hasStatus(status))
+      {
+        const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
+                           status == HeroStatus::DeathGazeImmune || /* TODO status == HeroStatus::Exhausted || */
+                           status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||
+                           status == HeroStatus::Poisoned || status == HeroStatus::Poisonous ||
+                           status == HeroStatus::PoisonImmune || status == HeroStatus::Weakened;
+        if (canHaveMultiple(status))
+          ImGui::Text("  %s %s (x%i)", useIs ? "is" : "has", toString(status), hero.getStatusIntensity(status));
+        else
+          ImGui::Text("  %s %s", useIs ? "is" : "has", toString(status));
+      }
+    }
+    for (auto boon : {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition,
+                      Boon::Flames /* TODO: , Boon::MysticBalance*/})
+    {
+      if (hero.hasBoon(boon))
+        ImGui::Text("  has %s", toString(boon));
+    }
   }
   else
     ImGui::Text("Hero defeated.");

@@ -22,7 +22,7 @@ enum class HeroStatus
   HeavyFireball,
   Knockback, // TODO
   Learning,
-  LifeSteal,
+  LifeSteal, // TODO?
   MagicalAttack,
   ManaBurned,
   ManaBurnImmune,
@@ -38,6 +38,7 @@ enum class HeroStatus
   SpiritStrength,
   StoneSkin,
   Weakened,
+  Last = Weakened,
 };
 
 constexpr const char* toString(HeroStatus status)
