@@ -169,6 +169,8 @@ namespace Cast
       break;
     case Spell::Endiswal:
       hero.addStatus(HeroStatus::StoneSkin);
+      if (hero.hasBoon(Boon::StoneForm))
+        hero.addStatus(HeroStatus::Might);
       break;
     case Spell::Getindare:
       // first strike, +5% dodge chance (until actual dodge)
