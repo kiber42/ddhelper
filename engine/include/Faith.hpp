@@ -71,7 +71,14 @@ enum class Boon
   TaurogsArmour,
   UnstoppableFury,
 
-  Last = UnstoppableFury
+  // Tikki Tooki
+  Tribute,
+  TikkisEdge,
+  Dodging,
+  Poison,
+  Reflexes,
+
+  Last = Reflexes
 };
 
 constexpr const char* toString(God god)
@@ -177,6 +184,17 @@ constexpr const char* toString(Boon boon)
     return "Taurog's Armour";
   case Boon::UnstoppableFury:
     return "Unstoppable Fury";
+
+  case Boon::Tribute:
+    return "Tribute";
+  case Boon::TikkisEdge:
+    return "Tikki's Edge";
+  case Boon::Dodging:
+    return "Dodging";
+  case Boon::Poison:
+    return "Poison";
+  case Boon::Reflexes:
+    return "Reflexes";
   }
 }
 
@@ -186,7 +204,8 @@ constexpr bool allowRepeatedUse(Boon boon)
          boon == Boon::BloodSwell || boon == Boon::Plantation || boon == Boon::Clearance || boon == Boon::Greenblood ||
          boon == Boon::Entanglement || boon == Boon::VineForm || boon == Boon::Absolution || boon == Boon::Cleansing ||
          boon == Boon::Protection || boon == Boon::BoostHealth || boon == Boon::BoostMana || boon == Boon::Magic ||
-         boon == Boon::Weakening || boon == Boon::UnstoppableFury;
+         boon == Boon::Weakening || boon == Boon::UnstoppableFury || boon == Boon::Tribute ||
+         boon == Boon::TikkisEdge || boon == Boon::Poison || boon == Boon::Reflexes;
 }
 
 constexpr God deity(Boon boon)
@@ -241,6 +260,13 @@ constexpr God deity(Boon boon)
   case Boon::TaurogsArmour:
   case Boon::UnstoppableFury:
     return God::Taurog;
+
+case Boon::Tribute:
+case Boon::TikkisEdge:
+case Boon::Dodging:
+case Boon::Poison:
+case Boon::Reflexes:
+return God::TikkiTooki;
   }
 }
 

@@ -292,6 +292,26 @@ bool Faith::request(Boon boon, Hero& hero)
     hero.addStatus(HeroStatus::DeathProtection);
     break;
 
+  case Boon::Tribute:
+    hero.spendGold(15);
+    break;
+  case Boon::TikkisEdge:
+    hero.addStatus(HeroStatus::Learning);
+    hero.addGold(10);
+    break;
+  case Boon::Dodging:
+    hero.addDodgeChangePercent(10, true);
+    hero.addGold(10);
+    break;
+  case Boon::Poison:
+    hero.addStatus(HeroStatus::Poisonous, 1);
+    break;
+  case Boon::Reflexes:
+    hero.lose(Item::HealthPotion);
+    hero.receive(Item::ReflexPotion);
+    hero.receive(Item::QuicksilverPotion);
+    break;
+
   // No immediate effects
   case Boon::Petition:
   case Boon::Refreshment:
@@ -382,6 +402,17 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
       return {25, 0};
     case Boon::UnstoppableFury:
       return {20, 10};
+
+    case Boon::Tribute:
+      return {-10, 0};
+    case Boon::TikkisEdge:
+      return {25, 25};
+    case Boon::Dodging:
+      return {25, 0};
+    case Boon::Poison:
+      return {15, 10};
+    case Boon::Reflexes:
+      return {35, 0};
     }
   }();
   // Last Chance uses all remaining piety points
@@ -402,7 +433,8 @@ int Faith::isAvailable(Boon boon, const Hero& hero) const
          (boon != Boon::BoostMana || hero.has(Item::ManaPotion)) &&
          (boon != Boon::UnstoppableFury ||
           (!hero.hasStatus(HeroStatus::DeathProtection) && hero.has(Item::Skullpicker) && hero.has(Item::Wereward) &&
-           hero.has(Item::Gloat) && hero.has(Item::Will)));
+           hero.has(Item::Gloat) && hero.has(Item::Will))) &&
+         (boon != Boon::Tribute || hero.gold() >= 15) && (boon != Boon::Reflexes || hero.has(Item::HealthPotion));
 }
 
 void Faith::initialBoon(God god, Hero& hero)
