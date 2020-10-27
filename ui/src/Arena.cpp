@@ -301,23 +301,8 @@ Arena::StateUpdate Arena::run(const State& currentState)
     }
     if (ImGui::BeginPopup("GodsPopup"))
     {
-      ImGui::Text("Worship");
-      ImGui::Separator();
-      for (int index = 0; index <= static_cast<int>(God::Last); ++index)
-      {
-        const God deity = static_cast<God>(index);
-        const bool isSelected = index == selectedPopupItem;
-        if (addPopupAction(
-                toString(deity), "Follow "s + toString(deity),
-                [deity](Hero& hero) {
-                  return hero.getFaith().followDeity(deity, hero) ? Summary::Safe : Summary::NotPossible;
-                },
-                isSelected))
-          selectedPopupItem = index;
-      }
       if (currentState.hero->getFollowedDeity())
       {
-        ImGui::Separator();
         ImGui::Text("Request Boon");
         ImGui::Separator();
         for (int index = 0; index <= static_cast<int>(Boon::Last); ++index)
@@ -337,6 +322,21 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   isSelected))
             selectedPopupItem = index + 100;
         }
+        ImGui::Separator();
+      }
+      ImGui::Text("Worship");
+      ImGui::Separator();
+      for (int index = 0; index <= static_cast<int>(God::Last); ++index)
+      {
+        const God deity = static_cast<God>(index);
+        const bool isSelected = index == selectedPopupItem;
+        if (addPopupAction(
+                toString(deity), "Follow "s + toString(deity),
+                [deity](Hero& hero) {
+                  return hero.getFaith().followDeity(deity, hero) ? Summary::Safe : Summary::NotPossible;
+                },
+                isSelected))
+          selectedPopupItem = index;
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
