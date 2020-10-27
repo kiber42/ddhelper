@@ -32,10 +32,21 @@ void showStatus(const Hero& hero)
 {
   if (!hero.isDefeated())
   {
-    ImGui::Text("%s level %i   %i/%i HP  %i/%i MP  %i damage  %i/%i XP  %i/%i CP  %i piety", hero.getName().c_str(),
-                hero.getLevel(), hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(),
-                hero.getManaPointsMax(), hero.getDamageVersusStandard(), hero.getXP(), hero.getXPforNextLevel(), hero.getConversionPoints(),
+    ImGui::Text("%s level %i   %i/%i HP  %i/%i MP  damage %i (%i+%i%%)", hero.getName().c_str(), hero.getLevel(),
+                hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
+                hero.getDamageVersusStandard(), hero.getBaseDamage(), hero.getDamageBonusPercent());
+    ImGui::Text("  %i/%i XP  %i/%i CP  %i piety", hero.getXP(), hero.getXPforNextLevel(), hero.getConversionPoints(),
                 hero.getConversionThreshold(), hero.getFaith().getPiety());
+    if (hero.getPhysicalResistPercent() > 0)
+    {
+      ImGui::SameLine();
+      ImGui::Text(" %i%% physical resist", hero.getPhysicalResistPercent());
+    }
+    if (hero.getMagicalResistPercent() > 0)
+    {
+      ImGui::SameLine();
+      ImGui::Text(" %i%% magic resist", hero.getMagicalResistPercent());
+    }
     for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
     {
       auto status = static_cast<HeroStatus>(i);
@@ -52,8 +63,8 @@ void showStatus(const Hero& hero)
           ImGui::Text("  %s %s", useIs ? "is" : "has", toString(status));
       }
     }
-    for (auto boon : {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition,
-                      Boon::Flames /* TODO: , Boon::MysticBalance*/})
+    for (auto boon :
+         {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition, Boon::Flames, Boon::MysticBalance})
     {
       if (hero.hasBoon(boon))
         ImGui::Text("  has %s", toString(boon));
