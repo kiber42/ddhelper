@@ -761,6 +761,8 @@ void Hero::convert(Spell spell)
   const auto conversionValue = inventory.remove(spell);
   if (conversionValue.has_value())
   {
+    if (hasBoon(Boon::Refreshment))
+      recoverManaPoints(getManaPointsMax() * (faith.getFollowedDeity() == God::MysteraAnnur ? 50 : 25) / 100);
     if (conversion.addPoints(*conversionValue))
       conversion.applyBonus(*this);
     applyOrCollect(faith.converted(spell));

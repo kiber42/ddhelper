@@ -58,8 +58,13 @@ enum class Boon
   ChaosAvatar,
 
   // Mystera Annur
+  Magic,
+  Refreshment,
   Flames,
-  Last = Flames
+  Weakening,
+  MysticBalance,
+
+  Last = MysticBalance
 };
 
 constexpr const char* toString(God god)
@@ -144,8 +149,16 @@ constexpr const char* toString(Boon boon)
   case Boon::ChaosAvatar:
     return "Chaos Avatar";
 
+  case Boon::Magic:
+    return "Magic";
+  case Boon::Refreshment:
+    return "Refreshment";
   case Boon::Flames:
     return "Flames";
+  case Boon::Weakening:
+    return "Weakening";
+  case Boon::MysticBalance:
+    return "Mystic Balance";
   }
 }
 
@@ -154,7 +167,8 @@ constexpr bool allowRepeatedUse(Boon boon)
   return boon == Boon::StoneSkin || boon == Boon::StoneHeart || boon == Boon::BloodTithe || boon == Boon::BloodHunger ||
          boon == Boon::BloodSwell || boon == Boon::Plantation || boon == Boon::Clearance || boon == Boon::Greenblood ||
          boon == Boon::Entanglement || boon == Boon::VineForm || boon == Boon::Absolution || boon == Boon::Cleansing ||
-         boon == Boon::Protection || boon == Boon::BoostHealth || boon == Boon::BoostMana;
+         boon == Boon::Protection || boon == Boon::BoostHealth || boon == Boon::BoostMana || boon == Boon::Magic ||
+         boon == Boon::Weakening;
 }
 
 constexpr God deity(Boon boon)
@@ -196,7 +210,11 @@ constexpr God deity(Boon boon)
   case Boon::ChaosAvatar:
     return God::JehoraJeheyu;
 
+  case Boon::Magic:
+  case Boon::Refreshment:
   case Boon::Flames:
+  case Boon::Weakening:
+  case Boon::MysticBalance:
     return God::MysteraAnnur;
   }
 }

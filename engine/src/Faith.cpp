@@ -257,11 +257,21 @@ bool Faith::request(Boon boon, Hero& hero)
     // TODO: -20% physical and magic resist for all monsters on current level
     break;
 
+  case Boon::Magic:
+    hero.changeManaPointsMax(+1);
+    break;
   case Boon::Flames:
     hero.changeDamageBonusPercent(-50);
     break;
+  case Boon::Weakening:
+    hero.changeMagicalResistPercentMax(-10);
+    // TODO: -10% magic resistance to all monsters on current dungeon floor
+    break;
 
-  default:
+  // No immediate effects
+  case Boon::Petition:
+  case Boon::Refreshment:
+  case Boon::MysticBalance:
     break;
   }
   return true;
@@ -327,8 +337,16 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
     case Boon::ChaosAvatar:
       return {80, 0};
 
+    case Boon::Magic:
+      return {5, 20};
+    case Boon::Refreshment:
+      return {50, 0};
     case Boon::Flames:
       return {20, 0};
+    case Boon::Weakening:
+      return {30, 0};
+    case Boon::MysticBalance:
+      return {60, 0};
     }
   }();
   // Last Chance uses all remaining piety points

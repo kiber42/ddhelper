@@ -89,17 +89,17 @@ namespace Cast
 
   int spellCosts(Spell spell, const Hero& hero)
   {
-    // Effects to be accounted for:
-    // Classes:
-    // Chemist: can have multiple layers of bysseps, cost doubles per layer (Additives trait)
-    // Wizard: costs -1 (Magic Affinity trait)
-    // God boons:
-    // Mystic Balance (Mystera Annur), glyph costs change by +/-2 toward 5 (evaluated after Magic Affinity!)
+    // TODO: Chemist can have multiple layers of bysseps, cost doubles per layer (Additives trait)
     int costs = baseSpellCosts(spell);
     if (hero.hasTrait(HeroTrait::Mageslay))
       costs += 2;
     if (hero.hasTrait(HeroTrait::MagicAffinity))
       costs -= 1;
+    if (hero.hasBoon(Boon::MysticBalance))
+    {
+      if (costs > 5) costs -= 2;
+      else if (costs > 0 && costs < 5) costs += 2;
+    }
     return costs;
   }
 
