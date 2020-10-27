@@ -32,7 +32,7 @@ void showStatus(const Hero& hero)
 {
   if (!hero.isDefeated())
   {
-    ImGui::Text("%s level %i   %i/%i HP  %i/%i MP  damage %i (%i+%i%%)", hero.getName().c_str(), hero.getLevel(),
+    ImGui::Text("%s level %i   %i/%i HP  %i/%i MP  damage %i (%i%+i%%)", hero.getName().c_str(), hero.getLevel(),
                 hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
                 hero.getDamageVersusStandard(), hero.getBaseDamage(), hero.getDamageBonusPercent());
     ImGui::Text("  %i/%i XP  %i/%i CP  %i piety  %i gold", hero.getXP(), hero.getXPforNextLevel(), hero.getConversionPoints(),
