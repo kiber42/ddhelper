@@ -88,6 +88,10 @@ public:
   void addDodgeChangePercent(int percent, bool isPermanent);
   int getDodgeChangePercent() const;
 
+  int gold() const;
+  void addGold(int amountAdded);
+  bool spendGold(int amountSpent);
+
   Faith& getFaith();
   const Faith& getFaith() const;
 
@@ -152,6 +156,4 @@ private:
   void levelGainedUpdate();
   void applyOrCollect(PietyChange pietyChange);
   void changeStatsFromItem(Item item, bool itemReceived);
-
-  // int gold;
 };

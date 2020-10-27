@@ -579,6 +579,26 @@ int Hero::getDodgeChangePercent() const
   return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
 }
 
+int Hero::gold() const
+{
+  return stats.gold;
+}
+
+void Hero::addGold(int amountAdded)
+{
+  stats.gold += amountAdded;
+  if (stats.gold < 0)
+    stats.gold = 0;
+}
+
+bool Hero::spendGold(int amountSpent)
+{
+  if (stats.gold < amountSpent)
+    return false;
+  stats.gold -= amountSpent;
+  return true;
+}
+
 Faith& Hero::getFaith()
 {
   return faith;

@@ -16,6 +16,7 @@ HeroStats::HeroStats(IsDangerous)
   , baseDamage(5)
   , damageBonusPercent(40)
   , healthBonus(-5)
+  , gold(20)
 {
 }
 
@@ -27,6 +28,7 @@ HeroStats::HeroStats(int hpMax, int mpMax, int baseDamage)
   , baseDamage(baseDamage)
   , damageBonusPercent(0)
   , healthBonus(0)
+  , gold(20)
 {
 }
 
