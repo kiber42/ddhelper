@@ -690,7 +690,10 @@ void Hero::addConversionPoints(int points)
 
 bool Hero::lose(Item item)
 {
-  return inventory.remove(item) != std::nullopt;
+  const bool itemLost = inventory.remove(item) != std::nullopt;
+  if (itemLost)
+    changeStatsFromItem(item, false);
+  return itemLost;
 }
 
 void Hero::receiveFreeSpell(Spell spell)
@@ -712,6 +715,11 @@ void Hero::receiveEnlightenment()
 
 void Hero::loseAllItems()
 {
+  for (auto& entry : getItems())
+  {
+    for (int i = 0; i < entry.count; ++i)
+      changeStatsFromItem(std::get<Item>(entry.itemOrSpell), false);
+  }
   inventory.clear();
 }
 
@@ -738,6 +746,7 @@ bool Hero::has(Spell spell) const
 void Hero::receive(Item item)
 {
   inventory.add(item);
+  changeStatsFromItem(item, true);
 }
 
 void Hero::receive(Spell spell)
@@ -750,9 +759,12 @@ void Hero::convert(Item item)
   const auto conversionValue = inventory.remove(item);
   if (conversionValue.has_value())
   {
+    changeStatsFromItem(item, false);
     if (conversion.addPoints(*conversionValue))
       conversion.applyBonus(*this);
     applyOrCollect(faith.converted(item));
+    if (item == Item::Skullpicker || item == Item::Wereward || item == Item::Gloat || item == Item::Will)
+      faith.convertedTaurogItem(*this);
   }
 }
 
@@ -849,7 +861,33 @@ void Hero::use(Item item)
   applyOrCollect(faith.itemUsed(item));
 
   if (consumed)
+  {
     inventory.remove(item);
+    changeStatsFromItem(item, false);
+  }
+}
+
+void Hero::changeStatsFromItem(Item item, bool itemReceived)
+{
+  // Apply passive item effects on hero status
+  switch (item)
+  {
+  case Item::Skullpicker:
+    changeBaseDamage(itemReceived ? +5 : -5);
+    break;
+  case Item::Wereward:
+    addStatus(HeroStatus::DamageReduction, itemReceived ? +5 : -5);
+    break;
+  case Item::Gloat:
+    changeMagicalResistPercent(itemReceived ? +15 : -15);
+    break;
+  case Item::Will:
+    changePhysicalResistPercent(itemReceived ? +15 : -15);
+    break;
+
+  default:
+    break;
+  }
 }
 
 int Hero::getConversionPoints() const

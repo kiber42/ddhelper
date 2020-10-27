@@ -151,8 +151,7 @@ private:
   void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
   void applyOrCollect(PietyChange pietyChange);
+  void changeStatsFromItem(Item item, bool itemReceived);
 
-  /*
-          int gold;
-          */
+  // int gold;
 };

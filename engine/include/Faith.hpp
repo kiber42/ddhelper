@@ -64,7 +64,14 @@ enum class Boon
   Weakening,
   MysticBalance,
 
-  Last = MysticBalance
+  // Taurog
+  TaurogsBlade,
+  TaurogsShield,
+  TaurogsHelm,
+  TaurogsArmour,
+  UnstoppableFury,
+
+  Last = UnstoppableFury
 };
 
 constexpr const char* toString(God god)
@@ -159,6 +166,17 @@ constexpr const char* toString(Boon boon)
     return "Weakening";
   case Boon::MysticBalance:
     return "Mystic Balance";
+
+  case Boon::TaurogsBlade:
+    return "Taurog's Blade";
+  case Boon::TaurogsShield:
+    return "Taurog's Shield";
+  case Boon::TaurogsHelm:
+    return "Taurog's Helm";
+  case Boon::TaurogsArmour:
+    return "Taurog's Armour";
+  case Boon::UnstoppableFury:
+    return "Unstoppable Fury";
   }
 }
 
@@ -168,7 +186,7 @@ constexpr bool allowRepeatedUse(Boon boon)
          boon == Boon::BloodSwell || boon == Boon::Plantation || boon == Boon::Clearance || boon == Boon::Greenblood ||
          boon == Boon::Entanglement || boon == Boon::VineForm || boon == Boon::Absolution || boon == Boon::Cleansing ||
          boon == Boon::Protection || boon == Boon::BoostHealth || boon == Boon::BoostMana || boon == Boon::Magic ||
-         boon == Boon::Weakening;
+         boon == Boon::Weakening || boon == Boon::UnstoppableFury;
 }
 
 constexpr God deity(Boon boon)
@@ -216,6 +234,13 @@ constexpr God deity(Boon boon)
   case Boon::Weakening:
   case Boon::MysticBalance:
     return God::MysteraAnnur;
+
+  case Boon::TaurogsBlade:
+  case Boon::TaurogsShield:
+  case Boon::TaurogsHelm:
+  case Boon::TaurogsArmour:
+  case Boon::UnstoppableFury:
+    return God::Taurog;
   }
 }
 
@@ -297,6 +322,9 @@ public:
   PietyChange receivedHit(const Monster& monster);
   PietyChange dodgedAttack();
   PietyChange deathProtectionTriggered();
+
+  // Instantly triggers special Taurog punishment
+  void convertedTaurogItem(Hero& hero);
 
 private:
   void initialBoon(God god, Hero& hero);

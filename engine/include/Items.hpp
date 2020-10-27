@@ -21,9 +21,13 @@ enum class Item
   QuicksilverPotion,
   ReflexPotion,
   CanOfWhupaz,
-  // Special
+  // God Items
   PrayerBead,
   EnchantedPrayerBead,
+  Skullpicker,
+  Wereward,
+  Gloat,
+  Will
 };
 
 constexpr const char* toString(Item item)
@@ -70,6 +74,15 @@ constexpr const char* toString(Item item)
     return "Prayer Bead";
   case Item::EnchantedPrayerBead:
     return "Enchanted Prayer Bead";
+
+  case Item::Skullpicker:
+    return "Skullpicker";
+  case Item::Wereward:
+    return "Wereward";
+  case Item::Gloat:
+    return "Gloat";
+  case Item::Will:
+    return "Will";
   }
 }
 
@@ -115,6 +128,10 @@ constexpr int price(Item item)
 
   case Item::PrayerBead:
   case Item::EnchantedPrayerBead:
+  case Item::Skullpicker:
+  case Item::Wereward:
+  case Item::Gloat:
+  case Item::Will:
     return 0;
   }
 }
@@ -163,6 +180,12 @@ constexpr int conversionPointsInitial(Item item)
     return -1;
   case Item::EnchantedPrayerBead:
     return -1;
+
+  case Item::Skullpicker:
+  case Item::Wereward:
+  case Item::Gloat:
+  case Item::Will:
+    return 60;
   }
 }
 

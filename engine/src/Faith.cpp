@@ -268,6 +268,30 @@ bool Faith::request(Boon boon, Hero& hero)
     // TODO: -10% magic resistance to all monsters on current dungeon floor
     break;
 
+  case Boon::TaurogsBlade:
+    hero.receive(Item::Skullpicker);
+    hero.changeDamageBonusPercent(+5);
+    hero.changeManaPointsMax(-1);
+    break;
+  case Boon::TaurogsShield:
+    hero.receive(Item::Wereward);
+    hero.changeDamageBonusPercent(+5);
+    hero.changeManaPointsMax(-1);
+    break;
+  case Boon::TaurogsHelm:
+    hero.receive(Item::Gloat);
+    hero.changeDamageBonusPercent(+5);
+    hero.changeManaPointsMax(-1);
+    break;
+  case Boon::TaurogsArmour:
+    hero.receive(Item::Will);
+    hero.changeDamageBonusPercent(+5);
+    hero.changeManaPointsMax(-1);
+    break;
+  case Boon::UnstoppableFury:
+    hero.addStatus(HeroStatus::DeathProtection);
+    break;
+
   // No immediate effects
   case Boon::Petition:
   case Boon::Refreshment:
@@ -347,6 +371,17 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
       return {30, 0};
     case Boon::MysticBalance:
       return {60, 0};
+
+    case Boon::TaurogsBlade:
+      return {20, 0};
+    case Boon::TaurogsShield:
+      return {25, 0};
+    case Boon::TaurogsHelm:
+      return {25, 0};
+    case Boon::TaurogsArmour:
+      return {25, 0};
+    case Boon::UnstoppableFury:
+      return {20, 10};
     }
   }();
   // Last Chance uses all remaining piety points
@@ -364,7 +399,10 @@ int Faith::isAvailable(Boon boon, const Hero& hero) const
   return deity(boon) == followedDeity && (allowRepeatedUse(boon) || !boonCount(boon)) &&
          (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1) &&
          (boon != Boon::BoostHealth || hero.has(Item::HealthPotion)) &&
-         (boon != Boon::BoostMana || hero.has(Item::ManaPotion));
+         (boon != Boon::BoostMana || hero.has(Item::ManaPotion)) &&
+         (boon != Boon::UnstoppableFury ||
+          (!hero.hasStatus(HeroStatus::DeathProtection) && hero.has(Item::Skullpicker) && hero.has(Item::Wereward) &&
+           hero.has(Item::Gloat) && hero.has(Item::Will)));
 }
 
 void Faith::initialBoon(God god, Hero& hero)
@@ -731,4 +769,10 @@ PietyChange Faith::deathProtectionTriggered()
   if (followedDeity == God::TikkiTooki)
     return -10;
   return {};
+}
+
+void Faith::convertedTaurogItem(Hero& hero)
+{
+  hero.changeDamageBonusPercent(-10);
+  // TODO: 10% magical resistance for all monsters
 }
