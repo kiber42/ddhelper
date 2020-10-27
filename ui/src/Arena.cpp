@@ -288,6 +288,14 @@ Arena::StateUpdate Arena::run(const State& currentState)
               },
               ++index == selectedPopupItem))
         selectedPopupItem = index;
+      if (addPopupAction(
+              "+20 gold", "Cheat: +20 gold",
+              [](Hero& hero) {
+                hero.addGold(20);
+                return Summary::Safe;
+              },
+              ++index == selectedPopupItem))
+        selectedPopupItem = index;
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
       ImGui::EndPopup();
