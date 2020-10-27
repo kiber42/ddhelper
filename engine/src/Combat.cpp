@@ -89,7 +89,7 @@ namespace Combat
       applyLifeSteal(hero, monster, monsterHPBefore);
       if (hero.hasStatus(HeroStatus::Poisonous))
       {
-        if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous)))
+        if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
           hero.collect(hero.getFaith().monsterPoisoned(monster));
       }
       if (hero.hasStatus(HeroStatus::Might))
@@ -120,7 +120,7 @@ namespace Combat
             monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
             applyLifeSteal(hero, monster, monsterHPBefore);
             if (hero.hasStatus(HeroStatus::Poisonous))
-              monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous));
+              monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel());
           }
         }
       }
@@ -148,7 +148,7 @@ namespace Combat
         applyLifeSteal(hero, monster, monsterHPBefore);
         if (hero.hasStatus(HeroStatus::Poisonous))
         {
-          if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous)))
+          if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
             hero.collect(hero.getFaith().monsterPoisoned(monster));
         }
         if (hero.hasStatus(HeroStatus::Might))
