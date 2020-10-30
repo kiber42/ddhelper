@@ -40,7 +40,7 @@ public:
   void erodeResitances();
   void petrify();
   void die();
-  void corrode();
+  void corrode(int amount = 1);
 
   bool isBurning() const;
   bool isPoisoned() const;

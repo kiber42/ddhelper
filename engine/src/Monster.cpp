@@ -191,9 +191,9 @@ void Monster::die()
   stats.loseHitPoints(stats.getHitPoints());
 }
 
-void Monster::corrode()
+void Monster::corrode(int amount)
 {
-  status.setCorroded(getCorroded() + 1);
+  status.setCorroded(getCorroded() + amount);
   defence.setCorrosion(getCorroded());
 }
 

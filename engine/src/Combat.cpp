@@ -92,6 +92,8 @@ namespace Combat
         if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
           hero.collect(hero.getFaith().monsterPoisoned(monster));
       }
+      if (hero.hasStatus(HeroStatus::CorrosiveStrike))
+        monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
       if (hero.hasStatus(HeroStatus::Might))
         monster.erodeResitances();
       if (!monster.isDefeated())
@@ -121,6 +123,8 @@ namespace Combat
             applyLifeSteal(hero, monster, monsterHPBefore);
             if (hero.hasStatus(HeroStatus::Poisonous))
               monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel());
+            if (hero.hasStatus(HeroStatus::CorrosiveStrike))
+              monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
           }
         }
       }
@@ -151,6 +155,8 @@ namespace Combat
           if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
             hero.collect(hero.getFaith().monsterPoisoned(monster));
         }
+        if (hero.hasStatus(HeroStatus::CorrosiveStrike))
+          monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
         if (hero.hasStatus(HeroStatus::Might))
           monster.erodeResitances();
         if (monster.bearsCurse())
