@@ -444,6 +444,22 @@ void testStatusEffects()
         AssertThat(hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
       });
     });
+    describe("Corrosive Strike", [] {
+      Hero hero;
+      hero.gainLevel();
+      hero.addStatus(HeroStatus::CorrosiveStrike);
+      it("should corrode monster", [&] {
+        Monster monster(MonsterType::MeatMan, 2);
+        Combat::attack(hero, monster);
+        AssertThat(monster.getCorroded(), Equals(1));
+        hero.addStatus(HeroStatus::FirstStrike);
+        hero.addStatus(HeroStatus::CorrosiveStrike, 2);
+        hero.fullHealthAndMana();
+        Combat::attack(hero, monster);
+        AssertThat(monster.getCorroded(), Equals(4));
+        AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2 * hero.getDamageVersusStandard() + 1));
+      });
+    });
     describe("Crushing Blow", [] {
       Hero hero;
       before_each([&] {
@@ -523,6 +539,7 @@ void testStatusEffects()
         AssertThat(hero2.hasStatus(HeroStatus::Cursed), Equals(false));
       });
     });
+    describe("Death Gaze", [] {});
     describe("Death Gaze Immune", [] {
       it("should prevent petrification", [] {
         Hero hero;
@@ -550,7 +567,6 @@ void testStatusEffects()
       });
     });
     describe("Heavy Fireball", [] {});
-    describe("Indulgence", [] {});
     describe("Knockback", [] {});
     describe("Life Steal", [] {});
     describe("Magical Attack", [] {});
@@ -571,6 +587,7 @@ void testStatusEffects()
     describe("Might", [] {});
     describe("Pierce Physical", [] {});
     describe("Poisoned", [] {});
+    describe("Poisonous", [] {});
     describe("Poison Immune", [] {
       it("should prevent being poisoned", [] {
         Hero hero;
@@ -584,7 +601,6 @@ void testStatusEffects()
         AssertThat(hero2.hasStatus(HeroStatus::Poisoned), Equals(false));
       });
     });
-    describe("Poisonous", [] {});
     describe("Reflexes", [] {
       it("should cause 2 hits", [] {
         Hero hero;
@@ -622,7 +638,27 @@ void testStatusEffects()
       });
     });
     describe("Spirit Strength", [] {});
-    describe("Stone Skin", [] {});
+    describe("Stone Skin", [] {
+      Hero hero;
+      hero.gainLevel();
+      it("should add 20% physical resistance per stack", [&] {
+        hero.addStatus(HeroStatus::StoneSkin);
+        AssertThat(hero.getPhysicalResistPercent(), Equals(20));
+        hero.addStatus(HeroStatus::StoneSkin, 2);
+        AssertThat(hero.getPhysicalResistPercent(), Equals(60));
+        hero.addStatus(HeroStatus::StoneSkin);
+        AssertThat(hero.getPhysicalResistPercent(), Equals(65));
+      });
+      it("should wear off when hit", [&] {
+        Monster monster(MonsterType::MeatMan, 1);
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+        AssertThat(hero.getHitPoints(), Equals(19));
+        AssertThat(hero.hasStatus(HeroStatus::StoneSkin), IsFalse());
+        hero.addStatus(HeroStatus::StoneSkin);
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Win));
+        AssertThat(hero.hasStatus(HeroStatus::StoneSkin), IsTrue());
+      });
+    });
     describe("Weakened", [] {
       it("should reduce base damage by one per stack level", [] {
         Hero hero;
@@ -645,6 +681,19 @@ void testStatusEffects()
       });
     });
   });
+}
+
+void testPotions()
+{
+  describe("Health Potion", [] {});
+  describe("Mana Potion", [] {});
+  describe("Fortitude Tonic", [] {});
+  describe("Burn Salve", [] {});
+  describe("Strength Potion", [] {});
+  describe("Schadenfreude", [] {});
+  describe("Quicksilver Potion", [] {});
+  describe("Reflex Potion", [] {});
+  describe("Can Of Whupaz", [] {});
 }
 
 void testCombatInitiative()
