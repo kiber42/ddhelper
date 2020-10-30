@@ -2,7 +2,7 @@
 
 enum class HeroStatus
 {
-  // BurningStrike,
+  BurningStrike, // TODO
   ConsecratedStrike,
   Corrosion,
   CorrosiveStrike, // TODO
@@ -27,7 +27,7 @@ enum class HeroStatus
   ManaBurned,
   ManaBurnImmune,
   Might,
-  // PiercePhysical,
+  PiercePhysical, // TODO
   Poisoned,
   Poisonous,
   PoisonImmune,
@@ -45,6 +45,8 @@ constexpr const char* toString(HeroStatus status)
 {
   switch (status)
   {
+  case HeroStatus::BurningStrike:
+    return "Burning Strike";
   case HeroStatus::ConsecratedStrike:
     return "Consecrated Strike";
   case HeroStatus::Corrosion:
@@ -67,6 +69,8 @@ constexpr const char* toString(HeroStatus status)
     return "Death Protection";
   case HeroStatus::DodgePermanent:
     return "Permanent Dodge Chance";
+  case HeroStatus::PiercePhysical:
+    return "Pierce Physical";
   case HeroStatus::DodgeTemporary:
     return "Dodge Chance";
   case HeroStatus::Exhausted:
