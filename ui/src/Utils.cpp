@@ -114,8 +114,6 @@ void showStatus(const Monster& monster)
       ImGui::Text("  Slowed");
     if (monster.getCorroded() > 0)
       ImGui::Text("  Corroded (x%i)", monster.getCorroded());
-    if (monster.getWeakened() > 0)
-      ImGui::Text("  Weakened (x%i)", monster.getWeakened());
     if (monster.isUndead())
       ImGui::Text("  Undead");
     if (monster.isBloodless())

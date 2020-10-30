@@ -5,7 +5,6 @@ MonsterStatus::MonsterStatus()
   , poisonAmount(0)
   , slowed(false)
   , corroded(0)
-  , weakened(0)
 {
 }
 
@@ -39,11 +38,6 @@ int MonsterStatus::getCorroded() const
   return corroded;
 }
 
-int MonsterStatus::getWeakened() const
-{
-  return weakened;
-}
-
 void MonsterStatus::setBurn(int nStacks)
 {
   burnStackSize = nStacks;
@@ -62,9 +56,4 @@ void MonsterStatus::setSlowed(bool newStunned)
 void MonsterStatus::setCorroded(int numCorrosionStacks)
 {
   corroded = numCorrosionStacks;
-}
-
-void MonsterStatus::setWeakened(int numWeakened)
-{
-  weakened = numWeakened;
 }

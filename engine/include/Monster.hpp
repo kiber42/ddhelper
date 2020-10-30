@@ -41,7 +41,6 @@ public:
   void petrify();
   void die();
   void corrode();
-  void weaken();
 
   bool isBurning() const;
   bool isPoisoned() const;
@@ -50,7 +49,6 @@ public:
   int getPoisonAmount() const;
   int getDeathProtection() const;
   int getCorroded() const;
-  int getWeakened() const;
 
   bool doesMagicalDamage() const;
   bool doesRetaliate() const;

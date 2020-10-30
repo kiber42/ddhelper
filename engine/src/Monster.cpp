@@ -197,11 +197,6 @@ void Monster::corrode()
   defence.setCorrosion(getCorroded());
 }
 
-void Monster::weaken()
-{
-  status.setWeakened(getWeakened() + 1);
-}
-
 bool Monster::isBurning() const
 {
   return status.isBurning();
@@ -235,11 +230,6 @@ int Monster::getDeathProtection() const
 int Monster::getCorroded() const
 {
   return status.getCorroded();
-}
-
-int Monster::getWeakened() const
-{
-  return status.getWeakened();
 }
 
 bool Monster::doesMagicalDamage() const
