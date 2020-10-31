@@ -895,15 +895,112 @@ void testStatusEffects()
 
 void testPotions()
 {
-  describe("Health Potion", [] {});
-  describe("Mana Potion", [] {});
-  describe("Fortitude Tonic", [] {});
-  describe("Burn Salve", [] {});
-  describe("Strength Potion", [] {});
-  describe("Schadenfreude", [] {});
-  describe("Quicksilver Potion", [] {});
-  describe("Reflex Potion", [] {});
-  describe("Can Of Whupaz", [] {});
+  describe("Health Potion", [] {
+    it("restores 40% of max HP", [] {
+      Hero hero;
+      hero.setHitPointsMax(99);
+      const int expected = hero.getHitPoints() + 39;
+      hero.use(Item::HealthPotion);
+      AssertThat(hero.getHitPoints(), Equals(expected));
+    });
+    it("removes poison", [] {
+      Hero hero;
+      hero.addStatus(HeroStatus::Poisoned);
+      hero.use(Item::HealthPotion);
+      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
+    });
+    it("does not overheal", [] {
+      Hero hero;
+      hero.healHitPoints(1, true);
+      AssertThat(hero.getHitPoints(), Equals(11));
+      hero.use(Item::HealthPotion);
+      AssertThat(hero.getHitPoints(), Equals(11));
+    });
+  });
+  describe("Mana Potion", [] {
+    it("restores 40% of max MP", [] {
+      Hero hero;
+      hero.setManaPointsMax(99);
+      const int expected = hero.getManaPoints() + 39;
+      hero.use(Item::ManaPotion);
+      AssertThat(hero.getManaPoints(), Equals(expected));
+      hero.use(Item::ManaPotion);
+      hero.use(Item::ManaPotion);
+      AssertThat(hero.getManaPoints(), Equals(99));
+    });
+    it("removes mana burn", [] {
+      Hero hero;
+      hero.addStatus(HeroStatus::ManaBurned);
+      hero.use(Item::ManaPotion);
+      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
+    });
+  });
+  describe("Fortitude Tonic", [] {
+    it("removes poison and weakening", [] {
+      Hero hero;
+      hero.addStatus(HeroStatus::Poisoned);
+      hero.addStatus(HeroStatus::Weakened, 50);
+      hero.use(Item::FortitudeTonic);
+      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
+      AssertThat(hero.hasStatus(HeroStatus::Weakened), IsFalse());
+    });
+  });
+  describe("Burn Salve", [] {
+    it("removes mana burn and corrosion", [] {
+      Hero hero;
+      hero.addStatus(HeroStatus::ManaBurned);
+      hero.addStatus(HeroStatus::Corrosion, 50);
+      hero.use(Item::BurnSalve);
+      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
+      AssertThat(hero.hasStatus(HeroStatus::Corrosion), IsFalse());
+    });
+  });
+  describe("Strength Potion", [] {
+    it("Converts all mana into spirit strength", [] {
+      Hero hero;
+      hero.gainLevel();
+      hero.setManaPointsMax(123);
+      hero.fullHealthAndMana();
+      hero.use(Item::StrengthPotion);
+      AssertThat(hero.getManaPoints(), Equals(0));
+      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(123 + hero.getLevel()));
+      AssertThat(hero.getDamageVersusStandard(), Equals(135));
+    });
+  });
+  describe("Schadenfreude", [] {
+    it("adds Schadenfreude status", [] {
+      Hero hero;
+      hero.use(Item::Schadenfreude);
+      AssertThat(hero.hasStatus(HeroStatus::Schadenfreude), IsTrue());
+    });
+  });
+  describe("Quicksilver Potion", [] {
+    it("adds 50% dodge change (temporary)", [] {
+      Hero hero;
+      hero.use(Item::QuicksilverPotion);
+      AssertThat(hero.getDodgeChangePercent(), Equals(50));
+      AssertThat(hero.hasStatus(HeroStatus::DodgePermanent), Equals(0));
+    });
+    it("adds dodge prediction", [] {
+      Hero hero;
+      hero.use(Item::QuicksilverPotion);
+      AssertThat(false /* TODO */, IsTrue());
+    });
+  });
+  describe("Reflex Potion", [] {
+    it("adds Reflexes status", [] {
+      Hero hero;
+      hero.use(Item::ReflexPotion);
+      AssertThat(hero.hasStatus(HeroStatus::Reflexes), IsTrue());
+    });
+  });
+  describe("Can Of Whupaz", [] {
+    it("adds Crushing Blow status", [] {
+      Hero hero;
+      hero.use(Item::CanOfWhupaz);
+      AssertThat(hero.hasStatus(HeroStatus::CrushingBlow), IsTrue());
+    });
+  });
 }
 
 void testCombatInitiative()
@@ -980,6 +1077,7 @@ go_bandit([] {
   testDefenceBasics();
   testMelee();
   testStatusEffects();
+  testPotions();
   testCombatInitiative();
   testDungeonBasics();
 });
