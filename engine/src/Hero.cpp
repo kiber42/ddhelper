@@ -361,6 +361,7 @@ void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
 
 void Hero::recover(int nSquares)
 {
+  const bool exhausted = hasStatus(HeroStatus::Exhausted);
   if (!hasStatus(HeroStatus::Poisoned))
   {
     int multiplier = getLevel() * (hasTrait(HeroTrait::Discipline) ? 2 : 1);
@@ -371,7 +372,7 @@ void Hero::recover(int nSquares)
     // TODO: Add +1 for Bloody Sigil
     stats.healHitPoints(nSquares * multiplier, false);
   }
-  if (!hasStatus(HeroStatus::ManaBurned) && !hasStatus(HeroStatus::Exhausted))
+  if (!hasStatus(HeroStatus::ManaBurned) && !exhausted)
   {
     stats.recoverManaPoints(nSquares);
   }
@@ -437,6 +438,7 @@ bool Hero::hasStatus(HeroStatus status) const
 
 void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
 {
+  assert(status != HeroStatus::Exhausted && "Exhausted status is computed on the fly");
   const bool canStack = canHaveMultiple(status) || (status == HeroStatus::Might && hasTrait(HeroTrait::Additives));
   if (newIntensity > 1 && !canStack)
     newIntensity = 1;
