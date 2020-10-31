@@ -64,7 +64,8 @@ int Monster::getHitPointsMax() const
 int Monster::getDamage() const
 {
   const int standardDamage = stats.getDamage();
-  if (getHitPoints() <= traits.getBerserkPercent() * getHitPointsMax())
+  const int berserkLimit = traits.getBerserkPercent() * getHitPointsMax();
+  if (berserkLimit > 0 && getHitPoints() <= berserkLimit)
     return standardDamage * 3 / 2;
   return standardDamage;
 }
