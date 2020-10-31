@@ -5,6 +5,7 @@
 #include "Hero.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
+#include "Spells.hpp"
 
 using namespace bandit;
 using namespace snowhouse;
@@ -584,10 +585,36 @@ void testStatusEffects()
         AssertThat(hero2.hasStatus(HeroStatus::ManaBurned), Equals(false));
       });
     });
-    describe("Might", [] {});
-    describe("Pierce Physical", [] {});
-    describe("Poisoned", [] {});
-    describe("Poisonous", [] {});
+    describe("Might", [] {
+      it("should add layer of stone skin when a wall is destroyed", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::Might);
+        Cast::untargeted(hero, Spell::Endiswal);
+        AssertThat(hero.hasStatus(HeroStatus::StoneSkin), IsTrue());
+        AssertThat(hero.hasStatus(HeroStatus::Might), IsTrue());
+      });
+    });
+    describe("Pierce Physical", [] { /* TODO */ });
+    describe("Poisoned", [] {
+      it("should prevent health recovery", [] {
+        Hero hero;
+        hero.loseHitPointsOutsideOfFight(9);
+        Combat::uncoverTiles(hero, nullptr, 1);
+        AssertThat(hero.getHitPoints(), Equals(2));
+        hero.addStatus(HeroStatus::Poisoned);
+        Combat::uncoverTiles(hero, nullptr, 10);
+        AssertThat(hero.getHitPoints(), Equals(2));
+      });
+    });
+    describe("Poisonous", [] {
+      it("should poison the monster (1 point per hero level)", [] {
+        Hero hero({100, 0, 1}, {}, Experience{5});
+        hero.addStatus(HeroStatus::Poisonous, 3);
+        Monster monster(MonsterType::GooBlob, 4);
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+        AssertThat(monster.getPoisonAmount(), Equals(15));
+      });
+    });
     describe("Poison Immune", [] {
       it("should prevent being poisoned", [] {
         Hero hero;
@@ -609,8 +636,19 @@ void testStatusEffects()
         AssertThat(Combat::attack(hero, monster), Equals(Summary::Win));
       });
     });
-    describe("Sanguine", [] {});
-    describe("Schadenfreude", [] {});
+    describe("Sanguine", [] { /* TODO */ });
+    describe("Schadenfreude", [] {
+      it("should refill mana equal to damage received", [] {
+        Hero hero;
+        hero.loseManaPoints(10);
+        hero.addStatus(HeroStatus::Schadenfreude);
+        Monster monster("", {1, 6, 8, 0}, {}, {});
+        Combat::attack(hero, monster);
+        AssertThat(hero.getManaPoints(), Equals(8));
+        AssertThat(hero.getHitPoints(), Equals(2));
+        AssertThat(hero.hasStatus(HeroStatus::Schadenfreude), IsFalse());
+      });
+    });
     describe("Slow Strike", [] {
       Hero hero({}, {}, Experience(10));
       Monster meatMan(MonsterType::MeatMan, 1);
@@ -637,7 +675,23 @@ void testStatusEffects()
         AssertThat(hero.hasInitiativeVersus(goblin), IsTrue());
       });
     });
-    describe("Spirit Strength", [] {});
+    describe("Spirit Strength", [] {
+      Hero hero;
+      it("should add damage points to the next attack", [&] {
+        AssertThat(hero.getBaseDamage(), Equals(5));
+        hero.addStatus(HeroStatus::SpiritStrength, 7);
+        AssertThat(hero.getBaseDamage(), Equals(12));
+        hero.changeDamageBonusPercent(100);
+        AssertThat(hero.getDamageVersusStandard(), Equals(24));
+      });
+      it("should wear off", [&] {
+        Monster monster("", {2, 35, 1, 0}, {}, {});
+        hero.addStatus(HeroStatus::Reflexes);
+        AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsTrue());
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+        AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsFalse());
+      });
+    });
     describe("Stone Skin", [] {
       Hero hero;
       hero.gainLevel();
