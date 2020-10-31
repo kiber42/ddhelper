@@ -85,7 +85,7 @@ namespace Combat
       if (hero.hasStatus(HeroStatus::CrushingBlow))
         monster.receiveCrushingBlow();
       else
-        monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+        monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
       applyLifeSteal(hero, monster, monsterHPBefore);
       if (hero.hasStatus(HeroStatus::Poisonous))
       {
@@ -119,7 +119,7 @@ namespace Combat
           {
             hero.removeOneTimeAttackEffects();
             const int monsterHPBefore = monster.getHitPoints();
-            monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+            monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
             applyLifeSteal(hero, monster, monsterHPBefore);
             if (hero.hasStatus(HeroStatus::Poisonous))
               monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel());
@@ -148,7 +148,7 @@ namespace Combat
         if (hero.hasStatus(HeroStatus::CrushingBlow))
           monster.receiveCrushingBlow();
         else
-          monster.takeDamage(hero.getDamageVersus(monster), hero.doesMagicalDamage());
+          monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
         applyLifeSteal(hero, monster, monsterHPBefore);
         if (hero.hasStatus(HeroStatus::Poisonous))
         {

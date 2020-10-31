@@ -46,7 +46,7 @@ public:
   int getDamageBonusPercent() const;
   void changeDamageBonusPercent(int deltaDamageBonusPercent);
   int getDamageVersusStandard() const;
-  int getDamageVersus(const Monster& monster) const;
+  int getDamageOutputVersus(const Monster& monster) const;
 
   void addHealthBonus();
   void addManaBonus();

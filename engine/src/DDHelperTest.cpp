@@ -388,7 +388,7 @@ void testMelee()
       AssertThat(monster.getHitPoints(), Equals(15));
       Combat::attack(hero, monster);
       AssertThat(hero.getHitPoints(), Equals(10 - monster.getDamage()));
-      AssertThat(monster.getHitPoints(), Equals(15 - hero.getDamageVersus(monster)));
+      AssertThat(monster.getHitPoints(), Equals(15 - hero.getDamageOutputVersus(monster)));
     });
   });
 

@@ -246,7 +246,7 @@ int Hero::getDamageVersusStandard() const
   return getBaseDamage() * (100 + getDamageBonusPercent()) / 100;
 }
 
-int Hero::getDamageVersus(const Monster& monster) const
+int Hero::getDamageOutputVersus(const Monster& monster) const
 {
   const int standardDamage = getDamageVersusStandard();
   int damage = standardDamage;
