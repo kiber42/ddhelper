@@ -3,6 +3,7 @@
 #include "Combat.hpp"
 #include "Dungeon.hpp"
 #include "Hero.hpp"
+#include "Items.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
 #include "Spells.hpp"
@@ -429,7 +430,7 @@ void testMelee()
 void testStatusEffects()
 {
   describe("Status", [] {
-    describe("Burning Strike", [] {});
+    describe("Burning Strike", [] { /* TODO */ });
     describe("Consecrated Strike", [] {
       Hero hero;
       it("should result in magical damage", [&] {
@@ -540,7 +541,7 @@ void testStatusEffects()
         AssertThat(hero2.hasStatus(HeroStatus::Cursed), Equals(false));
       });
     });
-    describe("Death Gaze", [] {});
+    describe("Death Gaze", [] { /* TODO */ });
     describe("Death Gaze Immune", [] {
       it("should prevent petrification", [] {
         Hero hero;
@@ -550,8 +551,32 @@ void testStatusEffects()
         AssertThat(Combat::attack(hero, gorgon), Equals(Summary::Win));
       });
     });
-    describe("Dodge", [] {});
-    describe("Exhausted", [] {});
+    describe("Dodge", [] { /* TODO */ });
+    describe("Exhausted", [] {
+      Hero hero;
+      hero.gainLevel();
+      hero.gainLevel();
+      hero.addTrait(HeroTrait::Damned);
+      it("should be computed automatically for damned hero", [&] {
+        AssertThat(hero.hasStatus(HeroStatus::Exhausted), IsFalse());
+        hero.loseHitPointsOutsideOfFight(3);
+        AssertThat(hero.hasStatus(HeroStatus::Exhausted), IsTrue());
+      });
+      it("should limit health recovery", [&] {
+        AssertThat(hero.getHitPoints(), Equals(27));
+        Combat::uncoverTiles(hero, nullptr, 1);
+        AssertThat(hero.getHitPoints(), Equals(28));
+      });
+      it("should prevent mana recovery", [&] {
+        hero.loseManaPoints(1);
+        AssertThat(hero.getManaPoints(), Equals(9));
+        Combat::uncoverTiles(hero, nullptr, 2);
+        AssertThat(hero.getManaPoints(), Equals(9));
+        AssertThat(hero.hasStatus(HeroStatus::Exhausted), IsFalse());
+        Combat::uncoverTiles(hero, nullptr, 1);
+        AssertThat(hero.getManaPoints(), Equals(10));
+      });
+    });
     describe("First Strike", [] {
       it("should give initiative versus regular monsters of any level", [&] {
         Hero hero;
@@ -568,10 +593,41 @@ void testStatusEffects()
       });
     });
     describe("Heavy Fireball", [] {});
-    describe("Knockback", [] {});
+    describe("Knockback", [] { /* TODO */ });
     describe("Life Steal", [] {});
-    describe("Magical Attack", [] {});
-    describe("Mana Burned", [] {});
+    describe("Magical Attack", [] {
+      it("should convert hero's damage into magical damage", [] {
+        Hero hero;
+        Monster monster(MonsterType::Wraith, 2);
+        AssertThat(monster.getHitPoints(), Equals(11));
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+        AssertThat(monster.getHitPoints(), Equals(7));
+        hero.fullHealthAndMana();
+        hero.addStatus(HeroStatus::MagicalAttack);
+        Combat::attack(hero, monster);
+        AssertThat(monster.getHitPoints(), Equals(2));
+      });
+    });
+    describe("Mana Burned", [] {
+      it("should prevent mana recovery by uncovering tiles", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::ManaBurned);
+        AssertThat(hero.getManaPoints(), Equals(0));
+        Combat::uncoverTiles(hero, nullptr, 10);
+        AssertThat(hero.getManaPoints(), Equals(0));
+      });
+      it("should allow other means of mana recovery", [] {
+        Hero hero(HeroClass::Thief, HeroRace::Human);
+        hero.addStatus(HeroStatus::ManaBurned);
+        AssertThat(hero.getManaPoints(), Equals(0));
+        hero.addStatus(HeroStatus::Schadenfreude);
+        Monster monster(MonsterType::MeatMan, 1);
+        Combat::attack(hero, monster);
+        AssertThat(hero.getManaPoints(), Equals(monster.getDamage()));
+        hero.use(Item::HealthPotion);
+        AssertThat(hero.getManaPoints(), Equals(monster.getDamage() + 2));
+      });
+    });
     describe("Mana Burn Immune", [] {
       it("should prevent being mana burned", [] {
         Hero hero;
