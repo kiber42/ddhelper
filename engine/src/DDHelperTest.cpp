@@ -592,9 +592,109 @@ void testStatusEffects()
         AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
       });
     });
-    describe("Heavy Fireball", [] {});
+    describe("Heavy Fireball", [] {
+      Hero hero(HeroClass::Wizard, HeroRace::Elf);
+      hero.addStatus(HeroStatus::HeavyFireball);
+      Monster monster(MonsterType::MeatMan, 3);
+      it("should increase fireball damage by 4 per caster level", [&] {
+        int hp = monster.getHitPoints();
+        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
+        hp -= 8;
+        AssertThat(monster.getHitPoints(), Equals(hp));
+        AssertThat(monster.getBurnStackSize(), Equals(2));
+        hero.gainLevel();
+        hero.gainLevel();
+        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
+        hp -= 8 * 3 + 2;
+        AssertThat(monster.getHitPoints(), Equals(hp));
+        AssertThat(monster.getBurnStackSize(), Equals(6));
+      });
+      it("should let monster retaliate", [&] {
+        hero.gainLevel();
+        monster.recover(15);
+        const int retaliateDamage = monster.getDamage() / 2;
+        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
+        AssertThat(hero.getHitPointsMax() - hero.getHitPoints(), Equals(retaliateDamage));
+        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Win));
+        AssertThat(hero.getHitPointsMax() - hero.getHitPoints(), Equals(retaliateDamage));
+      });
+    });
     describe("Knockback", [] { /* TODO */ });
-    describe("Life Steal", [] {});
+    describe("Life Steal", [] {
+      Hero hero;
+      hero.addStatus(HeroStatus::LifeSteal);
+      Monster cow("", {2, 1000, 1, 0}, {}, {});
+      it("should heal hero by 1 per hero level and life steal level and allow overheal", [&] {
+        Combat::attack(hero, cow);
+        AssertThat(hero.getHitPoints(), Equals(10 + 1 - 1));
+        hero.addStatus(HeroStatus::LifeSteal);
+        Combat::attack(hero, cow);
+        AssertThat(hero.getHitPoints(), Equals(10 + 2 - 1));
+        hero.gainLevel();
+        Combat::attack(hero, cow);
+        AssertThat(hero.getHitPoints(), Equals(20 + 2 * 2 - 1));
+      });
+      it("should be twice as effective against lower level monsters", [&] {
+        hero.gainLevel();
+        Combat::attack(hero, cow);
+        const int steal = 2 * hero.getLevel() * hero.getStatusIntensity(HeroStatus::LifeSteal);
+        AssertThat(hero.getHitPoints(), Equals(30 + steal - 1));
+      });
+      it("should be applied twice for reflexes", [&] {
+        hero.loseHitPointsOutsideOfFight(30);
+        const int healthInitial = hero.getHitPoints();
+        hero.addStatus(HeroStatus::Reflexes);
+        const int steal = 2 * hero.getLevel() * hero.getStatusIntensity(HeroStatus::LifeSteal);
+        AssertThat(Combat::attack(hero, cow), Equals(Summary::Safe));
+        AssertThat(hero.getHitPoints(), Equals(healthInitial + 2 * steal - 1));
+      });
+      it("should not heal above 150% max. HP", [&] {
+        hero.gainLevel();
+        hero.addStatus(HeroStatus::LifeSteal);
+        hero.changeDamageBonusPercent(30);
+        const int steal = 2 * hero.getLevel() * hero.getStatusIntensity(HeroStatus::LifeSteal);
+        AssertThat(steal, IsGreaterThan(hero.getHitPointsMax() / 2 + 1));
+        hero.addStatus(HeroStatus::SlowStrike);
+        AssertThat(Combat::attack(hero, cow), Equals(Summary::Safe));
+        AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax() * 3 / 2));
+      });
+      it("should be applied immediately after hero's attack", [] {
+        Hero hero;
+        Monster goblin(MonsterType::Goblin, 1);
+        hero.addStatus(HeroStatus::LifeSteal);
+        hero.loseHitPointsOutsideOfFight(10 - goblin.getDamage());
+        goblin.slow();
+        AssertThat(Combat::attack(hero, goblin), Equals(Summary::Safe));
+        hero.recover(10);
+        goblin.recover(10);
+        hero.loseHitPointsOutsideOfFight(10 - goblin.getDamage());
+        AssertThat(Combat::attack(hero, goblin), Equals(Summary::Death));
+      });
+      it("should never exceed actual damage done", [] {
+        Hero hero;
+        hero.gainLevel();
+        hero.addStatus(HeroStatus::LifeSteal);
+        hero.addStatus(HeroStatus::LifeSteal);
+        hero.addStatus(HeroStatus::LifeSteal);
+        hero.addStatus(HeroStatus::LifeSteal);
+        hero.addStatus(HeroStatus::LifeSteal);
+        const int expected = 2 * hero.getLevel() * hero.getStatusIntensity(HeroStatus::LifeSteal);
+        const int limit = hero.getDamageVersusStandard();
+        hero.loseHitPointsOutsideOfFight(limit);
+        Monster monster("", {1, limit + 1, 0, 0}, {}, {});
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+        AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax()));
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Win));
+        AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax() + 1));
+      });
+      it("should not work on bloodless monsters", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::LifeSteal);
+        Monster monster("Bloodless", {1, 10, 3, 0}, {}, std::move(MonsterTraitsBuilder().addBloodless()));
+        Combat::attack(hero, monster);
+        AssertThat(hero.getHitPoints(), Equals(7));
+      });
+    });
     describe("Magical Attack", [] {
       it("should convert hero's damage into magical damage", [] {
         Hero hero;
