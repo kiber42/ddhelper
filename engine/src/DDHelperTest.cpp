@@ -551,7 +551,78 @@ void testStatusEffects()
         AssertThat(Combat::attack(hero, gorgon), Equals(Summary::Win));
       });
     });
-    describe("Dodge", [] { /* TODO */ });
+    describe("Dodge", [] {
+      it("should result in hero not taking hit", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::DodgeTemporary, 100);
+        Monster boss(MonsterType::Gorgon, 10);
+        AssertThat(hero.getDodgeChancePercent(), Equals(100));
+        AssertThat(Combat::attack(hero, boss), Equals(Summary::Safe));
+        AssertThat(hero.getDodgeChancePercent(), Equals(0));
+        hero.addStatus(HeroStatus::DodgePermanent, 100);
+        AssertThat(hero.getDodgeChancePercent(), Equals(100));
+        AssertThat(Combat::attack(hero, boss), Equals(Summary::Safe));
+        AssertThat(hero.getDodgeChancePercent(), Equals(100));
+      });
+      it("should succeed with given probability", [] {
+        Hero hero;
+        for (int chance = 10; chance <= 100; chance += 10)
+        {
+          hero.addStatus(HeroStatus::DodgePrediction);
+          hero.addDodgeChancePercent(10, false);
+          int attempts = 1;
+          while (!hero.predictDodgeNext() && attempts < 100)
+          {
+            ++attempts;
+            hero.addStatus(HeroStatus::DodgeTemporary, 0); // trigger reroll
+          }
+          const int tolerance = 2 * (11 - chance / 10);
+          const int expectedWithTolerance = 100 / chance * tolerance;
+          AssertThat(attempts, IsLessThan(expectedWithTolerance));
+        }
+      });
+      it("chance should be rerolled after each attack", [] {
+        Hero hero;
+        hero.addDodgeChancePercent(50, true);
+        hero.addStatus(HeroStatus::DodgePrediction);
+        hero.gainLevel();
+        bool dodgeNext = hero.predictDodgeNext();
+        int changes = 0;
+        for (int i = 0; i < 1000; ++i)
+        {
+          // Alternate between level 1 and 2 monsters to change attack order
+          Monster monster(MonsterType::MeatMan, 1 + i % 2);
+          Combat::attack(hero, monster);
+          if (dodgeNext)
+          {
+            AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax()));
+            AssertThat(hero.hasStatus(HeroStatus::DodgePrediction), IsFalse());
+            hero.addStatus(HeroStatus::DodgePrediction);
+          }
+          else
+          {
+            AssertThat(hero.getHitPoints(), IsLessThan(hero.getHitPointsMax()));
+            AssertThat(hero.hasStatus(HeroStatus::DodgePrediction), IsTrue());
+            hero.fullHealthAndMana();
+          }
+          if (dodgeNext != hero.predictDodgeNext())
+          {
+            ++changes;
+            dodgeNext = !dodgeNext;
+          }
+        }
+        // should change every other time (on average)
+        AssertThat(changes, IsGreaterThan(400));
+      });
+      it("should not interfere with reflexes", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::DodgeTemporary, 100);
+        hero.addStatus(HeroStatus::Reflexes);
+        Monster monster(MonsterType::MeatMan, 2);
+        AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
+        AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2 * hero.getDamageVersusStandard()));
+      });
+    });
     describe("Exhausted", [] {
       Hero hero;
       hero.gainLevel();
@@ -978,13 +1049,13 @@ void testPotions()
     it("adds 50% dodge change (temporary)", [] {
       Hero hero;
       hero.use(Item::QuicksilverPotion);
-      AssertThat(hero.getDodgeChangePercent(), Equals(50));
+      AssertThat(hero.getDodgeChancePercent(), Equals(50));
       AssertThat(hero.hasStatus(HeroStatus::DodgePermanent), Equals(0));
     });
     it("adds dodge prediction", [] {
       Hero hero;
       hero.use(Item::QuicksilverPotion);
-      AssertThat(false /* TODO */, IsTrue());
+      AssertThat(hero.hasStatus(HeroStatus::DodgePrediction), IsTrue());
     });
   });
   describe("Reflex Potion", [] {

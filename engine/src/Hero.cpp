@@ -25,6 +25,8 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   , statuses()
   , traits(startingTraits(theClass))
   , collectedPiety()
+  , generator(std::random_device{}())
+  , dodgeNext(false)
 {
   if (hasTrait(HeroTrait::Veteran))
     experience = Experience(Experience::IsVeteran{});
@@ -47,7 +49,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   if (hasTrait(HeroTrait::Dexterous))
     addStatus(HeroStatus::FirstStrike);
   if (hasTrait(HeroTrait::Evasive))
-    addDodgeChangePercent(20, true);
+    addDodgeChancePercent(20, true);
   if (hasTrait(HeroTrait::PoisonedBlade))
     changeDamageBonusPercent(-20);
 
@@ -105,6 +107,8 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , statuses()
   , traits()
   , collectedPiety()
+  , generator(std::random_device{}())
+  , dodgeNext(false)
 {
 }
 
@@ -444,49 +448,41 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
     newIntensity = 1;
   else if (newIntensity < 0)
     newIntensity = 0;
+
+  // Reject changes if there is a corresponding immunity
+  if (newIntensity > 0 && ((status == HeroStatus::Cursed && hasStatus(HeroStatus::CurseImmune)) ||
+                           (status == HeroStatus::ManaBurned && hasStatus(HeroStatus::ManaBurnImmune)) ||
+                           (status == HeroStatus::Poisoned && hasStatus(HeroStatus::PoisonImmune))))
+    return;
+
+  statuses[status] = newIntensity;
   if (newIntensity > 0)
   {
-    switch (status)
-    {
-    case HeroStatus::Cursed:
-      if (hasStatus(HeroStatus::CurseImmune))
-        return;
-      break;
-    case HeroStatus::CurseImmune:
+    if (status == HeroStatus::CurseImmune)
       removeStatus(HeroStatus::Cursed, true);
-      break;
-    case HeroStatus::ManaBurned:
+    else if (status == HeroStatus::ManaBurnImmune)
+      removeStatus(HeroStatus::ManaBurned, true);
+    else if (status == HeroStatus::PoisonImmune)
+      removeStatus(HeroStatus::Poisoned, true);
+
+    else if (status == HeroStatus::ManaBurned)
     {
-      if (hasStatus(HeroStatus::ManaBurnImmune))
-        return;
       PietyChange pietyChange;
-      if (statuses[status] == 0)
-        pietyChange += faith.becameManaBurned();
+      pietyChange += faith.becameManaBurned();
       const int mp = getManaPoints();
       pietyChange += faith.manaPointsBurned(mp);
       loseManaPoints(mp);
       applyOrCollect(pietyChange);
-      break;
     }
-    case HeroStatus::ManaBurnImmune:
-      removeStatus(HeroStatus::ManaBurned, true);
-      break;
-    case HeroStatus::Poisoned:
-      if (hasStatus(HeroStatus::PoisonImmune))
-        return;
-      if (statuses[status] == 0)
-        applyOrCollect(faith.becamePoisoned());
-      break;
-    case HeroStatus::PoisonImmune:
-      removeStatus(HeroStatus::Poisoned, true);
-      break;
-    default:
-      break;
-    }
-    statuses[status] = newIntensity;
+    else if (status == HeroStatus::Poisoned)
+      applyOrCollect(faith.becamePoisoned());
   }
-  else
+  else if (newIntensity == 0)
     statuses.erase(status);
+
+  if (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary)
+    rerollDodgeNext();
+
   propagateStatus(status, newIntensity);
 }
 
@@ -566,7 +562,7 @@ void Hero::levelGainedUpdate()
   applyOrCollect(faith.levelGained());
 }
 
-void Hero::addDodgeChangePercent(int percent, bool isPermanent)
+void Hero::addDodgeChancePercent(int percent, bool isPermanent)
 {
   const int permanent = getStatusIntensity(HeroStatus::DodgePermanent);
   const int temporary = getStatusIntensity(HeroStatus::DodgeTemporary);
@@ -576,9 +572,34 @@ void Hero::addDodgeChangePercent(int percent, bool isPermanent)
     setStatusIntensity(HeroStatus::DodgeTemporary, std::min(std::max(temporary + percent, 0), 100 - permanent));
 }
 
-int Hero::getDodgeChangePercent() const
+int Hero::getDodgeChancePercent() const
 {
   return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
+}
+
+bool Hero::predictDodgeNext() const
+{
+  assert(hasStatus(HeroStatus::DodgePrediction) && "predictDodgeNext called without dodge prediction status");
+  return dodgeNext;
+}
+
+bool Hero::tryDodge()
+{
+  const bool success = dodgeNext;
+  rerollDodgeNext();
+  if (success)
+  {
+    removeStatus(HeroStatus::DodgePrediction, true);
+    removeStatus(HeroStatus::DodgeTemporary, true);
+    applyOrCollect(faith.dodgedAttack());
+  }
+  return success;
+}
+
+void Hero::rerollDodgeNext()
+{
+  std::uniform_int_distribution<> number(1, 100);
+  dodgeNext = getDodgeChancePercent() >= number(generator);
 }
 
 int Hero::gold() const
@@ -867,6 +888,7 @@ void Hero::use(Item item)
     addStatus(HeroStatus::Schadenfreude);
     break;
   case Item::QuicksilverPotion:
+    addStatus(HeroStatus::DodgePrediction);
     addStatus(HeroStatus::DodgeTemporary, 50);
     break;
   case Item::ReflexPotion:
@@ -920,4 +942,10 @@ int Hero::getConversionPoints() const
 int Hero::getConversionThreshold() const
 {
   return conversion.getThreshold();
+}
+
+void Hero::preventDodgeCheat()
+{
+  if (dodgeNext && !hasStatus(HeroStatus::DodgePrediction))
+    rerollDodgeNext();
 }

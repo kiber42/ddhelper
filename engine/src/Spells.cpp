@@ -176,7 +176,7 @@ namespace Cast
       // first strike, +5% dodge chance (until actual dodge)
       hero.addStatus(HeroStatus::FirstStrike);
       hero.addStatus(HeroStatus::FirstStrikeTemporary);
-      hero.addDodgeChangePercent(5, false);
+      hero.addDodgeChancePercent(5, false);
       break;
     case Spell::Halpmeh:
       hero.healHitPoints(hero.getLevel() * (hero.hasTrait(HeroTrait::HolyHands) ? 5 : 4));

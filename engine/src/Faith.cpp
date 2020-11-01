@@ -300,7 +300,7 @@ bool Faith::request(Boon boon, Hero& hero)
     hero.addGold(10);
     break;
   case Boon::Dodging:
-    hero.addDodgeChangePercent(10, true);
+    hero.addDodgeChancePercent(10, true);
     hero.addGold(10);
     break;
   case Boon::Poison:

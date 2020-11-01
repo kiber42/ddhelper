@@ -101,19 +101,22 @@ namespace Combat
         // If monster is defeated beyond this point, it was not slowed before the final blow
         monsterWasSlowed = false;
         monsterWasBurning = false; // TODO: Account for burning strike
-        if (monster.bearsCurse())
-          hero.addStatus(HeroStatus::Cursed);
-        if (willPetrify)
+        if (!hero.tryDodge())
         {
-          // Hero either dies or death protection is triggered
-          hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
+          if (monster.bearsCurse())
+            hero.addStatus(HeroStatus::Cursed);
+          if (willPetrify)
+          {
+            // Hero either dies or death protection is triggered
+            hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
+          }
+          else
+            hero.takeDamage(monsterDamageInitial, monster.doesMagicalDamage());
+          heroReceivedHit = true;
         }
-        else
-          hero.takeDamage(monsterDamageInitial, monster.doesMagicalDamage());
-        heroReceivedHit = true;
         if (!hero.isDefeated())
         {
-          if (hero.hasTrait(HeroTrait::ManaShield))
+          if (heroReceivedHit && hero.hasTrait(HeroTrait::ManaShield))
             monster.takeManaShieldDamage(hero.getLevel());
           if (hero.hasStatus(HeroStatus::Reflexes))
           {
@@ -132,17 +135,22 @@ namespace Combat
     else
     {
       assert(!hero.hasStatus(HeroStatus::Reflexes));
-      if (willPetrify)
+      if (!hero.tryDodge())
       {
-        // Hero either dies or death protection is triggered
-        hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
+        if (monster.bearsCurse())
+          hero.addStatus(HeroStatus::Cursed);
+        if (willPetrify)
+        {
+          // Hero either dies or death protection is triggered
+          hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
+        }
+        else
+          hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
+        heroReceivedHit = true;
       }
-      else
-        hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
-      heroReceivedHit = true;
       if (!hero.isDefeated())
       {
-        if (hero.hasTrait(HeroTrait::ManaShield))
+        if (heroReceivedHit && hero.hasTrait(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
         const int monsterHPBefore = monster.getHitPoints();
         if (hero.hasStatus(HeroStatus::CrushingBlow))
@@ -159,8 +167,6 @@ namespace Combat
           monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
         if (hero.hasStatus(HeroStatus::Might))
           monster.erodeResitances();
-        if (monster.bearsCurse())
-          hero.addStatus(HeroStatus::Cursed);
       }
     }
 

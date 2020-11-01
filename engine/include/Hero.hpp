@@ -11,6 +11,7 @@
 #include "Inventory.hpp"
 
 #include <map>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -85,8 +86,10 @@ public:
 
   void removeOneTimeAttackEffects();
 
-  void addDodgeChangePercent(int percent, bool isPermanent);
-  int getDodgeChangePercent() const;
+  void addDodgeChancePercent(int percent, bool isPermanent);
+  int getDodgeChancePercent() const;
+  bool predictDodgeNext() const;
+  bool tryDodge();
 
   int gold() const;
   void addGold(int amountAdded);
@@ -139,6 +142,9 @@ public:
   int getConversionPoints() const;
   int getConversionThreshold() const;
 
+  // used by UI undo functionality
+  void preventDodgeCheat();
+
 private:
   std::string name;
   HeroStats stats;
@@ -150,10 +156,13 @@ private:
   std::map<HeroStatus, int> statuses;
   std::vector<HeroTrait> traits;
   std::optional<PietyChange> collectedPiety;
+  std::mt19937 generator;
+  bool dodgeNext;
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void levelGainedUpdate();
+  void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange);
   void changeStatsFromItem(Item item, bool itemReceived);
 };
