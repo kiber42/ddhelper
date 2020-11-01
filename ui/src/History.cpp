@@ -57,6 +57,8 @@ std::pair<State, std::optional<Monster>> History::undo()
     undoMonster.emplace(std::move(*monster));
   auto previousState = std::move(std::get<State>(restore));
   history.pop_back();
+  if (previousState.hero)
+    previousState.hero->preventDodgeCheat();
   return std::pair{std::move(previousState), std::move(undoMonster)};
 }
 

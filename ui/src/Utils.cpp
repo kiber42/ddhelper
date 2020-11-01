@@ -35,8 +35,8 @@ void showStatus(const Hero& hero)
     ImGui::Text("%s level %i   %i/%i HP  %i/%i MP  damage %i (%i%+i%%)", hero.getName().c_str(), hero.getLevel(),
                 hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
                 hero.getDamageVersusStandard(), hero.getBaseDamage(), hero.getDamageBonusPercent());
-    ImGui::Text("  %i/%i XP  %i/%i CP  %i piety  %i gold", hero.getXP(), hero.getXPforNextLevel(), hero.getConversionPoints(),
-                hero.getConversionThreshold(), hero.getFaith().getPiety(), hero.gold());
+    ImGui::Text("  %i/%i XP  %i/%i CP  %i piety  %i gold", hero.getXP(), hero.getXPforNextLevel(),
+                hero.getConversionPoints(), hero.getConversionThreshold(), hero.getFaith().getPiety(), hero.gold());
     if (hero.getPhysicalResistPercent() > 0)
     {
       ImGui::SameLine();
@@ -52,6 +52,14 @@ void showStatus(const Hero& hero)
       auto status = static_cast<HeroStatus>(i);
       if (hero.hasStatus(status))
       {
+        if (status == HeroStatus::DodgePrediction)
+        {
+          if (hero.predictDodgeNext())
+            ImGui::Text("  will dodge next attack");
+          else
+            ImGui::Text("  won't dodge next attack");
+          continue;
+        }
         const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
                            status == HeroStatus::DeathGazeImmune || status == HeroStatus::Exhausted ||
                            status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||
