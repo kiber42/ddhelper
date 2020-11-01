@@ -813,13 +813,18 @@ void testStatusEffects()
       });
     });
     describe("Might", [] {
-      it("should add layer of stone skin when a wall is destroyed", [] {
-        Hero hero;
+      Hero hero;
+      it("should increase damage of next attack by 30%", [&] {
         hero.addStatus(HeroStatus::Might);
-        Cast::untargeted(hero, Spell::Endiswal);
-        AssertThat(hero.hasStatus(HeroStatus::StoneSkin), IsTrue());
-        AssertThat(hero.hasStatus(HeroStatus::Might), IsTrue());
+        AssertThat(hero.getDamageBonusPercent(), Equals(30));
       });
+      it("should lower enemies resistances by 3%", [&] {
+        Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 75}, {});
+        Combat::attack(hero, monster);
+        AssertThat(monster.getPhysicalResistPercent(), Equals(47));
+        AssertThat(monster.getMagicalResistPercent(), Equals(72));
+      });
+      it("should wear off", [&] { AssertThat(hero.hasStatus(HeroStatus::Might), IsFalse()); });
     });
     describe("Pierce Physical", [] { /* TODO */ });
     describe("Poisoned", [] {
