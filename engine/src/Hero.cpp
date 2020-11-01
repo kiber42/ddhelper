@@ -159,6 +159,17 @@ void Hero::gainExperience(int xpGained, bool monsterWasSlowed)
   }
 }
 
+void Hero::gainExperienceNoBonuses(int xpGained)
+{
+  int level = experience.getLevel();
+  experience.gain(0, xpGained, false);
+  while (getLevel() > level)
+  {
+    levelGainedUpdate();
+    ++level;
+  }
+}
+
 void Hero::gainLevel()
 {
   const int initialLevel = getLevel();
@@ -752,7 +763,7 @@ void Hero::receiveEnlightenment()
   changeManaPointsMax(+5);
   if (conversion.addPoints(10 * enchantedBeads))
     conversion.applyBonus(*this);
-  experience.gain(+enchantedBeads, 0, false);
+  gainExperienceNoBonuses(enchantedBeads);
   removeStatus(HeroStatus::Cursed, true);
 }
 

@@ -31,6 +31,7 @@ public:
   int getPrestige() const;
   int getXPforNextLevel() const;
   void gainExperience(int xpGained, bool monsterWasSlowed = false);
+  void gainExperienceNoBonuses(int xpGained);
   void gainLevel();
 
   bool isDefeated() const;
