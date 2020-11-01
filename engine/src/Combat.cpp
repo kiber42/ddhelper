@@ -87,7 +87,7 @@ namespace Combat
       else
         monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
       applyLifeSteal(hero, monster, monsterHPBefore);
-      if (hero.hasStatus(HeroStatus::Poisonous))
+      if (hero.hasStatus(HeroStatus::Poisonous) && !monster.isDefeated())
       {
         if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
           hero.collect(hero.getFaith().monsterPoisoned(monster));
@@ -118,7 +118,7 @@ namespace Combat
         {
           if (heroReceivedHit && hero.hasTrait(HeroTrait::ManaShield))
             monster.takeManaShieldDamage(hero.getLevel());
-          if (hero.hasStatus(HeroStatus::Reflexes))
+          if (hero.hasStatus(HeroStatus::Reflexes) && !monster.isDefeated())
           {
             hero.removeOneTimeAttackEffects();
             const int monsterHPBefore = monster.getHitPoints();
@@ -158,7 +158,7 @@ namespace Combat
         else
           monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
         applyLifeSteal(hero, monster, monsterHPBefore);
-        if (hero.hasStatus(HeroStatus::Poisonous))
+        if (hero.hasStatus(HeroStatus::Poisonous) && !monster.isDefeated())
         {
           if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
             hero.collect(hero.getFaith().monsterPoisoned(monster));
