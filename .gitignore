@@ -4,3 +4,4 @@ build
 imgui
 res
 imgui.ini
+SDL

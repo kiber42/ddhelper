@@ -1,3 +1,4 @@
+#define SDL_MAIN_HANDLED
 #include "ImguiApp.hpp"
 
 #include "Arena.hpp"
@@ -109,4 +110,5 @@ int main()
 {
   DDHelperApp app;
   app.run();
+  return 0;
 }

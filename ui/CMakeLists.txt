@@ -9,9 +9,12 @@ target_link_options(imguiapp PUBLIC "-lvulkan")
 else()
 add_library(imguiapp STATIC src/ImguiAppOpenGL.cpp)
 target_link_libraries(imguiapp dearimgui)
-target_link_options(imguiapp PUBLIC "-lGL" "-lGLEW")
+# on linux: target_link_options(imguiapp PUBLIC "-lGL" "-lGLEW")
+# on windows:
+target_sources(imguiapp PRIVATE ../imgui/examples/libs/gl3w/GL/gl3w.c)
+target_link_options(imguiapp PUBLIC "-lOpenGL32" "-lglu32" "-Wl,-subsystem:console")
 endif()
-target_include_directories(imguiapp PUBLIC include)
+target_include_directories(imguiapp PUBLIC include ../imgui/backends)
 target_link_libraries(imguiapp dearimgui)
 
 add_executable(
@@ -27,4 +30,4 @@ add_executable(
 )
 target_link_libraries(ddhelper ddhelperengine imguiapp)
 target_include_directories(ddhelper PUBLIC imgui)
-target_include_directories(ddhelper PUBLIC /usr/include/SDL2)
+target_include_directories(ddhelper PUBLIC /usr/include/SDL2 SDL/include)
