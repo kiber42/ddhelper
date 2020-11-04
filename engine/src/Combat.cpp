@@ -210,9 +210,9 @@ namespace Combat
       debuffs.insert(Debuff::LostDeathProtection);
     if (before.getStatusIntensity(HeroStatus::Cursed) < after.getStatusIntensity(HeroStatus::Cursed))
       debuffs.insert(Debuff::Cursed);
-    if (before.hasStatus(HeroStatus::ManaBurned) && !after.hasStatus(HeroStatus::ManaBurned))
+    if (!before.hasStatus(HeroStatus::ManaBurned) && after.hasStatus(HeroStatus::ManaBurned))
       debuffs.insert(Debuff::ManaBurned);
-    if (before.hasStatus(HeroStatus::Poisoned) && !after.hasStatus(HeroStatus::Poisoned))
+    if (!before.hasStatus(HeroStatus::Poisoned) && after.hasStatus(HeroStatus::Poisoned))
       debuffs.insert(Debuff::Poisoned);
     if (before.getStatusIntensity(HeroStatus::Corrosion) < after.getStatusIntensity(HeroStatus::Corrosion))
       debuffs.insert(Debuff::Corroded);
