@@ -71,12 +71,18 @@ void showStatus(const Hero& hero)
           ImGui::Text("  %s %s", useIs ? "is" : "has", toString(status));
       }
     }
+    if (hero.getFollowedDeity())
+      ImGui::Text("  follows %s", toString(*hero.getFollowedDeity()));
     for (auto boon :
          {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition, Boon::Flames, Boon::MysticBalance})
     {
       if (hero.hasBoon(boon))
         ImGui::Text("  has %s", toString(boon));
     }
+    if (hero.getFaith().getPact())
+      ImGui::Text("  entered %s", toString(*hero.getFaith().getPact()));
+    if (hero.getFaith().enteredConsensus())
+      ImGui::Text("  reached consensus");
   }
   else
     ImGui::Text("Hero defeated.");

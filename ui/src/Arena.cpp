@@ -318,7 +318,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
           const Boon boon = static_cast<Boon>(index);
           if (deity(boon) != currentState.hero->getFollowedDeity())
             continue;
-          const bool isSelected = index + 100 == selectedPopupItem;
+          const bool isSelected = index == selectedPopupItem;
           const int costs = currentState.hero->getBoonCosts(boon);
           const std::string label = toString(boon) + " ("s + std::to_string(costs) + ")";
           const std::string historyTitle = "Request "s + toString(boon);
@@ -328,7 +328,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                     return hero.getFaith().request(boon, hero) ? Summary::Safe : Summary::NotPossible;
                   },
                   isSelected))
-            selectedPopupItem = index + 100;
+            selectedPopupItem = index;
         }
         ImGui::Separator();
       }
@@ -337,14 +337,35 @@ Arena::StateUpdate Arena::run(const State& currentState)
       for (int index = 0; index <= static_cast<int>(God::Last); ++index)
       {
         const God deity = static_cast<God>(index);
-        const bool isSelected = index == selectedPopupItem;
+        const bool isSelected = index + 100 == selectedPopupItem;
         if (addPopupAction(
                 toString(deity), "Follow "s + toString(deity),
                 [deity](Hero& hero) {
                   return hero.getFaith().followDeity(deity, hero) ? Summary::Safe : Summary::NotPossible;
                 },
                 isSelected))
-          selectedPopupItem = index;
+          selectedPopupItem = index + 100;
+      }
+      if (!currentState.hero->getFaith().getPact())
+      {
+        ImGui::Separator();
+        ImGui::Text("Pactmaker");
+        ImGui::Separator();
+        for (int index = 0; index <= static_cast<int>(Pact::Last); ++index)
+        {
+          const Pact pact = static_cast<Pact>(index);
+          const bool isSelected = index + 200 == selectedPopupItem;
+          const std::string label = toString(pact);
+          const std::string historyTitle = "Enter " + label;
+          if (addPopupAction(
+                  label, historyTitle,
+                  [pact](Hero& hero) {
+                    hero.getFaith().enter(pact);
+                    return Summary::Safe;
+                  },
+                  isSelected))
+            selectedPopupItem = index + 200;
+        }
       }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
