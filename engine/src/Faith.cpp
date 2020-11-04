@@ -9,30 +9,46 @@
 
 PietyChange::PietyChange(int deltaPoints)
   : value(deltaPoints)
+  , pact(std::nullopt)
+  , jehora(false)
+{
+}
+
+PietyChange::PietyChange(Pact activated)
+  : value(0)
+  , pact(activated)
+  , jehora(false)
 {
 }
 
 PietyChange::PietyChange(JehoraTriggered)
-  : value(std::nullopt)
+  : value(0)
+  , pact(std::nullopt)
+  , jehora(true)
 {
 }
 
 int PietyChange::operator()() const
 {
-  return value.value_or(0);
+  return value;
+}
+
+std::optional<Pact> PietyChange::activatedPact() const
+{
+  return pact;
 }
 
 bool PietyChange::randomJehoraEvent() const
 {
-  return !value.has_value();
+  return jehora;
 }
 
 PietyChange& PietyChange::operator+=(const PietyChange& other)
 {
-  if (!value || !other.value)
-    value.reset();
-  else
-    value = *value + *other.value;
+  value += other.value;
+  if (!pact.has_value())
+    pact = other.pact;
+  jehora |= other.jehora;
   return *this;
 }
 
@@ -124,6 +140,52 @@ void Faith::apply(PietyChange change, Hero& hero)
     losePiety(-value, hero);
   else if (change.randomJehoraEvent())
     applyRandomJehoraEvent(hero);
+  const auto pact = change.activatedPact();
+  if (pact)
+  {
+    switch (*pact)
+    {
+    case Pact::ScholarsPact:
+      if (piety >= 10)
+      {
+        piety -= 10;
+        hero.addStatus(HeroStatus::Might);
+        hero.healHitPoints(hero.getHitPointsMax(), true);
+      }
+      break;
+    case Pact::WarriorsPact:
+      if (piety >= 3)
+      {
+        piety -= 3;
+        hero.changeHitPointsMax(+1);
+      }
+      break;
+    case Pact::AlchemistsPact:
+      if (piety >= 4)
+      {
+        piety -= 4;
+        hero.gainExperience(3, false);
+      }
+      break;
+    case Pact::BodyPact:
+      if (piety >= 4)
+      {
+        piety -= 4;
+        hero.changePhysicalResistPercent(1);
+        hero.changeMagicalResistPercent(1);
+      }
+      break;
+    case Pact::SpiritPact:
+      if (piety >= 5)
+      {
+        piety -= 5;
+        hero.addConversionPoints(15);
+      }
+      break;
+    case Pact::Consensus:
+      break;
+    }
+  }
 }
 
 bool Faith::request(Boon boon, Hero& hero)
@@ -437,6 +499,33 @@ int Faith::isAvailable(Boon boon, const Hero& hero) const
          (boon != Boon::Tribute || hero.gold() >= 15) && (boon != Boon::Reflexes || hero.has(Item::HealthPotion));
 }
 
+std::optional<Pact> Faith::getPact() const
+{
+  return pact;
+}
+
+void Faith::enter(Pact newPact)
+{
+  if (!pact)
+  {
+    if (newPact == Pact::Consensus)
+    {
+      if (!consensus)
+      {
+        consensus = true;
+        gainPiety(50);
+      }
+    }
+    else
+      pact = newPact;
+  }
+}
+
+bool Faith::enteredConsensus() const
+{
+  return consensus;
+}
+
 void Faith::initialBoon(God god, Hero& hero)
 {
   switch (god)
@@ -527,41 +616,49 @@ void Faith::desecrate(God altar, Hero& hero)
 PietyChange Faith::monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning)
 {
   ++numMonstersKilled;
-  if (!followedDeity)
-    return {};
-  switch (*followedDeity)
+
+  PietyChange result;
+  if (pact == Pact::WarriorsPact && monster.grantsXP())
+    result += *pact;
+  if (followedDeity)
   {
-  case God::Dracul:
-    return monster.isUndead() ? -5 : 2;
-  case God::GlowingGuardian:
-  {
-    int award = 0;
-    if (monster.isUndead() && monster.grantsXP())
-      ++award;
-    if (monsterWasBurning)
-      ++award;
-    if (award > 0)
-      return award;
+    result += [&, deity = *followedDeity]() -> PietyChange {
+      switch (deity)
+      {
+      case God::Dracul:
+        return monster.isUndead() ? -5 : 2;
+      case God::GlowingGuardian:
+      {
+        int award = 0;
+        if (monster.isUndead() && monster.grantsXP())
+          ++award;
+        if (monsterWasBurning)
+          ++award;
+        if (award > 0)
+          return award;
+      }
+      break;
+      case God::JehoraJeheyu:
+        if (monster.grantsXP())
+          return JehoraTriggered{};
+        break;
+      case God::MysteraAnnur:
+        if (monster.doesMagicalDamage())
+          return -5;
+        break;
+      case God::Taurog:
+        return monster.doesMagicalDamage() ? 8 : 4;
+      case God::TikkiTooki:
+        if (monster.grantsXP() && monster.getLevel() < heroLevel)
+          return 5;
+        break;
+      default:
+        break;
+      }
+      return {};
+    }();
   }
-  break;
-  case God::JehoraJeheyu:
-    if (monster.grantsXP())
-      return JehoraTriggered{};
-    break;
-  case God::MysteraAnnur:
-    if (monster.doesMagicalDamage())
-      return -5;
-    break;
-  case God::Taurog:
-    return monster.doesMagicalDamage() ? 8 : 4;
-  case God::TikkiTooki:
-    if (monster.grantsXP() && monster.getLevel() < heroLevel)
-      return 5;
-    break;
-  default:
-    break;
-  }
-  return {};
+  return result;
 }
 
 PietyChange Faith::monsterPoisoned(const Monster& monster)
@@ -647,32 +744,53 @@ PietyChange Faith::imawalPetrifyPlant(int manaCost)
 
 PietyChange Faith::levelGained()
 {
-  if (followedDeity == God::BinlorIronshield)
-    return -10;
-  if (followedDeity == God::GlowingGuardian)
+  PietyChange result;
+  if (pact == Pact::ScholarsPact)
+    result += *pact;
+  if (followedDeity)
   {
-    // TODO: Preparation penalty for Glowing Guardian: reduce level-up bonus to 2 * (N - 1)
-    ++numConsecutiveLevelUpsWithGlowingGuardian;
-    return 3 * numConsecutiveLevelUpsWithGlowingGuardian;
+    result += [&, deity = *followedDeity]() -> PietyChange {
+      if (deity == God::BinlorIronshield)
+        return -10;
+      if (deity == God::GlowingGuardian)
+      {
+        // TODO: Preparation penalty for Glowing Guardian: reduce level-up bonus to 2 * (N - 1)
+        ++numConsecutiveLevelUpsWithGlowingGuardian;
+        return 3 * numConsecutiveLevelUpsWithGlowingGuardian;
+      }
+      return {};
+    }();
   }
-  return {};
+  return result;
 }
 
 PietyChange Faith::itemUsed(Item item)
 {
-  if (item == Item::HealthPotion)
+  PietyChange result;
+  if (item == Item::HealthPotion || item == Item::ManaPotion)
   {
-    if (followedDeity == God::Dracul)
-      return -5;
-    if (followedDeity == God::GlowingGuardian)
-      return -10;
+    if (pact == Pact::AlchemistsPact)
+      result += *pact;
+    if (followedDeity)
+    {
+      result += [&, deity = *followedDeity]() -> PietyChange {
+        if (item == Item::HealthPotion)
+        {
+          if (deity == God::Dracul)
+            return -5;
+          if (deity == God::GlowingGuardian)
+            return -10;
+        }
+        else if (item == Item::ManaPotion)
+        {
+          if (deity == God::GlowingGuardian)
+            return -10;
+        }
+        return {};
+      }();
+    }
   }
-  else if (item == Item::ManaPotion)
-  {
-    if (followedDeity == God::GlowingGuardian)
-      return -10;
-  }
-  return {};
+  return result;
 }
 
 PietyChange Faith::lifeStolen(const Monster& monster)
@@ -727,23 +845,30 @@ PietyChange Faith::manaPointsBurned(int pointsLost)
 
 PietyChange Faith::converted(Item item)
 {
-  if (!followedDeity)
-    return {};
-  switch (*followedDeity)
+  PietyChange result;
+  if (pact == Pact::SpiritPact)
+    result += *pact;
+  if (followedDeity)
   {
-  case God::Dracul:
-    if (item == Item::HealthPotion)
-      return 5;
-    return {};
-  case God::GlowingGuardian:
-    return isPotion(item) || !isSmall(item) ? 5 : 2;
-  case God::JehoraJeheyu:
-    return JehoraTriggered();
-  case God::Taurog:
-    // TODO: Converting any of Taurog's items: -10 (except potentially in triple quests)
-  default:
-    return {};
+    result += [&, deity = *followedDeity]() -> PietyChange {
+      switch (deity)
+      {
+      case God::Dracul:
+        if (item == Item::HealthPotion)
+          return 5;
+        return {};
+      case God::GlowingGuardian:
+        return isPotion(item) || !isSmall(item) ? 5 : 2;
+      case God::JehoraJeheyu:
+        return JehoraTriggered();
+      case God::Taurog:
+        // TODO: Converting any of Taurog's items: -10 (except potentially in triple quests)
+      default:
+        return {};
+      }
+    }();
   }
+  return result;
 }
 
 PietyChange Faith::converted(Spell spell)
@@ -776,15 +901,18 @@ PietyChange Faith::plantDestroyed()
 
 PietyChange Faith::receivedHit(const Monster& monster)
 {
+  PietyChange result;
+  if (pact == Pact::BodyPact && monster.grantsXP())
+    result += *pact;
   if (followedDeity == God::TikkiTooki)
   {
     // TODO: If Tikki Tooki was equipped, any hit results in a penalty
     auto& monsterHistory = history[monster.getID()];
     if (monsterHistory.hitHero)
-      return -3;
+      result += PietyChange{-3};
     monsterHistory.hitHero = true;
   }
-  return {};
+  return result;
 }
 
 PietyChange Faith::dodgedAttack()

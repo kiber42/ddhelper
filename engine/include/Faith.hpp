@@ -81,6 +81,18 @@ enum class Boon
   Last = Reflexes
 };
 
+enum class Pact
+{
+  ScholarsPact,
+  WarriorsPact,
+  AlchemistsPact,
+  BodyPact,
+  SpiritPact,
+  Consensus,
+
+  Last = Consensus
+};
+
 constexpr const char* toString(God god)
 {
   switch (god)
@@ -198,6 +210,25 @@ constexpr const char* toString(Boon boon)
   }
 }
 
+constexpr const char* toString(Pact pact)
+{
+  switch (pact)
+  {
+  case Pact::ScholarsPact:
+    return "Scholars Pact";
+  case Pact::WarriorsPact:
+    return "Warriors Pact";
+  case Pact::AlchemistsPact:
+    return "Alchemists Pact";
+  case Pact::BodyPact:
+    return "Body Pact";
+  case Pact::SpiritPact:
+    return "Spirit Pact";
+  case Pact::Consensus:
+    return "Consensus";
+  }
+};
+
 constexpr bool allowRepeatedUse(Boon boon)
 {
   return boon == Boon::StoneSkin || boon == Boon::StoneHeart || boon == Boon::BloodTithe || boon == Boon::BloodHunger ||
@@ -261,16 +292,14 @@ constexpr God deity(Boon boon)
   case Boon::UnstoppableFury:
     return God::Taurog;
 
-case Boon::Tribute:
-case Boon::TikkisEdge:
-case Boon::Dodging:
-case Boon::Poison:
-case Boon::Reflexes:
-return God::TikkiTooki;
+  case Boon::Tribute:
+  case Boon::TikkisEdge:
+  case Boon::Dodging:
+  case Boon::Poison:
+  case Boon::Reflexes:
+    return God::TikkiTooki;
   }
 }
-
-// TODO: Add pacts
 
 class Hero;
 enum class Item;
@@ -284,13 +313,17 @@ struct [[nodiscard]] PietyChange
 {
 public:
   PietyChange(int deltaPoints = 0);
+  PietyChange(Pact activated);
   PietyChange(JehoraTriggered);
   int operator()() const;
+  std::optional<Pact> activatedPact() const;
   bool randomJehoraEvent() const;
   PietyChange& operator+=(const PietyChange&);
 
 private:
-  std::optional<int> value;
+  int value;
+  std::optional<Pact> pact;
+  bool jehora;
 };
 
 class Faith
@@ -314,6 +347,10 @@ public:
   bool request(Boon boon, Hero& hero);
   int getCosts(Boon boon, const Hero& hero) const;
   int isAvailable(Boon boon, const Hero& hero) const;
+
+  std::optional<Pact> getPact() const;
+  void enter(Pact pact);
+  bool enteredConsensus() const;
 
   void desecrate(God altar, Hero& hero);
 
@@ -361,7 +398,7 @@ private:
   int piety;
   int indulgence;
   int numDesecrated;
-  bool pactMade;
+  std::optional<Pact> pact;
   bool consensus;
 
   // counts that may affect awarded piety
