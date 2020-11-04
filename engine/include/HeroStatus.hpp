@@ -93,7 +93,7 @@ constexpr const char* toString(HeroStatus status)
   case HeroStatus::MagicalAttack:
     return "Magical Attack";
   case HeroStatus::ManaBurned:
-    return "Mana Burn";
+    return "Mana Burned";
   case HeroStatus::ManaBurnImmune:
     return "Mana Burn Immune";
   case HeroStatus::Might:
