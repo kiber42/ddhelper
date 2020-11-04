@@ -405,7 +405,7 @@ void testMelee()
     });
     it("should be available with 100% intensity", [] {
       Hero hero;
-      auto traits = MonsterTraitsBuilder().setDeathGazePercent(100).get();
+      MonsterTraits traits = MonsterTraitsBuilder().setDeathGazePercent(100);
       Monster monster("", {1, 100, 1, 0}, {}, std::move(traits));
       hero.addStatus(HeroStatus::DeathProtection);
       AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
@@ -420,7 +420,7 @@ void testMelee()
     });
     it("should be available with 101% intensity", [] {
       Hero hero;
-      auto traits = MonsterTraitsBuilder().setDeathGazePercent(101).get();
+      MonsterTraits traits = MonsterTraitsBuilder().setDeathGazePercent(101);
       Monster monster("", {1, 10, 1, 0}, {}, std::move(traits));
       AssertThat(Combat::attack(hero, monster), Equals(Summary::Petrified));
     });
@@ -509,7 +509,7 @@ void testStatusEffects()
       it("should be added/removed when cursed/not-cursed monster is defeated", [] {
         Hero hero;
         hero.changeBaseDamage(100);
-        Monster monster("", MonsterStats{1, 10, 3, 0}, {}, std::move(MonsterTraitsBuilder().addCurse()));
+        Monster monster("", MonsterStats{1, 10, 3, 0}, {}, MonsterTraitsBuilder().addCurse());
         Combat::attack(hero, monster);
         // One curse from hit, one from killing
         AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
@@ -522,7 +522,7 @@ void testStatusEffects()
         hero.gainLevel();
         const int health = hero.getHitPoints();
         hero.setPhysicalResistPercent(50);
-        Monster monster("", MonsterStats(1, 100, 10, 0), {}, std::move(MonsterTraitsBuilder().addCurse()));
+        Monster monster("", MonsterStats(1, 100, 10, 0), {}, MonsterTraitsBuilder().addCurse());
         Combat::attack(hero, monster);
         AssertThat(hero.hasStatus(HeroStatus::Cursed), IsTrue());
         AssertThat(hero.getHitPoints(), Equals(health - 10));
@@ -761,7 +761,7 @@ void testStatusEffects()
       it("should not work on bloodless monsters", [] {
         Hero hero;
         hero.addStatus(HeroStatus::LifeSteal);
-        Monster monster("Bloodless", {1, 10, 3, 0}, {}, std::move(MonsterTraitsBuilder().addBloodless()));
+        Monster monster("Bloodless", {1, 10, 3, 0}, {}, MonsterTraitsBuilder().addBloodless());
         Combat::attack(hero, monster);
         AssertThat(hero.getHitPoints(), Equals(7));
       });
@@ -1087,12 +1087,12 @@ void testFaith()
         Hero hero;
         hero.followDeity(God::GlowingGuardian);
         const int initialPiety = hero.getFaith().getPiety();
-        Monster manaBurnMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addManaBurn().get());
+        Monster manaBurnMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addManaBurn());
         AssertThat(Combat::attack(hero, manaBurnMonster), Equals(Summary::Safe));
         AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(2));
         AssertThat(Combat::attack(hero, manaBurnMonster), Equals(Summary::Win));
         AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(2));
-        Monster poisonMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addPoisonous().get());
+        Monster poisonMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addPoisonous());
         AssertThat(Combat::attack(hero, poisonMonster), Equals(Summary::Safe));
         AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(4));
         AssertThat(Combat::attack(hero, poisonMonster), Equals(Summary::Win));

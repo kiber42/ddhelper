@@ -83,14 +83,13 @@ struct MonsterTraits
 
   MonsterTraits() = default;
   MonsterTraits(MonsterType type);
-  MonsterTraits(MonsterTraitsBuilder&& builder);
+  MonsterTraits(MonsterTraitsBuilder& builder);
 };
 
 class MonsterTraitsBuilder
 {
 public:
-  MonsterTraitsBuilder() = default;
-  MonsterTraits get();
+  MonsterTraits&& get();
 
   MonsterTraitsBuilder& addTODO()
   {

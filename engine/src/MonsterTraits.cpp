@@ -9,14 +9,14 @@ MonsterTraits::MonsterTraits(MonsterType type)
 {
 }
 
-MonsterTraits::MonsterTraits(MonsterTraitsBuilder&& builder)
-  : MonsterTraits(std::move(builder.get()))
+MonsterTraits::MonsterTraits(MonsterTraitsBuilder& builder)
+  : MonsterTraits(builder.get())
 {
 }
 
-MonsterTraits MonsterTraitsBuilder::get()
+MonsterTraits&& MonsterTraitsBuilder::get()
 {
-  return traits;
+  return std::move(traits);
 }
 
 MonsterTraitsBuilder& MonsterTraitsBuilder::addMagicalDamage()

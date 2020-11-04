@@ -147,7 +147,7 @@ Monster CustomMonsterBuilder::get() const
   else if (hp > maxHp)
     stats.healHitPoints(hp - maxHp, true);
   auto defence = Defence{data[4], data[5]};
-  return {std::move(name), std::move(stats), std::move(defence), traits};
+  return {std::move(name), std::move(stats), std::move(defence), MonsterTraits(traits)};
 }
 
 std::optional<Monster> CustomMonsterBuilder::toArena()
