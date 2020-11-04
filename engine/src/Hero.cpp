@@ -466,7 +466,7 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
                            (status == HeroStatus::Poisoned && hasStatus(HeroStatus::PoisonImmune))))
     return;
 
-  statuses[status] = newIntensity;
+  const int oldIntensity = std::exchange(statuses[status], newIntensity);
   if (newIntensity > 0)
   {
     if (status == HeroStatus::CurseImmune)
@@ -479,13 +479,14 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
     else if (status == HeroStatus::ManaBurned)
     {
       PietyChange pietyChange;
-      pietyChange += faith.becameManaBurned();
+      if (oldIntensity == 0)
+        pietyChange += faith.becameManaBurned();
       const int mp = getManaPoints();
       pietyChange += faith.manaPointsBurned(mp);
       loseManaPoints(mp);
       applyOrCollect(pietyChange);
     }
-    else if (status == HeroStatus::Poisoned)
+    else if (status == HeroStatus::Poisoned && oldIntensity == 0)
       applyOrCollect(faith.becamePoisoned());
   }
   else if (newIntensity == 0)

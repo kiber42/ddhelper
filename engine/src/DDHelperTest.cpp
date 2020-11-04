@@ -1079,6 +1079,29 @@ void testPotions()
   });
 }
 
+void testFaith()
+{
+  describe("Glowing Guardian", [] {
+    describe("Likes", [] {
+      it("shall award 2 piety for suffering poisoned or mana burned", [] {
+        Hero hero;
+        hero.followDeity(God::GlowingGuardian);
+        const int initialPiety = hero.getFaith().getPiety();
+        Monster manaBurnMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addManaBurn().get());
+        AssertThat(Combat::attack(hero, manaBurnMonster), Equals(Summary::Safe));
+        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(2));
+        AssertThat(Combat::attack(hero, manaBurnMonster), Equals(Summary::Win));
+        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(2));
+        Monster poisonMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addPoisonous().get());
+        AssertThat(Combat::attack(hero, poisonMonster), Equals(Summary::Safe));
+        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(4));
+        AssertThat(Combat::attack(hero, poisonMonster), Equals(Summary::Win));
+        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(4));
+      });
+    });
+  });
+}
+
 void testCombatInitiative()
 {
   describe("Initiative", [] {
@@ -1154,6 +1177,7 @@ go_bandit([] {
   testMelee();
   testStatusEffects();
   testPotions();
+  testFaith();
   testCombatInitiative();
   testDungeonBasics();
 });

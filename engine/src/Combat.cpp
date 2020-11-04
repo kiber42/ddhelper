@@ -9,7 +9,7 @@ namespace Combat
   {
     void inflictDebuffs(Hero& hero, const Monster& monster, bool includeCurse)
     {
-      if (monster.isPoisonous() && !hero.hasStatus(HeroStatus::Poisoned))
+      if (monster.isPoisonous())
         hero.addStatus(HeroStatus::Poisoned);
       if (monster.hasManaBurn())
         hero.addStatus(HeroStatus::ManaBurned);
