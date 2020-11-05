@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(USE_VULKAN OFF)
 
-if(!WIN32)
+if(NOT WIN32)
   set(SDL_INCLUDE_PATH /usr/include/SDL2)
 else()
   # Windows: Assume that SDL has been unpacked directly into project directory
@@ -27,8 +27,8 @@ add_library(
   imgui/imgui_draw.cpp
   imgui/imgui_widgets.cpp
   imgui/backends/imgui_impl_sdl.cpp)
-target_include_directories(dearimgui PUBLIC imgui SDL_INCLUDE_PATH
-                                            GL3W_INCLUDE_PATH)
+target_include_directories(dearimgui PUBLIC imgui ${SDL_INCLUDE_PATH}
+                                            ${GL3W_INCLUDE_PATH})
 target_link_options(dearimgui PUBLIC "-lSDL2" "-lSDL2main")
 if(USE_VULKAN)
   target_sources(dearimgui PRIVATE imgui/backends/imgui_impl_vulkan.cpp)

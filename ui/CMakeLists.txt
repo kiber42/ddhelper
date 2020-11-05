@@ -9,7 +9,7 @@ if(USE_VULKAN)
 
 else()
   add_library(imguiapp STATIC src/ImguiAppOpenGL.cpp)
-  if(!WIN32)
+  if(NOT WIN32)
     target_link_options(imguiapp PUBLIC "-lGL" "-lGLEW")
   else()
     target_sources(imguiapp PRIVATE "${GL3W_INCLUDE_PATH}/GL/gl3w.c")
@@ -34,4 +34,3 @@ add_executable(
   src/Utils.cpp)
 target_link_libraries(ddhelper ddhelperengine imguiapp)
 target_include_directories(ddhelper PUBLIC imgui)
-target_include_directories(ddhelper PUBLIC SDL_INCLUDE_PATH)
