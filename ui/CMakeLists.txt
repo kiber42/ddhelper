@@ -4,30 +4,34 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(USE_VULKAN)
-add_library(imguiapp STATIC src/ImguiAppVulkan.cpp)
-target_link_options(imguiapp PUBLIC "-lvulkan")
+  add_library(imguiapp STATIC src/ImguiAppVulkan.cpp)
+  target_link_options(imguiapp PUBLIC "-lvulkan")
+
 else()
-add_library(imguiapp STATIC src/ImguiAppOpenGL.cpp)
-target_link_libraries(imguiapp dearimgui)
-# on linux: target_link_options(imguiapp PUBLIC "-lGL" "-lGLEW")
-# on windows:
-target_sources(imguiapp PRIVATE ../imgui/examples/libs/gl3w/GL/gl3w.c)
-target_link_options(imguiapp PUBLIC "-lOpenGL32" "-lglu32" "-Wl,-subsystem:console")
+  add_library(imguiapp STATIC src/ImguiAppOpenGL.cpp)
+  if(!WIN32)
+    target_link_options(imguiapp PUBLIC "-lGL" "-lGLEW")
+  else()
+    target_sources(imguiapp PRIVATE "${GL3W_INCLUDE_PATH}/GL/gl3w.c")
+    target_link_options(imguiapp PUBLIC "-lOpenGL32" "-lglu32"
+                        "-Wl,-subsystem:console")
+  endif()
+
 endif()
+
 target_include_directories(imguiapp PUBLIC include ../imgui/backends)
 target_link_libraries(imguiapp dearimgui)
 
 add_executable(
-    ddhelper
-    src/Arena.cpp
-    src/DDHelper.cpp
-    src/HeroSelection.cpp
-    src/History.cpp
-    src/MonsterPool.cpp
-    src/MonsterSelection.cpp
-    src/Scenario.cpp
-    src/Utils.cpp
-)
+  ddhelper
+  src/Arena.cpp
+  src/DDHelper.cpp
+  src/HeroSelection.cpp
+  src/History.cpp
+  src/MonsterPool.cpp
+  src/MonsterSelection.cpp
+  src/Scenario.cpp
+  src/Utils.cpp)
 target_link_libraries(ddhelper ddhelperengine imguiapp)
 target_include_directories(ddhelper PUBLIC imgui)
-target_include_directories(ddhelper PUBLIC /usr/include/SDL2 SDL/include)
+target_include_directories(ddhelper PUBLIC SDL_INCLUDE_PATH)
