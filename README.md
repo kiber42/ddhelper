@@ -1,5 +1,8 @@
 Prerequisites
--------------
+=============
+
+Linux
+-----
 ```
 sudo apt install clang
 sudo apt install cmake
@@ -21,10 +24,24 @@ rm -rf snowhouse
 mv bandit engine
 ```
 
-Visual Studio Code Extensions:
+Windows
+-------
+Install `clang`, `cmake`, `ninja`, `git`
+Retrieve `imgui` to this directory.
+Retrieve `bandit` and `snowhouse` and move them to the `engine` sub-directory,
+  the `snowhouse` include files may need to be placed inside the appropriate `bandit` sub-directory.
+Download the SDL zip file for Windows, unpack them into a sub-directory called `SDL`.
+The Windows build uses SDL + OpenGL.
+
+Visual Studio Code
+------------------
+
+Useful extensions:
 + C/C++ Extension
 + CMake Tools Extension
 + Clang-Format Extension
++ CMake-Format Extension
++ `pip install cmake-format`
 
 `Ctrl+Shift+P` CMake: Configure
 
