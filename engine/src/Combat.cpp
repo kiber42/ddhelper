@@ -195,14 +195,6 @@ namespace Combat
     return detail::summaryAndExperience(hero, monster, monsterWasSlowed);
   }
 
-  Summary uncoverTiles(Hero& hero, Monster* monster, int numTiles)
-  {
-    hero.recover(numTiles);
-    if (monster)
-      monster->recover(numTiles);
-    return Summary::Safe;
-  }
-
   Debuffs findDebuffs(const Hero& before, const Hero& after)
   {
     Debuffs debuffs;

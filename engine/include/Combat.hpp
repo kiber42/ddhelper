@@ -13,9 +13,6 @@ namespace Combat
   // Pretend hero attack's another monster than the current (burn stack damage)
   Summary attackOther(Hero&, Monster& current);
 
-  // Uncover tiles and let hero and monster recover
-  Summary uncoverTiles(Hero&, Monster*, int numTiles=1);
-
   // Determines which debuffs the hero received due to a fight or other action
   Debuffs findDebuffs(const Hero& heroBefore, const Hero& heroAfter);
 

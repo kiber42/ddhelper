@@ -223,17 +223,17 @@ Arena::StateUpdate Arena::run(const State& currentState)
     if (withMonster)
     {
       addActionButton("Uncover Tile",
-                      [](Hero& hero, Monster& monster) { return Combat::uncoverTiles(hero, &monster, 1); });
+                      [](Hero& hero, Monster& monster) { hero.recover(1); monster.recover(1); return Summary::Safe; });
       ImGui::SameLine();
     }
     else if (numSquares > 0)
     {
-      addActionButton("Uncover Tile", [](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, 1); });
+      addActionButton("Uncover Tile", [](Hero& hero) { hero.recover(1); return Summary::Safe; });
       ImGui::SameLine();
       if (numSquares > 1)
       {
         const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-        addActionButton(label, [numSquares](Hero& hero) { return Combat::uncoverTiles(hero, nullptr, numSquares); });
+        addActionButton(label, [numSquares](Hero& hero) { hero.recover(numSquares); return Summary::Safe; });
         ImGui::SameLine();
       }
     }

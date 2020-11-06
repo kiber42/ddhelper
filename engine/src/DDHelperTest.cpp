@@ -635,16 +635,16 @@ void testStatusEffects()
       });
       it("should limit health recovery", [&] {
         AssertThat(hero.getHitPoints(), Equals(27));
-        Combat::uncoverTiles(hero, nullptr, 1);
+        hero.recover(1);
         AssertThat(hero.getHitPoints(), Equals(28));
       });
       it("should prevent mana recovery", [&] {
         hero.loseManaPoints(1);
         AssertThat(hero.getManaPoints(), Equals(9));
-        Combat::uncoverTiles(hero, nullptr, 2);
+        hero.recover(2);
         AssertThat(hero.getManaPoints(), Equals(9));
         AssertThat(hero.hasStatus(HeroStatus::Exhausted), IsFalse());
-        Combat::uncoverTiles(hero, nullptr, 1);
+        hero.recover(1);
         AssertThat(hero.getManaPoints(), Equals(10));
       });
     });
@@ -784,7 +784,7 @@ void testStatusEffects()
         Hero hero;
         hero.addStatus(HeroStatus::ManaBurned);
         AssertThat(hero.getManaPoints(), Equals(0));
-        Combat::uncoverTiles(hero, nullptr, 10);
+        hero.recover(10);
         AssertThat(hero.getManaPoints(), Equals(0));
       });
       it("should allow other means of mana recovery", [] {
@@ -831,10 +831,10 @@ void testStatusEffects()
       it("should prevent health recovery", [] {
         Hero hero;
         hero.loseHitPointsOutsideOfFight(9);
-        Combat::uncoverTiles(hero, nullptr, 1);
+        hero.recover(1);
         AssertThat(hero.getHitPoints(), Equals(2));
         hero.addStatus(HeroStatus::Poisoned);
-        Combat::uncoverTiles(hero, nullptr, 10);
+        hero.recover(10);
         AssertThat(hero.getHitPoints(), Equals(2));
       });
     });
