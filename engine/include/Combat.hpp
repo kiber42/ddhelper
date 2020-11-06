@@ -7,13 +7,13 @@
 
 namespace Combat
 {
-  // Predict outcome of melee attack
+  // Perform melee attack
   Summary attack(Hero&, Monster&);
 
-  // Predicts outcome for current monster if hero were to attack another monster
+  // Pretend hero attack's another monster than the current (burn stack damage)
   Summary attackOther(Hero&, Monster& current);
 
-  // Predicts recovery of hero and monster when uncovering tiles
+  // Uncover tiles and let hero and monster recover
   Summary uncoverTiles(Hero&, Monster*, int numTiles=1);
 
   // Determines which debuffs the hero received due to a fight or other action
