@@ -87,9 +87,9 @@ Arena::StateUpdate Arena::run(const State& currentState)
         const bool isSelected = ++index == selectedPopupItem;
         const auto spell = std::get<Spell>(entry.itemOrSpell);
         const bool possible =
-            (withMonster && Cast::isPossible(*currentState.hero, *currentState.monster, spell)) ||
-            (!withMonster && !Cast::needsMonster(spell) && Cast::isPossible(*currentState.hero, spell));
-        const int costs = Cast::spellCosts(spell, *currentState.hero);
+            (withMonster && Magic::isPossible(*currentState.hero, *currentState.monster, spell)) ||
+            (!withMonster && !Magic::needsMonster(spell) && Magic::isPossible(*currentState.hero, spell));
+        const int costs = Magic::spellCosts(spell, *currentState.hero);
         const std::string label = toString(spell) + " ("s + std::to_string(costs) + " MP)";
         if (!possible)
         {
@@ -101,12 +101,12 @@ Arena::StateUpdate Arena::run(const State& currentState)
         if (withMonster)
           becameSelected = addPopupAction(
               label, historyTitle,
-              [spell](Hero& hero, Monster& monster) { return Cast::targeted(hero, monster, spell); }, isSelected);
+              [spell](Hero& hero, Monster& monster) { return Magic::cast(hero, monster, spell); }, isSelected);
         else
           becameSelected = addPopupAction(
               label, historyTitle,
               [spell](Hero& hero) {
-                Cast::untargeted(hero, spell);
+                Magic::cast(hero, spell);
                 return Summary::Safe;
               },
               isSelected);

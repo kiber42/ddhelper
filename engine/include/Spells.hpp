@@ -55,17 +55,17 @@ constexpr const char* toString(Spell spell)
   }
 }
 
-namespace Cast
+namespace Magic
 {
   // Determine whether spell can currently be cast
   bool isPossible(const Hero& hero, Spell spell);
   bool isPossible(const Hero& hero, const Monster& monster, Spell spell);
 
   // Cast spell that does not target a monster
-  void untargeted(Hero& hero, Spell spell);
+  void cast(Hero& hero, Spell spell);
 
-  // Predict outcome of casting spell on monster
-  Summary targeted(Hero& hero, Monster& monster, Spell spell);
+  // Cast spell on monster
+  Summary cast(Hero& hero, Monster& monster, Spell spell);
 
   // Spells that need to target a monster
   constexpr bool needsMonster(Spell spell)
@@ -74,7 +74,7 @@ namespace Cast
            spell == Spell::Weytwut || spell == Spell::Wonafyt;
   }
 
-  // Spells that behave differently if a target is present
+  // Spells that behave differently when targeted at a monster
   constexpr bool monsterIsOptional(Spell spell)
   {
     return spell == Spell::Imawal || spell == Spell::Lemmisi;
@@ -87,4 +87,4 @@ namespace Cast
   }
 
   int spellCosts(Spell spell, const Hero& hero);
-} // namespace Cast
+} // namespace Magic

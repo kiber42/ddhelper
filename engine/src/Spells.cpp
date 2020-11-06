@@ -4,7 +4,7 @@
 
 #include <cassert>
 
-namespace Cast
+namespace Magic
 {
   namespace
   {
@@ -138,7 +138,7 @@ namespace Cast
     // Dragon Soul (15% free cast chance)
   }
 
-  void untargeted(Hero& hero, Spell spell)
+  void cast(Hero& hero, Spell spell)
   {
     if (!isPossible(hero, spell))
       return;
@@ -206,14 +206,14 @@ namespace Cast
     applyCastingSideEffects(hero, manaCosts);
   }
 
-  Summary targeted(Hero& hero, Monster& monster, Spell spell)
+  Summary cast(Hero& hero, Monster& monster, Spell spell)
   {
     if (!isPossible(hero, monster, spell))
       return Summary::NotPossible;
 
     if (!needsMonster(spell) && !monsterIsOptional(spell))
     {
-      untargeted(hero, spell);
+      cast(hero, spell);
       return Summary::Safe;
     }
 
@@ -276,4 +276,4 @@ namespace Cast
     hero.addStatus(HeroStatus::ExperienceBoost);
     return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
   }
-} // namespace Cast
+} // namespace Magic

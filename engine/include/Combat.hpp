@@ -19,7 +19,7 @@ namespace Combat
   namespace detail
   {
     // Determines outcome summary and awards experience if applicable.
-    // Helper used by Combat::attack and Cast::targeted, do not call directly.
+    // Helper used by Combat::attack and Magic::cast, do not call directly.
     Summary summaryAndExperience(Hero& heroAfterFight, const Monster& monsterAfterFight, bool monsterWasSlowed);
 
     // If the monster was defeated, applies or lifts curse

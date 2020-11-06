@@ -669,13 +669,13 @@ void testStatusEffects()
       Monster monster(MonsterType::MeatMan, 3);
       it("should increase fireball damage by 4 per caster level", [&] {
         int hp = monster.getHitPoints();
-        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
         hp -= 8;
         AssertThat(monster.getHitPoints(), Equals(hp));
         AssertThat(monster.getBurnStackSize(), Equals(2));
         hero.gainLevel();
         hero.gainLevel();
-        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
         hp -= 8 * 3 + 2;
         AssertThat(monster.getHitPoints(), Equals(hp));
         AssertThat(monster.getBurnStackSize(), Equals(6));
@@ -684,9 +684,9 @@ void testStatusEffects()
         hero.gainLevel();
         monster.recover(15);
         const int retaliateDamage = monster.getDamage() / 2;
-        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
         AssertThat(hero.getHitPointsMax() - hero.getHitPoints(), Equals(retaliateDamage));
-        AssertThat(Cast::targeted(hero, monster, Spell::Burndayraz), Equals(Summary::Win));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz), Equals(Summary::Win));
         AssertThat(hero.getHitPointsMax() - hero.getHitPoints(), Equals(retaliateDamage));
       });
     });
