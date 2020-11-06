@@ -953,8 +953,8 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     // Add 2 additional max HP on future level ups. Not removed when coverting item!
     if (itemReceived)
     {
-      addHealthBonus(0);
-      addHealthBonus(0);
+      stats.addHealthBonus(0);
+      stats.addHealthBonus(0);
     }
     break;
   case Item::Skullpicker:
