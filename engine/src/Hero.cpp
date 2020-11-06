@@ -246,7 +246,7 @@ int Hero::getDamageBonusPercent() const
   int bonus = stats.getDamageBonusPercent();
   if (hasStatus(HeroStatus::Might))
     bonus += 30;
-  if (hasTrait(HeroTrait::Determined) && stats.getHitPoints() < stats.getHitPointsMax() / 2)
+  if (hasTrait(HeroTrait::Determined) && stats.getHitPoints() * 2 < stats.getHitPointsMax())
     bonus += 30;
   return bonus;
 }
@@ -538,18 +538,6 @@ void Hero::addTrait(HeroTrait trait)
 bool Hero::hasTrait(HeroTrait trait) const
 {
   return std::find(begin(traits), end(traits), trait) != end(traits);
-}
-
-bool Hero::isTraitActive(HeroTrait trait) const
-{
-  if (!hasTrait(trait))
-    return false;
-  if (trait == HeroTrait::Determined)
-    return stats.getHitPoints() * 2 < stats.getHitPointsMax();
-  if (trait == HeroTrait::Courageous)
-    throw std::runtime_error("Not implemented");
-  // Most traits are always active
-  return true;
 }
 
 void Hero::removeOneTimeAttackEffects()
@@ -941,7 +929,7 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     changeHitPointsMax(10 * sign);
     break;
   case Item::PendantOfMana:
-  changeManaPointsMax(2 * sign);
+    changeManaPointsMax(2 * sign);
     break;
   case Item::Spoon:
     changeBaseDamage(sign);
