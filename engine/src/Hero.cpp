@@ -379,12 +379,13 @@ void Hero::recover(int nSquares)
   const bool exhausted = hasStatus(HeroStatus::Exhausted);
   if (!hasStatus(HeroStatus::Poisoned))
   {
-    int multiplier = getLevel() * (hasTrait(HeroTrait::Discipline) ? 2 : 1);
+    int multiplier = getLevel();
     if (hasTrait(HeroTrait::Discipline))
       multiplier *= 2;
+    if (has(Item::BloodySigil))
+      multiplier += 1;
     if (hasTrait(HeroTrait::Damned))
       multiplier = 1;
-    // TODO: Add +1 for Bloody Sigil
     stats.healHitPoints(nSquares * multiplier, false);
   }
   if (!hasStatus(HeroStatus::ManaBurned) && !exhausted)
@@ -926,8 +927,36 @@ void Hero::use(Item item)
 void Hero::changeStatsFromItem(Item item, bool itemReceived)
 {
   // Apply passive item effects on hero status
+  const int sign = itemReceived ? +1 : -1;
   switch (item)
   {
+  case Item::BloodySigil:
+    changeHitPointsMax(5 * sign);
+    changeDamageBonusPercent(10 * sign);
+    break;
+  case Item::FineSword:
+    changeBaseDamage(4 * sign);
+    break;
+  case Item::PendantOfHealth:
+    changeHitPointsMax(10 * sign);
+    break;
+  case Item::PendantOfMana:
+  changeManaPointsMax(2 * sign);
+    break;
+  case Item::Spoon:
+    changeBaseDamage(sign);
+    break;
+  case Item::TowerShield:
+    changePhysicalResistPercent(10 * sign);
+    break;
+  case Item::TrollHeart:
+    // Add 2 additional max HP on future level ups. Not removed when coverting item!
+    if (itemReceived)
+    {
+      addHealthBonus(0);
+      addHealthBonus(0);
+    }
+    break;
   case Item::Skullpicker:
     changeBaseDamage(itemReceived ? +5 : -5);
     break;

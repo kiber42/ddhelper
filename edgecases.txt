@@ -23,3 +23,5 @@ Damage done is rounded down (not the amount of resisted damage as is usually don
 Retaliate damage: 50% of regular damage
 
 Crushing blow ignores resistances and even physical immunity (magical not tested)
+
+Health regeneration bonus for bloody sigil is applied after x2 multiplier from discipline
