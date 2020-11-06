@@ -17,7 +17,7 @@ void testHeroExperience()
     Hero hero;
     it("should initially be 1", [&] { AssertThat(hero.getLevel(), Equals(1)); });
     it("should be 2 after receiving 5 XP", [&] {
-      hero.gainExperience(5);
+      hero.gainExperienceNoBonuses(5);
       AssertThat(hero.getLevel(), Equals(2));
     });
     it("should be 3 after gaining another level", [&] {
@@ -25,7 +25,7 @@ void testHeroExperience()
       AssertThat(hero.getLevel(), Equals(3));
     });
     it("should never exceed 10 (prestige awarded instead)", [&] {
-      hero.gainExperience(1000);
+      hero.gainExperienceNoBonuses(1000);
       AssertThat(hero.getLevel(), Equals(10));
       AssertThat(hero.getPrestige(), Equals(10));
     });
@@ -48,12 +48,12 @@ void testHeroExperience()
     Hero hero;
     hero.gainLevel();
     hero.loseHitPointsOutsideOfFight(4);
-    hero.gainExperience(10);
+    hero.gainExperienceNoBonuses(10);
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
     it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30)); });
     hero.addStatus(HeroStatus::Poisoned);
     hero.addStatus(HeroStatus::ManaBurned);
-    hero.gainExperience(15);
+    hero.gainExperienceNoBonuses(15);
     it("should remove poison and mana burn", [&] {
       AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
       AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
@@ -62,7 +62,7 @@ void testHeroExperience()
 
   describe("Level up (from item or boon)", [] {
     Hero hero;
-    hero.gainExperience(5);
+    hero.gainExperienceNoBonuses(5);
     hero.loseHitPointsOutsideOfFight(1);
     hero.gainLevel();
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
@@ -80,7 +80,7 @@ void testHeroExperience()
     it("should be 2 instead of 1 if the hero has 'Learning' (permanent bonus)", [&] {
       Hero hero;
       hero.addStatus(HeroStatus::Learning);
-      hero.gainExperience(1);
+      hero.gainExperienceForKill(1, false);
       AssertThat(hero.getXP(), Equals(2));
       AssertThat(hero.hasStatus(HeroStatus::Learning), IsTrue());
     });
@@ -89,32 +89,34 @@ void testHeroExperience()
       hero.addStatus(HeroStatus::Learning);
       hero.addStatus(HeroStatus::Learning);
       hero.addStatus(HeroStatus::Learning);
-      AssertThat(hero.getStatusIntensity(HeroStatus::Learning), Equals(3));
-      hero.gainExperience(2);
+      hero.addStatus(HeroStatus::Learning);
+      AssertThat(hero.getStatusIntensity(HeroStatus::Learning), Equals(4));
+      hero.gainExperienceForKill(1, false);
       AssertThat(hero.getXP(), Equals(0));
       AssertThat(hero.getLevel(), Equals(2));
     });
     it("should grow by a bonus 50% (rounded down) if the hero has 'Experience Boost' (one time bonus, cannot stack)",
        [&] {
          Hero hero;
+         hero.gainLevel();
          hero.addStatus(HeroStatus::ExperienceBoost);
          AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), IsTrue());
-         hero.gainExperience(2);
+         hero.gainExperienceForKill(2, false);
          AssertThat(hero.getXP(), Equals(3));
          AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), IsFalse());
          hero.addStatus(HeroStatus::ExperienceBoost);
          hero.addStatus(HeroStatus::ExperienceBoost);
          AssertThat(hero.getStatusIntensity(HeroStatus::ExperienceBoost), Equals(1));
-         hero.gainExperience(1);
+         hero.gainExperienceForKill(1, false);
          AssertThat(hero.getXP(), Equals(4));
        });
     it("should first consider 'Experience Boost', then 'Learning'", [&] {
       Hero hero;
-      // Start at level 2, otherwise 5 XP trigger a level up
+      hero.gainLevel();
       hero.gainLevel();
       hero.addStatus(HeroStatus::ExperienceBoost);
       hero.addStatus(HeroStatus::Learning);
-      hero.gainExperience(3);
+      hero.gainExperienceForKill(3, false);
       // 150% * 3 + 1 = 5.5 -> 5 rather than 150% * (3 + 1) = 6
       AssertThat(hero.getXP(), Equals(5));
     });
@@ -375,7 +377,7 @@ void testMelee()
        [&] { AssertThat(Combat::attack(hero, monster), Equals(Summary::Death)); });
     it("should correctly predict win outcome (one shot, monster has lower level)", [&] {
       Hero hero;
-      hero.gainExperience(30);
+      hero.gainExperienceNoBonuses(30);
       AssertThat(hero.getLevel(), Equals(4));
       AssertThat(hero.getXP(), Equals(0));
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1);

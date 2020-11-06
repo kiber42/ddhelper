@@ -16,7 +16,7 @@ Hero getHeroForScenario(Scenario scenario)
   {
     Hero hero;
     hero.gainLevel();
-    hero.gainExperience(4);
+    hero.gainExperienceNoBonuses(4);
     hero.loseHitPointsOutsideOfFight(3);
     hero.loseAllItems();
     for (int i = 0; i < 8; ++i)

@@ -270,8 +270,7 @@ namespace Magic
       return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed);
 
     const bool levelBefore = hero.getLevel() + hero.getPrestige();
-    if (monster.isSlowed())
-      hero.gainExperience(0, true);
+    hero.gainExperienceForPetrification(monster.isSlowed());
     monster.petrify();
     hero.addStatus(HeroStatus::ExperienceBoost);
     return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;

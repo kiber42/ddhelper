@@ -164,7 +164,7 @@ void Faith::apply(PietyChange change, Hero& hero)
       if (piety >= 4)
       {
         piety -= 4;
-        hero.gainExperience(3, false);
+        hero.gainExperienceNoBonuses(3);
       }
       break;
     case Pact::BodyPact:

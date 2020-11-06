@@ -137,32 +137,36 @@ int Hero::getXPforNextLevel() const
   return experience.getXPforNextLevel();
 }
 
-void Hero::gainExperience(int xpGained, bool monsterWasSlowed)
+void Hero::gainExperienceForKill(int monsterLevel, bool monsterWasSlowed)
 {
-  int level = experience.getLevel();
-  if (xpGained > 0)
-  {
-    const int bonuses =
-        getStatusIntensity(HeroStatus::Learning) + (int)hasTrait(HeroTrait::Veteran) + (int)monsterWasSlowed;
-    experience.gain(xpGained, bonuses, hasStatus(HeroStatus::ExperienceBoost));
-    removeStatus(HeroStatus::ExperienceBoost, true);
-  }
-  else if (monsterWasSlowed)
-  {
-    // Slowed monster killed by petrification
-    experience.gain(0, 1, false);
-  }
-  while (getLevel() > level)
-  {
-    levelGainedUpdate();
-    ++level;
-  }
+  const int xpBase = Experience::forHeroAndMonsterLevels(getLevel(), monsterLevel);
+  int xpBonuses = getStatusIntensity(HeroStatus::Learning);
+  if (monsterWasSlowed)
+    ++xpBonuses;
+  if (hasTrait(HeroTrait::Veteran))
+    ++xpBonuses;
+//  if (has(Item::BalancedDagger) && getLevel() == monsterLevel)
+//    xpBonuses += 2;
+  gainExperience(xpBase, xpBonuses);
+}
+
+void Hero::gainExperienceForPetrification(bool monsterWasSlowed)
+{
+  if (monsterWasSlowed)
+    gainExperience(0, 1);
 }
 
 void Hero::gainExperienceNoBonuses(int xpGained)
 {
+  gainExperience(0, xpGained);
+}
+
+void Hero::gainExperience(int xpBase, int xpBonuses)
+{
   int level = experience.getLevel();
-  experience.gain(0, xpGained, false);
+  experience.gain(xpBase, xpBonuses, hasStatus(HeroStatus::ExperienceBoost));
+  if (xpBase > 0)
+    removeStatus(HeroStatus::ExperienceBoost, true);
   while (getLevel() > level)
   {
     levelGainedUpdate();

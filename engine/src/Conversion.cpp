@@ -73,7 +73,7 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
   case HeroRace::Goblin:
     threshold = 85;
     bonus = [xp = 5](Hero& hero) mutable {
-      hero.gainExperience(xp);
+      hero.gainExperienceNoBonuses(xp);
       ++xp;
     };
     break;

@@ -30,7 +30,8 @@ public:
   int getLevel() const;
   int getPrestige() const;
   int getXPforNextLevel() const;
-  void gainExperience(int xpGained, bool monsterWasSlowed = false);
+  void gainExperienceForKill(int monsterLevel, bool monsterWasSlowed);
+  void gainExperienceForPetrification(bool monsterWasSlowed);
   void gainExperienceNoBonuses(int xpGained);
   void gainLevel();
 
@@ -161,6 +162,7 @@ private:
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
+  void gainExperience(int xpGained, int xpBonuses);
   void levelGainedUpdate();
   void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange);

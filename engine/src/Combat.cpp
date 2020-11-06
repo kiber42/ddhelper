@@ -228,7 +228,7 @@ namespace Combat
         return Summary::Safe;
 
       const int levelBefore = hero.getLevel() + hero.getPrestige();
-      hero.gainExperience(Experience::forHeroAndMonsterLevels(levelBefore, monster.getLevel()), monsterWasSlowed);
+      hero.gainExperienceForKill(monster.getLevel(), monsterWasSlowed);
 
       if (hero.getLevel() + hero.getPrestige() > levelBefore)
         return Summary::LevelUp;

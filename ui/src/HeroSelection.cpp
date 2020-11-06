@@ -109,7 +109,7 @@ Hero CustomHeroBuilder::get() const
   const int xp = data[8];
   Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
   hero.loseAllItems();
-  hero.gainExperience(xp);
+  hero.gainExperienceNoBonuses(xp);
 
   const int deltaHp = maxHp - data[1];
   const int deltaMp = maxMp - data[3];
