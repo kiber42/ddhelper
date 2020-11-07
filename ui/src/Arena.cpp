@@ -100,8 +100,8 @@ Arena::StateUpdate Arena::run(const State& currentState)
         bool becameSelected;
         if (withMonster)
           becameSelected = addPopupAction(
-              label, historyTitle,
-              [spell](Hero& hero, Monster& monster) { return Magic::cast(hero, monster, spell); }, isSelected);
+              label, historyTitle, [spell](Hero& hero, Monster& monster) { return Magic::cast(hero, monster, spell); },
+              isSelected);
         else
           becameSelected = addPopupAction(
               label, historyTitle,
@@ -222,18 +222,27 @@ Arena::StateUpdate Arena::run(const State& currentState)
     const int numSquares = currentState.hero->numSquaresForFullRecovery();
     if (withMonster)
     {
-      addActionButton("Uncover Tile",
-                      [](Hero& hero, Monster& monster) { hero.recover(1); monster.recover(1); return Summary::Safe; });
+      addActionButton("Uncover Tile", [](Hero& hero, Monster& monster) {
+        hero.recover(1);
+        monster.recover(1);
+        return Summary::Safe;
+      });
       ImGui::SameLine();
     }
     else if (numSquares > 0)
     {
-      addActionButton("Uncover Tile", [](Hero& hero) { hero.recover(1); return Summary::Safe; });
+      addActionButton("Uncover Tile", [](Hero& hero) {
+        hero.recover(1);
+        return Summary::Safe;
+      });
       ImGui::SameLine();
       if (numSquares > 1)
       {
         const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-        addActionButton(label, [numSquares](Hero& hero) { hero.recover(numSquares); return Summary::Safe; });
+        addActionButton(label, [numSquares](Hero& hero) {
+          hero.recover(numSquares);
+          return Summary::Safe;
+        });
         ImGui::SameLine();
       }
     }
@@ -246,56 +255,62 @@ Arena::StateUpdate Arena::run(const State& currentState)
     }
     if (ImGui::BeginPopup("FindPopup"))
     {
-      ImGui::Text("Spells");
-      ImGui::Separator();
       int index;
-      for (index = 0; index <= static_cast<int>(Spell::Last); ++index)
+      if (ImGui::BeginMenu("Spells"))
       {
-        const Spell spell = static_cast<Spell>(index);
-        const bool isSelected = index == selectedPopupItem;
+        for (index = 0; index <= static_cast<int>(Spell::Last); ++index)
+        {
+          const Spell spell = static_cast<Spell>(index);
+          const bool isSelected = index == selectedPopupItem;
+          if (addPopupAction(
+                  toString(spell), "Find "s + toString(spell),
+                  [spell](Hero& hero) {
+                    hero.receive(spell);
+                    return Summary::Safe;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("Potions"))
+      {
+        for (auto potion :
+             {Item::HealthPotion, Item::ManaPotion, Item::FortitudeTonic, Item::BurnSalve, Item::StrengthPotion,
+              Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
+        {
+          const bool isSelected = ++index == selectedPopupItem;
+          if (addPopupAction(
+                  toString(potion), "Find "s + toString(potion),
+                  [potion](Hero& hero) {
+                    hero.receive(potion);
+                    return Summary::Safe;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("Cheat"))
+      {
         if (addPopupAction(
-                toString(spell), "Find "s + toString(spell),
-                [spell](Hero& hero) {
-                  hero.receive(spell);
+                "+50 piety", "Cheat: +50 piety",
+                [](Hero& hero) {
+                  hero.getFaith().gainPiety(50);
                   return Summary::Safe;
                 },
-                isSelected))
+                ++index == selectedPopupItem))
           selectedPopupItem = index;
-      }
-      ImGui::Separator();
-      ImGui::Text("Potions");
-      ImGui::Separator();
-      for (auto potion :
-           {Item::HealthPotion, Item::ManaPotion, Item::FortitudeTonic, Item::BurnSalve, Item::StrengthPotion,
-            Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
-      {
-        const bool isSelected = ++index == selectedPopupItem;
         if (addPopupAction(
-                toString(potion), "Find "s + toString(potion),
-                [potion](Hero& hero) {
-                  hero.receive(potion);
+                "+20 gold", "Cheat: +20 gold",
+                [](Hero& hero) {
+                  hero.addGold(20);
                   return Summary::Safe;
                 },
-                isSelected))
+                ++index == selectedPopupItem))
           selectedPopupItem = index;
+        ImGui::EndMenu();
       }
-      ImGui::Separator();
-      if (addPopupAction(
-              "+50 piety", "Cheat: +50 piety",
-              [](Hero& hero) {
-                hero.getFaith().gainPiety(50);
-                return Summary::Safe;
-              },
-              ++index == selectedPopupItem))
-        selectedPopupItem = index;
-      if (addPopupAction(
-              "+20 gold", "Cheat: +20 gold",
-              [](Hero& hero) {
-                hero.addGold(20);
-                return Summary::Safe;
-              },
-              ++index == selectedPopupItem))
-        selectedPopupItem = index;
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
       ImGui::EndPopup();

@@ -176,12 +176,9 @@ namespace Combat
       hero.collect(hero.getFaith().receivedHit(monster));
     }
 
-    if (monster.isDefeated())
-      hero.collect(hero.getFaith().monsterKilled(monster, hero.getLevel(), monsterWasBurning));
-
+    const auto summary = detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
     hero.removeOneTimeAttackEffects();
     detail::monsterDefeatedCurse(hero, monster);
-    const auto summary = detail::summaryAndExperience(hero, monster, monsterWasSlowed);
     hero.applyCollectedPiety();
     return summary;
   }
@@ -189,10 +186,11 @@ namespace Combat
   Summary attackOther(Hero& hero, Monster& monster)
   {
     const bool monsterWasSlowed = monster.isSlowed();
+    const bool monsterWasBurning = monster.isBurning();
     monster.burnDown();
     hero.removeOneTimeAttackEffects();
     detail::monsterDefeatedCurse(hero, monster);
-    return detail::summaryAndExperience(hero, monster, monsterWasSlowed);
+    return detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
   }
 
   Debuffs findDebuffs(const Hero& before, const Hero& after)
@@ -215,7 +213,7 @@ namespace Combat
 
   namespace detail
   {
-    Summary summaryAndExperience(Hero& hero, const Monster& monster, bool monsterWasSlowed)
+    Summary summaryAndExperience(Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning)
     {
       if (hero.isDefeated())
       {
@@ -228,8 +226,7 @@ namespace Combat
         return Summary::Safe;
 
       const int levelBefore = hero.getLevel() + hero.getPrestige();
-      hero.gainExperienceForKill(monster.getLevel(), monsterWasSlowed);
-
+      hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning);
       if (hero.getLevel() + hero.getPrestige() > levelBefore)
         return Summary::LevelUp;
       return Summary::Win;

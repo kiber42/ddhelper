@@ -604,9 +604,10 @@ void Faith::punish(God god, Hero& hero)
   }
 }
 
-void Faith::desecrate(God altar, Hero& hero)
+void Faith::desecrate(God altar, Hero& hero, bool hasAgnosticCollar)
 {
-  punish(altar, hero);
+  if (!hasAgnosticCollar)
+    punish(altar, hero);
   if (numDesecrated < 3)
     gainPiety((3 - numDesecrated) * 10);
   ++numDesecrated;

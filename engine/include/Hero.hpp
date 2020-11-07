@@ -85,6 +85,9 @@ public:
   void addTrait(HeroTrait trait);
   bool hasTrait(HeroTrait trait) const;
 
+  // Adds XP and triggers any faith and item effects
+  void monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning);
+
   void removeOneTimeAttackEffects();
 
   void addDodgeChancePercent(int percent, bool isPermanent);

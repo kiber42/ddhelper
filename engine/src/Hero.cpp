@@ -145,8 +145,8 @@ void Hero::gainExperienceForKill(int monsterLevel, bool monsterWasSlowed)
     ++xpBonuses;
   if (hasTrait(HeroTrait::Veteran))
     ++xpBonuses;
-//  if (has(Item::BalancedDagger) && getLevel() == monsterLevel)
-//    xpBonuses += 2;
+  if (has(Item::BalancedDagger) && getLevel() == monsterLevel)
+    xpBonuses += 2;
   gainExperience(xpBase, xpBonuses);
 }
 
@@ -544,6 +544,18 @@ bool Hero::hasTrait(HeroTrait trait) const
   return std::find(begin(traits), end(traits), trait) != end(traits);
 }
 
+void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning)
+{
+  gainExperienceForKill(monster.getLevel(), monsterWasSlowed);
+  applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning));
+  if (has(Item::GlovesOfMidas))
+    ++stats.gold;
+  if (has(Item::StoneSigil))
+    faith.gainPiety(1);
+  if (has(Item::BlueBead))
+    recoverManaPoints(1);
+}
+
 void Hero::removeOneTimeAttackEffects()
 {
   removeStatus(HeroStatus::ConsecratedStrike, true);
@@ -665,7 +677,7 @@ bool Hero::followDeity(God god)
 
 void Hero::desecrate(God altar)
 {
-  faith.desecrate(altar, *this);
+  faith.desecrate(altar, *this, has(Item::AgnosticCollar));
 }
 
 void Hero::startPietyCollection()
@@ -948,6 +960,71 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
       stats.addHealthBonus(0);
       stats.addHealthBonus(0);
     }
+    break;
+  case Item::PiercingWand:
+    // TODO
+    break;
+  case Item::RockHeart:
+    // TODO
+    break;
+  case Item::DragonSoul:
+    // TODO
+    break;
+  case Item::FireHeart:
+    // TODO
+    break;
+  case Item::CrystalBall:
+    // TODO
+    break;
+  case Item::WitchalokPendant:
+    // TODO
+    break;
+  case Item::BattlemageRing:
+    // TODO
+    break;
+  case Item::HerosHelm:
+    changeHitPointsMax(5 * sign);
+    changeManaPointsMax(sign);
+    changeBaseDamage(2 * sign);
+    break;
+  case Item::Platemail:
+    // TODO
+    break;
+  case Item::Whurrgarbl:
+    // TODO
+    break;
+  case Item::Trisword:
+    // TODO
+    break;
+  case Item::VenomDagger:
+    addStatus(HeroStatus::Poisonous, 2 * sign);
+    break;
+  case Item::MartyrWraps:
+    // TODO
+    break;
+  case Item::MagePlate:
+    // TODO
+    break;
+  case Item::VampiricBlade:
+    addStatus(HeroStatus::LifeSteal, sign);
+    break;
+  case Item::ViperWard:
+    if (itemReceived)
+      addStatus(HeroStatus::PoisonImmune);
+    else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
+      removeStatus(HeroStatus::PoisonImmune, true);
+    break;
+  case Item::SoulOrb:
+    if (itemReceived)
+      addStatus(HeroStatus::ManaBurnImmune);
+    else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
+      removeStatus(HeroStatus::ManaBurnImmune, true);
+    break;
+  case Item::Gorgward:
+    if (itemReceived)
+      addStatus(HeroStatus::DeathGazeImmune);
+    else if (!hasTrait(HeroTrait::Scars))
+      removeStatus(HeroStatus::DeathGazeImmune, true);
     break;
   case Item::Skullpicker:
     changeBaseDamage(itemReceived ? +5 : -5);

@@ -218,6 +218,7 @@ namespace Magic
     }
 
     const bool monsterWasSlowed = monster.isSlowed();
+    const bool monsterWasBurning = monster.isBurning();
 
     const int manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
@@ -267,7 +268,7 @@ namespace Magic
     applyCastingSideEffects(hero, manaCosts);
 
     if (spell != Spell::Imawal)
-      return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed);
+      return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
 
     const bool levelBefore = hero.getLevel() + hero.getPrestige();
     hero.gainExperienceForPetrification(monster.isSlowed());
