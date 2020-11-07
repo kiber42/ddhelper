@@ -7,7 +7,8 @@
 
 enum class Scenario
 {
-  AgbaarsAcademySlowingPart2
+  AgbaarsAcademySlowingPart2,
+  HalflingTrial,
 };
 
 // Prepare state and monster pool for a specific challenge

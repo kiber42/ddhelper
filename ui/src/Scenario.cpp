@@ -25,6 +25,17 @@ Hero getHeroForScenario(Scenario scenario)
     hero.receiveFreeSpell(Spell::Weytwut);
     return hero;
   }
+  case Scenario::HalflingTrial:
+  {
+    Hero hero(HeroClass::Fighter, HeroRace::Halfling);
+    hero.loseAllItems();
+    hero.receive(Spell::Getindare);
+    hero.receive(Spell::Burndayraz);
+    hero.receive(Spell::Bysseps);
+    hero.receive(Item::Shield);
+    hero.addStatus(HeroStatus::NoDodge);
+    return hero;
+  }
   }
 }
 
@@ -38,6 +49,15 @@ void fillMonsterPoolForScenario(MonsterPool& pool, Scenario scenario)
     pool.add({"Djinn level 1", {1, 19, 99, 0}, {}, MonsterTraitsBuilder().addRetaliate().get()});
     pool.add({"Zombie level 2", {2, 10, 27, 0}, {}, MonsterTraitsBuilder().addUndead().addBloodless().get()});
     pool.add({"Eeblis (level 3)", {3, 28, 999, 0}, {}, MonsterTraitsBuilder().addFirstStrike().addRetaliate().get()});
+  }
+  case Scenario::HalflingTrial:
+  {
+    pool.add({"Goblin level 2", {2, 17, 8, 0}, {}, MonsterTraitsBuilder().addFirstStrike()});
+    pool.add({MonsterType::Warlock, 2});
+    pool.add({"Meat Man level 2", {2, 30, 4, 0}, {0, 100}, {}});
+    pool.add({"Goblin level 2", {2, 15, 8, 0}, {0, 100}, MonsterTraitsBuilder().addFirstStrike()});
+    pool.add({"Zombie level 3", {3, 39, 12, 0}, {0, 100}, MonsterTraitsBuilder().addBloodless().addUndead()});
+    pool.add({"Jörmungandr (level 4)", {4, 58, 21, 0}, {}, MonsterTraitsBuilder().addFirstStrike().addPoisonous()});
   }
   break;
   }
@@ -58,6 +78,9 @@ std::optional<Scenario> runScenarioSelection()
   ImGui::TextUnformatted("Agbaar's Academy");
   if (ImGui::Button("Slowing Part 2"))
     selection = Scenario::AgbaarsAcademySlowingPart2;
+  ImGui::TextUnformatted("Hello, halflings!");
+  if (ImGui::Button("Halfling Trial"))
+    selection = Scenario::HalflingTrial;
   ImGui::End();
   return selection;
 }

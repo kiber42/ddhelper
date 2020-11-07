@@ -630,6 +630,8 @@ void Hero::addDodgeChancePercent(int percent, bool isPermanent)
 
 int Hero::getDodgeChancePercent() const
 {
+  if (hasStatus(HeroStatus::NoDodge))
+    return 0;
   return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
 }
 
