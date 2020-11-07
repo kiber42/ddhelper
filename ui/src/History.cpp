@@ -27,9 +27,10 @@ bool History::run()
     }
     ImGui::TextUnformatted(std::get<std::string>(entry).c_str());
     const auto outcome = std::get<Outcome>(entry);
-    if (outcome.summary != Summary::Safe)
+    const bool debuffed = !outcome.debuffs.empty();
+    if (outcome.summary != Summary::Safe || debuffed)
     {
-      const auto color = summaryColor(outcome.summary, !outcome.debuffs.empty());
+      const auto color = summaryColor(outcome.summary, debuffed);
       ImGui::SameLine();
       ImGui::TextColored(color, "%s", toString(outcome).c_str());
     }
