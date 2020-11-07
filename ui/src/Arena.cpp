@@ -270,7 +270,8 @@ Arena::StateUpdate Arena::run(const State& currentState)
                                              {"Blacksmith Items", Item::BearMace, Item::Sword},
                                              {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
                                              {"Quest Items", Item::PiercingWand, Item::SoulOrb},
-                                             {"Elite Items", Item::KegOfHealth, Item::WickedGuitar}};
+                                             {"Elite Items", Item::KegOfHealth, Item::WickedGuitar},
+                                             {"Boss Rewards", Item::FabulousTreasure, Item::SensationStone}};
       for (auto submenu : submenus)
       {
         if (ImGui::BeginMenu(submenu.title.c_str()))

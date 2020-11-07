@@ -11,8 +11,8 @@ public:
           int physicalResistPercentMax = 100,
           int magicalResistPercentMax = 100);
 
-  int getPhysicalResistPercent() const;
-  int getMagicalResistPercent() const;
+  int getPhysicalResistPercent(bool raw = false) const;
+  int getMagicalResistPercent(bool raw = false) const;
   void setPhysicalResistPercent(int physicalResistPercent);
   void setMagicalResistPercent(int magicalResistPercent);
 

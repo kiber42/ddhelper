@@ -62,6 +62,13 @@ enum class Item
   CanOfWhupaz,
   // Subdungeon Items, Lockerable
   Gorgward,
+  // Boss Rewards
+  FabulousTreasure,
+  DragonShield,
+  NamtarsWard,
+  AvatarsCodex,
+  NagaCauldron,
+  SensationStone,
   // God Items
   PrayerBead,
   EnchantedPrayerBead,
@@ -188,6 +195,13 @@ constexpr const char* toString(Item item)
 
   case Item::Gorgward:
     return "Gorgward";
+
+  case Item::FabulousTreasure: return "Fabulous Treasure";
+  case Item::DragonShield: return "Dragon Shield";
+  case Item::NamtarsWard: return "Namtar's Ward";
+  case Item::AvatarsCodex: return "Avatar's Codex";
+  case Item::NagaCauldron: return "Naga Cauldron";
+  case Item::SensationStone: return "Sensation Stone";
 
   case Item::PrayerBead:
     return "Prayer Bead";
@@ -323,6 +337,13 @@ constexpr int price(Item item)
   case Item::Gorgward:
     return 18;
 
+  case Item::FabulousTreasure: return 95;
+  case Item::DragonShield: return 23;
+  case Item::NamtarsWard: return 50;
+  case Item::AvatarsCodex: return 35;
+  case Item::NagaCauldron: return 12;
+  case Item::SensationStone: return 25;
+
   case Item::PrayerBead:
   case Item::EnchantedPrayerBead:
   case Item::Skullpicker:
@@ -450,6 +471,13 @@ constexpr int conversionPointsInitial(Item item)
 
   case Item::Gorgward:
     return 50;
+
+  case Item::FabulousTreasure: return 1;
+  case Item::DragonShield: return 100;
+  case Item::NamtarsWard: return 100;
+  case Item::AvatarsCodex: return 50;
+  case Item::NagaCauldron: return 35;
+  case Item::SensationStone: return 150;
 
   case Item::PrayerBead:
     return -1;

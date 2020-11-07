@@ -28,6 +28,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   , generator(std::random_device{}())
   , dodgeNext(false)
   , alchemistScrollUsedThisLevel(false)
+  , namtarsWardUsedThisLevel(false)
 {
   if (hasTrait(HeroTrait::Veteran))
     experience = Experience(Experience::IsVeteran{});
@@ -111,6 +112,7 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , generator(std::random_device{}())
   , dodgeNext(false)
   , alchemistScrollUsedThisLevel(false)
+  , namtarsWardUsedThisLevel(false)
 {
 }
 
@@ -216,10 +218,11 @@ int Hero::getManaPointsMax() const
 
 void Hero::drinkHealthPotion()
 {
-  if (hasTrait(HeroTrait::GoodDrink))
-    stats.healHitPoints(getHitPointsMax(), false);
-  else
-    stats.healHitPoints(getHitPointsMax() * 4 / 10, false);
+  const bool hasNagaCauldron = has(Item::NagaCauldron);
+  int percentHealed = hasTrait(HeroTrait::GoodDrink) ? 100 : 40;
+  if (hasNagaCauldron)
+    percentHealed += nagaCauldronBonus();
+  stats.healHitPoints(getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
   removeStatus(HeroStatus::Poisoned, true);
   if (hasTrait(HeroTrait::Survivor))
     stats.recoverManaPoints(getManaPointsMax() * 2 / 10);
@@ -227,18 +230,28 @@ void Hero::drinkHealthPotion()
 
 void Hero::drinkManaPotion()
 {
+  const bool hasNagaCauldron = has(Item::NagaCauldron);
+  int percentRestored = 40;
   if (hasTrait(HeroTrait::PowerHungry))
   {
-    stats.recoverManaPoints(getManaPointsMax() * 6 / 10);
+    percentRestored = 60;
     addStatus(HeroStatus::Sanguine, 2);
   }
-  else
-    stats.recoverManaPoints(getManaPointsMax() * 4 / 10);
+  if (hasNagaCauldron)
+    percentRestored += nagaCauldronBonus();
+  stats.recoverManaPoints(getManaPointsMax() * percentRestored / 100);
   removeStatus(HeroStatus::ManaBurned, true);
   if (hasTrait(HeroTrait::Courageous))
     addStatus(HeroStatus::Might);
   if (hasTrait(HeroTrait::Survivor))
     stats.healHitPoints(getHitPointsMax() * 2 / 10, false);
+}
+
+int Hero::nagaCauldronBonus() const
+{
+  return 5 * (static_cast<int>(hasStatus(HeroStatus::Poisoned)) + static_cast<int>(hasStatus(HeroStatus::ManaBurned)) +
+              static_cast<int>(hasStatus(HeroStatus::Corrosion)) + static_cast<int>(hasStatus(HeroStatus::Weakened)) +
+              static_cast<int>(hasStatus(HeroStatus::Cursed)));
 }
 
 int Hero::getBaseDamage() const
@@ -324,12 +337,12 @@ void Hero::setMagicalResistPercent(int magicalResistPercent)
 
 void Hero::changePhysicalResistPercent(int deltaPercent)
 {
-  setPhysicalResistPercent(getPhysicalResistPercent() + deltaPercent);
+  setPhysicalResistPercent(defence.getPhysicalResistPercent(true) + deltaPercent);
 }
 
 void Hero::changeMagicalResistPercent(int deltaPercent)
 {
-  setMagicalResistPercent(getMagicalResistPercent() + deltaPercent);
+  setMagicalResistPercent(defence.getMagicalResistPercent(true) + deltaPercent);
 }
 
 bool Hero::doesMagicalDamage() const
@@ -593,6 +606,7 @@ void Hero::levelGainedUpdate(int newLevel)
     changeDamageBonusPercent(-5);
   }
   alchemistScrollUsedThisLevel = false;
+  namtarsWardUsedThisLevel = false;
   applyOrCollect(faith.levelGained());
 }
 
@@ -918,6 +932,10 @@ bool Hero::canUse(Item item) const
   case Item::CanOfWhupaz:
     return true;
 
+  // Boss Rewards
+  case Item::NamtarsWard:
+    return !hasStatus(HeroStatus::DeathProtection) && !namtarsWardUsedThisLevel;
+
   default:
     return false;
   }
@@ -1002,6 +1020,12 @@ void Hero::use(Item item)
     break;
   case Item::CanOfWhupaz:
     addStatus(HeroStatus::CrushingBlow);
+    break;
+
+  // Boss Rewards
+  case Item::NamtarsWard:
+    addStatus(HeroStatus::DeathProtection);
+    namtarsWardUsedThisLevel = true;
     break;
 
   default:
@@ -1164,8 +1188,15 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
   case Item::Gorgward:
     if (itemReceived)
       addStatus(HeroStatus::DeathGazeImmune);
-    else if (!hasTrait(HeroTrait::Scars))
+    else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::AzureBody))
       removeStatus(HeroStatus::DeathGazeImmune, true);
+    break;
+  case Item::DragonShield:
+    changePhysicalResistPercent(18 * sign);
+    changeMagicalResistPercent(18 * sign);
+    break;
+  case Item::AvatarsCodex:
+    addStatus(HeroStatus::HeavyFireball, sign);
     break;
   case Item::Skullpicker:
     changeBaseDamage(itemReceived ? +5 : -5);

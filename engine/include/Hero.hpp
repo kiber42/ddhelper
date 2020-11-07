@@ -171,7 +171,9 @@ private:
   std::mt19937 generator;
   bool dodgeNext;
   bool alchemistScrollUsedThisLevel;
+  bool namtarsWardUsedThisLevel;
 
+  int nagaCauldronBonus() const;
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void gainExperience(int xpGained, int xpBonuses);

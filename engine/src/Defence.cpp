@@ -23,24 +23,28 @@ Defence::Defence(int physicalResistPercent,
 {
 }
 
-int Defence::getPhysicalResistPercent() const
+int Defence::getPhysicalResistPercent(bool raw) const
 {
+  if (raw)
+    return physicalResistPercent;
   return std::min(physicalResistPercent + 20 * numStoneSkinLayers, physicalResistPercentMax);
 }
 
-int Defence::getMagicalResistPercent() const
+int Defence::getMagicalResistPercent(bool raw) const
 {
-  return magicalResistPercent;
+  if (raw)
+    return magicalResistPercent;
+  return std::min(magicalResistPercent, magicalResistPercentMax);
 }
 
 void Defence::setPhysicalResistPercent(int newPhysicalResistPercent)
 {
-  physicalResistPercent = std::min(std::max(newPhysicalResistPercent, 0), physicalResistPercentMax);
+  physicalResistPercent = std::max(newPhysicalResistPercent, 0);
 }
 
 void Defence::setMagicalResistPercent(int newMagicalResistPercent)
 {
-  magicalResistPercent = std::min(std::max(newMagicalResistPercent, 0), magicalResistPercentMax);
+  magicalResistPercent = std::max(newMagicalResistPercent, 0);
 }
 
 int Defence::getPhysicalResistPercentMax() const
