@@ -1022,6 +1022,9 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     addStatus(HeroStatus::DamageReduction, 2 * sign * getLevel());
     addStatus(HeroStatus::SlowStrike, sign);
     break;
+  case Item::Whurrgarbl:
+    addStatus(HeroStatus::BurningStrike, sign);
+    break;
   case Item::Trisword:
     changeBaseDamage(sign * inventory.getTriswordDamage());
     break;

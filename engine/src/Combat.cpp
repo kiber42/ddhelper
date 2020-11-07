@@ -86,7 +86,7 @@ namespace Combat
       const int monsterHPBefore = monster.getHitPoints();
       if (hero.hasStatus(HeroStatus::CrushingBlow))
         monster.receiveCrushingBlow();
-      else if (hero.has(Item::Whurrgarbl))
+      else if (hero.hasStatus(HeroStatus::BurningStrike))
         monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.doesMagicalDamage());
       else
         monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
@@ -104,7 +104,7 @@ namespace Combat
       {
         // If monster is defeated beyond this point, it was not slowed before the final blow
         monsterWasSlowed = false;
-        monsterWasBurning = hero.has(Item::Whurrgarbl);
+        monsterWasBurning = hero.hasStatus(HeroStatus::BurningStrike);
         if (!hero.tryDodge())
         {
           if (monster.bearsCurse())
@@ -126,7 +126,7 @@ namespace Combat
           {
             hero.removeOneTimeAttackEffects();
             const int monsterHPBefore = monster.getHitPoints();
-            if (hero.has(Item::Whurrgarbl))
+            if (hero.hasStatus(HeroStatus::BurningStrike))
               monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(),
                                               hero.doesMagicalDamage());
             else
@@ -163,7 +163,7 @@ namespace Combat
         const int monsterHPBefore = monster.getHitPoints();
         if (hero.hasStatus(HeroStatus::CrushingBlow))
           monster.receiveCrushingBlow();
-        else if (hero.has(Item::Whurrgarbl))
+        else if (hero.hasStatus(HeroStatus::BurningStrike))
           monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(),
                                           hero.doesMagicalDamage());
         else

@@ -2,10 +2,10 @@
 
 enum class HeroStatus
 {
-  BurningStrike, // TODO
+  BurningStrike,
   ConsecratedStrike,
   Corrosion,
-  CorrosiveStrike, // TODO
+  CorrosiveStrike,
   CrushingBlow,
   Cursed,
   CurseImmune,
