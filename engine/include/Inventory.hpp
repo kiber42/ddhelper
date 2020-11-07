@@ -44,6 +44,8 @@ public:
   std::vector<Entry> getItems() const;
   std::vector<Entry> getSpells() const;
 
+  int gold;
+
 private:
   std::vector<Entry> entries;
   std::vector<Entry>::iterator find(ItemOrSpell itemOrSpell);

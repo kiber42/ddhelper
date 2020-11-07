@@ -549,7 +549,7 @@ void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool mon
   gainExperienceForKill(monster.getLevel(), monsterWasSlowed);
   applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning));
   if (has(Item::GlovesOfMidas))
-    ++stats.gold;
+    ++inventory.gold;
   if (has(Item::StoneSigil))
     faith.gainPiety(1);
   if (has(Item::BlueBead))
@@ -621,21 +621,21 @@ void Hero::rerollDodgeNext()
 
 int Hero::gold() const
 {
-  return stats.gold;
+  return inventory.gold;
 }
 
 void Hero::addGold(int amountAdded)
 {
-  stats.gold += amountAdded;
-  if (stats.gold < 0)
-    stats.gold = 0;
+  inventory.gold += amountAdded;
+  if (inventory.gold < 0)
+    inventory.gold = 0;
 }
 
 bool Hero::spendGold(int amountSpent)
 {
-  if (stats.gold < amountSpent)
+  if (inventory.gold < amountSpent)
     return false;
-  stats.gold -= amountSpent;
+  inventory.gold -= amountSpent;
   return true;
 }
 

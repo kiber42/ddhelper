@@ -35,8 +35,6 @@ public:
   int getHealthBonus() const;
   void addHealthBonus(int unmodifiedLevel);
 
-  int gold;
-
 private:
   int hp;
   int hpMax;

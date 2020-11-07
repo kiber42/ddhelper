@@ -11,6 +11,7 @@ Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, 
   , spellConversionPoints(spellConversionPoints)
   , spellsSmall(spellsSmall)
   , allItemsLarge(allItemsLarge)
+  , gold(20)
 {
   add(Item::HealthPotion);
   add(Item::ManaPotion);
