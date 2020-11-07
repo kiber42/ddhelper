@@ -8,7 +8,7 @@ ImVec4 colorNotPossible(0, 0, 0, 1);
 ImVec4 colorDebuffedSafe(0, 0.5f, 0.5f, 1);
 ImVec4 colorDebuffedWin(0, 0.8f, 0.8f, 1);
 ImVec4 colorDebuffedLevelUp(0, 1, 1, 1);
-ImVec4 colorUnavailable(0.7f, 0.7f, 0.7f, 1);
+ImVec4 colorUnavailable(0.5f, 0.5f, 0.5f, 1);
 
 const ImVec4& summaryColor(Summary summary, bool debuffed)
 {
