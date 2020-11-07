@@ -33,7 +33,10 @@ public:
   void setDamageBonusPercent(int newDamageBonus);
 
   int getHealthBonus() const;
+  // Increase health bonus and also apply it for earlier level-ups
   void addHealthBonus(int unmodifiedLevel);
+  // Decrease future health bonuses (do not reduce previous bonuses)
+  void reduceHealthBonus();
 
 private:
   int hp;

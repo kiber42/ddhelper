@@ -269,7 +269,8 @@ Arena::StateUpdate Arena::run(const State& currentState)
       const std::vector<SubMenu> submenus = {{"Potions", Item::HealthPotion, Item::CanOfWhupaz},
                                              {"Blacksmith Items", Item::BearMace, Item::Sword},
                                              {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
-                                             {"Quest Items", Item::PiercingWand, Item::SoulOrb}};
+                                             {"Quest Items", Item::PiercingWand, Item::SoulOrb},
+                                             {"Elite Items", Item::KegOfHealth, Item::WickedGuitar}};
       for (auto submenu : submenus)
       {
         if (ImGui::BeginMenu(submenu.title.c_str()))

@@ -170,11 +170,13 @@ private:
   std::optional<PietyChange> collectedPiety;
   std::mt19937 generator;
   bool dodgeNext;
+  bool alchemistScrollUsedThisLevel;
 
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void gainExperience(int xpGained, int xpBonuses);
   void levelGainedUpdate(int newLevel);
+  void levelUpRefresh();
   void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange);
   void changeStatsFromItem(Item item, bool itemReceived);

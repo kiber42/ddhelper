@@ -34,6 +34,15 @@ enum class Item
   VampiricBlade,
   ViperWard,
   SoulOrb,
+  // Elite Items
+  KegOfHealth,
+  KegOfMana,
+  ElvenBoots,
+  DwarvenGauntlets,
+  AmuletOfYendor,
+  OrbOfZot,
+  AlchemistScroll,
+  WickedGuitar,
   // Blacksmith Items
   BearMace,
   PerseveranceBadge,
@@ -127,6 +136,23 @@ constexpr const char* toString(Item item)
     return "Viper Ward";
   case Item::SoulOrb:
     return "Soul Orb";
+
+  case Item::KegOfHealth:
+    return "Keg Of Health";
+  case Item::KegOfMana:
+    return "Keg Of Mana";
+  case Item::ElvenBoots:
+    return "Elven Boots";
+  case Item::DwarvenGauntlets:
+    return "Dwarven Gauntlets";
+  case Item::AmuletOfYendor:
+    return "Amulet of Yendor";
+  case Item::OrbOfZot:
+    return "Orb of Zot";
+  case Item::AlchemistScroll:
+    return "Alchemist Scroll";
+  case Item::WickedGuitar:
+    return "Wicked Guitar";
 
   case Item::BearMace:
     return "Bear Mace";
@@ -245,6 +271,23 @@ constexpr int price(Item item)
   case Item::SoulOrb:
     return 16;
 
+  case Item::KegOfHealth:
+    return 25;
+  case Item::KegOfMana:
+    return 25;
+  case Item::ElvenBoots:
+    return 35;
+  case Item::DwarvenGauntlets:
+    return 35;
+  case Item::AmuletOfYendor:
+    return 45;
+  case Item::OrbOfZot:
+    return 45;
+  case Item::AlchemistScroll:
+    return 13;
+  case Item::WickedGuitar:
+    return 11;
+
   case Item::BearMace:
     return 12;
   case Item::PerseveranceBadge:
@@ -355,6 +398,23 @@ constexpr int conversionPointsInitial(Item item)
     return 65;
   case Item::SoulOrb:
     return 65;
+
+  case Item::KegOfHealth:
+    return 70;
+  case Item::KegOfMana:
+    return 70;
+  case Item::ElvenBoots:
+    return 50;
+  case Item::DwarvenGauntlets:
+    return 50;
+  case Item::AmuletOfYendor:
+    return 100;
+  case Item::OrbOfZot:
+    return 100;
+  case Item::AlchemistScroll:
+    return 40;
+  case Item::WickedGuitar:
+    return 11;
 
   case Item::BearMace:
     return 35;

@@ -27,6 +27,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   , collectedPiety()
   , generator(std::random_device{}())
   , dodgeNext(false)
+  , alchemistScrollUsedThisLevel(false)
 {
   if (hasTrait(HeroTrait::Veteran))
     experience = Experience(Experience::IsVeteran{});
@@ -109,6 +110,7 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , collectedPiety()
   , generator(std::random_device{}())
   , dodgeNext(false)
+  , alchemistScrollUsedThisLevel(false)
 {
 }
 
@@ -163,15 +165,19 @@ void Hero::gainExperienceNoBonuses(int xpGained)
 
 void Hero::gainExperience(int xpBase, int xpBonuses)
 {
-  int level = experience.getLevel();
+  int level = getLevel();
+  const int prestige = getPrestige();
   experience.gain(xpBase, xpBonuses, hasStatus(HeroStatus::ExperienceBoost));
   if (xpBase > 0)
     removeStatus(HeroStatus::ExperienceBoost, true);
+  const bool levelUp = getLevel() > level || getPrestige() > prestige;
   while (getLevel() > level)
   {
     ++level;
     levelGainedUpdate(level);
   }
+  if (levelUp)
+    levelUpRefresh();
 }
 
 void Hero::gainLevel()
@@ -180,6 +186,7 @@ void Hero::gainLevel()
   experience.gainLevel();
   if (getLevel() > initialLevel)
     levelGainedUpdate(getLevel());
+  levelUpRefresh();
 }
 
 bool Hero::isDefeated() const
@@ -572,8 +579,6 @@ void Hero::removeOneTimeAttackEffects()
 void Hero::levelGainedUpdate(int newLevel)
 {
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
-  removeStatus(HeroStatus::Poisoned, true);
-  removeStatus(HeroStatus::ManaBurned, true);
   changeBaseDamage(hasTrait(HeroTrait::HandToHand) ? +3 : +5);
   if (has(Item::Platemail))
     addStatus(HeroStatus::DamageReduction, 2);
@@ -587,8 +592,16 @@ void Hero::levelGainedUpdate(int newLevel)
     changeManaPointsMax(1);
     changeDamageBonusPercent(-5);
   }
-  stats.refresh();
+  alchemistScrollUsedThisLevel = false;
   applyOrCollect(faith.levelGained());
+}
+
+void Hero::levelUpRefresh()
+{
+  // TODO: Don't do anything for Goatperson
+  removeStatus(HeroStatus::Poisoned, true);
+  removeStatus(HeroStatus::ManaBurned, true);
+  stats.refresh();
 }
 
 void Hero::addDodgeChancePercent(int percent, bool isPermanent)
@@ -884,6 +897,15 @@ bool Hero::canUse(Item item) const
   case Item::CrystalBall:
     return inventory.getCrystalBallCharge() > 0 && gold() >= inventory.getCrystalBallUseCosts();
 
+  // Elite Items
+  case Item::KegOfHealth:
+  case Item::KegOfMana:
+  case Item::AmuletOfYendor:
+    return true;
+
+  // TODO: Orb of Zot
+  // TODO: Wicked Guitar
+
   // Potions
   case Item::HealthPotion:
   case Item::ManaPotion:
@@ -924,6 +946,27 @@ void Hero::use(Item item)
     if (spendGold(inventory.getCrystalBallUseCosts()))
       recoverManaPoints(inventory.crystalBallUsed());
     break;
+
+  // Elite Items
+  case Item::KegOfHealth:
+    inventory.add(Item::HealthPotion);
+    inventory.add(Item::HealthPotion);
+    inventory.add(Item::HealthPotion);
+    consumed = true;
+    break;
+  case Item::KegOfMana:
+    inventory.add(Item::ManaPotion);
+    inventory.add(Item::ManaPotion);
+    inventory.add(Item::ManaPotion);
+    consumed = true;
+    break;
+  case Item::AmuletOfYendor:
+    gainExperienceNoBonuses(50);
+    consumed = true;
+    break;
+
+  // TODO: Orb of Zot
+  // TODO: Wicked Guitar
 
   // Potions
   case Item::HealthPotion:
@@ -967,8 +1010,16 @@ void Hero::use(Item item)
 
   applyOrCollect(faith.itemUsed(item));
 
-  if (isPotion(item) && has(Item::Trisword))
-    changeBaseDamage(inventory.chargeTrisword());
+  if (isPotion(item))
+  {
+    if (has(Item::Trisword))
+      changeBaseDamage(inventory.chargeTrisword());
+    if (has(Item::AlchemistScroll) && !alchemistScrollUsedThisLevel && spendGold(3))
+    {
+      changeHitPointsMax(8);
+      alchemistScrollUsedThisLevel = true;
+    }
+  }
 
   if (consumed)
   {
@@ -1072,6 +1123,27 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
       addStatus(HeroStatus::ManaBurnImmune);
     else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
       removeStatus(HeroStatus::ManaBurnImmune, true);
+    break;
+  case Item::ElvenBoots:
+    changeManaPointsMax(3 * sign);
+    changeMagicalResistPercent(15 * sign);
+    break;
+  case Item::DwarvenGauntlets:
+    changeDamageBonusPercent(20 * sign);
+    if (itemReceived)
+    {
+      stats.addHealthBonus(0);
+      stats.addHealthBonus(0);
+    }
+    else
+    {
+      stats.reduceHealthBonus();
+      stats.reduceHealthBonus();
+    }
+    break;
+  case Item::OrbOfZot:
+    changeHitPointsMax(5 * sign);
+    changeManaPointsMax(3 * sign);
     break;
   case Item::BearMace:
     addStatus(HeroStatus::Knockback, 25 * sign);

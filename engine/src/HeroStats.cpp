@@ -103,7 +103,8 @@ void HeroStats::loseManaPoints(int amountPointsLost)
 
 void HeroStats::refresh()
 {
-  hp = hpMax;
+  if (hp < hpMax)
+    hp = hpMax;
   mp = mpMax;
 }
 
@@ -134,6 +135,11 @@ int HeroStats::getHealthBonus() const
 
 void HeroStats::addHealthBonus(int unmodifiedLevel)
 {
-  healthBonus += 1;
+  ++healthBonus;
   hpMax += unmodifiedLevel;
+}
+
+void HeroStats::reduceHealthBonus()
+{
+  --healthBonus;
 }
