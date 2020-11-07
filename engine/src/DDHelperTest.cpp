@@ -458,7 +458,7 @@ void testStatusEffects()
         AssertThat(monster.getCorroded(), Equals(1));
         hero.addStatus(HeroStatus::FirstStrike);
         hero.addStatus(HeroStatus::CorrosiveStrike, 2);
-        hero.fullHealthAndMana();
+        hero.refillHealthAndMana();
         Combat::attack(hero, monster);
         AssertThat(monster.getCorroded(), Equals(4));
         AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2 * hero.getDamageVersusStandard() + 1));
@@ -605,7 +605,7 @@ void testStatusEffects()
           {
             AssertThat(hero.getHitPoints(), IsLessThan(hero.getHitPointsMax()));
             AssertThat(hero.hasStatus(HeroStatus::DodgePrediction), IsTrue());
-            hero.fullHealthAndMana();
+            hero.refillHealthAndMana();
           }
           if (dodgeNext != hero.predictDodgeNext())
           {
@@ -775,7 +775,7 @@ void testStatusEffects()
         AssertThat(monster.getHitPoints(), Equals(11));
         AssertThat(Combat::attack(hero, monster), Equals(Summary::Safe));
         AssertThat(monster.getHitPoints(), Equals(7));
-        hero.fullHealthAndMana();
+        hero.refillHealthAndMana();
         hero.addStatus(HeroStatus::MagicalAttack);
         Combat::attack(hero, monster);
         AssertThat(monster.getHitPoints(), Equals(2));
@@ -1038,7 +1038,7 @@ void testPotions()
       Hero hero;
       hero.gainLevel();
       hero.setManaPointsMax(123);
-      hero.fullHealthAndMana();
+      hero.refillHealthAndMana();
       hero.use(Item::StrengthPotion);
       AssertThat(hero.getManaPoints(), Equals(0));
       AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(123 + hero.getLevel()));

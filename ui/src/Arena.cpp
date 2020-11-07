@@ -273,23 +273,35 @@ Arena::StateUpdate Arena::run(const State& currentState)
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("Potions"))
+      struct SubMenu
       {
-        for (auto potion :
-             {Item::HealthPotion, Item::ManaPotion, Item::FortitudeTonic, Item::BurnSalve, Item::StrengthPotion,
-              Item::Schadenfreude, Item::QuicksilverPotion, Item::ReflexPotion, Item::CanOfWhupaz})
+        std::string title;
+        Item first;
+        Item last;
+      };
+      const std::vector<SubMenu> submenus = {{"Potions", Item::HealthPotion, Item::CanOfWhupaz},
+                                             {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
+                                             {"Quest Items", Item::PiercingWand, Item::SoulOrb}};
+      for (auto submenu : submenus)
+      {
+        if (ImGui::BeginMenu(submenu.title.c_str()))
         {
-          const bool isSelected = ++index == selectedPopupItem;
-          if (addPopupAction(
-                  toString(potion), "Find "s + toString(potion),
-                  [potion](Hero& hero) {
-                    hero.receive(potion);
-                    return Summary::Safe;
-                  },
-                  isSelected))
-            selectedPopupItem = index;
+          for (int itemIndex = static_cast<int>(submenu.first); itemIndex <= static_cast<int>(submenu.last);
+               ++itemIndex)
+          {
+            const bool isSelected = ++index == selectedPopupItem;
+            const auto item = static_cast<Item>(itemIndex);
+            if (addPopupAction(
+                    toString(item), "Find "s + toString(item),
+                    [item](Hero& hero) {
+                      hero.receive(item);
+                      return Summary::Safe;
+                    },
+                    isSelected))
+              selectedPopupItem = index;
+          }
+          ImGui::EndMenu();
         }
-        ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("Cheat"))
       {

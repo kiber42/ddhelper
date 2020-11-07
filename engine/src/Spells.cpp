@@ -1,6 +1,7 @@
 #include "Spells.hpp"
 
 #include "Combat.hpp"
+#include "Items.hpp"
 
 #include <cassert>
 
@@ -28,10 +29,12 @@ namespace Magic
       const bool monsterSlowed = monster.isSlowed();
       const bool monsterWasBurning = monster.isBurning();
       const int multiplier =
-          4 + hero.hasBoon(Boon::Flames) + (heavy ? 4 : 0) /* + (hero.hasItem(Items::BattlemageRing) ? 1 : 0) */;
+          4 + hero.hasBoon(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(Item::BattlemageRing) ? 1 : 0);
 
       // Damage and burning
       monster.takeFireballDamage(hero.getLevel(), multiplier);
+      if (hero.has(Item::PiercingWand))
+        monster.erodeResitances();
       const int maxBurnStackSize = 2 * hero.getLevel();
       if (heavy)
         monster.burnMax(maxBurnStackSize);
@@ -49,8 +52,10 @@ namespace Magic
       if (monster.isDefeated())
         hero.collect(hero.getFaith().monsterKilled(monster, hero.getLevel(), monsterWasBurning));
 
-      // Curses
+      // Curses and side effects
       Combat::detail::monsterDefeatedCurse(hero, monster);
+      if (hero.has(Item::WitchalokPendant))
+        hero.addStatus(HeroStatus::StoneSkin);
     }
   } // namespace
 
@@ -97,8 +102,10 @@ namespace Magic
       costs -= 1;
     if (hero.hasBoon(Boon::MysticBalance))
     {
-      if (costs > 5) costs -= 2;
-      else if (costs > 0 && costs < 5) costs += 2;
+      if (costs > 5)
+        costs -= 2;
+      else if (costs > 0 && costs < 5)
+        costs += 2;
     }
     return costs;
   }
@@ -134,8 +141,16 @@ namespace Magic
     // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
     if (hero.hasTrait(HeroTrait::EssenceTransit))
       hero.healHitPoints(2 * manaCosts);
-    // Transmuter: Gain conversion points (Inner Focus)
-    // Dragon Soul (15% free cast chance)
+    // TODO: Transmuter: Gain conversion points (Inner Focus)
+    if (hero.has(Item::DragonSoul))
+      hero.applyDragonSoul(manaCosts);
+    if (manaCosts >= 3)
+    {
+      if (hero.has(Item::FireHeart))
+        hero.chargeFireHeart();
+      if (hero.has(Item::CrystalBall))
+        hero.chargeCrystalBall();
+    }
   }
 
   void cast(Hero& hero, Spell spell)
@@ -171,6 +186,11 @@ namespace Magic
       hero.addStatus(HeroStatus::StoneSkin);
       if (hero.hasBoon(Boon::StoneForm))
         hero.addStatus(HeroStatus::Might);
+      if (hero.has(Item::RockHeart))
+      {
+        hero.healHitPoints(1);
+        hero.recoverManaPoints(1);
+      }
       break;
     case Spell::Getindare:
       // first strike, +5% dodge chance (until actual dodge)

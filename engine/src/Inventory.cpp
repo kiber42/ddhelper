@@ -12,6 +12,10 @@ Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, 
   , spellsSmall(spellsSmall)
   , allItemsLarge(allItemsLarge)
   , gold(20)
+  , fireHeartCharge(0)
+  , crystalBallCharge(10)
+  , crystalBallCosts(4)
+  , triswordDamage(2)
 {
   add(Item::HealthPotion);
   add(Item::ManaPotion);
@@ -110,6 +114,64 @@ int Inventory::smallSlotsLeft() const
 void Inventory::clear()
 {
   entries.clear();
+}
+
+void Inventory::chargeFireHeart()
+{
+  fireHeartCharge += 5;
+  if (fireHeartCharge > 100)
+    fireHeartCharge = 100;
+}
+
+int Inventory::fireHeartUsed()
+{
+  return std::exchange(fireHeartCharge, 0);
+}
+
+int Inventory::getFireHeartCharge() const
+{
+  return fireHeartCharge;
+}
+
+void Inventory::chargeCrystalBall()
+{
+  ++crystalBallCharge;
+}
+
+int Inventory::crystalBallUsed()
+{
+  crystalBallCosts += 2;
+  return std::exchange(crystalBallCharge, 0);
+}
+
+int Inventory::getCrystalBallCharge() const
+{
+  return crystalBallCharge;
+}
+
+int Inventory::getCrystalBallUseCosts() const
+{
+  return crystalBallCosts;
+}
+
+int Inventory::chargeTrisword()
+{
+  return 7 - std::exchange(triswordDamage, 7);
+}
+
+bool Inventory::triswordUsed()
+{
+  if (triswordDamage > 2)
+  {
+    --triswordDamage;
+    return true;
+  }
+  return false;
+}
+
+int Inventory::getTriswordDamage() const
+{
+  return triswordDamage;
 }
 
 int Inventory::enchantPrayerBeads()

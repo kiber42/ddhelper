@@ -1,5 +1,7 @@
 #include "Combat.hpp"
 
+#include "Items.hpp"
+
 #include <cassert>
 #include <iostream>
 
@@ -84,6 +86,8 @@ namespace Combat
       const int monsterHPBefore = monster.getHitPoints();
       if (hero.hasStatus(HeroStatus::CrushingBlow))
         monster.receiveCrushingBlow();
+      else if (hero.has(Item::Whurrgarbl))
+        monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.doesMagicalDamage());
       else
         monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
       applyLifeSteal(hero, monster, monsterHPBefore);
@@ -100,7 +104,7 @@ namespace Combat
       {
         // If monster is defeated beyond this point, it was not slowed before the final blow
         monsterWasSlowed = false;
-        monsterWasBurning = false; // TODO: Account for burning strike
+        monsterWasBurning = hero.has(Item::Whurrgarbl);
         if (!hero.tryDodge())
         {
           if (monster.bearsCurse())
@@ -122,7 +126,11 @@ namespace Combat
           {
             hero.removeOneTimeAttackEffects();
             const int monsterHPBefore = monster.getHitPoints();
-            monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
+            if (hero.has(Item::Whurrgarbl))
+              monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(),
+                                              hero.doesMagicalDamage());
+            else
+              monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
             applyLifeSteal(hero, monster, monsterHPBefore);
             if (hero.hasStatus(HeroStatus::Poisonous))
               monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel());
@@ -155,6 +163,9 @@ namespace Combat
         const int monsterHPBefore = monster.getHitPoints();
         if (hero.hasStatus(HeroStatus::CrushingBlow))
           monster.receiveCrushingBlow();
+        else if (hero.has(Item::Whurrgarbl))
+          monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(),
+                                          hero.doesMagicalDamage());
         else
           monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
         applyLifeSteal(hero, monster, monsterHPBefore);

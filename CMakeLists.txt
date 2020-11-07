@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(ddhelper VERSION 0.3.0)
+project(ddhelper VERSION 0.3.5)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)

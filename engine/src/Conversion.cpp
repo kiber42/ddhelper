@@ -35,7 +35,7 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
       threshold = 100;
       bonus = [&](Hero& hero) {
         threshold += 10;
-        hero.fullHealthAndMana();
+        hero.refillHealthAndMana();
       };
       break;
     default:

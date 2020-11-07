@@ -67,14 +67,15 @@ public:
   bool hasInitiativeVersus(const Monster& monster) const;
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
-  void recover(int nSquares);
+  void recover(int nSquares);  
+  int recoveryMultiplier() const;
   int numSquaresForFullRecovery() const;
 
   void healHitPoints(int amountPointsHealed, bool mayOverheal = false);
   void loseHitPointsOutsideOfFight(int amountPointsLost);
   void recoverManaPoints(int amountPointsRecovered);
   void loseManaPoints(int amountPointsLost);
-  void fullHealthAndMana();
+  void refillHealthAndMana();
 
   void addStatus(HeroStatus status, int addedIntensity = 1);
   void removeStatus(HeroStatus status, bool completely);
@@ -94,6 +95,11 @@ public:
   int getDodgeChancePercent() const;
   bool predictDodgeNext() const;
   bool tryDodge();
+
+  // Special functions for items. They don't check if the item is actually in the inventory.
+  void applyDragonSoul(int manaCosts); // 15% chance to refund mana
+  void chargeFireHeart();
+  void chargeCrystalBall();
 
   int gold() const;
   void addGold(int amountAdded);
@@ -166,7 +172,7 @@ private:
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
   void gainExperience(int xpGained, int xpBonuses);
-  void levelGainedUpdate();
+  void levelGainedUpdate(int newLevel);
   void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange);
   void changeStatsFromItem(Item item, bool itemReceived);

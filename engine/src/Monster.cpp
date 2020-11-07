@@ -100,6 +100,13 @@ void Monster::takeFireballDamage(int casterLevel, int damageMultiplier)
   burn(casterLevel * 2);
 }
 
+void Monster::takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, bool isMagicalDamage)
+{
+  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
+  status.setSlowed(false);
+  burn(casterLevel * 2);
+}
+
 void Monster::takeManaShieldDamage(int casterLevel)
 {
   // Mana Shield damage against magical resistance is rounded down (usually resisted damage is rounded down)

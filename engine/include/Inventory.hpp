@@ -10,7 +10,10 @@ enum class Spell;
 class Inventory
 {
 public:
-  explicit Inventory(int numSlots = 6, int spellConversionPoints = 100, bool spellsSmall = false, bool allItemsLarge = false);
+  explicit Inventory(int numSlots = 6,
+                     int spellConversionPoints = 100,
+                     bool spellsSmall = false,
+                     bool allItemsLarge = false);
 
   void add(Item item);
   // Returns conversion value of item; or nullopt if item was not in inventory
@@ -27,6 +30,19 @@ public:
 
   int smallSlotsLeft() const;
   void clear();
+
+  void chargeFireHeart();
+  [[nodiscard]] int fireHeartUsed();
+  int getFireHeartCharge() const;
+
+  void chargeCrystalBall();
+  [[nodiscard]] int crystalBallUsed();
+  int getCrystalBallCharge() const;
+  int getCrystalBallUseCosts() const;
+
+  [[nodiscard]] int chargeTrisword();
+  [[nodiscard]] bool triswordUsed();
+  int getTriswordDamage() const;
 
   // Replace prayer beads by enchanted prayer beads, return number of beads enchanted
   int enchantPrayerBeads();
@@ -55,4 +71,9 @@ private:
   int spellConversionPoints;
   bool spellsSmall;
   bool allItemsLarge;
+
+  int fireHeartCharge;
+  int crystalBallCharge;
+  int crystalBallCosts;
+  int triswordDamage;
 };

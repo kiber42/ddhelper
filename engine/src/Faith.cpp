@@ -300,7 +300,7 @@ bool Faith::request(Boon boon, Hero& hero)
 
   case Boon::LastChance:
     if (jehora.lastChanceSuccessful(costs))
-      hero.fullHealthAndMana();
+      hero.refillHealthAndMana();
     break;
   case Boon::BoostHealth:
     hero.lose(Item::HealthPotion);
@@ -312,7 +312,7 @@ bool Faith::request(Boon boon, Hero& hero)
     break;
   case Boon::ChaosAvatar:
     hero.gainLevel();
-    hero.fullHealthAndMana(); // for Goatperson
+    hero.refillHealthAndMana(); // for Goatperson
     hero.addConversionPoints(100);
     hero.removeStatus(HeroStatus::Weakened, true);
     hero.removeStatus(HeroStatus::Corrosion, true);

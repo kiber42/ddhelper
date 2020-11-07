@@ -169,8 +169,8 @@ void Hero::gainExperience(int xpBase, int xpBonuses)
     removeStatus(HeroStatus::ExperienceBoost, true);
   while (getLevel() > level)
   {
-    levelGainedUpdate();
     ++level;
+    levelGainedUpdate(level);
   }
 }
 
@@ -179,7 +179,7 @@ void Hero::gainLevel()
   const int initialLevel = getLevel();
   experience.gainLevel();
   if (getLevel() > initialLevel)
-    levelGainedUpdate();
+    levelGainedUpdate(getLevel());
 }
 
 bool Hero::isDefeated() const
@@ -332,7 +332,6 @@ bool Hero::doesMagicalDamage() const
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
-  // TODO Adjust behaviour based on hero's traits
   if (hasStatus(HeroStatus::Reflexes))
     return true;
 
@@ -382,20 +381,21 @@ void Hero::recover(int nSquares)
 {
   const bool exhausted = hasStatus(HeroStatus::Exhausted);
   if (!hasStatus(HeroStatus::Poisoned))
-  {
-    int multiplier = getLevel();
-    if (hasTrait(HeroTrait::Discipline))
-      multiplier *= 2;
-    if (has(Item::BloodySigil))
-      multiplier += 1;
-    if (hasTrait(HeroTrait::Damned))
-      multiplier = 1;
-    stats.healHitPoints(nSquares * multiplier, false);
-  }
+    stats.healHitPoints(nSquares * recoveryMultiplier(), false);
   if (!hasStatus(HeroStatus::ManaBurned) && !exhausted)
-  {
     stats.recoverManaPoints(nSquares);
-  }
+}
+
+int Hero::recoveryMultiplier() const
+{
+  int multiplier = getLevel();
+  if (hasTrait(HeroTrait::Discipline))
+    multiplier *= 2;
+  if (has(Item::BloodySigil))
+    multiplier += 1;
+  if (hasTrait(HeroTrait::Damned))
+    multiplier = 1;
+  return multiplier;
 }
 
 int Hero::numSquaresForFullRecovery() const
@@ -403,10 +403,7 @@ int Hero::numSquaresForFullRecovery() const
   int numHP = 0;
   if (!hasStatus(HeroStatus::Poisoned))
   {
-    int multiplier = getLevel() * (hasTrait(HeroTrait::Discipline) ? 2 : 1);
-    if (hasTrait(HeroTrait::Damned))
-      multiplier = 1;
-    // TODO: Add +1 for Bloody Sigil
+    const int multiplier = recoveryMultiplier();
     numHP = (getHitPointsMax() - getHitPoints() + (multiplier - 1) /* always round up */) / multiplier;
   }
   const int numMP = hasStatus(HeroStatus::ManaBurned) ? 0 : getManaPointsMax() - getManaPoints();
@@ -435,7 +432,7 @@ void Hero::loseManaPoints(int amountPointsLost)
   stats.loseManaPoints(amountPointsLost);
 }
 
-void Hero::fullHealthAndMana()
+void Hero::refillHealthAndMana()
 {
   stats.refresh();
 }
@@ -567,15 +564,30 @@ void Hero::removeOneTimeAttackEffects()
     removeStatus(HeroStatus::FirstStrike, true);
   removeStatus(HeroStatus::FirstStrikeTemporary, true);
   removeStatus(HeroStatus::Reflexes, true);
+
+  if (inventory.triswordUsed())
+    changeBaseDamage(-1);
 }
 
-void Hero::levelGainedUpdate()
+void Hero::levelGainedUpdate(int newLevel)
 {
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
-  stats.refresh();
   removeStatus(HeroStatus::Poisoned, true);
   removeStatus(HeroStatus::ManaBurned, true);
   changeBaseDamage(hasTrait(HeroTrait::HandToHand) ? +3 : +5);
+  if (has(Item::Platemail))
+    addStatus(HeroStatus::DamageReduction, 2);
+  if (has(Item::MartyrWraps))
+  {
+    addStatus(HeroStatus::Corrosion);
+    // TODO: Corrode all visible monsters
+  }
+  if (has(Item::MagePlate) && newLevel % 2 == 1)
+  {
+    changeManaPointsMax(1);
+    changeDamageBonusPercent(-5);
+  }
+  stats.refresh();
   applyOrCollect(faith.levelGained());
 }
 
@@ -617,6 +629,23 @@ void Hero::rerollDodgeNext()
 {
   std::uniform_int_distribution<> number(1, 100);
   dodgeNext = getDodgeChancePercent() >= number(generator);
+}
+
+void Hero::applyDragonSoul(int manaCosts)
+{
+  std::uniform_int_distribution<> number(1, 100);
+  if (number(generator) <= 15)
+    recoverManaPoints(manaCosts);
+}
+
+void Hero::chargeFireHeart()
+{
+  inventory.chargeFireHeart();
+}
+
+void Hero::chargeCrystalBall()
+{
+  inventory.chargeCrystalBall();
 }
 
 int Hero::gold() const
@@ -849,6 +878,12 @@ bool Hero::canUse(Item item) const
   case Item::BadgeOfHonour:
     return !hasStatus(HeroStatus::DeathProtection);
 
+  // Quest Items
+  case Item::FireHeart:
+    return inventory.getFireHeartCharge() > 0;
+  case Item::CrystalBall:
+    return inventory.getCrystalBallCharge() > 0 && gold() >= inventory.getCrystalBallUseCosts();
+
   // Potions
   case Item::HealthPotion:
   case Item::ManaPotion:
@@ -868,16 +903,27 @@ bool Hero::canUse(Item item) const
 
 void Hero::use(Item item)
 {
-  bool consumed = true;
+  bool consumed = isPotion(item);
 
   switch (item)
   {
   // Basic Items
   case Item::BadgeOfHonour:
-    if (hasStatus(HeroStatus::DeathProtection))
-      consumed = false;
-    else
+    if (!hasStatus(HeroStatus::DeathProtection))
+    {
       addStatus(HeroStatus::DeathProtection);
+      consumed = true;
+    }
+    break;
+
+  // Quest Items
+  case Item::FireHeart:
+    healHitPoints(getHitPointsMax() * inventory.fireHeartUsed() / 100);
+    break;
+  case Item::CrystalBall:
+    if (spendGold(inventory.getCrystalBallUseCosts()))
+      recoverManaPoints(inventory.crystalBallUsed());
+    break;
 
   // Potions
   case Item::HealthPotion:
@@ -921,6 +967,9 @@ void Hero::use(Item item)
 
   applyOrCollect(faith.itemUsed(item));
 
+  if (isPotion(item) && has(Item::Trisword))
+    changeBaseDamage(inventory.chargeTrisword());
+
   if (consumed)
   {
     inventory.remove(item);
@@ -961,26 +1010,8 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
       stats.addHealthBonus(0);
     }
     break;
-  case Item::PiercingWand:
-    // TODO
-    break;
   case Item::RockHeart:
-    // TODO
-    break;
-  case Item::DragonSoul:
-    // TODO
-    break;
-  case Item::FireHeart:
-    // TODO
-    break;
-  case Item::CrystalBall:
-    // TODO
-    break;
-  case Item::WitchalokPendant:
-    // TODO
-    break;
-  case Item::BattlemageRing:
-    // TODO
+    // TODO: Recover 1 HP and 1 MP when a wall is destroyed by knockback
     break;
   case Item::HerosHelm:
     changeHitPointsMax(5 * sign);
@@ -988,23 +1019,25 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     changeBaseDamage(2 * sign);
     break;
   case Item::Platemail:
-    // TODO
-    break;
-  case Item::Whurrgarbl:
-    // TODO
+    addStatus(HeroStatus::DamageReduction, 2 * sign * getLevel());
+    addStatus(HeroStatus::SlowStrike, sign);
     break;
   case Item::Trisword:
-    // TODO
+    changeBaseDamage(sign * inventory.getTriswordDamage());
     break;
   case Item::VenomDagger:
     addStatus(HeroStatus::Poisonous, 2 * sign);
     break;
   case Item::MartyrWraps:
-    // TODO
+    addStatus(HeroStatus::CorrosiveStrike, sign);
     break;
   case Item::MagePlate:
-    // TODO
+  {
+    const int strength = (getLevel() + 1) / 2;
+    changeManaPointsMax(sign * strength);
+    changeDamageBonusPercent(-5 * sign * strength);
     break;
+  }
   case Item::VampiricBlade:
     addStatus(HeroStatus::LifeSteal, sign);
     break;
