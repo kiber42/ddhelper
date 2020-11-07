@@ -147,7 +147,9 @@ public:
   void convert(Item item);
   void convert(Spell spell);
   bool canUse(Item item) const;
+  bool canUse(Item item, const Monster& monster) const;
   void use(Item item);
+  void use(Item item, Monster& monster);
 
   int getConversionPoints() const;
   int getConversionThreshold() const;

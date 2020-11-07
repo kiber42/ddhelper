@@ -977,6 +977,23 @@ void Hero::use(Item item)
   }
 }
 
+bool Hero::canUse(Item item, const Monster& monster) const
+{
+  if (item == Item::SlayerWand)
+    return !monster.isDefeated() && monster.getLevel() < 10;
+  return canUse(item);
+}
+
+void Hero::use(Item item, Monster& monster)
+{
+  if (item == Item::SlayerWand)
+  {
+    gainExperienceForKill(std::min(getLevel(), monster.getLevel()), monster.isSlowed());
+    monster.die();
+    inventory.remove(item);
+  }
+}
+
 void Hero::changeStatsFromItem(Item item, bool itemReceived)
 {
   // Apply passive item effects on hero status
@@ -1055,6 +1072,22 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
       addStatus(HeroStatus::ManaBurnImmune);
     else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
       removeStatus(HeroStatus::ManaBurnImmune, true);
+    break;
+  case Item::BearMace:
+    addStatus(HeroStatus::Knockback, 25 * sign);
+    break;
+  case Item::PerseveranceBadge:
+    changeDamageBonusPercent(10 * sign);
+    break;
+  case Item::ReallyBigSword:
+    addStatus(HeroStatus::PiercePhysical, sign);
+    addStatus(HeroStatus::SlowStrike, sign);
+    break;
+  case Item::Shield:
+    addStatus(HeroStatus::DamageReduction, 2 * sign);
+    break;
+  case Item::Sword:
+    changeBaseDamage(2 * sign);
     break;
   case Item::Gorgward:
     if (itemReceived)

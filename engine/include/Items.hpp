@@ -34,8 +34,13 @@ enum class Item
   VampiricBlade,
   ViperWard,
   SoulOrb,
-  // Subdungeon Items, Lockerable
-  Gorgward,
+  // Blacksmith Items
+  BearMace,
+  PerseveranceBadge,
+  ReallyBigSword,
+  Shield,
+  SlayerWand,
+  Sword,
   // Potions
   HealthPotion,
   ManaPotion,
@@ -46,6 +51,8 @@ enum class Item
   QuicksilverPotion,
   ReflexPotion,
   CanOfWhupaz,
+  // Subdungeon Items, Lockerable
+  Gorgward,
   // God Items
   PrayerBead,
   EnchantedPrayerBead,
@@ -121,8 +128,18 @@ constexpr const char* toString(Item item)
   case Item::SoulOrb:
     return "Soul Orb";
 
-  case Item::Gorgward:
-    return "Gorgward";
+  case Item::BearMace:
+    return "Bear Mace";
+  case Item::PerseveranceBadge:
+    return "Perseverance Badge";
+  case Item::ReallyBigSword:
+    return "Really Big Sword";
+  case Item::Shield:
+    return "Shield";
+  case Item::SlayerWand:
+    return "Slayer Wand";
+  case Item::Sword:
+    return "Sword";
 
   case Item::HealthPotion:
     return "Health Potion";
@@ -142,6 +159,9 @@ constexpr const char* toString(Item item)
     return "Reflex Potion";
   case Item::CanOfWhupaz:
     return "Can of Whupaz";
+
+  case Item::Gorgward:
+    return "Gorgward";
 
   case Item::PrayerBead:
     return "Prayer Bead";
@@ -225,8 +245,18 @@ constexpr int price(Item item)
   case Item::SoulOrb:
     return 16;
 
-  case Item::Gorgward:
-    return 18;
+  case Item::BearMace:
+    return 12;
+  case Item::PerseveranceBadge:
+    return 15;
+  case Item::ReallyBigSword:
+    return 12;
+  case Item::Shield:
+    return 15;
+  case Item::SlayerWand:
+    return 5;
+  case Item::Sword:
+    return 25;
 
   case Item::HealthPotion:
     return 10;
@@ -246,6 +276,9 @@ constexpr int price(Item item)
     return 15;
   case Item::CanOfWhupaz:
     return 20;
+
+  case Item::Gorgward:
+    return 18;
 
   case Item::PrayerBead:
   case Item::EnchantedPrayerBead:
@@ -323,8 +356,18 @@ constexpr int conversionPointsInitial(Item item)
   case Item::SoulOrb:
     return 65;
 
-  case Item::Gorgward:
-    return 50;
+  case Item::BearMace:
+    return 35;
+  case Item::PerseveranceBadge:
+    return 20;
+  case Item::ReallyBigSword:
+    return 35;
+  case Item::Shield:
+    return 35;
+  case Item::SlayerWand:
+    return 10;
+  case Item::Sword:
+    return 35;
 
   case Item::HealthPotion:
     return 10;
@@ -344,6 +387,9 @@ constexpr int conversionPointsInitial(Item item)
     return 10;
   case Item::CanOfWhupaz:
     return 10;
+
+  case Item::Gorgward:
+    return 50;
 
   case Item::PrayerBead:
     return -1;
@@ -369,8 +415,8 @@ constexpr bool isSmall(Item item)
 {
   return isPotion(item) || item == Item::Spoon || item == Item::WitchalokPendant || item == Item::BalancedDagger ||
          item == Item::VenomDagger || item == Item::StoneSigil || item == Item::BlueBead || item == Item::ViperWard ||
-         item == Item::SoulOrb || item == Item::Gorgward || item == Item::PrayerBead ||
-         item == Item::EnchantedPrayerBead;
+         item == Item::SoulOrb || item == Item::PerseveranceBadge || item == Item::Gorgward ||
+         item == Item::PrayerBead || item == Item::EnchantedPrayerBead;
 }
 
 constexpr bool canGroup(Item item)

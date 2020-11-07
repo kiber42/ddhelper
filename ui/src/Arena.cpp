@@ -155,6 +155,17 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   isSelected))
             selectedPopupItem = index;
         }
+        else if (withMonster && currentState.hero->canUse(item, *currentState.monster))
+        {
+          if (addPopupAction(
+                  std::move(label), historyTitle,
+                  [item](Hero& hero, Monster& monster) {
+                    hero.use(item, monster);
+                    return Summary::Safe;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
         else
           ImGui::TextColored(colorUnavailable, "%s", label.c_str());
       }
@@ -256,6 +267,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
         Item last;
       };
       const std::vector<SubMenu> submenus = {{"Potions", Item::HealthPotion, Item::CanOfWhupaz},
+                                             {"Blacksmith Items", Item::BearMace, Item::Sword},
                                              {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
                                              {"Quest Items", Item::PiercingWand, Item::SoulOrb}};
       for (auto submenu : submenus)
