@@ -69,6 +69,12 @@ Arena::StateUpdate Arena::run(const State& currentState)
     {
       addActionButton("Attack", [](Hero& hero, Monster& monster) { return Combat::attack(hero, monster); });
       ImGui::SameLine();
+      if (currentState.monster->isBurning())
+      {
+        addActionButton("Attack Other",
+                        [](Hero& hero, Monster& current) { return Combat::attackOther(hero, current); });
+        ImGui::SameLine();
+      }
     }
 
     ImGui::Button("Cast");
@@ -217,36 +223,6 @@ Arena::StateUpdate Arena::run(const State& currentState)
       ImGui::EndPopup();
     }
 
-    // Second line: actions that may or may not be available in actual game
-
-    const int numSquares = currentState.hero->numSquaresForFullRecovery();
-    if (withMonster)
-    {
-      addActionButton("Uncover Tile", [](Hero& hero, Monster& monster) {
-        hero.recover(1);
-        monster.recover(1);
-        return Summary::Safe;
-      });
-      ImGui::SameLine();
-    }
-    else if (numSquares > 0)
-    {
-      addActionButton("Uncover Tile", [](Hero& hero) {
-        hero.recover(1);
-        return Summary::Safe;
-      });
-      ImGui::SameLine();
-      if (numSquares > 1)
-      {
-        const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-        addActionButton(label, [numSquares](Hero& hero) {
-          hero.recover(numSquares);
-          return Summary::Safe;
-        });
-        ImGui::SameLine();
-      }
-    }
-
     ImGui::Button("Find");
     if (ImGui::IsItemActive())
     {
@@ -328,13 +304,13 @@ Arena::StateUpdate Arena::run(const State& currentState)
       ImGui::EndPopup();
     }
     ImGui::SameLine();
-    ImGui::Button("Gods");
+    ImGui::Button("Faith");
     if (ImGui::IsItemActive())
     {
-      ImGui::OpenPopup("GodsPopup");
+      ImGui::OpenPopup("FaithPopup");
       selectedPopupItem = -1;
     }
-    if (ImGui::BeginPopup("GodsPopup"))
+    if (ImGui::BeginPopup("FaithPopup"))
     {
       if (currentState.hero->getFollowedDeity())
       {
@@ -399,10 +375,31 @@ Arena::StateUpdate Arena::run(const State& currentState)
       ImGui::EndPopup();
     }
 
+    ImGui::SameLine();
+    const int numSquares = currentState.hero->numSquaresForFullRecovery();
     if (withMonster)
     {
-      ImGui::SameLine();
-      addActionButton("Attack Other", [](Hero& hero, Monster& current) { return Combat::attackOther(hero, current); });
+      addActionButton("Uncover Tile", [](Hero& hero, Monster& monster) {
+        hero.recover(1);
+        monster.recover(1);
+        return Summary::Safe;
+      });
+    }
+    else if (numSquares > 0)
+    {
+      addActionButton("Uncover Tile", [](Hero& hero) {
+        hero.recover(1);
+        return Summary::Safe;
+      });
+      if (numSquares > 1)
+      {
+        ImGui::SameLine();
+        const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
+        addActionButton(label, [numSquares](Hero& hero) {
+          hero.recover(numSquares);
+          return Summary::Safe;
+        });
+      }
     }
   }
   ImGui::End();
