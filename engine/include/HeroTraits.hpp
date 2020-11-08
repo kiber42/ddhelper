@@ -43,7 +43,7 @@ enum class HeroTrait
   MagicAttunement,
   MagicSense, // not implemented: can see locations of all glyphs from level start, all glyphs are small items
   ManaShield,
-  Martyr,
+  Martyr, // not implemented: +1 altar in dungeon
   Merchant,
   Momentum,
   Negotiator,

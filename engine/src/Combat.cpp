@@ -181,6 +181,9 @@ namespace Combat
       hero.collect(hero.getFaith().receivedHit(monster));
     }
 
+    // TODO: Check if attacks on plants count for momentum
+    hero.adjustMomentum(monster.isDefeated());
+
     const auto summary = detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
     hero.removeOneTimeAttackEffects();
     detail::monsterDefeatedCurse(hero, monster);

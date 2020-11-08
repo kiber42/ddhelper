@@ -151,7 +151,7 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   case HeroClass::Paladin:
     return {HeroTrait::HolyWork, HeroTrait::HolyHands, HeroTrait::HolyShield};
   case HeroClass::Crusader:
-    // return {HeroTrait::Scars, HeroTrait::Momentum, HeroTrait::Martyr};
+    return {HeroTrait::Scars, HeroTrait::Momentum, HeroTrait::Martyr};
   case HeroClass::Transmuter:
     // return {HeroTrait::InnerFocus, HeroTrait::DungeonLore, HeroTrait::SpiritSword};
   case HeroClass::Tinker:

@@ -28,6 +28,7 @@ enum class HeroStatus
   ManaBurned,
   ManaBurnImmune,
   Might,
+  Momentum,
   PiercePhysical, // TODO
   Poisoned,
   Poisonous,
@@ -99,6 +100,8 @@ constexpr const char* toString(HeroStatus status)
     return "Mana Burn Immune";
   case HeroStatus::Might:
     return "Might";
+  case HeroStatus::Momentum:
+    return "Momentum";
   case HeroStatus::PiercePhysical:
     return "Pierce Physical";
   case HeroStatus::Poisoned:
@@ -132,6 +135,7 @@ constexpr bool canHaveMultiple(HeroStatus status)
          status == HeroStatus::CrushingBlow || status == HeroStatus::Cursed || status == HeroStatus::DamageReduction ||
          status == HeroStatus::DeathGaze || status == HeroStatus::DodgePermanent ||
          status == HeroStatus::DodgeTemporary || status == HeroStatus::Knockback || status == HeroStatus::Learning ||
-         status == HeroStatus::LifeSteal || status == HeroStatus::Poisonous || status == HeroStatus::Sanguine ||
-         status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin || status == HeroStatus::Weakened;
+         status == HeroStatus::LifeSteal || status == HeroStatus::Momentum || status == HeroStatus::Poisonous ||
+         status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin ||
+         status == HeroStatus::Weakened;
 }

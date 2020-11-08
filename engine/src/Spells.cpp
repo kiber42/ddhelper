@@ -253,6 +253,7 @@ namespace Magic
       break;
     case Spell::Burndayraz:
       burndayraz(hero, monster);
+      hero.adjustMomentum(monster.isDefeated());
       break;
     case Spell::Imawal:
       // Imawal is handled below, since no XP is awarded for the kill (except +1 bonus XP for slowing)

@@ -88,7 +88,7 @@ public:
 
   // Adds XP and triggers any faith and item effects
   void monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning);
-
+  void adjustMomentum(bool increase);
   void removeOneTimeAttackEffects();
 
   void addDodgeChancePercent(int percent, bool isPermanent);
@@ -172,6 +172,7 @@ private:
   bool dodgeNext;
   bool alchemistScrollUsedThisLevel;
   bool namtarsWardUsedThisLevel;
+  int momentum;
 
   int nagaCauldronBonus() const;
   void loseHitPoints(int amountPointsLost);

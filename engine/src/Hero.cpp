@@ -85,6 +85,12 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     addStatus(HeroStatus::Sanguine, 5);
     addStatus(HeroStatus::LifeSteal, 1);
   }
+  if (hasTrait(HeroTrait::Scars))
+  {
+    addStatus(HeroStatus::PoisonImmune);
+    addStatus(HeroStatus::ManaBurnImmune);
+    addStatus(HeroStatus::CurseImmune);
+  }
 
   if (hasTrait(HeroTrait::Defiant))
     inventory.add(Spell::Cydstepp);
@@ -489,6 +495,10 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
     return;
 
   const int oldIntensity = std::exchange(statuses[status], newIntensity);
+
+  if (status == HeroStatus::Momentum)
+    changeDamageBonusPercent(newIntensity - oldIntensity);
+
   if (newIntensity > 0)
   {
     if (status == HeroStatus::CurseImmune)
@@ -574,6 +584,21 @@ void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool mon
     recoverManaPoints(1);
 }
 
+void Hero::adjustMomentum(bool increase)
+{
+  if (hasTrait(HeroTrait::Momentum))
+  {
+    if (increase)
+      addStatus(HeroStatus::Momentum, 15);
+    else
+    {
+      const int momentum = getStatusIntensity(HeroStatus::Momentum);
+      const int delta = -(momentum + 1)/ 2;
+      addStatus(HeroStatus::Momentum, delta);
+    }
+  }
+}
+
 void Hero::removeOneTimeAttackEffects()
 {
   removeStatus(HeroStatus::ConsecratedStrike, true);
@@ -609,6 +634,7 @@ void Hero::levelGainedUpdate(int newLevel)
   alchemistScrollUsedThisLevel = false;
   namtarsWardUsedThisLevel = false;
   applyOrCollect(faith.levelGained());
+  adjustMomentum(false);
 }
 
 void Hero::levelUpRefresh()
