@@ -56,18 +56,12 @@ namespace Combat
 
     hero.startPietyCollection();
 
-    // TODO Handle attack with Flaming Sword
-    // TODO Handle evasion?
+    // TODO Better handling of dodge and dodge prediction -- manual selection?
+
     // TODO Handle knockback?
     // TODO Handle burn stack pop on other monsters?
 
-    // Damage is almost always computed using the initial hero and monster
-    // Known exceptions:
-    //   - Health from Life Steal is added directly after strike
-    //   - Warlord's 30% damage bonus if hero's health is below 50%
-    //   - A Curse Bearer monster will curse the hero directly after the hero's strike
-
-    // Bonus experience is added if the monster was slowed before the attack
+    // Bonus experience is added if the monster was slowed before the final attack
     bool monsterWasSlowed = monster.isSlowed();
     bool monsterWasBurning = monster.isBurning();
     bool heroReceivedHit = false;

@@ -15,13 +15,23 @@ Set #glyphs to regular - 1, add 50 conversion points
 2. More glyphs?
 Set #glyphs to regular + 1, subtract 20 conversion points
 
+Order of effects in combat
+--------------------------
+Damage is almost always computed using the initial hero and monster
+Known exceptions:
+  - Health from Life Steal is added directly after hero's strike
+  - A Curse Bearer monster will curse the hero directly after the hero's strike
+  - Warlord's 30% damage bonus if hero's health is below 50% at the time of his attack
+
 Essence Transit health point gain is awarded after damage is taken (if still alive)
 
+Misc
+----
 Mana shield damage against monster with magic resistance:
 Damage done is rounded down (not the amount of resisted damage as is usually done!)
 
 Retaliate damage: 50% of regular damage
 
-Crushing blow ignores resistances and even physical immunity (magical not tested)
+Crushing blow ignores resistances and even physical immunity (not tested: vs. magical immunity, i.e. using Half-Dragon)
 
 Health regeneration bonus for bloody sigil is applied after x2 multiplier from discipline
