@@ -539,6 +539,7 @@ void Hero::propagateStatus(HeroStatus status, int intensity)
     break;
   case HeroStatus::Cursed:
     defence.setCursed(intensity > 0);
+    break;
   case HeroStatus::StoneSkin:
     defence.setStoneSkin(intensity);
   default:
@@ -1077,9 +1078,12 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
   const int sign = itemReceived ? +1 : -1;
   switch (item)
   {
+  case Item::BadgeOfHonour:
+    changeDamageBonusPercent(10 * sign);
+    break;
   case Item::BloodySigil:
     changeHitPointsMax(5 * sign);
-    changeDamageBonusPercent(10 * sign);
+    changeDamageBonusPercent(-10 * sign);
     break;
   case Item::FineSword:
     changeBaseDamage(4 * sign);
@@ -1190,7 +1194,7 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
   case Item::Gorgward:
     if (itemReceived)
       addStatus(HeroStatus::DeathGazeImmune);
-    else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::AzureBody))
+    else if (!hasTrait(HeroTrait::AzureBody))
       removeStatus(HeroStatus::DeathGazeImmune, true);
     break;
   case Item::DragonShield:
