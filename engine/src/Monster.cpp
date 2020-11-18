@@ -161,8 +161,9 @@ void Monster::burnDown()
 {
   if (status.getBurnStackSize() > 0)
   {
+    const int resist = status.getBurnStackSize() * getMagicalResistPercent();
+    stats.loseHitPoints(status.getBurnStackSize() - resist);
     status.setSlowed(false);
-    stats.loseHitPoints(status.getBurnStackSize());
     status.setBurn(0);
   }
 }

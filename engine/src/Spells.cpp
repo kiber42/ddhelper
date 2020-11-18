@@ -295,6 +295,8 @@ namespace Magic
     hero.gainExperienceForPetrification(monster.isSlowed());
     monster.petrify();
     hero.addStatus(HeroStatus::ExperienceBoost);
+    // Remove one curse stack, even for cursed monsters
+    hero.removeStatus(HeroStatus::Cursed, false);
     return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
   }
 } // namespace Magic

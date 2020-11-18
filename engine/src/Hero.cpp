@@ -593,7 +593,7 @@ void Hero::adjustMomentum(bool increase)
     else
     {
       const int momentum = getStatusIntensity(HeroStatus::Momentum);
-      const int delta = -(momentum + 1)/ 2;
+      const int delta = -(momentum + 1) / 2;
       addStatus(HeroStatus::Momentum, delta);
     }
   }
@@ -1127,11 +1127,17 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     changePhysicalResistPercent(10 * sign);
     break;
   case Item::TrollHeart:
-    // Add 2 additional max HP on future level ups. Not removed when coverting item!
+    // Add 2 additional max HP on future level ups.
+    // Was not removed when coverting item in early versions.
     if (itemReceived)
     {
       stats.addHealthBonus(0);
       stats.addHealthBonus(0);
+    }
+    else
+    {
+      stats.reduceHealthBonus();
+      stats.reduceHealthBonus();
     }
     break;
   case Item::RockHeart:

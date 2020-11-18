@@ -35,3 +35,7 @@ Retaliate damage: 50% of regular damage
 Crushing blow ignores resistances and even physical immunity (not tested: vs. magical immunity, i.e. using Half-Dragon)
 
 Health regeneration bonus for bloody sigil is applied after x2 multiplier from discipline
+
+Petrifying a monster removes one curse stack, even if the monster was cursed
+
+Burn down damage is magical damage, magical resistance applies
