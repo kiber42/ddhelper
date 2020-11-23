@@ -844,7 +844,7 @@ PietyChange Faith::manaPointsBurned(int pointsLost)
   return {};
 }
 
-PietyChange Faith::converted(Item item)
+PietyChange Faith::converted(Item item, bool isSmall)
 {
   PietyChange result;
   if (pact == Pact::SpiritPact)
@@ -859,7 +859,7 @@ PietyChange Faith::converted(Item item)
           return 5;
         return {};
       case God::GlowingGuardian:
-        return isPotion(item) || !isSmall(item) ? 5 : 2;
+        return isPotion(item) || !isSmall ? 5 : 2;
       case God::JehoraJeheyu:
         return JehoraTriggered();
       case God::Taurog:
@@ -872,7 +872,7 @@ PietyChange Faith::converted(Item item)
   return result;
 }
 
-PietyChange Faith::converted(Spell spell)
+PietyChange Faith::converted(Spell spell, bool isSmall)
 {
   if (!followedDeity)
     return {};
@@ -883,7 +883,10 @@ PietyChange Faith::converted(Spell spell)
       return 10;
     return {};
   case God::GlowingGuardian:
-    return spell == Spell::Apheelsik || spell == Spell::Bludtupowa ? 10 : 5;
+  {
+    const bool isEvil = spell == Spell::Apheelsik || spell == Spell::Bludtupowa;
+    return isEvil ? 10 : (isSmall ? 2 : 5);
+  }
   case God::JehoraJeheyu:
     return JehoraTriggered();
   case God::Taurog:

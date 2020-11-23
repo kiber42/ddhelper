@@ -907,7 +907,8 @@ void Hero::convert(Item item)
     changeStatsFromItem(item, false);
     if (conversion.addPoints(*conversionValue))
       conversion.applyBonus(*this);
-    applyOrCollect(faith.converted(item));
+    // TODO: Improve inventory system to support compressed items
+    applyOrCollect(faith.converted(item, isSmall(item) && !hasTrait(HeroTrait::RegalSize)));
     if (item == Item::Skullpicker || item == Item::Wereward || item == Item::Gloat || item == Item::Will)
       faith.convertedTaurogItem(*this);
   }
@@ -922,7 +923,8 @@ void Hero::convert(Spell spell)
       recoverManaPoints(getManaPointsMax() * (faith.getFollowedDeity() == God::MysteraAnnur ? 50 : 25) / 100);
     if (conversion.addPoints(*conversionValue))
       conversion.applyBonus(*this);
-    applyOrCollect(faith.converted(spell));
+    // TODO: Improve inventory system to support compressed spells
+    applyOrCollect(faith.converted(spell, hasTrait(HeroTrait::MagicSense) && !hasTrait(HeroTrait::RegalSize)));
   }
 }
 

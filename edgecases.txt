@@ -39,3 +39,7 @@ Health regeneration bonus for bloody sigil is applied after x2 multiplier from d
 Petrifying a monster removes one curse stack, even if the monster was cursed
 
 Burn down damage is magical damage, magical resistance applies
+
+Jehora also reacts to teleportation attempts that failed because of magic resistance
+
+Converting a spell that is small (Wizard / Compression Seal) yields a reward of 2 piety from Glowing guardian, except for the evil spells (Apheelsik and Blutopowa) which allows yield 10

@@ -372,8 +372,8 @@ public:
   PietyChange becameManaBurned();
   PietyChange manaPointsBurned(int pointsLost);
 
-  PietyChange converted(Item item);
-  PietyChange converted(Spell spell);
+  PietyChange converted(Item item, bool isSmall);
+  PietyChange converted(Spell spell, bool isSmall);
 
   // specific to Earthmother
   PietyChange plantDestroyed();
