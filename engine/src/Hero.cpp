@@ -49,7 +49,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     stats.setManaPointsMax(stats.getManaPointsMax() - 3);
   }
   if (hasTrait(HeroTrait::Dexterous))
-    addStatus(HeroStatus::FirstStrike);
+    addStatus(HeroStatus::FirstStrikePermanent);
   if (hasTrait(HeroTrait::Evasive))
     addDodgeChancePercent(20, true);
   if (hasTrait(HeroTrait::PoisonedBlade))
@@ -361,12 +361,13 @@ bool Hero::hasInitiativeVersus(const Monster& monster) const
   if (hasStatus(HeroStatus::Reflexes))
     return true;
 
-  const bool heroFast = hasStatus(HeroStatus::FirstStrike) && !hasStatus(HeroStatus::SlowStrike);
+  const bool firstStrike = hasStatus(HeroStatus::FirstStrikePermanent) || hasStatus(HeroStatus::FirstStrikeTemporary);
+  const bool heroFast = firstStrike && !hasStatus(HeroStatus::SlowStrike);
   const bool monsterFast = monster.hasFirstStrike() && !monster.isSlowed();
   if (heroFast || monsterFast)
     return !monsterFast;
 
-  const bool heroSlow = !hasStatus(HeroStatus::FirstStrike) && hasStatus(HeroStatus::SlowStrike);
+  const bool heroSlow = !firstStrike && hasStatus(HeroStatus::SlowStrike);
   const bool monsterSlow = monster.isSlowed();
   if (heroSlow || monsterSlow)
     return !heroSlow;
@@ -605,9 +606,6 @@ void Hero::removeOneTimeAttackEffects()
   removeStatus(HeroStatus::CrushingBlow, true);
   removeStatus(HeroStatus::Might, true);
   removeStatus(HeroStatus::SpiritStrength, true);
-
-  if (!hasTrait(HeroTrait::Dexterous))
-    removeStatus(HeroStatus::FirstStrike, true);
   removeStatus(HeroStatus::FirstStrikeTemporary, true);
   removeStatus(HeroStatus::Reflexes, true);
 

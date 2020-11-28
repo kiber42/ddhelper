@@ -194,7 +194,6 @@ namespace Magic
       break;
     case Spell::Getindare:
       // first strike, +5% dodge chance (until actual dodge)
-      hero.addStatus(HeroStatus::FirstStrike);
       hero.addStatus(HeroStatus::FirstStrikeTemporary);
       hero.addDodgeChancePercent(5, false);
       break;

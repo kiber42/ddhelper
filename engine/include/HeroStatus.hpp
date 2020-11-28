@@ -18,7 +18,7 @@ enum class HeroStatus
   DodgePrediction,
   Exhausted,
   ExperienceBoost,
-  FirstStrike, // temporary or permanent (Dexterous trait)
+  FirstStrikePermanent,
   FirstStrikeTemporary,
   HeavyFireball,
   Knockback, // TODO
@@ -80,8 +80,8 @@ constexpr const char* toString(HeroStatus status)
     return "Exhausted";
   case HeroStatus::ExperienceBoost:
     return "Experience Boost";
-  case HeroStatus::FirstStrike:
-    return "First Strike";
+  case HeroStatus::FirstStrikePermanent:
+    return "First Strike (permanent)";
   case HeroStatus::FirstStrikeTemporary:
     return "First Strike (next attack)";
   case HeroStatus::HeavyFireball:

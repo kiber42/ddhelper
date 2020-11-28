@@ -73,7 +73,7 @@ std::optional<Hero> CustomHeroBuilder::run()
   ImGui::DragInt("XP", &data[8], 0.1f, 0, 50);
 
   for (HeroStatus status :
-       {HeroStatus::FirstStrike, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
+       {HeroStatus::FirstStrikePermanent, HeroStatus::FirstStrikeTemporary, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
         HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball, HeroStatus::DeathProtection,
         HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
   {

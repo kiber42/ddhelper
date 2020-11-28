@@ -456,7 +456,7 @@ void testStatusEffects()
         Monster monster(MonsterType::MeatMan, 2);
         Combat::attack(hero, monster);
         AssertThat(monster.getCorroded(), Equals(1));
-        hero.addStatus(HeroStatus::FirstStrike);
+        hero.addStatus(HeroStatus::FirstStrikeTemporary);
         hero.addStatus(HeroStatus::CorrosiveStrike, 2);
         hero.refillHealthAndMana();
         Combat::attack(hero, monster);
@@ -654,14 +654,14 @@ void testStatusEffects()
       it("should give initiative versus regular monsters of any level", [&] {
         Hero hero;
         Monster boss(MonsterType::Goat, 10);
-        hero.addStatus(HeroStatus::FirstStrike);
+        hero.addStatus(HeroStatus::FirstStrikeTemporary);
         AssertThat(hero.hasInitiativeVersus(boss), IsTrue());
       });
       it("should not give initiative versus first-strike monsters of any level", [] {
         Hero hero;
         hero.gainLevel();
         Monster goblin(MonsterType::Goblin, 1);
-        hero.addStatus(HeroStatus::FirstStrike);
+        hero.addStatus(HeroStatus::FirstStrikeTemporary);
         AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
       });
     });
@@ -892,10 +892,10 @@ void testStatusEffects()
         AssertThat(hero.hasInitiativeVersus(meatMan), IsFalse());
       });
       it("should cancel First Strike", [&] {
-        hero.addStatus(HeroStatus::FirstStrike);
+        hero.addStatus(HeroStatus::FirstStrikeTemporary);
         AssertThat(hero.hasInitiativeVersus(meatMan), IsTrue());
         AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
-        hero.removeStatus(HeroStatus::FirstStrike, true);
+        hero.removeStatus(HeroStatus::FirstStrikeTemporary, true);
       });
       it("should give initiative to slowed monsters of any level (regardless of monster's first strike)", [&] {
         meatMan.slow();
@@ -904,7 +904,7 @@ void testStatusEffects()
         AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
       });
       it("should not give initiative to slowed monsters when cancelled by First Strike", [&] {
-        hero.addStatus(HeroStatus::FirstStrike);
+        hero.addStatus(HeroStatus::FirstStrikeTemporary);
         AssertThat(hero.hasInitiativeVersus(meatMan), IsTrue());
         AssertThat(hero.hasInitiativeVersus(goblin), IsTrue());
       });
