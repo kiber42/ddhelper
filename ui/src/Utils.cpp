@@ -36,7 +36,7 @@ void showStatus(const Hero& hero)
                 hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
                 hero.getDamageVersusStandard(), hero.getBaseDamage(), hero.getDamageBonusPercent());
     ImGui::Text("  %i/%i XP  %i/%i CP  %i piety  %i gold", hero.getXP(), hero.getXPforNextLevel(),
-                hero.getConversionPoints(), hero.getConversionThreshold(), hero.getFaith().getPiety(), hero.gold());
+                hero.getConversionPoints(), hero.getConversionThreshold(), hero.getPiety(), hero.gold());
     if (hero.getPhysicalResistPercent() > 0 || hero.getMagicalResistPercent() > 0)
     {
       ImGui::SameLine();

@@ -107,6 +107,7 @@ public:
 
   Faith& getFaith();
   const Faith& getFaith() const;
+  int getPiety() const;
 
   std::optional<God> getFollowedDeity() const;
   bool hasBoon(Boon boon) const;

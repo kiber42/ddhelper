@@ -1088,17 +1088,17 @@ void testFaith()
       it("shall award 2 piety for suffering poisoned or mana burned", [] {
         Hero hero;
         hero.followDeity(God::GlowingGuardian);
-        const int initialPiety = hero.getFaith().getPiety();
+        const int initialPiety = hero.getPiety();
         Monster manaBurnMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addManaBurn());
         AssertThat(Combat::attack(hero, manaBurnMonster), Equals(Summary::Safe));
-        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(2));
+        AssertThat(hero.getPiety() - initialPiety, Equals(2));
         AssertThat(Combat::attack(hero, manaBurnMonster), Equals(Summary::Win));
-        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(2));
+        AssertThat(hero.getPiety() - initialPiety, Equals(2));
         Monster poisonMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addPoisonous());
         AssertThat(Combat::attack(hero, poisonMonster), Equals(Summary::Safe));
-        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(4));
+        AssertThat(hero.getPiety() - initialPiety, Equals(4));
         AssertThat(Combat::attack(hero, poisonMonster), Equals(Summary::Win));
-        AssertThat(hero.getFaith().getPiety() - initialPiety, Equals(4));
+        AssertThat(hero.getPiety() - initialPiety, Equals(4));
       });
     });
   });

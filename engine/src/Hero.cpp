@@ -734,6 +734,11 @@ const Faith& Hero::getFaith() const
   return faith;
 }
 
+int Hero::getPiety() const
+{
+  return faith.getPiety();
+}
+
 std::optional<God> Hero::getFollowedDeity() const
 {
   return faith.getFollowedDeity();
