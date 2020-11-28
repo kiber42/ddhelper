@@ -14,6 +14,7 @@ const ImVec4& summaryColor(Summary summary, bool debuffed)
 {
   switch (summary)
   {
+  case Summary::None:
   case Summary::Safe:
     return debuffed ? colorDebuffedSafe : colorSafe;
   case Summary::Win:

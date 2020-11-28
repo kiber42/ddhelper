@@ -28,7 +28,7 @@ bool History::run()
     ImGui::TextUnformatted(std::get<std::string>(entry).c_str());
     const auto outcome = std::get<Outcome>(entry);
     const bool debuffed = !outcome.debuffs.empty() || outcome.pietyChange < 0;
-    if (outcome.summary != Summary::Safe || debuffed || outcome.pietyChange != 0)
+    if (outcome.summary != Summary::None || debuffed || outcome.pietyChange != 0)
     {
       const auto color = summaryColor(outcome.summary, debuffed);
       ImGui::SameLine();

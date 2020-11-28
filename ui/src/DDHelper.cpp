@@ -43,7 +43,7 @@ void DDHelperApp::populateFrame()
   {
     HeroAction action = [newHero = Hero(*hero)](Hero& hero) {
       hero = Hero(newHero);
-      return Summary::Safe;
+      return Summary::None;
     };
     ActionEntry entry(hero->getName() + " enters"s, std::move(action), {});
     history.add(state, std::move(entry));
@@ -59,7 +59,7 @@ void DDHelperApp::populateFrame()
   {
     AttackAction action = [newMonster = Monster(*monster)](Hero&, Monster& monster) {
       monster = Monster(newMonster);
-      return Summary::Safe;
+      return Summary::None;
     };
     ActionEntry entry(monster->getName() + " enters"s, std::move(action), {});
     history.add(state, std::move(entry));

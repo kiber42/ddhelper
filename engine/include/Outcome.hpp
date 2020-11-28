@@ -6,6 +6,7 @@
 
 enum class Summary
 {
+  None, // None is largely equivalent to Safe, but is not shown in description
   Safe,
   Win,
   Death,
@@ -36,6 +37,8 @@ constexpr const char* toString(Summary status)
 {
   switch (status)
   {
+  case Summary::None:
+    return "";
   case Summary::Safe:
     return "Safe";
   case Summary::Win:
@@ -99,9 +102,13 @@ inline std::string toString(const Outcome& outcome)
       result += " Corroded";
     else if (outcome.debuffs.count(Debuff::Weakened))
       result += " Weaken";
+    if (!result.empty() && result[0] == ' ')
+      result.erase(0, 1);
   }
   if (outcome.pietyChange != 0)
   {
+    if (!result.empty())
+      result += " ";
     if (outcome.pietyChange > 0)
       result += "+" + std::to_string(outcome.pietyChange) + " piety";
     else

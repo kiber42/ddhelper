@@ -36,8 +36,12 @@ Arena::StateUpdate Arena::run(const State& currentState)
         ImGui::TextUnformatted("Not possible");
       else
       {
-        const auto color = summaryColor(summary, !outcome.debuffs.empty() || outcome.pietyChange < 0);
-        ImGui::TextColored(color, "%s", toString(outcome).c_str());
+        const auto outcomeStr = toString(outcome);
+        if (!outcomeStr.empty())
+        {
+          const auto color = summaryColor(summary, !outcome.debuffs.empty() || outcome.pietyChange < 0);
+          ImGui::TextColored(color, "%s", outcomeStr.c_str());
+        }
         showStatus(newState);
       }
       ImGui::PopTextWrapPos();
@@ -113,7 +117,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
               label, historyTitle,
               [spell](Hero& hero) {
                 Magic::cast(hero, spell);
-                return Summary::Safe;
+                return Summary::None;
               },
               isSelected);
         if (becameSelected)
@@ -150,7 +154,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   std::move(label), historyTitle,
                   [item](Hero& hero) {
                     hero.use(item);
-                    return Summary::Safe;
+                    return Summary::None;
                   },
                   isSelected))
             selectedPopupItem = index;
@@ -161,7 +165,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   std::move(label), historyTitle,
                   [item](Hero& hero, Monster& monster) {
                     hero.use(item, monster);
-                    return Summary::Safe;
+                    return Summary::None;
                   },
                   isSelected))
             selectedPopupItem = index;
@@ -198,7 +202,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   label, historyTitle,
                   [item](Hero& hero) {
                     hero.convert(item);
-                    return Summary::Safe;
+                    return Summary::None;
                   },
                   isSelected))
             selectedPopupItem = index;
@@ -221,7 +225,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   label, historyTitle,
                   [spell](Hero& hero) {
                     hero.convert(spell);
-                    return Summary::Safe;
+                    return Summary::None;
                   },
                   isSelected))
             selectedPopupItem = index;
@@ -253,7 +257,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   toString(spell), "Find "s + toString(spell),
                   [spell](Hero& hero) {
                     hero.receive(spell);
-                    return Summary::Safe;
+                    return Summary::None;
                   },
                   isSelected))
             selectedPopupItem = index;
@@ -285,7 +289,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                     toString(item), "Find "s + toString(item),
                     [item](Hero& hero) {
                       hero.receive(item);
-                      return Summary::Safe;
+                      return Summary::None;
                     },
                     isSelected))
               selectedPopupItem = index;
@@ -299,7 +303,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                 "+50 piety", "Cheat: +50 piety",
                 [](Hero& hero) {
                   hero.getFaith().gainPiety(50);
-                  return Summary::Safe;
+                  return Summary::None;
                 },
                 ++index == selectedPopupItem))
           selectedPopupItem = index;
@@ -307,7 +311,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                 "+20 gold", "Cheat: +20 gold",
                 [](Hero& hero) {
                   hero.addGold(20);
-                  return Summary::Safe;
+                  return Summary::None;
                 },
                 ++index == selectedPopupItem))
           selectedPopupItem = index;
@@ -342,7 +346,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
           if (addPopupAction(
                   label, historyTitle,
                   [boon](Hero& hero) {
-                    return hero.getFaith().request(boon, hero) ? Summary::Safe : Summary::NotPossible;
+                    return hero.getFaith().request(boon, hero) ? Summary::None : Summary::NotPossible;
                   },
                   isSelected))
             selectedPopupItem = index;
@@ -358,7 +362,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
         if (addPopupAction(
                 toString(deity), "Follow "s + toString(deity),
                 [deity](Hero& hero) {
-                  return hero.getFaith().followDeity(deity, hero) ? Summary::Safe : Summary::NotPossible;
+                  return hero.getFaith().followDeity(deity, hero) ? Summary::None : Summary::NotPossible;
                 },
                 isSelected))
           selectedPopupItem = index + 100;
@@ -378,7 +382,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
                   label, historyTitle,
                   [pact](Hero& hero) {
                     hero.getFaith().enter(pact);
-                    return Summary::Safe;
+                    return Summary::None;
                   },
                   isSelected))
             selectedPopupItem = index + 200;
@@ -396,14 +400,14 @@ Arena::StateUpdate Arena::run(const State& currentState)
       addActionButton("Uncover Tile", [](Hero& hero, Monster& monster) {
         hero.recover(1);
         monster.recover(1);
-        return Summary::Safe;
+        return hero.isDefeated() ? Summary::Death : Summary::None;
       });
     }
     else if (numSquares > 0)
     {
       addActionButton("Uncover Tile", [](Hero& hero) {
         hero.recover(1);
-        return Summary::Safe;
+        return hero.isDefeated() ? Summary::Death : Summary::None;
       });
       if (numSquares > 1)
       {
@@ -411,7 +415,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
         const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
         addActionButton(label, [numSquares](Hero& hero) {
           hero.recover(numSquares);
-          return Summary::Safe;
+          return hero.isDefeated() ? Summary::Death : Summary::None;
         });
       }
     }
