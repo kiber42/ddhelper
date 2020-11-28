@@ -27,7 +27,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
     else if (auto attackAction = std::get_if<AttackAction>(&action))
       summary = (*attackAction)(*newState.hero, *newState.monster);
     Outcome outcome = {summary, Combat::findDebuffs(*currentState.hero, *newState.hero),
-                       std::nullopt /* TODO: report piety change */};
+                       newState.hero->getPiety() - currentState.hero->getPiety()};
     if (!activated)
     {
       ImGui::BeginTooltip();
@@ -36,7 +36,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
         ImGui::TextUnformatted("Not possible");
       else
       {
-        const auto color = summaryColor(summary, !outcome.debuffs.empty());
+        const auto color = summaryColor(summary, !outcome.debuffs.empty() || outcome.pietyChange < 0);
         ImGui::TextColored(color, "%s", toString(outcome).c_str());
         showStatus(newState);
       }

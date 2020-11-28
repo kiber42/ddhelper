@@ -72,8 +72,11 @@ constexpr const char* toString(Debuff debuff)
 
 inline std::string toString(const Outcome& outcome)
 {
+  if (outcome.summary == Summary::Death)
+    return toString(Summary::Death);
+
   std::string result;
-  // Only one debuff is shown in string
+  // At most one debuff is shown in string
   if (outcome.debuffs.count(Debuff::LostDeathProtection))
   {
     if (outcome.summary == Summary::LevelUp)
@@ -85,22 +88,25 @@ inline std::string toString(const Outcome& outcome)
   }
   else
   {
-    const std::string summaryStr = toString(outcome.summary);
+    result = toString(outcome.summary);
     if (outcome.debuffs.count(Debuff::Cursed))
-      result = summaryStr + " Cursed";
+      result += " Cursed";
     else if (outcome.debuffs.count(Debuff::ManaBurned))
-      result = summaryStr + " Mana Burn";
+      result += " Mana Burn";
     else if (outcome.debuffs.count(Debuff::Poisoned))
-      result = summaryStr + " Poison";
+      result += " Poison";
     else if (outcome.debuffs.count(Debuff::Corroded))
-      result = summaryStr + " Corroded";
+      result += " Corroded";
     else if (outcome.debuffs.count(Debuff::Weakened))
-      result = summaryStr + " Weaken";
-    else
-      result = summaryStr;
+      result += " Weaken";
   }
-  if (outcome.pietyChange)
-    result += " " + std::to_string(*outcome.pietyChange) + " piety";
+  if (outcome.pietyChange != 0)
+  {
+    if (outcome.pietyChange > 0)
+      result += "+" + std::to_string(outcome.pietyChange) + " piety";
+    else
+      result += std::to_string(outcome.pietyChange) + " piety";
+  }
   return result;
 }
 
