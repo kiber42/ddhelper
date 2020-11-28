@@ -29,7 +29,7 @@ struct Outcome
 {
   Summary summary;
   Debuffs debuffs;
-  std::optional<int> pietyChange;
+  int pietyChange;
 };
 
 constexpr const char* toString(Summary status)
