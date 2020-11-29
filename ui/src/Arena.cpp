@@ -11,6 +11,43 @@
 
 #include "imgui.h"
 
+namespace
+{
+  std::pair<State, Outcome> applyAction(const State& initialState, AnyAction action, bool pessimistMode)
+  {
+    Summary summary;
+    State newState{initialState.hero, initialState.monster};
+    if (pessimistMode)
+      newState.hero->addStatus(HeroStatus::Pessimist);
+    if (auto heroAction = std::get_if<HeroAction>(&action))
+      summary = (*heroAction)(*newState.hero);
+    else if (auto attackAction = std::get_if<AttackAction>(&action))
+      summary = (*attackAction)(*newState.hero, *newState.monster);
+    Outcome outcome = {summary, Combat::findDebuffs(*initialState.hero, *newState.hero),
+                       newState.hero->getPiety() - initialState.hero->getPiety()};
+    return {std::move(newState), std::move(outcome)};
+  }
+
+  void showPredictedOutcomeTooltip(const State& initialState, AnyAction action)
+  {
+
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    const auto& [newState, outcome] = applyAction(initialState, std::move(action), true);
+    if (outcome.summary == Summary::NotPossible)
+      ImGui::TextUnformatted("Not possible");
+    else
+    {
+      const auto outcomeStr = toString(outcome);
+      if (!outcomeStr.empty())
+        ImGui::TextColored(outcomeColor(outcome), "%s", outcomeStr.c_str());
+      showStatus(newState);
+    }
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
+} // namespace
+
 Arena::StateUpdate Arena::run(const State& currentState)
 {
   using namespace std::string_literals;
@@ -18,40 +55,17 @@ Arena::StateUpdate Arena::run(const State& currentState)
   Arena::StateUpdate result;
 
   auto addAction = [&](std::string title, AnyAction action, bool activated) {
-    if (!activated && !ImGui::IsItemHovered())
-      return;
-    Summary summary;
-    State newState{currentState.hero, currentState.monster};
-    if (auto heroAction = std::get_if<HeroAction>(&action))
-      summary = (*heroAction)(*newState.hero);
-    else if (auto attackAction = std::get_if<AttackAction>(&action))
-      summary = (*attackAction)(*newState.hero, *newState.monster);
-    Outcome outcome = {summary, Combat::findDebuffs(*currentState.hero, *newState.hero),
-                       newState.hero->getPiety() - currentState.hero->getPiety()};
-    if (!activated)
+    if (activated)
     {
-      ImGui::BeginTooltip();
-      ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-      if (summary == Summary::NotPossible)
-        ImGui::TextUnformatted("Not possible");
-      else
+      auto [newState, outcome] = applyAction(currentState, std::move(action), false);
+      if (outcome.summary != Summary::NotPossible)
       {
-        const auto outcomeStr = toString(outcome);
-        if (!outcomeStr.empty())
-        {
-          const auto color = summaryColor(summary, !outcome.debuffs.empty() || outcome.pietyChange < 0);
-          ImGui::TextColored(color, "%s", outcomeStr.c_str());
-        }
-        showStatus(newState);
+        ActionEntry entry{std::move(title), std::move(action), std::move(outcome)};
+        result.emplace(std::pair(std::move(entry), std::move(newState)));
       }
-      ImGui::PopTextWrapPos();
-      ImGui::EndTooltip();
     }
-    else if (summary != Summary::NotPossible)
-    {
-      ActionEntry entry{std::move(title), std::move(action), std::move(outcome)};
-      result.emplace(std::pair(std::move(entry), std::move(newState)));
-    }
+    else if (ImGui::IsItemHovered())
+      showPredictedOutcomeTooltip(currentState, std::move(action));
   };
   auto addActionButton = [&](std::string title, AnyAction action) {
     const bool buttonPressed = ImGui::Button(title.c_str());

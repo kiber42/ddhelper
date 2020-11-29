@@ -29,6 +29,11 @@ const ImVec4& summaryColor(Summary summary, bool debuffed)
   }
 }
 
+const ImVec4& outcomeColor(const Outcome& outcome)
+{
+  return summaryColor(outcome.summary, !outcome.debuffs.empty() || outcome.pietyChange < 0);
+}
+
 void showStatus(const Hero& hero)
 {
   if (!hero.isDefeated())
