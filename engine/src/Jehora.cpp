@@ -16,10 +16,17 @@ Jehora::Jehora()
   // http://www.qcfdesign.com/wiki/DesktopDungeons/index.php?title=Jehora_Jeheyu
 }
 
-int Jehora::initialPietyBonus(int heroLevel)
+int Jehora::initialPietyBonus(int heroLevel, bool isPessimist)
 {
-  std::uniform_int_distribution<> initialBonus(70, 100);
-  return initialBonus(generator) * heroLevel * heroLevel / 100;
+  int multiplier;
+  if (!isPessimist)
+  {
+    std::uniform_int_distribution<> initialBonus(70, 100);
+    multiplier = initialBonus(generator);
+  }
+  else
+    multiplier = 70;
+  return heroLevel * heroLevel * multiplier / 100;
 }
 
 bool Jehora::lastChanceSuccessful(int remainingPiety)

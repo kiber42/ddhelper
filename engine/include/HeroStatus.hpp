@@ -41,7 +41,7 @@ enum class HeroStatus
   StoneSkin,
   Weakened,
   Last = Weakened,
-  NoDodge, // Used to prevent dodging in challenges
+  Pessimist, // Loses all dice rolls
 };
 
 constexpr const char* toString(HeroStatus status)
@@ -124,8 +124,8 @@ constexpr const char* toString(HeroStatus status)
     return "Stone Skin";
   case HeroStatus::Weakened:
     return "Weakened";
-  case HeroStatus::NoDodge:
-    return "No Dodging";
+  case HeroStatus::Pessimist:
+    return "Pessimist";
   }
 }
 

@@ -48,6 +48,10 @@ void showStatus(const Hero& hero)
       auto status = static_cast<HeroStatus>(i);
       if (hero.hasStatus(status))
       {
+        if (hero.hasStatus(HeroStatus::Pessimist) &&
+            (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
+             status == HeroStatus::DodgePrediction))
+          continue;
         if (status == HeroStatus::DodgePrediction)
         {
           if (hero.predictDodgeNext())
@@ -56,8 +60,6 @@ void showStatus(const Hero& hero)
             ImGui::Text("  won't dodge next attack");
           continue;
         }
-        if ((status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary) && hero.hasStatus(HeroStatus::NoDodge))
-          continue;
         const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
                            status == HeroStatus::DeathGazeImmune || status == HeroStatus::Exhausted ||
                            status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||

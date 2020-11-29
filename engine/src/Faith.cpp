@@ -125,7 +125,7 @@ void Faith::losePiety(int pointsLost, Hero& hero)
 void Faith::applyRandomJehoraEvent(Hero& hero)
 {
   const int result = jehora();
-  if (result > 0)
+  if (result > 0 && !hero.hasStatus(HeroStatus::Pessimist))
     gainPiety(result);
   else
     jehora.applyRandomPunishment(hero);
@@ -545,7 +545,7 @@ void Faith::initialBoon(God god, Hero& hero)
     gainPiety(5 * hero.getLevel());
     break;
   case God::JehoraJeheyu:
-    gainPiety(jehora.initialPietyBonus(hero.getLevel()));
+    gainPiety(jehora.initialPietyBonus(hero.getLevel(), hero.hasStatus(HeroStatus::Pessimist)));
     hero.receiveFreeSpell(Spell::Weytwut);
     break;
   case God::MysteraAnnur:

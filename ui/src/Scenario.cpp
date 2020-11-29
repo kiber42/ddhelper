@@ -33,7 +33,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.receive(Spell::Burndayraz);
     hero.receive(Spell::Bysseps);
     hero.receive(Item::Shield);
-    hero.addStatus(HeroStatus::NoDodge);
+    hero.addStatus(HeroStatus::Pessimist);
     return hero;
   }
   }

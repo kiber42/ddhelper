@@ -9,7 +9,7 @@ class Jehora
 {
 public:
   Jehora();
-  int initialPietyBonus(int heroLevel);
+  int initialPietyBonus(int heroLevel, bool isPessimist);
   bool lastChanceSuccessful(int remainingPiety);
   int operator()();
   void applyRandomPunishment(Hero& hero);

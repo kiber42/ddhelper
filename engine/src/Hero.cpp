@@ -645,30 +645,30 @@ void Hero::levelUpRefresh()
 
 void Hero::addDodgeChancePercent(int percent, bool isPermanent)
 {
-  const int permanent = getStatusIntensity(HeroStatus::DodgePermanent);
-  const int temporary = getStatusIntensity(HeroStatus::DodgeTemporary);
-  if (isPermanent)
-    setStatusIntensity(HeroStatus::DodgePermanent, std::min(std::max(permanent + percent, 0), 100 - temporary));
-  else
-    setStatusIntensity(HeroStatus::DodgeTemporary, std::min(std::max(temporary + percent, 0), 100 - permanent));
+  const auto statusToUpdate = isPermanent ? HeroStatus::DodgePermanent : HeroStatus::DodgeTemporary;
+  const int newDodgeChance = std::min(std::max(getStatusIntensity(statusToUpdate) + percent, 0), 100);
+  setStatusIntensity(statusToUpdate, newDodgeChance);
 }
 
 int Hero::getDodgeChancePercent() const
 {
-  if (hasStatus(HeroStatus::NoDodge))
+  const int dodgeChance = std::min(getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary), 100);
+  if (hasStatus(HeroStatus::Pessimist) && dodgeChance != 100)
     return 0;
-  return getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary);
+  return dodgeChance;
 }
 
 bool Hero::predictDodgeNext() const
 {
   assert(hasStatus(HeroStatus::DodgePrediction) && "predictDodgeNext called without dodge prediction status");
+  if (hasStatus(HeroStatus::Pessimist))
+    return false;
   return dodgeNext;
 }
 
 bool Hero::tryDodge()
 {
-  const bool success = dodgeNext;
+  const bool success = dodgeNext && (!hasStatus(HeroStatus::Pessimist) || getDodgeChancePercent() == 100);
   rerollDodgeNext();
   if (success)
   {
@@ -687,6 +687,8 @@ void Hero::rerollDodgeNext()
 
 void Hero::applyDragonSoul(int manaCosts)
 {
+  if (hasStatus(HeroStatus::Pessimist))
+    return;
   std::uniform_int_distribution<> number(1, 100);
   if (number(generator) <= 15)
     recoverManaPoints(manaCosts);
