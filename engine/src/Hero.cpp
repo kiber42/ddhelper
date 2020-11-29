@@ -1270,9 +1270,3 @@ int Hero::getConversionThreshold() const
 {
   return conversion.getThreshold();
 }
-
-void Hero::preventDodgeCheat()
-{
-  if (dodgeNext && !hasStatus(HeroStatus::DodgePrediction))
-    rerollDodgeNext();
-}

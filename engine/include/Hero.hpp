@@ -155,9 +155,6 @@ public:
   int getConversionPoints() const;
   int getConversionThreshold() const;
 
-  // used by UI undo functionality
-  void preventDodgeCheat();
-
 private:
   std::string name;
   HeroStats stats;
