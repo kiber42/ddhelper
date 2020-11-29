@@ -1,0 +1,5 @@
+#include "Hero.hpp"
+
+namespace
+{
+}
