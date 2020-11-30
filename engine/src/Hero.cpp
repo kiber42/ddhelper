@@ -652,7 +652,8 @@ void Hero::addDodgeChancePercent(int percent, bool isPermanent)
 
 int Hero::getDodgeChancePercent() const
 {
-  const int dodgeChance = std::min(getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary), 100);
+  const int dodgeChance =
+      std::min(getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary), 100);
   if (hasStatus(HeroStatus::Pessimist) && dodgeChance != 100)
     return 0;
   return dodgeChance;
