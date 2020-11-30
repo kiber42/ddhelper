@@ -35,6 +35,11 @@ std::string toString(const Step& step)
 
 std::string toString(const Solution& solution)
 {
-  return std::accumulate(begin(solution), end(solution), "Solution:"s,
-                         [](const std::string& str, const Step step) { return str + ", " + toString(step); });
+  if (solution.empty())
+    return "Empty solution";
+  std::string description =
+      std::accumulate(begin(solution), end(solution), "Solution:"s,
+                      [](const std::string& str, const Step step) { return str + ' ' + toString(step) + ','; });
+  description.pop_back();
+  return description;
 }
