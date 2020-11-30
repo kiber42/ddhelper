@@ -41,9 +41,6 @@ public:
   int getManaPoints() const;
   int getManaPointsMax() const;
 
-  void drinkHealthPotion();
-  void drinkManaPotion();
-
   int getBaseDamage() const;
   void changeBaseDamage(int deltaDamagePoints);
   int getDamageBonusPercent() const;
@@ -172,6 +169,8 @@ private:
   bool namtarsWardUsedThisLevel;
   int momentum;
 
+  void drinkHealthPotion();
+  void drinkManaPotion();
   int nagaCauldronBonus() const;
   void loseHitPoints(int amountPointsLost);
   void propagateStatus(HeroStatus status, int intensity);
