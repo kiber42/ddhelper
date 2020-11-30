@@ -2,6 +2,7 @@
 
 #include "Hero.hpp"
 #include "Monster.hpp"
+#include "Resources.hpp"
 #include "Solution.hpp"
 
 #include <optional>
@@ -9,11 +10,13 @@
 
 using MonsterPool = std::vector<Monster>;
 
-class Solver
+struct SolverState
 {
-public:
-  Solver(const Hero&, const MonsterPool&, const Resources&);
-  std::optional<Solution> run();
-private:
-
+  Hero hero{};
+  MonsterPool pool{};
+  Resources resources{};
 };
+
+enum class Solver { SimulatedAnnealing };
+
+std::optional<Solution> run(Solver solver, SolverState initialState);
