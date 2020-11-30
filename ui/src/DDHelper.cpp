@@ -32,6 +32,28 @@ DDHelperApp::DDHelperApp()
 {
 }
 
+std::optional<Scenario> runScenarioSelection()
+{
+  std::optional<Scenario> selection;
+  ImGui::Begin("Scenario");
+  ImGui::TextUnformatted("Agbaar's Academy");
+  if (ImGui::Button("Slowing Part 2"))
+    selection = Scenario::AgbaarsAcademySlowingPart2;
+  ImGui::TextUnformatted("Hello, halflings!");
+  if (ImGui::Button("Halfling Trial"))
+    selection = Scenario::HalflingTrial;
+  ImGui::End();
+  return selection;
+}
+
+// Prepare state and monster pool for a specific challenge
+void prepareScenario(State& state, MonsterPool& pool, Scenario scenario)
+{
+  state.hero.emplace(getHeroForScenario(scenario));
+  state.monster.reset();
+  pool.assign(getMonstersForScenario(scenario));
+}
+
 void DDHelperApp::populateFrame()
 {
   using namespace std::string_literals;

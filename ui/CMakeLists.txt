@@ -30,7 +30,6 @@ add_executable(
   src/History.cpp
   src/MonsterPool.cpp
   src/MonsterSelection.cpp
-  src/Scenario.cpp
   src/Utils.cpp)
-target_link_libraries(ddhelper ddhelperengine imguiapp)
+target_link_libraries(ddhelper ddhelperengine ddsolver imguiapp)
 target_include_directories(ddhelper PUBLIC imgui)

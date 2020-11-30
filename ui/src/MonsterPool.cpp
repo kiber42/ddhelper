@@ -14,6 +14,11 @@ void MonsterPool::add(Monster newMonster)
     monsters.emplace_back(std::move(newMonster));
 }
 
+void MonsterPool::assign(std::vector<Monster> newMonsters)
+{
+  monsters = std::move(newMonsters);
+}
+
 std::optional<Monster> MonsterPool::run()
 {
   ImGui::Begin("Monster Pool");

@@ -9,6 +9,7 @@ class MonsterPool
 {
 public:
   void add(Monster);
+  void assign(std::vector<Monster> newMonsters);
   std::optional<Monster> run();
   void reset();
 
