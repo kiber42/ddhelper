@@ -14,16 +14,16 @@ namespace SimulatedAnnealing
     int mana{0};
   };
 
-  struct Solve1Result
+  struct IntermediateResult
   {
-    bool solved{false};
+    Solution solution;
     ExtraPotions extraPotions;
   };
 
   // Attempt to find solution that defeats one monster (extends existing solution)
-  Solve1Result solve_1(Monster monster, Hero& hero, Resources& resources, Solution& solution, ExtraPotions extraPotions)
+  bool solve_1(Monster monster, Hero& hero, Resources& resources, IntermediateResult& result)
   {
-    const auto initialPotions = extraPotions;
+    auto& solution = result.solution;
     if (monster.getHitPoints() >= monster.getHitPointsMax())
     {
       const int numSquares = std::min(hero.numSquaresForFullRecovery(), resources.numBlackTiles);
@@ -49,10 +49,10 @@ namespace SimulatedAnnealing
       const int costs = Magic::spellCosts(spell, hero);
       if (hero.getManaPointsMax() < costs)
         return false;
-      while (hero.getManaPoints() < costs && (hero.has(Item::ManaPotion) || extraPotions.mana != 0))
+      while (hero.getManaPoints() < costs && (hero.has(Item::ManaPotion) || result.extraPotions.mana != 0))
       {
         if (!hero.has(Item::ManaPotion))
-          --extraPotions.mana;
+          --result.extraPotions.mana;
         hero.use(Item::ManaPotion);
         solution.emplace_back(Use{Item::ManaPotion});
       }
@@ -79,10 +79,10 @@ namespace SimulatedAnnealing
 
       hero = std::move(originalHero);
       monster = std::move(originalMonster);
-      if (!fullHealth && (hero.has(Item::HealthPotion) || extraPotions.health != 0))
+      if (!fullHealth && (hero.has(Item::HealthPotion) || result.extraPotions.health != 0))
       {
         if (!hero.has(Item::HealthPotion))
-          --extraPotions.health;
+          --result.extraPotions.health;
         hero.use(Item::HealthPotion);
         solution.emplace_back(Use{Item::HealthPotion});
         continue;
@@ -95,41 +95,49 @@ namespace SimulatedAnnealing
       if (tryCast(Spell::Burndayraz))
       {
         if (hero.isDefeated())
-          return {};
+          return false;
         continue;
       }
-      return {};
+      return false;
     }
     assert(monster.isDefeated());
     assert(!hero.isDefeated());
-    return {true, {initialPotions.health - extraPotions.health, initialPotions.mana - extraPotions.mana}};
+    return true;
   }
 
-  struct Result
-  {
-    Solution solution;
-    ExtraPotions extraPotions;
-  };
-
   // Attempt to find solution with an infinite amount of health and mana potions available
-  Result solve_initial(SolverState state)
+  IntermediateResult solve_initial(SolverState state)
   {
-    Result result;
+    IntermediateResult result;
+    result.extraPotions = {-1, -1};
     while (!state.pool.empty())
     {
-      const auto result1 = solve_1(std::move(state.pool.back()), state.hero, state.resources, result.solution, {-1, -1});
-      if (!result1.solved)
+      if (!solve_1(std::move(state.pool.back()), state.hero, state.resources, result))
         return {};
-      result.extraPotions.health += result1.extraPotions.health;
-      result.extraPotions.mana += result1.extraPotions.mana;
       state.pool.pop_back();
     }
+    result.extraPotions = {-1 - result.extraPotions.health, -1 - result.extraPotions.mana};
+    std::cout << "Intermediate solution used " << result.extraPotions.health << " health potion(s) and "
+              << result.extraPotions.mana << " mana potion(s)\n";
     return result;
   }
 
-  Result improve(SolverState state, Result previousResult)
+  IntermediateResult improve(SolverState state, IntermediateResult previousResult)
   {
-    return previousResult;
+    IntermediateResult result;
+    const ExtraPotions initialPotions = {previousResult.extraPotions.health - 1, previousResult.extraPotions.mana + 2};
+    result.extraPotions = initialPotions;
+    while (!state.pool.empty())
+    {
+      if (!solve_1(std::move(state.pool.back()), state.hero, state.resources, result))
+        return {};
+      state.pool.pop_back();
+    }
+    result.extraPotions = {initialPotions.health - result.extraPotions.health,
+                           initialPotions.mana - result.extraPotions.mana};
+    std::cout << "Intermediate solution used " << result.extraPotions.health << " health potion(s) and "
+              << result.extraPotions.mana << " mana potion(s)\n";
+    return result;
   }
 
   std::optional<Solution> run(SolverState state)
@@ -137,10 +145,22 @@ namespace SimulatedAnnealing
     state.hero.addStatus(HeroStatus::Pessimist);
     std::reverse(begin(state.pool), end(state.pool));
 
-    const auto resultInitial = solve_initial(state);
-    const auto resultImproved = improve(state, resultInitial);
+    auto result = solve_initial(state);
+    if (result.solution.empty())
+      return {};
 
-    return resultImproved.solution;
+    while (true)
+    {
+      auto previousResult = std::move(result);
+      result = improve(state, previousResult);
+      if (result.solution.empty())
+      {
+        result = std::move(previousResult);
+        break;
+      }
+    }
+
+    return result.solution;
   }
 } // namespace SimulatedAnnealing
 
