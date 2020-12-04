@@ -101,6 +101,7 @@ public:
   int gold() const;
   void addGold(int amountAdded);
   bool spendGold(int amountSpent);
+  bool buy(Item item);
 
   Faith& getFaith();
   const Faith& getFaith() const;

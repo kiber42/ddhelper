@@ -725,6 +725,14 @@ bool Hero::spendGold(int amountSpent)
   return true;
 }
 
+bool Hero::buy(Item item)
+{
+  if (!spendGold(price(item)))
+    return false;
+  receive(item);
+  return true;
+}
+
 Faith& Hero::getFaith()
 {
   return faith;
