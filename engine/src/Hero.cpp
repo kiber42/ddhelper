@@ -1292,21 +1292,20 @@ std::vector<std::string> describe(const Hero& hero)
   if (hero.isDefeated())
     return {"Hero defeated."};
 
-  std::vector<std::string> description;
-  char buffer[200];
-  sprintf(buffer, "%s level %i   %i/%i HP  %i/%i MP  damage %i (%i%+i%%)", hero.getName().c_str(), hero.getLevel(),
-          hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
-          hero.getDamageVersusStandard(), hero.getBaseDamage(), hero.getDamageBonusPercent());
-  description.emplace_back(buffer);
-  sprintf(buffer, "%i/%i XP  %i/%i CP  %i piety  %i gold", hero.getXP(), hero.getXPforNextLevel(),
-          hero.getConversionPoints(), hero.getConversionThreshold(), hero.getPiety(), hero.gold());
-  std::string statusStr = buffer;
-  if (hero.getPhysicalResistPercent() > 0 || hero.getMagicalResistPercent() > 0)
-  {
-    sprintf(buffer, " resists: %i%%,%i%%", hero.getPhysicalResistPercent(), hero.getMagicalResistPercent());
-    statusStr += buffer;
-  }
-  description.emplace_back(std::move(statusStr));
+  std::vector description {
+    hero.getName() + " level " + std::to_string(hero.getLevel()),
+    std::to_string(hero.getHitPoints()) + "/" + std::to_string(hero.getHitPointsMax()) + " HP",
+    std::to_string(hero.getManaPoints()) + "/" + std::to_string(hero.getManaPointsMax()) + " MP",
+    std::to_string(hero.getXP()) + "/" + std::to_string(hero.getXPforNextLevel()) + " XP",
+    std::to_string(hero.getConversionPoints()) + "/" + std::to_string(hero.getConversionThreshold()) + " CP",
+    std::to_string(hero.getDamageVersusStandard()) + " damage (" + std::to_string(hero.getBaseDamage()) + "+" + std::to_string(hero.getDamageBonusPercent()) + "%)",
+    std::to_string(hero.getPiety()) + " piety",
+    std::to_string(hero.gold()) + " gold"
+  };
+  if (hero.getPhysicalResistPercent() > 0)
+    description.emplace_back(std::to_string(hero.getPhysicalResistPercent()) + "% physical resist");
+  if (hero.getMagicalResistPercent() > 0)
+    description.emplace_back(std::to_string(hero.getMagicalResistPercent()) + "% magic resist");
 
   for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
   {

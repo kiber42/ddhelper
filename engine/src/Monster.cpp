@@ -308,11 +308,12 @@ std::vector<std::string> describe(const Monster& monster)
   if (monster.isDefeated())
     return {monster.getName() + " defeated."s};
 
-  std::vector<std::string> description;
-  char buffer[100];
-  sprintf(buffer, "%s has %i/%i HP and does %i damage", monster.getName(), monster.getHitPoints(),
-          monster.getHitPointsMax(), monster.getDamage());
-  description.emplace_back(buffer);
+  std::vector description
+  {
+    std::string{monster.getName()},
+    std::to_string(monster.getHitPoints()) + "/" + std::to_string(monster.getHitPointsMax()) + " HP",
+    std::to_string(monster.getDamage()) + " damage"
+  };
   if (monster.hasFirstStrike() && !monster.isSlowed())
     description.emplace_back("First Strike");
   if (monster.doesMagicalDamage())

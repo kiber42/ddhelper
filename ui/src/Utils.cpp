@@ -49,12 +49,19 @@ void showStatus(const std::vector<std::string>& description)
 
 void showStatus(const Hero& hero)
 {
-  showStatus(describe(hero));
+  auto items = describe(hero);
+  items[1] = items[1] + "  " + items[2] + "  " + items[3] + "  " + items[4];
+  items[2] = items[5] + "  " + items[6] + "  " + items[7];
+  items.erase(items.begin() + 3, items.begin() + 8);
+  showStatus(items);
 }
 
 void showStatus(const Monster& monster)
 {
-  showStatus(describe(monster));
+  auto items = describe(monster);
+  items[0] += " has " + items[1] + " and does " + items[2];
+  items.erase(items.begin() + 1, items.begin() + 3);
+  showStatus(items);
 }
 
 void showStatus(const State& state)
