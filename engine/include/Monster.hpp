@@ -6,6 +6,7 @@
 #include "MonsterTraits.hpp"
 
 #include <string>
+#include <vector>
 
 class Monster
 {
@@ -82,3 +83,5 @@ private:
 
   static int lastId;
 };
+
+std::vector<std::string> describe(const Monster& monster);

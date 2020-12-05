@@ -113,6 +113,7 @@ public:
   int getBoonCosts(Boon boon) const;
 
   bool followDeity(God god);
+  bool request(Boon boon);
   void desecrate(God altar);
 
   // Functions to group all piety events belonging to one action.
@@ -182,3 +183,5 @@ private:
   void applyOrCollect(PietyChange pietyChange);
   void changeStatsFromItem(Item item, bool itemReceived);
 };
+
+std::vector<std::string> describe(const Hero& hero);

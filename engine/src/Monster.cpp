@@ -300,3 +300,59 @@ bool Monster::isBloodless() const
 {
   return traits.isBloodless();
 }
+
+using namespace std::string_literals;
+
+std::vector<std::string> describe(const Monster& monster)
+{
+  if (monster.isDefeated())
+    return {monster.getName() + " defeated."s};
+
+  std::vector<std::string> description;
+  char buffer[100];
+  sprintf(buffer, "%s has %i/%i HP and does %i damage", monster.getName(), monster.getHitPoints(),
+          monster.getHitPointsMax(), monster.getDamage());
+  description.emplace_back(buffer);
+  if (monster.hasFirstStrike() && !monster.isSlowed())
+    description.emplace_back("First Strike");
+  if (monster.doesMagicalDamage())
+    description.emplace_back("Magical Attack");
+  if (monster.doesRetaliate() && !monster.isSlowed())
+    description.emplace_back("Retaliate: Fireball");
+  if (monster.getPhysicalResistPercent() > 0)
+    description.emplace_back("Physical resist "s + std::to_string(monster.getPhysicalResistPercent()) + "%");
+  if (monster.getMagicalResistPercent() > 0)
+    description.emplace_back("Magical resist "s + std::to_string(monster.getMagicalResistPercent()) + "%");
+  if (monster.isPoisonous())
+    description.emplace_back("Poisonous");
+  if (monster.hasManaBurn())
+    description.emplace_back("Mana Burn");
+  if (monster.bearsCurse())
+    description.emplace_back("Curse bearer");
+  if (monster.isCorrosive())
+    description.emplace_back("Corrosive");
+  if (monster.isWeakening())
+    description.emplace_back("Weakening Blow");
+  if (monster.getDeathGazePercent() > 0)
+    description.emplace_back("Death Gaze "s + std::to_string(monster.getDeathGazePercent()) + "%");
+  if (monster.getDeathProtection() > 0)
+    description.emplace_back("Death protection (x"s + std::to_string(monster.getDeathProtection()) + "%");
+  if (monster.getLifeStealPercent() > 0)
+    description.emplace_back("Life Steal "s + std::to_string(monster.getLifeStealPercent()) + "%");
+  if (monster.isBurning())
+    description.emplace_back("Burning (burn stack size "s + std::to_string(monster.getBurnStackSize()) + ")");
+  if (monster.isPoisoned())
+    description.emplace_back("Poisoned (amount: "s + std::to_string(monster.getPoisonAmount()) + ")");
+  if (monster.isSlowed())
+    description.emplace_back("Slowed");
+  if (monster.getCorroded() > 0)
+    description.emplace_back("Corroded (x"s + std::to_string(monster.getCorroded()) + ")");
+  if (monster.isUndead())
+    description.emplace_back("Undead");
+  if (monster.isBloodless())
+    description.emplace_back("Bloodless");
+  if (!monster.grantsXP())
+    description.emplace_back("No Experience");
+
+  return description;
+}

@@ -774,6 +774,11 @@ bool Hero::followDeity(God god)
   return faith.followDeity(god, *this);
 }
 
+bool Hero::request(Boon boon)
+{
+  return faith.request(boon, *this);
+}
+
 void Hero::desecrate(God altar)
 {
   faith.desecrate(altar, *this, has(Item::AgnosticCollar));
@@ -1278,4 +1283,74 @@ int Hero::getConversionPoints() const
 int Hero::getConversionThreshold() const
 {
   return conversion.getThreshold();
+}
+
+using namespace std::string_literals;
+
+std::vector<std::string> describe(const Hero& hero)
+{
+  if (hero.isDefeated())
+    return {"Hero defeated."};
+
+  std::vector<std::string> description;
+  char buffer[200];
+  sprintf(buffer, "%s level %i   %i/%i HP  %i/%i MP  damage %i (%i%+i%%)", hero.getName().c_str(), hero.getLevel(),
+          hero.getHitPoints(), hero.getHitPointsMax(), hero.getManaPoints(), hero.getManaPointsMax(),
+          hero.getDamageVersusStandard(), hero.getBaseDamage(), hero.getDamageBonusPercent());
+  description.emplace_back(buffer);
+  sprintf(buffer, "%i/%i XP  %i/%i CP  %i piety  %i gold", hero.getXP(), hero.getXPforNextLevel(),
+          hero.getConversionPoints(), hero.getConversionThreshold(), hero.getPiety(), hero.gold());
+  std::string statusStr = buffer;
+  if (hero.getPhysicalResistPercent() > 0 || hero.getMagicalResistPercent() > 0)
+  {
+    sprintf(buffer, " resists: %i%%,%i%%", hero.getPhysicalResistPercent(), hero.getMagicalResistPercent());
+    statusStr += buffer;
+  }
+  description.emplace_back(std::move(statusStr));
+
+  for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
+  {
+    auto status = static_cast<HeroStatus>(i);
+    if (!hero.hasStatus(status) || (hero.hasStatus(HeroStatus::Pessimist) &&
+                                    (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
+                                     status == HeroStatus::DodgePrediction)))
+      continue;
+    if (status == HeroStatus::DodgePrediction)
+    {
+      if (hero.predictDodgeNext())
+        description.emplace_back("will dodge next attack");
+      else
+        description.emplace_back("won't dodge next attack");
+      continue;
+    }
+    const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
+                       status == HeroStatus::DeathGazeImmune || status == HeroStatus::Exhausted ||
+                       status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||
+                       status == HeroStatus::Poisoned || status == HeroStatus::Poisonous ||
+                       status == HeroStatus::PoisonImmune || status == HeroStatus::Weakened;
+    std::string statusStr;
+    if (useIs)
+      statusStr = "is ";
+    else
+      statusStr = "has ";
+    statusStr += toString(status);
+    if (canHaveMultiple(status))
+      statusStr += " (x" + std::to_string(hero.getStatusIntensity(status)) + ")";
+    description.emplace_back(std::move(statusStr));
+  }
+
+  if (hero.getFollowedDeity())
+    description.emplace_back("follows "s + toString(*hero.getFollowedDeity()));
+  for (auto boon :
+       {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition, Boon::Flames, Boon::MysticBalance})
+  {
+    if (hero.hasBoon(boon))
+      description.emplace_back("has "s + toString(boon));
+  }
+  if (hero.getFaith().getPact())
+    description.emplace_back("entered "s + toString(*hero.getFaith().getPact()));
+  if (hero.getFaith().enteredConsensus())
+    description.emplace_back("reached consensus");
+
+  return description;
 }
