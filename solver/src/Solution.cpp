@@ -43,3 +43,9 @@ std::string toString(const Solution& solution)
   description.pop_back();
   return description;
 }
+
+bool isCombat(const Step& step)
+{
+  return step.index() == 0 /* melee attack */
+         || (step.index() == 1 && std::get<1>(step).spell == Spell::Burndayraz);
+}

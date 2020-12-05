@@ -29,7 +29,10 @@ void testSolve(Solver solver, Scenario scenario)
 
   auto solution = run(solver, state);
   if (solution)
+  {
     std::cout << toString(*solution) << '\n';
+    print(*solution, state);
+  }
   else
     std::cout << "No solution found.\n";
 }

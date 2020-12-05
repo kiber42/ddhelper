@@ -63,3 +63,5 @@ using Solution = std::vector<Step>;
 
 std::string toString(const Step&);
 std::string toString(const Solution&);
+
+bool isCombat(const Step&);

@@ -172,3 +172,81 @@ std::optional<Solution> run(Solver solver, SolverState initialState)
     return SimulatedAnnealing::run(std::move(initialState));
   }
 }
+
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+SolverState apply(Step step, SolverState state)
+{
+  while (!state.pool.empty() && state.pool.front().isDefeated())
+    state.pool.erase(state.pool.begin());
+  if (state.pool.empty())
+    return state;
+  auto& hero = state.hero;
+  auto& monster = state.pool.front();
+  std::visit(
+      overloaded{
+          [&](Attack) { Combat::attack(hero, monster); },
+          [&](Cast cast) { Magic::cast(hero, monster, cast.spell); },
+          [&](Uncover uncover) {
+            hero.recover(uncover.numTiles);
+            monster.recover(uncover.numTiles);
+          },
+          [&](Buy buy) { hero.buy(buy.item); },
+          [&](Use use) { hero.use(use.item); },
+          [&](Convert convert) {
+            std::visit(overloaded{[&](Item item) { hero.convert(item); }, [&](Spell spell) { hero.convert(spell); }},
+                       convert.itemOrSpell);
+          },
+          [&](Find find) { hero.receive(find.spell); },
+          [&](Follow follow) { hero.followDeity(follow.deity); },
+          [&](Request request) { hero.request(request.boon); },
+          [&](Desecrate desecrate) { hero.desecrate(desecrate.altar); }},
+      step);
+  return state;
+}
+
+SolverState apply(Solution solution, SolverState state)
+{
+  for (const auto& step : solution)
+    state = apply(step, std::move(state));
+  return state;
+}
+
+namespace
+{
+  void print_description(const std::vector<std::string>& description)
+  {
+    std::string s = std::accumulate(begin(description), end(description), std::string{},
+                                    [](auto& a, auto& b) { return a + ", " + b; });
+    if (!s.empty())
+      std::cout << s.substr(2) << '\n';
+  }
+} // namespace
+
+SolverState print(Solution solution, SolverState state)
+{
+  print_description(describe(state.hero));
+  if (!state.pool.empty())
+    print_description(describe(state.pool.front()));
+  for (const auto& step : solution)
+  {
+    std::cout << toString(step) << '\n';
+    state = apply(step, std::move(state));
+
+    print_description(describe(state.hero));
+    if (isCombat(step) && !state.pool.empty())
+    {
+      print_description(describe(state.pool.front()));
+      if (state.pool.front().isDefeated() && state.pool.size() >= 2)
+        print_description(describe(state.pool[1]));
+    }
+  }
+  return state;
+}

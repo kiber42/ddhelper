@@ -20,3 +20,7 @@ struct SolverState
 enum class Solver { SimulatedAnnealing };
 
 std::optional<Solution> run(Solver solver, SolverState initialState);
+
+SolverState apply(Step step, SolverState state);
+SolverState apply(Solution solution, SolverState state);
+SolverState print(Solution solution, SolverState state);
