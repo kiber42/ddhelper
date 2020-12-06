@@ -47,6 +47,18 @@ namespace SimulatedAnnealing
     };
     auto tryCast = [&](Spell spell) {
       const int costs = Magic::spellCosts(spell, hero);
+      if (hero.getManaPoints() < costs)
+        return false;
+      if (!Magic::isPossible(hero, monster, spell))
+        return false;
+      if (!tryGetSpell(spell))
+        return false;
+      Magic::cast(hero, monster, spell);
+      solution.emplace_back(Cast{spell});
+      return true;
+    };
+    auto tryCastUsePotion = [&](Spell spell) {
+      const int costs = Magic::spellCosts(spell, hero);
       if (hero.getManaPointsMax() < costs)
         return false;
       while (hero.getManaPoints() < costs && (hero.has(Item::ManaPotion) || result.extraPotions.mana != 0))
@@ -56,13 +68,7 @@ namespace SimulatedAnnealing
         hero.use(Item::ManaPotion);
         solution.emplace_back(Use{Item::ManaPotion});
       }
-      if (!Magic::isPossible(hero, monster, spell))
-        return false;
-      if (!tryGetSpell(spell))
-        return false;
-      Magic::cast(hero, monster, spell);
-      solution.emplace_back(Cast{spell});
-      return true;
+      return tryCast(spell);
     };
 
     while (!monster.isDefeated())
@@ -70,6 +76,10 @@ namespace SimulatedAnnealing
       const bool fullHealth = hero.getHitPoints() >= hero.getHitPointsMax();
       Hero originalHero(hero);
       Monster originalMonster(monster);
+      const auto solutionSize = solution.size();
+      if (!hero.hasInitiativeVersus(monster))
+        tryCast(Spell::Getindare);
+      tryCast(Spell::Bysseps);
       const Summary summary = Combat::attack(hero, monster);
       if (!hero.isDefeated())
       {
@@ -77,8 +87,11 @@ namespace SimulatedAnnealing
         continue;
       }
 
+      // Undo attack and spells
+      solution.resize(solutionSize);
       hero = std::move(originalHero);
       monster = std::move(originalMonster);
+
       if (!fullHealth && (hero.has(Item::HealthPotion) || result.extraPotions.health != 0))
       {
         if (!hero.has(Item::HealthPotion))
@@ -87,12 +100,10 @@ namespace SimulatedAnnealing
         solution.emplace_back(Use{Item::HealthPotion});
         continue;
       }
-      if (!hero.hasInitiativeVersus(monster) && tryCast(Spell::Getindare))
-        continue;
       if (!monster.doesMagicalDamage() && !hero.hasStatus(HeroStatus::Cursed) &&
           hero.getStatusIntensity(HeroStatus::StoneSkin) < 3 && tryCast(Spell::Endiswal))
         continue;
-      if (tryCast(Spell::Burndayraz))
+      if (tryCastUsePotion(Spell::Burndayraz))
       {
         if (hero.isDefeated())
           return false;
@@ -122,10 +133,10 @@ namespace SimulatedAnnealing
     return result;
   }
 
-  IntermediateResult improve(SolverState state, IntermediateResult previousResult)
+  IntermediateResult useMoreMana(SolverState state, IntermediateResult previousResult)
   {
     IntermediateResult result;
-    const ExtraPotions initialPotions = {previousResult.extraPotions.health - 1, previousResult.extraPotions.mana + 2};
+    const ExtraPotions initialPotions = {previousResult.extraPotions.health - 1, previousResult.extraPotions.mana + 10};
     result.extraPotions = initialPotions;
     while (!state.pool.empty())
     {
@@ -137,6 +148,17 @@ namespace SimulatedAnnealing
                            initialPotions.mana - result.extraPotions.mana};
     std::cout << "Intermediate solution used " << result.extraPotions.health << " health potion(s) and "
               << result.extraPotions.mana << " mana potion(s)\n";
+    return result;
+  }
+
+  IntermediateResult reduce(SolverState state, IntermediateResult previousResult)
+  {
+    IntermediateResult result;
+
+
+    // TODO
+
+
     return result;
   }
 
@@ -152,7 +174,18 @@ namespace SimulatedAnnealing
     while (true)
     {
       auto previousResult = std::move(result);
-      result = improve(state, previousResult);
+      result = useMoreMana(state, previousResult);
+      if (result.solution.empty())
+      {
+        result = std::move(previousResult);
+        break;
+      }
+    }
+
+    while (true)
+    {
+      auto previousResult = std::move(result);
+      result = reduce(state, previousResult);
       if (result.solution.empty())
       {
         result = std::move(previousResult);
