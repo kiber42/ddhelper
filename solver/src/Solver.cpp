@@ -290,3 +290,46 @@ SolverState print(Solution solution, SolverState state)
   }
   return state;
 }
+
+bool isValid(Step step, const SolverState& state)
+{
+  const auto monsterIt =
+      std::find_if(begin(state.pool), end(state.pool), [](const auto& monster) { return !monster.isDefeated(); });
+  const bool hasMonster = monsterIt != end(state.pool);
+  const auto& hero = state.hero;
+  // TODO:
+  // - Buy / Find: Check inventory space
+  // - Convert: Check if items are convertible
+  return std::visit(
+      overloaded{
+          [&](Attack) { return hasMonster; },
+          [&](Cast cast) {
+            return hero.has(cast.spell) && ((hasMonster && Magic::isPossible(hero, *monsterIt, cast.spell)) ||
+                                            (!Magic::needsMonster(cast.spell) && Magic::isPossible(hero, cast.spell)));
+          },
+          [&](Uncover uncover) { return state.resources.numBlackTiles >= uncover.numTiles; },
+          [gold = hero.gold(), &shops = state.resources.shops](Buy buy) {
+            return gold >= price(buy.item) && std::find(begin(shops), end(shops), buy.item) != end(shops);
+          },
+          [&](Use use) { return hero.has(use.item) && hero.canUse(use.item); },
+          [&](Convert convert) {
+            return std::visit(overloaded{[&hero](Item item) { return hero.has(item); },
+                                         [&hero](Spell spell) { return hero.has(spell); }},
+                              convert.itemOrSpell);
+          },
+          [&spells = state.resources.spells](Find find) {
+            return std::find(begin(spells), end(spells), find.spell) != end(spells);
+          },
+          [piety = state.hero.getPiety(), current = state.hero.getFollowedDeity(),
+           &altars = state.resources.altars](Follow follow) {
+            return (!current || (current != follow.deity && piety >= 50)) &&
+                   std::find(begin(altars), end(altars), follow.deity) != end(altars);
+          },
+          [&faith = hero.getFaith(), &hero = state.hero](Request request) {
+            return faith.isAvailable(request.boon, hero) && hero.getPiety() >= faith.getCosts(request.boon, hero);
+          },
+          [current = state.hero.getFollowedDeity(), &altars = state.resources.altars](Desecrate desecrate) {
+            return current != desecrate.altar && std::find(begin(altars), end(altars), desecrate.altar) != end(altars);
+          }},
+      step);
+}
