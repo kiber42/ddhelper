@@ -43,6 +43,7 @@ enum class Item
   OrbOfZot,
   AlchemistScroll,
   WickedGuitar,
+  LastShopItem = WickedGuitar,
   // Blacksmith Items
   BearMace,
   PerseveranceBadge,
@@ -75,7 +76,8 @@ enum class Item
   Skullpicker,
   Wereward,
   Gloat,
-  Will
+  Will,
+  Last = Will
 };
 
 constexpr const char* toString(Item item)

@@ -5,6 +5,82 @@
 
 #include <algorithm>
 #include <cassert>
+#include <random>
+
+static std::mt19937 generator(std::random_device{"/dev/urandom"}());
+
+Step randomStep()
+{
+  std::uniform_int_distribution<> randomAction(0, 10);
+  std::uniform_int_distribution<> randomSpell(0, static_cast<int>(Spell::Last) - 1);
+  std::uniform_int_distribution<> randomShopItem(0, static_cast<int>(Item::LastShopItem) - 1);
+  std::uniform_int_distribution<> randomItem(0, static_cast<int>(Item::Last) - 1);
+  std::uniform_int_distribution<> randomGod(0, static_cast<int>(God::Last) - 1);
+  std::uniform_int_distribution<> randomBoon(0, static_cast<int>(Boon::Last) - 1);
+  switch (randomAction(generator))
+  {
+  default:
+  case 0:
+    return Attack{};
+  case 1:
+    return Cast{static_cast<Spell>(randomSpell(generator))};
+  case 2:
+    return Uncover{1};
+  case 3:
+    return Buy{static_cast<Item>(randomShopItem(generator))};
+  case 4:
+    return Use{static_cast<Item>(randomItem(generator))};
+  case 5:
+    return Convert{static_cast<Item>(randomItem(generator))};
+  case 6:
+    return Convert{static_cast<Spell>(randomSpell(generator))};
+  case 7:
+    return Find{static_cast<Spell>(randomSpell(generator))};
+  case 8:
+    return Follow{static_cast<God>(randomGod(generator))};
+  case 9:
+    return Request{static_cast<Boon>(randomBoon(generator))};
+  case 10:
+    return Desecrate{static_cast<God>(randomGod(generator))};
+  }
+}
+
+namespace GeneticAlgorithm
+{
+  // Random initial solution
+  Solution initialSolution(SolverState state)
+  {
+    Solution initial;
+    while (!state.hero.isDefeated() && initial.size() < 100)
+    {
+      Step step = randomStep();
+      if (isValid(step, state))
+      {
+        initial.emplace_back(step);
+        state = apply(std::move(step), std::move(state));
+      }
+    }
+    return initial;
+  }
+
+  int fitnessScore(const Solution& solution)
+  {
+    return solution.size();
+  }
+
+  std::optional<Solution> run(SolverState state)
+  {
+    state.hero.addStatus(HeroStatus::Pessimist);
+    const int num_generations = 10;
+    const int generation_size = 100;
+
+    std::array<Solution, generation_size> population;
+    std::generate(begin(population), end(population), [&state] { return initialSolution(state); });
+
+    return *std::max_element(begin(population), end(population),
+                             [](const auto& a, const auto& b) { return a.size() < b.size(); });
+  }
+} // namespace GeneticAlgorithm
 
 namespace SimulatedAnnealing
 {
@@ -201,6 +277,8 @@ std::optional<Solution> run(Solver solver, SolverState initialState)
 {
   switch (solver)
   {
+  case Solver::GeneticAlgorithm:
+    return GeneticAlgorithm::run(std::move(initialState));
   case Solver::SimulatedAnnealing:
     return SimulatedAnnealing::run(std::move(initialState));
   }
