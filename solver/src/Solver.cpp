@@ -261,34 +261,19 @@ namespace
     if (!s.empty())
       std::cout << s.substr(2) << '\n';
   }
-
-  void update_hero(std::vector<std::string>& before, std::vector<std::string> now)
-  {
-    auto updated = now;
-    std::vector<std::string> removed;
-    // remove unchanged items
-    for (const auto& item : before)
-    {
-      auto iter = std::find(begin(updated), end(updated), item);
-      if (iter != end(updated))
-        updated.erase(iter);
-    }
-    print_description(updated);
-    before = std::move(now);
-  }
 } // namespace
 
 SolverState print(Solution solution, SolverState state)
 {
-  auto heroBefore = describe(state.hero);
-  print_description(heroBefore);
+  print_description(describe(state.hero));
   if (!state.pool.empty())
     print_description(describe(state.pool.front()));
   for (const auto& step : solution)
   {
     std::cout << toString(step) << '\n';
+    auto heroBefore = state.hero;
     state = apply(step, std::move(state));
-    update_hero(heroBefore, describe(state.hero));
+    print_description(describe_diff(heroBefore, state.hero));
     if (isCombat(step) && !state.pool.empty())
     {
       print_description(describe(state.pool.front()));

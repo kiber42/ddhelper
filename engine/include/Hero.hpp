@@ -185,3 +185,4 @@ private:
 };
 
 std::vector<std::string> describe(const Hero& hero);
+std::vector<std::string> describe_diff(const Hero& before, const Hero& now);

@@ -1292,16 +1292,16 @@ std::vector<std::string> describe(const Hero& hero)
   if (hero.isDefeated())
     return {"Hero defeated."};
 
-  std::vector description {
-    hero.getName() + " level " + std::to_string(hero.getLevel()),
-    std::to_string(hero.getHitPoints()) + "/" + std::to_string(hero.getHitPointsMax()) + " HP",
-    std::to_string(hero.getManaPoints()) + "/" + std::to_string(hero.getManaPointsMax()) + " MP",
-    std::to_string(hero.getXP()) + "/" + std::to_string(hero.getXPforNextLevel()) + " XP",
-    std::to_string(hero.getConversionPoints()) + "/" + std::to_string(hero.getConversionThreshold()) + " CP",
-    std::to_string(hero.getDamageVersusStandard()) + " damage (" + std::to_string(hero.getBaseDamage()) + "+" + std::to_string(hero.getDamageBonusPercent()) + "%)",
-    std::to_string(hero.getPiety()) + " piety",
-    std::to_string(hero.gold()) + " gold"
-  };
+  std::vector description{
+      hero.getName() + " level " + std::to_string(hero.getLevel()),
+      std::to_string(hero.getHitPoints()) + "/" + std::to_string(hero.getHitPointsMax()) + " HP",
+      std::to_string(hero.getManaPoints()) + "/" + std::to_string(hero.getManaPointsMax()) + " MP",
+      std::to_string(hero.getXP()) + "/" + std::to_string(hero.getXPforNextLevel()) + " XP",
+      std::to_string(hero.getConversionPoints()) + "/" + std::to_string(hero.getConversionThreshold()) + " CP",
+      std::to_string(hero.getDamageVersusStandard()) + " damage (" + std::to_string(hero.getBaseDamage()) + "+" +
+          std::to_string(hero.getDamageBonusPercent()) + "%)",
+      std::to_string(hero.getPiety()) + " piety",
+      std::to_string(hero.gold()) + " gold"};
   if (hero.getPhysicalResistPercent() > 0)
     description.emplace_back(std::to_string(hero.getPhysicalResistPercent()) + "% physical resist");
   if (hero.getMagicalResistPercent() > 0)
@@ -1349,6 +1349,104 @@ std::vector<std::string> describe(const Hero& hero)
   if (hero.getFaith().getPact())
     description.emplace_back("entered "s + toString(*hero.getFaith().getPact()));
   if (hero.getFaith().enteredConsensus())
+    description.emplace_back("reached consensus");
+
+  return description;
+}
+
+std::vector<std::string> describe_diff(const Hero& before, const Hero& now)
+{
+  if (now.isDefeated())
+    return {"Hero defeated."};
+
+  std::vector<std::string> description;
+  if (before.getLevel() != now.getLevel())
+    description.emplace_back("level "s + std::to_string(before.getLevel()) + " -> " + std::to_string(now.getLevel()));
+  if (before.getHitPoints() != now.getHitPoints() || before.getHitPointsMax() != now.getHitPointsMax())
+    description.emplace_back("HP: "s + std::to_string(before.getHitPoints()) + "/" +
+                             std::to_string(before.getHitPointsMax()) + " -> " + std::to_string(now.getHitPoints()) +
+                             "/" + std::to_string(now.getHitPointsMax()));
+  if (before.getManaPoints() != now.getManaPoints() || before.getManaPointsMax() != now.getManaPointsMax())
+    description.emplace_back("MP: "s + std::to_string(before.getManaPoints()) + "/" +
+                             std::to_string(before.getManaPointsMax()) + " -> " + std::to_string(now.getManaPoints()) +
+                             "/" + std::to_string(now.getManaPointsMax()));
+  if (before.getXP() != now.getXP() || before.getXPforNextLevel() != now.getXPforNextLevel())
+    description.emplace_back("XP: "s + std::to_string(before.getXP()) + "/" +
+                             std::to_string(before.getXPforNextLevel()) + " -> " + std::to_string(now.getXP()) + "/" +
+                             std::to_string(now.getXPforNextLevel()));
+  if (before.getConversionPoints() != now.getConversionPoints() ||
+      before.getConversionThreshold() != now.getConversionThreshold())
+    description.emplace_back(
+        "CP: "s + std::to_string(before.getConversionPoints()) + "/" + std::to_string(before.getConversionThreshold()) +
+        " -> " + std::to_string(now.getConversionPoints()) + "/" + std::to_string(now.getConversionThreshold()));
+  if (before.getDamageVersusStandard() != now.getDamageVersusStandard())
+    description.emplace_back(
+        "damage: "s + std::to_string(before.getDamageVersusStandard()) + " (" + std::to_string(before.getBaseDamage()) +
+        "+" + std::to_string(before.getDamageBonusPercent()) + "%) -> " +
+        std::to_string(now.getDamageVersusStandard()) + " (" + std::to_string(now.getBaseDamage()) + "+" +
+        std::to_string(now.getDamageBonusPercent()) + "%)");
+  if (before.getPiety() != now.getPiety())
+    description.emplace_back("piety: "s + std::to_string(before.getPiety()) + " -> " +
+                             std::to_string(before.getPiety()));
+  if (before.gold() != now.gold())
+    description.emplace_back("gold: " + std::to_string(before.gold()) + " -> " + std::to_string(now.gold()));
+
+  if (before.getPhysicalResistPercent() != now.getPhysicalResistPercent())
+    description.emplace_back("physical resist: "s + std::to_string(before.getPhysicalResistPercent()) + "% -> " +
+                             std::to_string(now.getPhysicalResistPercent()) + "%");
+  if (before.getMagicalResistPercent() != now.getMagicalResistPercent())
+    description.emplace_back("magical resist: "s + std::to_string(before.getMagicalResistPercent()) + "% -> " +
+                             std::to_string(now.getMagicalResistPercent()) + "%");
+
+  for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
+  {
+    auto status = static_cast<HeroStatus>(i);
+    if (before.getStatusIntensity(status) == now.getStatusIntensity(status))
+      continue;
+    if ((now.hasStatus(HeroStatus::Pessimist) &&
+         (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
+          status == HeroStatus::DodgePrediction)))
+      continue;
+    if (canHaveMultiple(status))
+    {
+      description.emplace_back(toString(status) + " x"s + std::to_string(before.getStatusIntensity(status)) + " -> x" +
+                               std::to_string(now.getStatusIntensity(status)));
+    }
+    else
+    {
+      const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
+                         status == HeroStatus::DeathGazeImmune || status == HeroStatus::Exhausted ||
+                         status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||
+                         status == HeroStatus::Poisoned || status == HeroStatus::Poisonous ||
+                         status == HeroStatus::PoisonImmune || status == HeroStatus::Weakened;
+      const bool usePast = !now.hasStatus(status);
+      std::string statusStr = [useIs, usePast]() -> std::string {
+        if (useIs)
+        {
+          if (usePast)
+            return "was ";
+          else
+            return "is ";
+        }
+        if (usePast)
+          return "lost ";
+        return "has ";
+      }() + toString(status);
+      description.emplace_back(std::move(statusStr));
+    }
+  }
+
+  if (before.getFollowedDeity())
+    description.emplace_back("follows "s + toString(*before.getFollowedDeity()));
+  for (auto boon :
+       {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition, Boon::Flames, Boon::MysticBalance})
+  {
+    if (before.hasBoon(boon))
+      description.emplace_back("has "s + toString(boon));
+  }
+  if (before.getFaith().getPact())
+    description.emplace_back("entered "s + toString(*before.getFaith().getPact()));
+  if (before.getFaith().enteredConsensus())
     description.emplace_back("reached consensus");
 
   return description;
