@@ -217,31 +217,38 @@ overloaded(Ts...) -> overloaded<Ts...>;
 
 SolverState apply(Step step, SolverState state)
 {
-  while (!state.pool.empty() && state.pool.front().isDefeated())
-    state.pool.erase(state.pool.begin());
   if (state.pool.empty())
     return state;
   auto& hero = state.hero;
   auto& monster = state.pool.front();
   std::visit(
       overloaded{
-          [&](Attack) { Combat::attack(hero, monster); },
-          [&](Cast cast) { Magic::cast(hero, monster, cast.spell); },
+          [&](Attack) { Combat::attack(hero, monster); }, [&](Cast cast) { Magic::cast(hero, monster, cast.spell); },
           [&](Uncover uncover) {
             hero.recover(uncover.numTiles);
             monster.recover(uncover.numTiles);
           },
-          [&](Buy buy) { hero.buy(buy.item); },
+          [&hero, &shops = state.resources.shops](Buy buy) {
+            shops.erase(std::find(begin(shops), end(shops), buy.item));
+            hero.buy(buy.item);
+          },
           [&](Use use) { hero.use(use.item); },
           [&](Convert convert) {
             std::visit(overloaded{[&](Item item) { hero.convert(item); }, [&](Spell spell) { hero.convert(spell); }},
                        convert.itemOrSpell);
           },
-          [&](Find find) { hero.receive(find.spell); },
-          [&](Follow follow) { hero.followDeity(follow.deity); },
-          [&](Request request) { hero.request(request.boon); },
-          [&](Desecrate desecrate) { hero.desecrate(desecrate.altar); }},
+          [&hero, &spells = state.resources.spells](Find find) {
+            spells.erase(std::find(begin(spells), end(spells), find.spell));
+            hero.receive(find.spell);
+          },
+          [&](Follow follow) { hero.followDeity(follow.deity); }, [&](Request request) { hero.request(request.boon); },
+          [&hero, &altars = state.resources.altars](Desecrate desecrate) {
+            altars.erase(std::find(begin(altars), end(altars), desecrate.altar));
+            hero.desecrate(desecrate.altar);
+          }},
       step);
+  while (state.pool.front().isDefeated() && !state.pool.empty())
+    state.pool.erase(state.pool.begin());
   return state;
 }
 
