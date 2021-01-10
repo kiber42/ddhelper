@@ -59,8 +59,11 @@ void showStatus(const Hero& hero)
 void showStatus(const Monster& monster)
 {
   auto items = describe(monster);
-  items[0] += " has " + items[1] + " and does " + items[2];
-  items.erase(items.begin() + 1, items.begin() + 3);
+  if (items.size() >= 3)
+  {
+    items[0] += " has " + items[1] + " and does " + items[2];
+    items.erase(items.begin() + 1, items.begin() + 3);
+  }
   showStatus(items);
 }
 
