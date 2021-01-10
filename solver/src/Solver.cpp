@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <execution>
 #include <random>
 
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());
@@ -178,7 +179,7 @@ namespace GeneticAlgorithm
       for (int j = 1; j < generation_size; ++j)
         addRandomMutations(population[j].first);
       // C) Clean up solutions and update scores
-      std::for_each(begin(population), end(population), [&](auto& entry) {
+      std::for_each(std::execution::par_unseq, begin(population), end(population), [&](auto& entry) {
         auto [cleaned, finalState] = cleanSolution(entry.first, state);
         entry = {std::move(cleaned), fitnessScore(finalState)};
       });
