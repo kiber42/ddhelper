@@ -47,11 +47,11 @@ Step randomStep()
 
 namespace GeneticAlgorithm
 {
-  // Random initial solution
-  Solution initialSolution(SolverState state)
+  // Random initial solution; resulting state is returned as well
+  std::pair<Solution, SolverState> initialSolution(SolverState state)
   {
     Solution initial;
-    while (!state.hero.isDefeated() && initial.size() < 100)
+    while (!state.hero.isDefeated() && initial.size() < 100 && !state.pool.empty())
     {
       Step step = randomStep();
       if (isValid(step, state))
@@ -60,25 +60,133 @@ namespace GeneticAlgorithm
         state = apply(std::move(step), std::move(state));
       }
     }
-    return initial;
+    return {std::move(initial), std::move(state)};
   }
 
-  int fitnessScore(const Solution& solution)
+  // Runs a solution, removes invalid steps, adds random steps, and returns the resulting state
+  std::pair<Solution, SolverState> cleanSolution(Solution candidate, SolverState state)
   {
-    return solution.size();
+    std::reverse(begin(candidate), end(candidate));
+    Solution cleaned;
+    while (!state.hero.isDefeated() && !state.pool.empty())
+    {
+      Step step = candidate.empty() ? randomStep() : candidate.back();
+      if (!candidate.empty())
+        candidate.pop_back();
+      if (isValid(step, state))
+      {
+        cleaned.emplace_back(step);
+        state = apply(std::move(step), std::move(state));
+      }
+    }
+    return {std::move(cleaned), std::move(state)};
+  }
+
+  int fitnessScore(const SolverState& finalState)
+  {
+    const int heroScore = 50 * finalState.hero.getLevel() + finalState.hero.getHitPoints() +
+                          10 * finalState.hero.hasStatus(HeroStatus::FirstStrikeTemporary);
+    if (finalState.pool.empty())
+      return heroScore + 1000;
+    return std::accumulate(begin(finalState.pool), end(finalState.pool), heroScore,
+                           [](const int runningTotal, const Monster& monster) {
+                             return runningTotal - monster.getHitPoints() + 10 * monster.isSlowed();
+                           });
+  }
+
+  void addRandomMutations(Solution& candidate)
+  {
+    // probability per step of solution that it will be swapped with its neighbour
+    const double mutation_fraction_swap = 0.1;
+    // probability per existing step that an additional random step will be inserted somewhere
+    // (insert many random steps, since most of them will be invalid and will automatically be removed again)
+    const double mutation_fraction_insert = 0.5;
+
+    if (candidate.empty())
+      return;
+    int num_mutations = std::poisson_distribution<>(candidate.size() * mutation_fraction_insert)(generator);
+    while (--num_mutations >= 0)
+    {
+      const size_t pos = std::uniform_int_distribution<>(0, candidate.size())(generator);
+      candidate.insert(begin(candidate) + pos, randomStep());
+    }
+    if (candidate.size() < 2)
+      return;
+    num_mutations = std::poisson_distribution<>(candidate.size() * mutation_fraction_swap)(generator);
+    while (--num_mutations >= 0)
+    {
+      const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 2)(generator);
+      std::swap(candidate[pos], candidate[pos + 1]);
+    }
   }
 
   std::optional<Solution> run(SolverState state)
   {
     state.hero.addStatus(HeroStatus::Pessimist);
-    const int num_generations = 10;
-    const int generation_size = 100;
+    const int num_generations = 100;
+    const int generation_size = 1000;
+    // Keep `num_keep` top performers, multiply them to reach original generation size
+    const int num_keep = 100;
 
-    std::array<Solution, generation_size> population;
-    std::generate(begin(population), end(population), [&state] { return initialSolution(state); });
+    // Create and rate initial generation of solutions
+    std::array<std::pair<Solution, int>, generation_size> population;
+    std::generate(begin(population), end(population), [&state] {
+      const auto [candidate, finalState] = initialSolution(state);
+      return std::pair{std::move(candidate), fitnessScore(finalState)};
+    });
 
-    return *std::max_element(begin(population), end(population),
-                             [](const auto& a, const auto& b) { return a.size() < b.size(); });
+    for (int i = 0; i < num_generations; ++i)
+    {
+      std::stable_sort(begin(population), end(population),
+                       [](const auto& scoredCandidateA, const auto& scoredCandidateB) {
+                         return scoredCandidateA.second > scoredCandidateB.second;
+                       });
+      std::cout << "Generation " << i << " complete:" << std::endl;
+      std::cout << "  Highest fitness score: " << population.front().second << std::endl;
+      std::cout << "  Lowest retained fitness score: " << population[num_keep - 1].second << std::endl;
+      std::cout << "  Best scoring: " << toString(population.front().first) << std::endl;
+      std::cout << std::string(80, '-') << std::endl;
+
+      // A) Spawn new generation of candidate solutions by mixing successful solutions
+      // Fill entire array with copies of `num_keep` most successful solutions
+      int n = num_keep;
+      while (n < generation_size)
+      {
+        const int num_copy = std::min(num_keep, generation_size - n);
+        std::copy(begin(population), begin(population) + num_copy, begin(population) + n);
+        n += num_keep;
+      }
+
+      // Shuffle, but always keep (one) best solution at the first position
+      std::shuffle(begin(population) + 1, end(population), generator);
+
+      // Generate new solution candidates by intertwining two existing candidates
+      for (int j = 2; j < generation_size; j += 2)
+      {
+        auto& solutionA = population[j - 1].first;
+        auto& solutionB = population[j].first;
+        const auto maxCutPosition = std::min(solutionA.size(), solutionB.size());
+        if (maxCutPosition == 0)
+          continue;
+        const int cutPosition = std::uniform_int_distribution<>(0, maxCutPosition)(generator);
+        // Replace from start up to random cut position, so vector sizes do not need to be changed
+        std::vector<Step> tempSegment{begin(solutionA), begin(solutionA) + cutPosition};
+        std::copy(begin(solutionB), begin(solutionB) + cutPosition, begin(solutionA));
+        std::copy(begin(tempSegment), end(tempSegment), begin(solutionB));
+      }
+      // B) Random mutations
+      for (int j = 1; j < generation_size; ++j)
+        addRandomMutations(population[j].first);
+      // C) Clean up solutions and update scores
+      std::for_each(begin(population), end(population), [&](auto& entry) {
+        auto [cleaned, finalState] = cleanSolution(entry.first, state);
+        entry = {std::move(cleaned), fitnessScore(finalState)};
+      });
+    }
+
+    return std::max_element(begin(population), end(population),
+                            [](const auto& a, const auto& b) { return a.second < b.second; })
+        ->first;
   }
 } // namespace GeneticAlgorithm
 
@@ -348,7 +456,7 @@ namespace
   }
 } // namespace
 
-SolverState print(Solution solution, SolverState state)
+void print(Solution solution, SolverState state)
 {
   print_description(describe(state.hero));
   if (!state.pool.empty())
@@ -366,7 +474,6 @@ SolverState print(Solution solution, SolverState state)
         print_description(describe(state.pool[1]));
     }
   }
-  return state;
 }
 
 bool isValid(Step step, const SolverState& state)

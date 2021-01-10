@@ -23,6 +23,6 @@ std::optional<Solution> run(Solver solver, SolverState initialState);
 
 SolverState apply(Step step, SolverState state);
 SolverState apply(Solution solution, SolverState state);
-SolverState print(Solution solution, SolverState state);
+void print(Solution solution, SolverState state);
 
 bool isValid(Step step, const SolverState& state);
