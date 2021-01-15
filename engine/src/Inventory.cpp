@@ -21,94 +21,115 @@ Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, 
   add(Item::ManaPotion);
 }
 
-void Inventory::add(Item item)
+void Inventory::add(ItemOrSpell itemOrSpell)
 {
-  if (canGroup(item))
+  int conversionPoints = spellConversionPoints;
+
+  if (auto item = std::get_if<Item>(&itemOrSpell))
   {
-    auto it = find(item);
-    if (it != end(entries))
+    conversionPoints = conversionPointsInitial(*item);
+    if (canGroup(*item))
     {
-      it->count++;
-      return;
+      auto it = find(*item);
+      if (it != end(entries))
+      {
+        it->count++;
+        return;
+      }
     }
   }
-  entries.emplace_back(Entry{{item}, !allItemsLarge && isSmall(item), 1, conversionPointsInitial(item)});
-}
 
-std::optional<int> Inventory::remove(Item item)
-{
-  auto it = find(item);
-  if (it == end(entries))
-    return std::nullopt;
-  const int conversionPoints = it->conversionPoints;
-  if (conversionPoints < 0)
-    return std::nullopt;
-  it->count--;
-  if (it->count <= 0)
-    entries.erase(it);
-  return conversionPoints;
-}
-
-bool Inventory::has(Item item) const
-{
-  return find(item) != end(entries);
-}
-
-bool Inventory::hasRoomFor(Item item) const
-{
-  const int smallSlotsNeeded = !allItemsLarge && isSmall(item) ? 1 : 5;
-  return smallSlotsNeeded <= smallSlotsLeft();
-}
-
-void Inventory::add(Spell spell)
-{
-  entries.emplace_back(Entry{spell, !allItemsLarge && spellsSmall, 1, spellConversionPoints});
+  entries.emplace_back(Entry{itemOrSpell, isInitiallySmall(itemOrSpell), 1, conversionPoints});
 }
 
 void Inventory::addFree(Spell spell)
 {
-  entries.emplace_back(Entry{spell, !allItemsLarge && spellsSmall, 1, 0});
+  entries.emplace_back(Entry{spell, isInitiallySmall(spell), 1, 0});
 }
 
-std::optional<int> Inventory::remove(Spell spell, bool magicAffinity)
+bool Inventory::has(ItemOrSpell itemOrSpell) const
 {
-  auto it = find(spell);
+  return find(itemOrSpell) != end(entries);
+}
+
+bool Inventory::canConvert(ItemOrSpell itemOrSpell) const
+{
+  const auto it = find(itemOrSpell);
+  return it != end(entries) && it->conversionPoints >= 0;
+}
+
+std::optional<int> Inventory::getConversionPoints(ItemOrSpell itemOrSpell) const
+{
+  const auto it = find(itemOrSpell);
+  if (it == end(entries) || it->conversionPoints < 0)
+    return std::nullopt;
+  return it->conversionPoints;
+}
+
+std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell itemOrSpell, bool magicAffinity)
+{
+  auto it = find(itemOrSpell);
   if (it == end(entries))
     return std::nullopt;
   int conversionPoints = it->conversionPoints;
   if (conversionPoints < 0)
     return std::nullopt;
-  entries.erase(it);
-  if (magicAffinity)
+  const bool wasSmall = it->isSmall;
+  it->count--;
+  if (it->count <= 0)
   {
-    // All remaining spells donate 10 of their conversion points
-    for (auto& entry : entries)
+    entries.erase(it);
+    if (magicAffinity && itemOrSpell.index() == 1)
     {
-      if (entry.itemOrSpell.index() == 0 /* Item */ || entry.conversionPoints < 10)
-        continue;
-      entry.conversionPoints -= 10;
-      conversionPoints += 10;
+      // All remaining spells donate 10 of their conversion points
+      for (auto& entry : entries)
+      {
+        if (entry.itemOrSpell.index() == 1 && entry.conversionPoints >= 10)
+        {
+          entry.conversionPoints -= 10;
+          conversionPoints += 10;
+        }
+      }
     }
   }
-  return conversionPoints;
+  return {{conversionPoints, isSmall}};
 }
 
-bool Inventory::has(Spell spell) const
+bool Inventory::remove(ItemOrSpell itemOrSpell)
 {
-  return find(spell) != end(entries);
+  auto it = find(itemOrSpell);
+  if (it == end(entries))
+    return false;
+  it->count--;
+  if (it->count <= 0)
+    entries.erase(it);
+  return true;
 }
 
-bool Inventory::hasRoomFor(Spell spell) const
+bool Inventory::isInitiallySmall(ItemOrSpell itemOrSpell) const
 {
-  const int smallSlotsNeeded = !allItemsLarge && spellsSmall ? 1 : 5;
-  return smallSlotsNeeded <= smallSlotsLeft();
+  if (allItemsLarge)
+    return false;
+  if (const auto item = std::get_if<Item>(&itemOrSpell))
+    return isSmall(*item);
+  return spellsSmall;
 }
 
-int Inventory::smallSlotsLeft() const
+namespace
+{
+  constexpr int LargeItemSize = 5;
+}
+
+int Inventory::numFreeSmallSlots() const
 {
   const int roomTaken = std::transform_reduce(begin(entries), end(entries), 0, std::plus<>(),
-                                              [](auto& entry) { return entry.isSmall ? 1 : 5; });
-  return numSlots * 5 - roomTaken;
+                                              [](auto& entry) { return entry.isSmall ? 1 : LargeItemSize; });
+  return numSlots * LargeItemSize - roomTaken;
+}
+
+bool Inventory::hasRoomFor(ItemOrSpell itemOrSpell) const
+{
+  return numFreeSmallSlots() >= isInitiallySmall(itemOrSpell) ? 1 : LargeItemSize;
 }
 
 void Inventory::clear()
@@ -188,11 +209,6 @@ int Inventory::enchantPrayerBeads()
   return count;
 }
 
-auto Inventory::getEntries() const -> std::vector<Entry>
-{
-  return entries;
-}
-
 auto Inventory::getItems() const -> std::vector<Entry>
 {
   std::vector<Entry> items(entries.size());
@@ -209,6 +225,11 @@ auto Inventory::getSpells() const -> std::vector<Entry>
                          [](const auto& entry) { return entry.itemOrSpell.index() == 1; });
   spells.erase(it, end(spells));
   return spells;
+}
+
+auto Inventory::getItemsAndSpells() const -> const std::vector<Entry>&
+{
+  return entries;
 }
 
 auto Inventory::find(ItemOrSpell itemOrSpell) -> std::vector<Entry>::iterator

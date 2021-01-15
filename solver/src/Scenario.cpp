@@ -16,7 +16,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.gainLevel();
     hero.gainExperienceNoBonuses(4);
     hero.loseHitPointsOutsideOfFight(3);
-    hero.loseAllItems();
+    hero.clearInventory();
     for (int i = 0; i < 8; ++i)
       hero.receive(Item::ManaPotion);
     hero.receiveFreeSpell(Spell::Burndayraz);
@@ -26,7 +26,7 @@ Hero getHeroForScenario(Scenario scenario)
   case Scenario::HalflingTrial:
   {
     Hero hero(HeroClass::Fighter, HeroRace::Halfling);
-    hero.loseAllItems();
+    hero.clearInventory();
     hero.receive(Spell::Getindare);
     hero.receive(Spell::Burndayraz);
     hero.receive(Spell::Bysseps);

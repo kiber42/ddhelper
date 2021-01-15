@@ -5,6 +5,7 @@
 
 #include <map>
 #include <optional>
+#include <variant>
 #include <vector>
 
 enum class God
@@ -326,6 +327,8 @@ private:
   bool jehora;
 };
 
+using ItemOrSpell = std::variant<Item, Spell>;
+
 class Faith
 {
 public:
@@ -372,8 +375,7 @@ public:
   PietyChange becameManaBurned();
   PietyChange manaPointsBurned(int pointsLost);
 
-  PietyChange converted(Item item, bool isSmall);
-  PietyChange converted(Spell spell, bool isSmall);
+  PietyChange converted(ItemOrSpell itemOrSpell, bool wasSmall);
 
   // specific to Earthmother
   PietyChange plantDestroyed();

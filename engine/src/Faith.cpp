@@ -578,7 +578,7 @@ void Faith::punish(God god, Hero& hero)
     hero.addStatus(HeroStatus::Corrosion, 5);
     break;
   case God::GlowingGuardian:
-    hero.loseAllItems();
+    hero.clearInventory();
     break;
   case God::JehoraJeheyu:
     // TODO: 50% chance
@@ -844,7 +844,7 @@ PietyChange Faith::manaPointsBurned(int pointsLost)
   return {};
 }
 
-PietyChange Faith::converted(Item item, bool isSmall)
+PietyChange Faith::converted(ItemOrSpell itemOrSpell, bool wasSmall)
 {
   PietyChange result;
   if (pact == Pact::SpiritPact)
@@ -855,45 +855,32 @@ PietyChange Faith::converted(Item item, bool isSmall)
       switch (deity)
       {
       case God::Dracul:
-        if (item == Item::HealthPotion)
+        if (itemOrSpell == ItemOrSpell{Item::HealthPotion})
           return 5;
+        if (itemOrSpell == ItemOrSpell{Spell::Cydstepp} || itemOrSpell == ItemOrSpell{Spell::Halpmeh})
+          return 10;
         return {};
       case God::GlowingGuardian:
-        return isPotion(item) || !isSmall ? 5 : 2;
+        if (itemOrSpell == ItemOrSpell{Spell::Apheelsik} || itemOrSpell == ItemOrSpell{Spell::Bludtupowa})
+          return 10;
+        if (!wasSmall)
+          return 5;
+        if (const auto item = std::get_if<Item>(&itemOrSpell); item && isPotion(*item))
+          return 5;
+        return 2;
       case God::JehoraJeheyu:
         return JehoraTriggered();
       case God::Taurog:
-        // TODO: Converting any of Taurog's items: -10 (except potentially in triple quests)
+        if (std::get_if<Spell>(&itemOrSpell) != nullptr)
+          return 10;
+        else
+          return {};
       default:
         return {};
       }
     }();
   }
   return result;
-}
-
-PietyChange Faith::converted(Spell spell, bool isSmall)
-{
-  if (!followedDeity)
-    return {};
-  switch (*followedDeity)
-  {
-  case God::Dracul:
-    if (spell == Spell::Cydstepp || spell == Spell::Halpmeh)
-      return 10;
-    return {};
-  case God::GlowingGuardian:
-  {
-    const bool isEvil = spell == Spell::Apheelsik || spell == Spell::Bludtupowa;
-    return isEvil ? 10 : (isSmall ? 2 : 5);
-  }
-  case God::JehoraJeheyu:
-    return JehoraTriggered();
-  case God::Taurog:
-    return 10;
-  default:
-    return {};
-  }
 }
 
 PietyChange Faith::plantDestroyed()

@@ -134,18 +134,16 @@ public:
   bool lose(Item item);
   void receiveFreeSpell(Spell spell);
   void receiveEnlightenment();
-  void loseAllItems();
+  void clearInventory();
 
   // Inventory management
   std::vector<Inventory::Entry> getItems() const;
   std::vector<Inventory::Entry> getSpells() const;
-  bool has(Item item) const;
-  bool has(Spell spell) const;
-
-  void receive(Item item);
-  void receive(Spell spell);
-  void convert(Item item);
-  void convert(Spell spell);
+  bool has(ItemOrSpell itemOrSpell) const;
+  bool hasRoomFor(ItemOrSpell itemOrSpell) const;
+  void receive(ItemOrSpell itemOrSpell);
+  void convert(ItemOrSpell itemOrSpell);
+  bool canConvert(ItemOrSpell itemOrSpell) const;
   bool canUse(Item item) const;
   bool canUse(Item item, const Monster& monster) const;
   void use(Item item);

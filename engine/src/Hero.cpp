@@ -854,7 +854,7 @@ void Hero::addConversionPoints(int points)
 
 bool Hero::lose(Item item)
 {
-  const bool itemLost = inventory.remove(item) != std::nullopt;
+  const bool itemLost = inventory.remove(item);
   if (itemLost)
     changeStatsFromItem(item, false);
   return itemLost;
@@ -877,12 +877,16 @@ void Hero::receiveEnlightenment()
   removeStatus(HeroStatus::Cursed, true);
 }
 
-void Hero::loseAllItems()
+void Hero::clearInventory()
 {
-  for (auto& entry : getItems())
+  for (auto& entry : inventory.getItemsAndSpells())
   {
-    for (int i = 0; i < entry.count; ++i)
-      changeStatsFromItem(std::get<Item>(entry.itemOrSpell), false);
+    const auto item = std::get_if<Item>(&entry.itemOrSpell);
+    if (item)
+    {
+      for (int i = 0; i < entry.count; ++i)
+        changeStatsFromItem(*item, false);
+    }
   }
   inventory.clear();
 }
@@ -897,54 +901,47 @@ std::vector<Inventory::Entry> Hero::getSpells() const
   return inventory.getSpells();
 }
 
-bool Hero::has(Item item) const
+bool Hero::has(ItemOrSpell itemOrSpell) const
 {
-  return inventory.has(item);
+  return inventory.has(itemOrSpell);
 }
 
-bool Hero::has(Spell spell) const
+bool Hero::hasRoomFor(ItemOrSpell itemOrSpell) const
 {
-  return inventory.has(spell);
+  return inventory.hasRoomFor(itemOrSpell);
 }
 
-void Hero::receive(Item item)
+void Hero::receive(ItemOrSpell itemOrSpell)
 {
-  inventory.add(item);
-  changeStatsFromItem(item, true);
+  inventory.add(itemOrSpell);
+  if (const auto item = std::get_if<Item>(&itemOrSpell))
+    changeStatsFromItem(*item, true);
 }
 
-void Hero::receive(Spell spell)
+void Hero::convert(ItemOrSpell itemOrSpell)
 {
-  inventory.add(spell);
-}
-
-void Hero::convert(Item item)
-{
-  const auto conversionValue = inventory.remove(item);
-  if (conversionValue.has_value())
+  const auto conversionResult = inventory.removeForConversion(itemOrSpell);
+  if (conversionResult)
   {
-    changeStatsFromItem(item, false);
-    if (conversion.addPoints(*conversionValue))
+    const auto item = std::get_if<Item>(&itemOrSpell);
+    if (item)
+      changeStatsFromItem(*item, false);
+    else if (hasBoon(Boon::Refreshment))
+      recoverManaPoints(getManaPointsMax() * (faith.getFollowedDeity() == God::MysteraAnnur ? 50 : 25) / 100);
+
+    const auto [conversionPoints, wasSmall] = *conversionResult;
+    if (conversion.addPoints(conversionPoints))
       conversion.applyBonus(*this);
-    // TODO: Improve inventory system to support compressed items
-    applyOrCollect(faith.converted(item, isSmall(item) && !hasTrait(HeroTrait::RegalSize)));
-    if (item == Item::Skullpicker || item == Item::Wereward || item == Item::Gloat || item == Item::Will)
+
+    applyOrCollect(faith.converted(itemOrSpell, wasSmall));
+    if (item && (*item == Item::Skullpicker || *item == Item::Wereward || *item == Item::Gloat || *item == Item::Will))
       faith.convertedTaurogItem(*this);
   }
 }
 
-void Hero::convert(Spell spell)
+bool Hero::canConvert(ItemOrSpell itemOrSpell) const
 {
-  const auto conversionValue = inventory.remove(spell);
-  if (conversionValue.has_value())
-  {
-    if (hasBoon(Boon::Refreshment))
-      recoverManaPoints(getManaPointsMax() * (faith.getFollowedDeity() == God::MysteraAnnur ? 50 : 25) / 100);
-    if (conversion.addPoints(*conversionValue))
-      conversion.applyBonus(*this);
-    // TODO: Improve inventory system to support compressed spells
-    applyOrCollect(faith.converted(spell, hasTrait(HeroTrait::MagicSense) && !hasTrait(HeroTrait::RegalSize)));
-  }
+  return inventory.canConvert(itemOrSpell);
 }
 
 bool Hero::canUse(Item item) const
