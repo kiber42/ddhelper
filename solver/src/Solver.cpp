@@ -50,7 +50,150 @@ namespace
       return Desecrate{static_cast<God>(randomGod(generator))};
     }
   }
-}
+
+  Step validRandomStep(const SolverState& state)
+  {
+    // TODO: Migrate to C++20 and replace std::transform and std::shuffle with equivalent std::ranges functions
+
+    // Rely on at least one monster being present
+    assert(!state.pool.empty());
+    std::uniform_int_distribution<> randomAction(0, 10);
+    std::optional<std::vector<Spell>> spells;
+    std::optional<std::vector<Item>> shops;
+    std::optional<std::vector<Item>> items;
+
+    auto otherAltar = [&hero = state.hero, altars = state.resources.altars]() mutable -> std::optional<God> {
+      if (altars.empty())
+        return {};
+      std::shuffle(begin(altars), end(altars), generator);
+      if (!hero.getFollowedDeity())
+        return altars.front();
+      auto altarIt =
+          std::find_if(begin(altars), end(altars),
+                       [followedDeity = *hero.getFollowedDeity()](const auto altar) { return altar != followedDeity; });
+      if (altarIt != end(altars))
+        return *altarIt;
+      return {};
+    };
+
+    auto randomElement = [](auto& vec) {
+      assert(!vec.empty());
+      return vec[std::uniform_int_distribution<>(0, vec.size() - 1)(generator)];
+    };
+
+    while (true)
+    {
+      switch (randomAction(generator))
+      {
+      default:
+      case 0:
+        return Attack{};
+      case 1:
+        if (!spells)
+        {
+          const auto spellEntries = state.hero.getSpells();
+          spells.emplace(spellEntries.size());
+          std::transform(begin(spellEntries), end(spellEntries), begin(*spells),
+                         [](const auto& entry) { return std::get<Spell>(entry.itemOrSpell); });
+          std::shuffle(begin(*spells), end(*spells), generator);
+          const auto spellIt = std::find_if(begin(*spells), end(*spells),
+                                            [&hero = state.hero, &monster = state.pool.front()](const Spell spell) {
+                                              return Magic::isPossible(hero, monster, spell) ||
+                                                     !(Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
+                                            });
+          if (spellIt != end(*spells))
+            return Cast{*spellIt};
+        }
+        break;
+      case 2:
+        if (state.resources.numBlackTiles > 0)
+          return Uncover{1};
+        break;
+      case 3:
+        if (!state.hero.hasRoomFor(Item::HealthPotion) || state.hero.gold() == 0)
+          break;
+        if (!shops)
+        {
+          shops = state.resources.shops;
+          std::shuffle(begin(*shops), end(*shops), generator);
+          const auto shopIt = std::find_if(begin(*shops), end(*shops), [&hero = state.hero](const Item item) {
+            return hero.hasRoomFor(item) && hero.canAfford(item);
+          });
+          if (shopIt != end(*shops))
+            return Buy{*shopIt};
+        }
+        break;
+      case 4:
+        if (!items)
+        {
+          const auto itemEntries = state.hero.getItems();
+          items.emplace(itemEntries.size());
+          std::transform(begin(itemEntries), end(itemEntries), begin(*items),
+                         [](const auto& entry) { return std::get<Item>(entry.itemOrSpell); });
+          std::shuffle(begin(*items), end(*items), generator);
+          const auto itemIt = std::find_if(begin(*items), end(*items),
+                                           [&hero = state.hero](const Item item) { return hero.canUse(item); });
+          if (itemIt != end(*items))
+            return Use{*itemIt};
+        }
+        break;
+      case 5:
+      {
+        const auto& entries = state.hero.getItemsAndSpells();
+        if (!entries.empty())
+        {
+          const auto& entry = randomElement(entries);
+          if (entry.conversionPoints >= 0)
+            return Convert{entry.itemOrSpell};
+          // few items cannot be converted, do not retry here
+        }
+        break;
+      }
+      case 6:
+        if (!state.resources.spells.empty() && state.hero.hasRoomFor(Spell::Burndayraz))
+          return Find{randomElement(state.resources.spells)};
+        break;
+      case 7:
+      {
+        if (state.resources.altars.empty() || (state.hero.getFollowedDeity() && state.hero.getPiety() < 50))
+          break;
+        const auto altar = otherAltar();
+        if (altar)
+          return Follow{*altar};
+        break;
+      }
+      case 8:
+        if (state.hero.getFollowedDeity())
+        {
+          auto boons = offeredBoons(*state.hero.getFollowedDeity());
+          std::shuffle(begin(boons), end(boons), generator);
+          auto boonIt =
+              std::find_if(begin(boons), end(boons), [&hero = state.hero, &faith = state.hero.getFaith()](Boon boon) {
+                return faith.isAvailable(boon, hero);
+              });
+          if (boonIt != end(boons))
+            return Request{*boonIt};
+        }
+        break;
+      case 9:
+        if (state.resources.pactMakerAvailable && !state.hero.getFaith().getPact())
+        {
+          const auto last = state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus;
+          return Request{static_cast<Pact>(std::uniform_int_distribution<>(0, static_cast<int>(last) - 1)(generator))};
+        }
+        break;
+      case 10:
+        if (state.hero.getFollowedDeity() && !state.resources.altars.empty())
+        {
+          const auto altar = otherAltar();
+          if (altar)
+            return Desecrate{*altar};
+        }
+        break;
+      }
+    }
+  }
+} // namespace
 
 namespace GeneticAlgorithm
 {
