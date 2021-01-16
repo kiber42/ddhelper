@@ -4,10 +4,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(
-    ddsolver STATIC
-    src/Scenario.cpp
-    src/Solution.cpp
-    src/Solver.cpp
+  ddsolver STATIC
+  src/Scenario.cpp
+  src/Solution.cpp
+  src/Solver.cpp
+  src/SolverTools.cpp
 )
 target_include_directories(ddsolver PUBLIC include)
 target_link_libraries(ddsolver ddhelperengine)
