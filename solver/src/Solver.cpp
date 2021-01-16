@@ -340,9 +340,7 @@ namespace SimulatedAnnealing
   {
     IntermediateResult result;
 
-
     // TODO
-
 
     return result;
   }
@@ -483,9 +481,6 @@ bool isValid(Step step, const SolverState& state)
       std::find_if(begin(state.pool), end(state.pool), [](const auto& monster) { return !monster.isDefeated(); });
   const bool hasMonster = monsterIt != end(state.pool);
   const auto& hero = state.hero;
-  // TODO:
-  // - Buy / Find: Check inventory space
-  // - Convert: Check if items are convertible
   return std::visit(
       overloaded{
           [&](Attack) { return hasMonster; },
@@ -494,15 +489,12 @@ bool isValid(Step step, const SolverState& state)
                                             (!Magic::needsMonster(cast.spell) && Magic::isPossible(hero, cast.spell)));
           },
           [&](Uncover uncover) { return state.resources.numBlackTiles >= uncover.numTiles; },
-          [gold = hero.gold(), &shops = state.resources.shops](Buy buy) {
-            return gold >= price(buy.item) && std::find(begin(shops), end(shops), buy.item) != end(shops);
+          [&, &shops = state.resources.shops](Buy buy) {
+            return hero.hasRoomFor(buy.item) && hero.gold() >= price(buy.item) &&
+                   std::find(begin(shops), end(shops), buy.item) != end(shops);
           },
           [&](Use use) { return hero.has(use.item) && hero.canUse(use.item); },
-          [&](Convert convert) {
-            return std::visit(overloaded{[&hero](Item item) { return hero.has(item); },
-                                         [&hero](Spell spell) { return hero.has(spell); }},
-                              convert.itemOrSpell);
-          },
+          [&](Convert convert) { return hero.canConvert(convert.itemOrSpell); },
           [&spells = state.resources.spells](Find find) {
             return std::find(begin(spells), end(spells), find.spell) != end(spells);
           },
