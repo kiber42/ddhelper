@@ -303,6 +303,29 @@ constexpr God deity(Boon boon)
   }
 }
 
+constexpr std::array<Boon, 5> offeredBoons(God god)
+{
+  switch (god)
+  {
+  case God::BinlorIronshield:
+    return {Boon::StoneSoup, Boon::StoneSkin, Boon::StoneForm, Boon::StoneFist, Boon::StoneHeart};
+  case God::Dracul:
+    return {Boon::BloodCurse, Boon::BloodTithe, Boon::BloodHunger, Boon::BloodShield, Boon::BloodSwell};
+  case God::TheEarthmother:
+    return {Boon::Plantation, Boon::Clearance, Boon::Greenblood, Boon::Entanglement, Boon::VineForm};
+  case God::GlowingGuardian:
+    return {Boon::Humility, Boon::Absolution, Boon::Cleansing, Boon::Protection, Boon::Enlightenment};
+  case God::JehoraJeheyu:
+    return {Boon::Petition, Boon::LastChance, Boon::BoostHealth, Boon::BoostMana, Boon::ChaosAvatar};
+  case God::MysteraAnnur:
+    return {Boon::Magic, Boon::Refreshment, Boon::Flames, Boon::Weakening, Boon::MysticBalance};
+  case God::Taurog:
+    return {Boon::TaurogsBlade, Boon::TaurogsShield, Boon::TaurogsHelm, Boon::TaurogsArmour, Boon::UnstoppableFury};
+  case God::TikkiTooki:
+    return {Boon::Tribute, Boon::TikkisEdge, Boon::Dodging, Boon::Poison, Boon::Reflexes};
+  }
+}
+
 class Hero;
 enum class Item;
 enum class Spell;
