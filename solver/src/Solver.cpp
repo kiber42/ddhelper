@@ -10,39 +10,45 @@
 
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());
 
-Step randomStep()
+namespace
 {
-  std::uniform_int_distribution<> randomAction(0, 10);
-  std::uniform_int_distribution<> randomSpell(0, static_cast<int>(Spell::Last) - 1);
-  std::uniform_int_distribution<> randomShopItem(0, static_cast<int>(Item::LastShopItem) - 1);
-  std::uniform_int_distribution<> randomItem(0, static_cast<int>(Item::Last) - 1);
-  std::uniform_int_distribution<> randomGod(0, static_cast<int>(God::Last) - 1);
-  std::uniform_int_distribution<> randomBoon(0, static_cast<int>(Boon::Last) - 1);
-  switch (randomAction(generator))
+  Step randomStep()
   {
-  default:
-  case 0:
-    return Attack{};
-  case 1:
-    return Cast{static_cast<Spell>(randomSpell(generator))};
-  case 2:
-    return Uncover{1};
-  case 3:
-    return Buy{static_cast<Item>(randomShopItem(generator))};
-  case 4:
-    return Use{static_cast<Item>(randomItem(generator))};
-  case 5:
-    return Convert{static_cast<Item>(randomItem(generator))};
-  case 6:
-    return Convert{static_cast<Spell>(randomSpell(generator))};
-  case 7:
-    return Find{static_cast<Spell>(randomSpell(generator))};
-  case 8:
-    return Follow{static_cast<God>(randomGod(generator))};
-  case 9:
-    return Request{static_cast<Boon>(randomBoon(generator))};
-  case 10:
-    return Desecrate{static_cast<God>(randomGod(generator))};
+    std::uniform_int_distribution<> randomAction(0, 11);
+    std::uniform_int_distribution<> randomSpell(0, static_cast<int>(Spell::Last) - 1);
+    std::uniform_int_distribution<> randomShopItem(0, static_cast<int>(Item::LastShopItem) - 1);
+    std::uniform_int_distribution<> randomItem(0, static_cast<int>(Item::Last) - 1);
+    std::uniform_int_distribution<> randomGod(0, static_cast<int>(God::Last) - 1);
+    std::uniform_int_distribution<> randomBoon(0, static_cast<int>(Boon::Last) - 1);
+    std::uniform_int_distribution<> randomPact(0, static_cast<int>(Pact::LastWithConsensus) - 1);
+    switch (randomAction(generator))
+    {
+    default:
+    case 0:
+      return Attack{};
+    case 1:
+      return Cast{static_cast<Spell>(randomSpell(generator))};
+    case 2:
+      return Uncover{1};
+    case 3:
+      return Buy{static_cast<Item>(randomShopItem(generator))};
+    case 4:
+      return Use{static_cast<Item>(randomItem(generator))};
+    case 5:
+      return Convert{static_cast<Item>(randomItem(generator))};
+    case 6:
+      return Convert{static_cast<Spell>(randomSpell(generator))};
+    case 7:
+      return Find{static_cast<Spell>(randomSpell(generator))};
+    case 8:
+      return Follow{static_cast<God>(randomGod(generator))};
+    case 9:
+      return Request{static_cast<Boon>(randomBoon(generator))};
+    case 10:
+      return Request{static_cast<Pact>(randomPact(generator))};
+    case 11:
+      return Desecrate{static_cast<God>(randomGod(generator))};
+    }
   }
 }
 
@@ -492,22 +498,21 @@ bool isValid(Step step, const SolverState& state)
           },
           [&](Use use) { return hero.has(use.item) && hero.canUse(use.item); },
           [&](Convert convert) { return hero.canConvert(convert.itemOrSpell); },
-          [&spells = state.resources.spells](Find find) {
-            return std::find(begin(spells), end(spells), find.spell) != end(spells);
+          [&hero, &spells = state.resources.spells](Find find) {
+            return hero.hasRoomFor(find.spell) && std::find(begin(spells), end(spells), find.spell) != end(spells);
           },
-          [piety = state.hero.getPiety(), current = state.hero.getFollowedDeity(),
+          [piety = hero.getPiety(), current = hero.getFollowedDeity(),
            &altars = state.resources.altars](Follow follow) {
             return (!current || (current != follow.deity && piety >= 50)) &&
                    std::find(begin(altars), end(altars), follow.deity) != end(altars);
           },
-          [&faith = hero.getFaith(), &hero,
-           &pactMaker = state.resources.pactMakerAvailable](Request request) {
+          [&faith = hero.getFaith(), &hero, &pactMaker = state.resources.pactMakerAvailable](Request request) {
             if (const auto boon = std::get_if<Boon>(&request.boonOrPact))
               return faith.isAvailable(*boon, hero) && hero.getPiety() >= faith.getCosts(*boon, hero);
             return pactMaker && !faith.getPact() &&
                    (!faith.enteredConsensus() || std::get<Pact>(request.boonOrPact) != Pact::Consensus);
           },
-          [current = state.hero.getFollowedDeity(), &altars = state.resources.altars](Desecrate desecrate) {
+          [current = hero.getFollowedDeity(), &altars = state.resources.altars](Desecrate desecrate) {
             return current != desecrate.altar && std::find(begin(altars), end(altars), desecrate.altar) != end(altars);
           }},
       step);
