@@ -200,14 +200,20 @@ namespace GeneticAlgorithm
   // Random initial solution; resulting state is returned as well
   std::pair<Solution, SolverState> initialSolution(SolverState state)
   {
+    if (state.hero.isDefeated() || state.pool.empty())
+      return {};
     Solution initial;
-    while (!state.hero.isDefeated() && initial.size() < 100 && !state.pool.empty())
+    while (true)
     {
       Step step = randomStep();
       if (isValid(step, state))
       {
-        initial.emplace_back(step);
         state = apply(std::move(step), std::move(state));
+        if (state.hero.isDefeated())
+          break;
+        initial.emplace_back(step);
+        if (initial.size() == 100 || state.pool.empty())
+          break;
       }
     }
     return {std::move(initial), std::move(state)};
@@ -216,17 +222,23 @@ namespace GeneticAlgorithm
   // Runs a solution, removes invalid steps, adds random steps, and returns the resulting state
   std::pair<Solution, SolverState> cleanSolution(Solution candidate, SolverState state)
   {
+    if (state.hero.isDefeated() || state.pool.empty())
+      return {};
     std::reverse(begin(candidate), end(candidate));
     Solution cleaned;
-    while (!state.hero.isDefeated() && !state.pool.empty())
+    while (true)
     {
       Step step = candidate.empty() ? randomStep() : candidate.back();
       if (!candidate.empty())
         candidate.pop_back();
       if (isValid(step, state))
       {
-        cleaned.emplace_back(step);
         state = apply(std::move(step), std::move(state));
+        if (state.hero.isDefeated())
+          break;
+        cleaned.emplace_back(step);
+        if (state.pool.empty())
+          break;
       }
     }
     return {std::move(cleaned), std::move(state)};
