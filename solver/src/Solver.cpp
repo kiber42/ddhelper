@@ -99,7 +99,7 @@ namespace
           const auto spellIt = std::find_if(begin(*spells), end(*spells),
                                             [&hero = state.hero, &monster = state.pool.front()](const Spell spell) {
                                               return Magic::isPossible(hero, monster, spell) ||
-                                                     !(Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
+                                                     (!Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
                                             });
           if (spellIt != end(*spells))
             return Cast{*spellIt};
