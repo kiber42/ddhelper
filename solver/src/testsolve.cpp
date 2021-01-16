@@ -31,7 +31,7 @@ void testSolve(Solver solver, Scenario scenario)
   if (solution)
   {
     std::cout << toString(*solution) << '\n';
-    print(*solution, state);
+    solver::print(*solution, state);
   }
   else
     std::cout << "No solution found.\n";

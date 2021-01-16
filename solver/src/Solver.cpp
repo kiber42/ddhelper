@@ -9,50 +9,28 @@
 
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());
 
+using namespace solver;
+
 namespace GeneticAlgorithm
 {
-  // Random initial solution; resulting state is returned as well
-  std::pair<Solution, SolverState> initialSolution(SolverState state)
+  // Random initial solution, stops close to hero's death
+  Solution initialSolution(SolverState state)
   {
     if (state.hero.isDefeated() || state.pool.empty())
       return {};
     Solution initial;
     while (true)
     {
-      Step step = validRandomStep(state);
+      Step step = generateRandomValidStep(state);
       assert(isValid(step, state));
-      state = apply(std::move(step), std::move(state));
+      state = solver::apply(step, std::move(state));
       if (state.hero.isDefeated())
         break;
-      initial.emplace_back(step);
+      initial.emplace_back(std::move(step));
       if (initial.size() == 100 || state.pool.empty())
         break;
     }
-    return {std::move(initial), std::move(state)};
-  }
-
-  // Runs a solution, removes invalid steps, adds random steps, and returns the resulting state
-  std::pair<Solution, SolverState> cleanSolution(Solution candidate, SolverState state)
-  {
-    if (state.hero.isDefeated() || state.pool.empty())
-      return {};
-    std::reverse(begin(candidate), end(candidate));
-    Solution cleaned;
-    while (true)
-    {
-      while (!candidate.empty() && !isValid(candidate.back(), state))
-        candidate.pop_back();
-      Step step = candidate.empty() ? validRandomStep(state) : candidate.back();
-      if (!candidate.empty())
-        candidate.pop_back();
-      state = apply(std::move(step), std::move(state));
-      if (state.hero.isDefeated())
-        break;
-      cleaned.emplace_back(step);
-      if (state.pool.empty())
-        break;
-    }
-    return {std::move(cleaned), std::move(state)};
+    return initial;
   }
 
   int fitnessScore(const SolverState& finalState)
@@ -87,7 +65,9 @@ namespace GeneticAlgorithm
               << "=> " << heroScore - monsterHitpoints << std::endl;
   }
 
-  void addRandomMutations(Solution& candidate)
+  // Applies mutations to a candidate solution, removes invalid steps and extends it with valid random steps.
+  // Stops when the hero would be defeated by the next action.  Returns updated state.
+  Solution mutateAndClean(Solution candidate, SolverState state)
   {
     // The following probabilities are interpreted per step of current candidate.
     // The mutations are applied in this order:
@@ -99,36 +79,65 @@ namespace GeneticAlgorithm
     // 3) insert random step at random position (invalid steps will be automatically removed later)
     const double probability_insert = 0.1;
 
-    // Always add some random steps at the end (to guarantee minimum size and to facilitate finding longer solutions)
-    for (int i = 0; i < 10; ++i)
-      candidate.emplace_back(randomStep());
-
     int num_mutations = std::poisson_distribution<>(candidate.size() * probability_erasure)(generator);
-    while (--num_mutations >= 0)
+    while (--num_mutations >= 0 && !candidate.empty())
     {
       const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
       candidate.erase(begin(candidate) + pos);
     }
-    num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_any)(generator);
-    while (--num_mutations >= 0)
+    if (!candidate.empty())
     {
-      const size_t posA = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
-      const size_t posB = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
-      if (posA != posB)
-        std::swap(candidate[posA], candidate[posB]);
+      num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_any)(generator);
+      while (--num_mutations >= 0)
+      {
+        const size_t posA = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
+        const size_t posB = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
+        if (posA != posB)
+          std::swap(candidate[posA], candidate[posB]);
+      }
     }
-    num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_neighbor)(generator);
-    while (--num_mutations >= 0)
+    if (candidate.size() >= 2)
     {
-      const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 2)(generator);
-      std::swap(candidate[pos], candidate[pos + 1]);
+      num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_neighbor)(generator);
+      while (--num_mutations >= 0)
+      {
+        const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 2)(generator);
+        std::swap(candidate[pos], candidate[pos + 1]);
+      }
     }
-    num_mutations = std::poisson_distribution<>(candidate.size() * probability_insert)(generator);
-    while (--num_mutations >= 0)
+
+    auto rand = std::uniform_real_distribution<double>();
+    Solution cleanedSolution;
+    cleanedSolution.reserve(static_cast<size_t>(candidate.size() * (1 + 3 * probability_insert)));
+    for (auto& step : candidate)
     {
-      const size_t pos = std::uniform_int_distribution<>(0, candidate.size())(generator);
-      candidate.insert(begin(candidate) + pos, randomStep());
+      if (!isValid(step, state))
+        continue;
+      state = solver::apply(step, std::move(state));
+      if (state.hero.isDefeated())
+        break;
+      cleanedSolution.emplace_back(std::move(step));
+      if (rand(generator) < probability_insert)
+      {
+        auto randomStep = generateRandomValidStep(state);
+        state = solver::apply(randomStep, std::move(state));
+        if (state.hero.isDefeated())
+          break;
+        cleanedSolution.emplace_back(std::move(randomStep));
+      }
     }
+    if (!state.hero.isDefeated())
+    {
+      while (true)
+      {
+        auto randomStep = generateRandomValidStep(state);
+        state = solver::apply(randomStep, std::move(state));
+        if (state.hero.isDefeated())
+          break;
+        cleanedSolution.emplace_back(randomStep);
+      }
+    }
+    return cleanedSolution;
   }
 
   std::optional<Solution> run(SolverState state)
@@ -142,7 +151,8 @@ namespace GeneticAlgorithm
     // Create and rate initial generation of solutions
     std::array<std::pair<Solution, int>, generation_size> population;
     std::generate(begin(population), end(population), [&state] {
-      const auto [candidate, finalState] = initialSolution(state);
+      auto candidate = initialSolution(state);
+      const auto finalState = solver::apply(candidate, state);
       return std::pair{std::move(candidate), fitnessScore(finalState)};
     });
 
@@ -197,18 +207,18 @@ namespace GeneticAlgorithm
       // B) Random mutations
       // C) Clean up solutions and update scores
       std::for_each(std::execution::par_unseq, begin(population) + 1, end(population), [&](auto& entry) {
-        addRandomMutations(entry.first);
-        auto [cleaned, finalState] = cleanSolution(entry.first, state);
+        auto cleaned = mutateAndClean(std::move(entry.first), state);
+        const auto finalState = solver::apply(cleaned, state);
         entry = {std::move(cleaned), fitnessScore(finalState)};
       });
     }
 
-    const auto bestSolution = std::max_element(begin(population), end(population), [](const auto& a, const auto& b) {
-                                return a.second < b.second;
-                              })->first;
-    const auto [bestSolutionCleaned, bestFinalState] = cleanSolution(bestSolution, state);
-    explainScore(bestFinalState);
-    return bestSolutionCleaned;
+    auto& best = std::max_element(begin(population), end(population), [](const auto& a, const auto& b) {
+                   return a.second < b.second;
+                 })->first;
+    const auto finalState = solver::apply(best, state);
+    explainScore(finalState);
+    return std::move(best);
   }
 } // namespace GeneticAlgorithm
 

@@ -15,11 +15,14 @@ struct SolverState
   Resources resources{};
 };
 
-Step randomStep();
-Step validRandomStep(const SolverState& state);
-bool isValid(Step step, const SolverState& state);
+namespace solver
+{
+  Step generateRandomStep();
+  Step generateRandomValidStep(const SolverState& state);
+  bool isValid(Step step, const SolverState& state);
 
-SolverState apply(Step step, SolverState state);
-SolverState apply(Solution solution, SolverState state);
+  SolverState apply(const Step& step, SolverState state);
+  SolverState apply(const Solution& solution, SolverState state);
 
-void print(Solution solution, SolverState state);
+  void print(Solution solution, SolverState state);
+} // namespace Solver
