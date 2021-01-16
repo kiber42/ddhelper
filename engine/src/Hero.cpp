@@ -777,9 +777,11 @@ bool Hero::followDeity(God god)
   return faith.followDeity(god, *this);
 }
 
-bool Hero::request(Boon boon)
+bool Hero::request(BoonOrPact boonOrPact)
 {
-  return faith.request(boon, *this);
+  if (const auto boon = std::get_if<Boon>(&boonOrPact))
+    return faith.request(*boon, *this);
+  return faith.enter(std::get<Pact>(boonOrPact));
 }
 
 void Hero::desecrate(God altar)

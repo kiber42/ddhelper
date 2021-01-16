@@ -504,21 +504,20 @@ std::optional<Pact> Faith::getPact() const
   return pact;
 }
 
-void Faith::enter(Pact newPact)
+bool Faith::enter(Pact newPact)
 {
-  if (!pact)
+  if (pact)
+    return false;
+  if (newPact == Pact::Consensus)
   {
-    if (newPact == Pact::Consensus)
-    {
-      if (!consensus)
-      {
-        consensus = true;
-        gainPiety(50);
-      }
-    }
-    else
-      pact = newPact;
+    if (consensus)
+      return false;
+    consensus = true;
+    gainPiety(50);
   }
+  else
+    pact = newPact;
+  return true;
 }
 
 bool Faith::enteredConsensus() const

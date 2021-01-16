@@ -328,6 +328,7 @@ private:
   bool jehora;
 };
 
+using BoonOrPact = std::variant<Boon, Pact>;
 using ItemOrSpell = std::variant<Item, Spell>;
 
 class Faith
@@ -353,7 +354,7 @@ public:
   int isAvailable(Boon boon, const Hero& hero) const;
 
   std::optional<Pact> getPact() const;
-  void enter(Pact pact);
+  bool enter(Pact pact);
   bool enteredConsensus() const;
 
   void desecrate(God altar, Hero& hero, bool hasAgnosticCollar);

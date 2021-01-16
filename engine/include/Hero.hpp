@@ -113,7 +113,7 @@ public:
   int getBoonCosts(Boon boon) const;
 
   bool followDeity(God god);
-  bool request(Boon boon);
+  bool request(BoonOrPact boon);
   void desecrate(God altar);
 
   // Functions to group all piety events belonging to one action.

@@ -397,7 +397,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
           if (addPopupAction(
                   label, historyTitle,
                   [pact](Hero& hero) {
-                    hero.getFaith().enter(pact);
+                    hero.request(pact);
                     return Summary::None;
                   },
                   isSelected))
