@@ -386,7 +386,9 @@ Arena::StateUpdate Arena::run(const State& currentState)
         ImGui::Separator();
         ImGui::Text("Pactmaker");
         ImGui::Separator();
-        for (int index = 0; index <= static_cast<int>(Pact::Last); ++index)
+        const auto last =
+            currentState.hero->getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus;
+        for (int index = 0; index <= static_cast<int>(last); ++index)
         {
           const Pact pact = static_cast<Pact>(index);
           const bool isSelected = index + 200 == selectedPopupItem;

@@ -91,7 +91,8 @@ enum class Pact
   SpiritPact,
   Consensus,
 
-  Last = Consensus
+  LastNoConsensus = SpiritPact,
+  LastWithConsensus = Consensus
 };
 
 constexpr const char* toString(God god)
