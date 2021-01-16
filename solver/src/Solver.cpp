@@ -344,11 +344,11 @@ namespace GeneticAlgorithm
         std::copy(begin(solutionB), begin(solutionB) + cutPosition, begin(solutionA));
         std::copy(begin(tempSegment), end(tempSegment), begin(solutionB));
       }
+      // Run in parallel:
       // B) Random mutations
-      for (int j = 1; j < generation_size; ++j)
-        addRandomMutations(population[j].first);
       // C) Clean up solutions and update scores
-      std::for_each(std::execution::par_unseq, begin(population), end(population), [&](auto& entry) {
+      std::for_each(std::execution::par_unseq, begin(population) + 1, end(population), [&](auto& entry) {
+        addRandomMutations(entry.first);
         auto [cleaned, finalState] = cleanSolution(entry.first, state);
         entry = {std::move(cleaned), fitnessScore(finalState)};
       });
