@@ -28,7 +28,12 @@ std::string toString(const Step& step)
         }, convert.itemOrSpell); },
       [](Find find) { return "Find "s + toString(find.spell); },
       [](Follow follow) { return "Follow "s + toString(follow.deity); },
-      [](Request request) { return "Request "s + toString(request.boon); },
+      [](Request request) {
+
+        if (auto boon = std::get_if<Boon>(&request.boonOrPact))
+          return "Request "s + toString(*boon);
+        return "Request "s + toString(std::get<Pact>(request.boonOrPact));
+      },
       [](Desecrate desecrate) { return "Desecrate "s + toString(desecrate.altar); }
   }, step);
 }

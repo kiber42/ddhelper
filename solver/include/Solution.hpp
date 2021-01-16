@@ -49,7 +49,7 @@ struct Follow
 
 struct Request
 {
-  Boon boon;
+  std::variant<Boon, Pact> boonOrPact;
 };
 
 struct Desecrate

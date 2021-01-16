@@ -12,4 +12,5 @@ struct Resources
   std::vector<Item> shops;
   std::vector<Spell> spells;
   std::vector<God> altars;
+  bool pactMakerAvailable;
 };
