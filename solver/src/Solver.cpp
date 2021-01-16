@@ -246,14 +246,34 @@ namespace GeneticAlgorithm
 
   int fitnessScore(const SolverState& finalState)
   {
-    const int heroScore = 50 * finalState.hero.getLevel() + finalState.hero.getHitPoints() +
-                          10 * finalState.hero.hasStatus(HeroStatus::FirstStrikeTemporary);
     if (finalState.pool.empty())
-      return heroScore + 1000;
-    return std::accumulate(begin(finalState.pool), end(finalState.pool), heroScore,
-                           [](const int runningTotal, const Monster& monster) {
-                             return runningTotal - monster.getHitPoints() + 10 * monster.isSlowed();
-                           });
+      return 1000;
+    const auto& hero = finalState.hero;
+    const int heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
+    return std::accumulate(
+        begin(finalState.pool), end(finalState.pool), heroScore,
+        [](const int runningTotal, const Monster& monster) { return runningTotal - monster.getHitPoints(); });
+  }
+
+  void explainScore(const SolverState& finalState)
+  {
+    if (finalState.pool.empty())
+    {
+      std::cout << "No monsters remaining, score = 1000" << std::endl;
+      return;
+    }
+    const auto& hero = finalState.hero;
+    const int heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
+    std::cout << "   Hero level = " << hero.getLevel() << " -> " << 50 * hero.getLevel() << std::endl
+              << "   Hero XP = " << hero.getXP() << std::endl
+              << "   Hero damage = " << hero.getDamageVersusStandard() << std::endl
+              << "   Hero hitpoints = " << hero.getHitPoints() << std::endl
+              << "=> " << heroScore << std::endl;
+    const int monsterHitpoints = std::accumulate(
+        begin(finalState.pool), end(finalState.pool), 0,
+        [](const int runningTotal, const Monster& monster) { return runningTotal + monster.getHitPoints(); });
+    std::cout << "   Total monster hit points = " << monsterHitpoints << std::endl
+              << "=> " << heroScore - monsterHitpoints << std::endl;
   }
 
   void addRandomMutations(Solution& candidate)
@@ -321,11 +341,17 @@ namespace GeneticAlgorithm
                        [](const auto& scoredCandidateA, const auto& scoredCandidateB) {
                          return scoredCandidateA.second > scoredCandidateB.second;
                        });
+
       std::cout << "Generation " << i << " complete:" << std::endl;
       std::cout << "  Highest fitness score: " << population.front().second << std::endl;
       std::cout << "  Lowest retained fitness score: " << population[num_keep - 1].second << std::endl;
-      std::cout << "  Best scoring: " << toString(population.front().first) << std::endl;
+      const auto& bestCandidateSolution = population.front().first;
+      std::cout << "  Best candidate: " << std::endl << "  " << toString(bestCandidateSolution) << std::endl;
+      explainScore(apply(bestCandidateSolution, state));
       std::cout << std::string(80, '-') << std::endl;
+
+      if (population.front().second == 1000)
+        break;
 
       // A) Spawn new generation of candidate solutions by mixing successful solutions
       // Fill entire array with copies of `num_keep` most successful solutions
@@ -366,9 +392,12 @@ namespace GeneticAlgorithm
       });
     }
 
-    return std::max_element(begin(population), end(population),
-                            [](const auto& a, const auto& b) { return a.second < b.second; })
-        ->first;
+    const auto bestSolution = std::max_element(begin(population), end(population), [](const auto& a, const auto& b) {
+                                return a.second < b.second;
+                              })->first;
+    const auto [bestSolutionCleaned, bestFinalState] = cleanSolution(bestSolution, state);
+    explainScore(bestFinalState);
+    return bestSolutionCleaned;
   }
 } // namespace GeneticAlgorithm
 
