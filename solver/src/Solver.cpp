@@ -333,10 +333,12 @@ namespace GeneticAlgorithm
       {
         auto& solutionA = population[j - 1].first;
         auto& solutionB = population[j].first;
-        const auto maxCutPosition = std::min(solutionA.size(), solutionB.size());
-        if (maxCutPosition == 0)
-          continue;
-        const int cutPosition = std::uniform_int_distribution<>(0, maxCutPosition)(generator);
+        const auto maxSize = std::max(solutionA.size(), solutionB.size());
+        if (solutionA.size() < maxSize)
+          solutionA.resize(maxSize);
+        else
+          solutionB.resize(maxSize);
+        const int cutPosition = std::uniform_int_distribution<>(0, maxSize)(generator);
         // Replace from start up to random cut position, so vector sizes do not need to be changed
         std::vector<Step> tempSegment{begin(solutionA), begin(solutionA) + cutPosition};
         std::copy(begin(solutionB), begin(solutionB) + cutPosition, begin(solutionA));
