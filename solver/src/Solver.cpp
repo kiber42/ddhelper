@@ -205,16 +205,14 @@ namespace GeneticAlgorithm
     Solution initial;
     while (true)
     {
-      Step step = randomStep();
-      if (isValid(step, state))
-      {
-        state = apply(std::move(step), std::move(state));
-        if (state.hero.isDefeated())
-          break;
-        initial.emplace_back(step);
-        if (initial.size() == 100 || state.pool.empty())
-          break;
-      }
+      Step step = validRandomStep(state);
+      assert(isValid(step, state));
+      state = apply(std::move(step), std::move(state));
+      if (state.hero.isDefeated())
+        break;
+      initial.emplace_back(step);
+      if (initial.size() == 100 || state.pool.empty())
+        break;
     }
     return {std::move(initial), std::move(state)};
   }
@@ -228,18 +226,17 @@ namespace GeneticAlgorithm
     Solution cleaned;
     while (true)
     {
-      Step step = candidate.empty() ? randomStep() : candidate.back();
+      while (!candidate.empty() && !isValid(candidate.back(), state))
+        candidate.pop_back();
+      Step step = candidate.empty() ? validRandomStep(state) : candidate.back();
       if (!candidate.empty())
         candidate.pop_back();
-      if (isValid(step, state))
-      {
-        state = apply(std::move(step), std::move(state));
-        if (state.hero.isDefeated())
-          break;
-        cleaned.emplace_back(step);
-        if (state.pool.empty())
-          break;
-      }
+      state = apply(std::move(step), std::move(state));
+      if (state.hero.isDefeated())
+        break;
+      cleaned.emplace_back(step);
+      if (state.pool.empty())
+        break;
     }
     return {std::move(cleaned), std::move(state)};
   }
