@@ -141,6 +141,7 @@ public:
   std::vector<Inventory::Entry> getSpells() const;
   bool has(ItemOrSpell itemOrSpell) const;
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
+  bool canAfford(Item item) const;
   void receive(ItemOrSpell itemOrSpell);
   void convert(ItemOrSpell itemOrSpell);
   bool canConvert(ItemOrSpell itemOrSpell) const;

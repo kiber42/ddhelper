@@ -727,7 +727,10 @@ bool Hero::spendGold(int amountSpent)
 
 bool Hero::buy(Item item)
 {
-  if (!spendGold(price(item)))
+  int actualPrice = price(item);
+  if (hasTrait(HeroTrait::Negotiator))
+    actualPrice = std::max(1, actualPrice - 5);
+  if (!spendGold(actualPrice))
     return false;
   receive(item);
   return true;
@@ -909,6 +912,16 @@ bool Hero::has(ItemOrSpell itemOrSpell) const
 bool Hero::hasRoomFor(ItemOrSpell itemOrSpell) const
 {
   return inventory.hasRoomFor(itemOrSpell);
+}
+
+bool Hero::canAfford(Item item) const
+{
+  const int have = gold();
+  if (have >= price(item))
+    return true;
+  if (have == 0 || !hasTrait(HeroTrait::Negotiator))
+    return false;
+  return have >= price(item) - 5;
 }
 
 void Hero::receive(ItemOrSpell itemOrSpell)
