@@ -246,27 +246,45 @@ namespace GeneticAlgorithm
 
   void addRandomMutations(Solution& candidate)
   {
-    // probability per step of solution that it will be swapped with its neighbour
-    const double mutation_fraction_swap = 0.1;
-    // probability per existing step that an additional random step will be inserted somewhere
-    // (insert many random steps, since most of them will be invalid and will automatically be removed again)
-    const double mutation_fraction_insert = 0.5;
+    // The following probabilities are interpreted per step of current candidate.
+    // The mutations are applied in this order:
+    // 1) random erasure of a single step
+    const double probability_erasure = 0.02;
+    // 2) swap pairs of (neighbouring) steps
+    const double probability_swap_any = 0.05;
+    const double probability_swap_neighbor = 0.1;
+    // 3) insert random step at random position (invalid steps will be automatically removed later)
+    const double probability_insert = 0.1;
 
-    if (candidate.empty())
-      return;
-    int num_mutations = std::poisson_distribution<>(candidate.size() * mutation_fraction_insert)(generator);
+    // Always add some random steps at the end (to guarantee minimum size and to facilitate finding longer solutions)
+    for (int i = 0; i < 10; ++i)
+      candidate.emplace_back(randomStep());
+
+    int num_mutations = std::poisson_distribution<>(candidate.size() * probability_erasure)(generator);
     while (--num_mutations >= 0)
     {
-      const size_t pos = std::uniform_int_distribution<>(0, candidate.size())(generator);
-      candidate.insert(begin(candidate) + pos, randomStep());
+      const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
+      candidate.erase(begin(candidate) + pos);
     }
-    if (candidate.size() < 2)
-      return;
-    num_mutations = std::poisson_distribution<>(candidate.size() * mutation_fraction_swap)(generator);
+    num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_any)(generator);
+    while (--num_mutations >= 0)
+    {
+      const size_t posA = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
+      const size_t posB = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
+      if (posA != posB)
+        std::swap(candidate[posA], candidate[posB]);
+    }
+    num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_neighbor)(generator);
     while (--num_mutations >= 0)
     {
       const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 2)(generator);
       std::swap(candidate[pos], candidate[pos + 1]);
+    }
+    num_mutations = std::poisson_distribution<>(candidate.size() * probability_insert)(generator);
+    while (--num_mutations >= 0)
+    {
+      const size_t pos = std::uniform_int_distribution<>(0, candidate.size())(generator);
+      candidate.insert(begin(candidate) + pos, randomStep());
     }
   }
 
