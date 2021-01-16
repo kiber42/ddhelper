@@ -139,6 +139,7 @@ public:
   // Inventory management
   std::vector<Inventory::Entry> getItems() const;
   std::vector<Inventory::Entry> getSpells() const;
+  const std::vector<Inventory::Entry>& getItemsAndSpells() const;
   bool has(ItemOrSpell itemOrSpell) const;
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
   bool canAfford(Item item) const;

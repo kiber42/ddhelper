@@ -906,6 +906,11 @@ std::vector<Inventory::Entry> Hero::getSpells() const
   return inventory.getSpells();
 }
 
+const std::vector<Inventory::Entry>& Hero::getItemsAndSpells() const
+{
+  return inventory.getItemsAndSpells();
+}
+
 bool Hero::has(ItemOrSpell itemOrSpell) const
 {
   return inventory.has(itemOrSpell);
