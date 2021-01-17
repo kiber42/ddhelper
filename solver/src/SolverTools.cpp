@@ -203,15 +203,12 @@ namespace solver
 
   bool isValid(Step step, const SolverState& state)
   {
-    const auto monsterIt =
-        std::find_if(begin(state.pool), end(state.pool), [](const auto& monster) { return !monster.isDefeated(); });
-    const bool hasMonster = monsterIt != end(state.pool);
     const auto& hero = state.hero;
     return std::visit(
-        overloaded{[&](Attack) { return hasMonster; },
+        overloaded{[&](Attack) { return !state.pool.empty(); },
                    [&](Cast cast) {
                      return hero.has(cast.spell) &&
-                            ((hasMonster && Magic::isPossible(hero, *monsterIt, cast.spell)) ||
+                            ((!state.pool.empty() && Magic::isPossible(hero, state.pool.front(), cast.spell)) ||
                              (!Magic::needsMonster(cast.spell) && Magic::isPossible(hero, cast.spell)));
                    },
                    [&](Uncover uncover) { return state.resources.numBlackTiles >= uncover.numTiles; },
@@ -272,7 +269,7 @@ namespace solver
                             hero.desecrate(desecrate.altar);
                           }},
                step);
-    while (state.pool.front().isDefeated() && !state.pool.empty())
+    while (!state.pool.empty() && state.pool.front().isDefeated())
       state.pool.erase(state.pool.begin());
     return state;
   }
@@ -304,14 +301,20 @@ namespace solver
     {
       std::cout << toString(step) << '\n';
       auto heroBefore = state.hero;
+      const int poolSize = state.pool.size();
       state = apply(step, std::move(state));
       print_description(describe_diff(heroBefore, state.hero));
-      if (isCombat(step) && !state.pool.empty())
+      if (isCombat(step))
       {
-        print_description(describe(state.pool.front()));
-        if (state.pool.front().isDefeated() && state.pool.size() >= 2)
-          print_description(describe(state.pool[1]));
+        if (state.pool.empty())
+          std::cout << "***** All enemies defeated *****" << std::endl;
+        else
+        {
+          if (state.pool.size() != poolSize)
+            std::cout << "Next enemy: ";
+          print_description(describe(state.pool.front()));
+        }
       }
     }
   }
-} // namespace Solver
+} // namespace solver
