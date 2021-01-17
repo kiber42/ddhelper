@@ -117,6 +117,8 @@ namespace GeneticAlgorithm
       if (state.hero.isDefeated())
         break;
       cleanedSolution.emplace_back(std::move(step));
+      if (state.pool.empty())
+        break;
       if (rand(generator) < probability_insert)
       {
         auto randomStep = generateRandomValidStep(state);
@@ -124,9 +126,11 @@ namespace GeneticAlgorithm
         if (state.hero.isDefeated())
           break;
         cleanedSolution.emplace_back(std::move(randomStep));
+        if (state.pool.empty())
+          break;
       }
     }
-    if (!state.hero.isDefeated())
+    if (!state.hero.isDefeated() && !state.pool.empty())
     {
       while (true)
       {
@@ -135,6 +139,8 @@ namespace GeneticAlgorithm
         if (state.hero.isDefeated())
           break;
         cleanedSolution.emplace_back(randomStep);
+        if (state.pool.empty())
+          break;
       }
     }
     return cleanedSolution;
@@ -172,7 +178,7 @@ namespace GeneticAlgorithm
       std::cout << std::string(80, '-') << std::endl;
 
       if (population.front().second == 1000)
-        break;
+        return population.front().first;
 
       // A) Spawn new generation of candidate solutions by mixing successful solutions
       // Fill entire array with copies of `num_keep` most successful solutions
