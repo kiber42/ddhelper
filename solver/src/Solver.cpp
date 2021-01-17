@@ -72,12 +72,12 @@ namespace GeneticAlgorithm
     // The following probabilities are interpreted per step of current candidate.
     // The mutations are applied in this order:
     // 1) random erasure of a single step
-    const double probability_erasure = 0.02;
+    const double probability_erasure = 0.01;
     // 2) swap pairs of (neighbouring) steps
-    const double probability_swap_any = 0.05;
-    const double probability_swap_neighbor = 0.1;
-    // 3) insert random step at random position (invalid steps will be automatically removed later)
-    const double probability_insert = 0.1;
+    const double probability_swap_any = 0.02;
+    const double probability_swap_neighbor = 0.05;
+    // 3) insert random valid step at random position
+    const double probability_insert = 0.015;
 
     int num_mutations = std::poisson_distribution<>(candidate.size() * probability_erasure)(generator);
     while (--num_mutations >= 0 && !candidate.empty())
