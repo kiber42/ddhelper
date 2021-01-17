@@ -67,6 +67,12 @@ public:
   bool isUndead() const;
   bool isBloodless() const;
 
+  // Boosts from punishments
+  void addPhysicalResist(int additionalResistPercent);
+  void addMagicResist(int additionalResistPercent);
+  void makeFast();
+  void makeWeakening();
+
   // TODO: Add non xp-valuable monsters, and plants
   bool grantsXP() const { return true; }
 

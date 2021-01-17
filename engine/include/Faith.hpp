@@ -357,6 +357,8 @@ using ItemOrSpell = std::variant<Item, Spell>;
 class Faith
 {
 public:
+  void assignMonsterPool(std::vector<Monster>& allMonsters);
+
   bool followDeity(God god, Hero& hero);
   std::optional<God> getFollowedDeity() const;
 
@@ -419,6 +421,8 @@ public:
 private:
   void initialBoon(God god, Hero& hero);
   void punish(God god, Hero& hero);
+
+  std::vector<Monster>* monsterPool;
 
   std::optional<God> followedDeity;
   std::vector<Boon> boons;

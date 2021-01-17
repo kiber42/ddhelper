@@ -52,6 +52,11 @@ PietyChange& PietyChange::operator+=(const PietyChange& other)
   return *this;
 }
 
+void Faith::assignMonsterPool(std::vector<Monster>& allMonsters)
+{
+  monsterPool = &allMonsters;
+}
+
 bool Faith::followDeity(God god, Hero& hero)
 {
   if (hero.hasTrait(HeroTrait::Damned) || hero.hasTrait(HeroTrait::Scapegoat))
@@ -588,17 +593,35 @@ void Faith::punish(God god, Hero& hero)
     hero.changeDamageBonusPercent(-33);
     break;
   case God::MysteraAnnur:
-    // TODO: 15% physical and magical resistance for all monsters on all dungeon floors
+    if (monsterPool)
+    {
+      for (auto& monster : *monsterPool)
+      {
+        monster.addPhysicalResist(15);
+        monster.addMagicResist(15);
+      }
+    }
     break;
   case God::Taurog:
     hero.changeDamageBonusPercent(-40);
-    // TODO: 10% magical resistance for all monsters
+    if (monsterPool)
+    {
+      for (auto& monster : *monsterPool)
+        monster.addMagicResist(10);
+    }
     break;
   case God::TikkiTooki:
     hero.removeStatus(HeroStatus::DodgePermanent, true);
     hero.removeStatus(HeroStatus::DodgeTemporary, true);
-    // TODO: hero.removeStatus(HeroStatus::PoisonStrike, true);
-    // TODO: All monsters on all dungeon floors gain first strike and weakening blow
+    hero.removeStatus(HeroStatus::Poisonous, true);
+    if (monsterPool)
+    {
+      for (auto& monster : *monsterPool)
+      {
+        monster.makeFast();
+        monster.makeWeakening();
+      }
+    }
     break;
   }
 }
@@ -924,5 +947,9 @@ PietyChange Faith::deathProtectionTriggered()
 void Faith::convertedTaurogItem(Hero& hero)
 {
   hero.changeDamageBonusPercent(-10);
-  // TODO: 10% magical resistance for all monsters
+  if (monsterPool)
+  {
+    for (auto& monster : *monsterPool)
+      monster.addMagicResist(10);
+  }
 }

@@ -301,6 +301,26 @@ bool Monster::isBloodless() const
   return traits.isBloodless();
 }
 
+void Monster::addPhysicalResist(int additionalResistPercent)
+{
+  defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() + additionalResistPercent);
+}
+
+void Monster::addMagicResist(int additionalResistPercent)
+{
+defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() + additionalResistPercent);
+}
+
+void Monster::makeFast()
+{
+  traits.firstStrike = true;
+}
+
+void Monster::makeWeakening()
+{
+  traits.weakening = true;
+}
+
 using namespace std::string_literals;
 
 std::vector<std::string> describe(const Monster& monster)
@@ -308,12 +328,10 @@ std::vector<std::string> describe(const Monster& monster)
   if (monster.isDefeated())
     return {monster.getName() + " defeated."s};
 
-  std::vector description
-  {
-    std::string{monster.getName()},
-    std::to_string(monster.getHitPoints()) + "/" + std::to_string(monster.getHitPointsMax()) + " HP",
-    std::to_string(monster.getDamage()) + " damage"
-  };
+  std::vector description{std::string{monster.getName()},
+                          std::to_string(monster.getHitPoints()) + "/" + std::to_string(monster.getHitPointsMax()) +
+                              " HP",
+                          std::to_string(monster.getDamage()) + " damage"};
   if (monster.hasFirstStrike() && !monster.isSlowed())
     description.emplace_back("First Strike");
   if (monster.doesMagicalDamage())
