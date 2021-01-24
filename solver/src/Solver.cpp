@@ -14,9 +14,9 @@ using namespace solver;
 namespace GeneticAlgorithm
 {
   // Random initial solution, stops close to hero's death
-  Solution initialSolution(SolverState state)
+  Solution initialSolution(GameState state)
   {
-    if (state.hero.isDefeated() || state.pool.empty())
+    if (state.hero.isDefeated() || state.monsters.empty())
       return {};
     Solution initial;
     while (true)
@@ -27,26 +27,26 @@ namespace GeneticAlgorithm
       if (state.hero.isDefeated())
         break;
       initial.emplace_back(std::move(step));
-      if (initial.size() == 100 || state.pool.empty())
+      if (initial.size() == 100 || state.monsters.empty())
         break;
     }
     return initial;
   }
 
-  int fitnessScore(const SolverState& finalState)
+  int fitnessScore(const GameState& finalState)
   {
-    if (finalState.pool.empty())
+    if (finalState.monsters.empty())
       return 1000;
     const auto& hero = finalState.hero;
     const int heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
     return std::accumulate(
-        begin(finalState.pool), end(finalState.pool), heroScore,
+        begin(finalState.monsters), end(finalState.monsters), heroScore,
         [](const int runningTotal, const Monster& monster) { return runningTotal - monster.getHitPoints(); });
   }
 
-  void explainScore(const SolverState& finalState)
+  void explainScore(const GameState& finalState)
   {
-    if (finalState.pool.empty())
+    if (finalState.monsters.empty())
     {
       std::cout << "No monsters remaining, score = 1000" << std::endl;
       return;
@@ -59,7 +59,7 @@ namespace GeneticAlgorithm
               << "   Hero hitpoints = " << hero.getHitPoints() << std::endl
               << "=> " << heroScore << std::endl;
     const int monsterHitpoints = std::accumulate(
-        begin(finalState.pool), end(finalState.pool), 0,
+        begin(finalState.monsters), end(finalState.monsters), 0,
         [](const int runningTotal, const Monster& monster) { return runningTotal + monster.getHitPoints(); });
     std::cout << "   Total monster hit points = " << monsterHitpoints << std::endl
               << "=> " << heroScore - monsterHitpoints << std::endl;
@@ -67,7 +67,7 @@ namespace GeneticAlgorithm
 
   // Applies mutations to a candidate solution, removes invalid steps and extends it with valid random steps.
   // Stops when the hero would be defeated by the next action.  Returns updated state.
-  Solution mutateAndClean(Solution candidate, SolverState state)
+  Solution mutateAndClean(Solution candidate, GameState state)
   {
     // The following probabilities are interpreted per step of current candidate.
     // The mutations are applied in this order:
@@ -117,7 +117,7 @@ namespace GeneticAlgorithm
       if (state.hero.isDefeated())
         break;
       cleanedSolution.emplace_back(std::move(step));
-      if (state.pool.empty())
+      if (state.monsters.empty())
         break;
       if (rand(generator) < probability_insert)
       {
@@ -126,11 +126,11 @@ namespace GeneticAlgorithm
         if (state.hero.isDefeated())
           break;
         cleanedSolution.emplace_back(std::move(randomStep));
-        if (state.pool.empty())
+        if (state.monsters.empty())
           break;
       }
     }
-    if (!state.hero.isDefeated() && !state.pool.empty())
+    if (!state.hero.isDefeated() && !state.monsters.empty())
     {
       while (true)
       {
@@ -139,14 +139,14 @@ namespace GeneticAlgorithm
         if (state.hero.isDefeated())
           break;
         cleanedSolution.emplace_back(randomStep);
-        if (state.pool.empty())
+        if (state.monsters.empty())
           break;
       }
     }
     return cleanedSolution;
   }
 
-  std::optional<Solution> run(SolverState state)
+  std::optional<Solution> run(GameState state)
   {
     state.hero.addStatus(HeroStatus::Pessimist);
     const int num_generations = 100;
@@ -339,15 +339,15 @@ namespace SimulatedAnnealing
   }
 
   // Attempt to find solution with an infinite amount of health and mana potions available
-  IntermediateResult solve_initial(SolverState state)
+  IntermediateResult solve_initial(GameState state)
   {
     IntermediateResult result;
     result.extraPotions = {-1, -1};
-    while (!state.pool.empty())
+    while (!state.monsters.empty())
     {
-      if (!solve_1(std::move(state.pool.back()), state.hero, state.resources, result))
+      if (!solve_1(std::move(state.monsters.back()), state.hero, state.resources, result))
         return {};
-      state.pool.pop_back();
+      state.monsters.pop_back();
     }
     result.extraPotions = {-1 - result.extraPotions.health, -1 - result.extraPotions.mana};
     std::cout << "Intermediate solution used " << result.extraPotions.health << " health potion(s) and "
@@ -355,16 +355,16 @@ namespace SimulatedAnnealing
     return result;
   }
 
-  IntermediateResult useMoreMana(SolverState state, IntermediateResult previousResult)
+  IntermediateResult useMoreMana(GameState state, IntermediateResult previousResult)
   {
     IntermediateResult result;
     const ExtraPotions initialPotions = {previousResult.extraPotions.health - 1, previousResult.extraPotions.mana + 10};
     result.extraPotions = initialPotions;
-    while (!state.pool.empty())
+    while (!state.monsters.empty())
     {
-      if (!solve_1(std::move(state.pool.back()), state.hero, state.resources, result))
+      if (!solve_1(std::move(state.monsters.back()), state.hero, state.resources, result))
         return {};
-      state.pool.pop_back();
+      state.monsters.pop_back();
     }
     result.extraPotions = {initialPotions.health - result.extraPotions.health,
                            initialPotions.mana - result.extraPotions.mana};
@@ -373,7 +373,7 @@ namespace SimulatedAnnealing
     return result;
   }
 
-  IntermediateResult reduce(SolverState state, IntermediateResult previousResult)
+  IntermediateResult reduce(GameState state, IntermediateResult previousResult)
   {
     IntermediateResult result;
 
@@ -382,10 +382,10 @@ namespace SimulatedAnnealing
     return result;
   }
 
-  std::optional<Solution> run(SolverState state)
+  std::optional<Solution> run(GameState state)
   {
     state.hero.addStatus(HeroStatus::Pessimist);
-    std::reverse(begin(state.pool), end(state.pool));
+    std::reverse(begin(state.monsters), end(state.monsters));
 
     auto result = solve_initial(state);
     if (result.solution.empty())
@@ -417,7 +417,7 @@ namespace SimulatedAnnealing
   }
 } // namespace SimulatedAnnealing
 
-std::optional<Solution> run(Solver solver, SolverState initialState)
+std::optional<Solution> run(Solver solver, GameState initialState)
 {
   switch (solver)
   {

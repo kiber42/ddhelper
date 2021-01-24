@@ -58,12 +58,12 @@ namespace solver
     }
   }
 
-  Step generateRandomValidStep(const SolverState& state)
+  Step generateRandomValidStep(const GameState& state)
   {
     // TODO: Migrate to C++20 and replace std::transform and std::shuffle with equivalent std::ranges functions
 
     // Rely on at least one monster being present
-    assert(!state.pool.empty());
+    assert(!state.monsters.empty());
     std::uniform_int_distribution<> randomAction(0, 10);
     std::optional<std::vector<Spell>> spells;
     std::optional<std::vector<Item>> shops;
@@ -104,7 +104,7 @@ namespace solver
                          [](const auto& entry) { return std::get<Spell>(entry.itemOrSpell); });
           std::shuffle(begin(*spells), end(*spells), generator);
           const auto spellIt = std::find_if(begin(*spells), end(*spells),
-                                            [&hero = state.hero, &monster = state.pool.front()](const Spell spell) {
+                                            [&hero = state.hero, &monster = state.monsters.front()](const Spell spell) {
                                               return Magic::isPossible(hero, monster, spell) ||
                                                      (!Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
                                             });
@@ -201,14 +201,14 @@ namespace solver
     }
   }
 
-  bool isValid(Step step, const SolverState& state)
+  bool isValid(Step step, const GameState& state)
   {
     const auto& hero = state.hero;
     return std::visit(
-        overloaded{[&](Attack) { return !state.pool.empty(); },
+        overloaded{[&](Attack) { return !state.monsters.empty(); },
                    [&](Cast cast) {
                      return hero.has(cast.spell) &&
-                            ((!state.pool.empty() && Magic::isPossible(hero, state.pool.front(), cast.spell)) ||
+                            ((!state.monsters.empty() && Magic::isPossible(hero, state.monsters.front(), cast.spell)) ||
                              (!Magic::needsMonster(cast.spell) && Magic::isPossible(hero, cast.spell)));
                    },
                    [&](Uncover uncover) { return state.resources.numBlackTiles >= uncover.numTiles; },
@@ -240,12 +240,12 @@ namespace solver
         step);
   }
 
-  SolverState apply(const Step& step, SolverState state)
+  GameState apply(const Step& step, GameState state)
   {
-    if (state.pool.empty())
+    if (state.monsters.empty())
       return state;
     auto& hero = state.hero;
-    auto& monster = state.pool.front();
+    auto& monster = state.monsters.front();
     std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster); },
                           [&](Cast cast) { Magic::cast(hero, monster, cast.spell); },
                           [&](Uncover uncover) {
@@ -270,12 +270,12 @@ namespace solver
                             hero.desecrate(desecrate.altar);
                           }},
                step);
-    while (!state.pool.empty() && state.pool.front().isDefeated())
-      state.pool.erase(state.pool.begin());
+    while (!state.monsters.empty() && state.monsters.front().isDefeated())
+      state.monsters.erase(state.monsters.begin());
     return state;
   }
 
-  SolverState apply(const Solution& solution, SolverState state)
+  GameState apply(const Solution& solution, GameState state)
   {
     for (const auto& step : solution)
       state = apply(step, std::move(state));
@@ -293,27 +293,27 @@ namespace solver
     }
   } // namespace
 
-  void print(Solution solution, SolverState state)
+  void print(Solution solution, GameState state)
   {
     print_description(describe(state.hero));
-    if (!state.pool.empty())
-      print_description(describe(state.pool.front()));
+    if (!state.monsters.empty())
+      print_description(describe(state.monsters.front()));
     for (const auto& step : solution)
     {
       std::cout << toString(step) << '\n';
       auto heroBefore = state.hero;
-      const int poolSize = state.pool.size();
+      const int poolSize = state.monsters.size();
       state = apply(step, std::move(state));
       print_description(describe_diff(heroBefore, state.hero));
       if (isCombat(step))
       {
-        if (state.pool.empty())
+        if (state.monsters.empty())
           std::cout << "***** All enemies defeated *****" << std::endl;
         else
         {
-          if (state.pool.size() != poolSize)
+          if (state.monsters.size() != poolSize)
             std::cout << "Next enemy: ";
-          print_description(describe(state.pool.front()));
+          print_description(describe(state.monsters.front()));
         }
       }
     }

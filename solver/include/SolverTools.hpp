@@ -1,28 +1,14 @@
-#include "Hero.hpp"
-#include "Monster.hpp"
-#include "Resources.hpp"
+#include "GameState.hpp"
 #include "Solution.hpp"
-
-#include <optional>
-#include <vector>
-
-using MonsterPool = std::vector<Monster>;
-
-struct SolverState
-{
-  Hero hero{};
-  MonsterPool pool{};
-  Resources resources{};
-};
 
 namespace solver
 {
   Step generateRandomStep();
-  Step generateRandomValidStep(const SolverState& state);
-  bool isValid(Step step, const SolverState& state);
+  Step generateRandomValidStep(const GameState& state);
+  bool isValid(Step step, const GameState& state);
 
-  SolverState apply(const Step& step, SolverState state);
-  SolverState apply(const Solution& solution, SolverState state);
+  GameState apply(const Step& step, GameState state);
+  GameState apply(const Solution& solution, GameState state);
 
-  void print(Solution solution, SolverState state);
-} // namespace Solver
+  void print(Solution solution, GameState state);
+} // namespace solver

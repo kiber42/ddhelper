@@ -90,6 +90,8 @@ private:
   static int lastId;
 };
 
+using Monsters = std::vector<Monster>;
+
 std::vector<std::string> describe(const Monster& monster);
 
 inline bool operator==(const Monster& lhs, const Monster& rhs)
