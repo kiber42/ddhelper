@@ -176,7 +176,7 @@ namespace solver
           std::shuffle(begin(boons), end(boons), generator);
           auto boonIt =
               std::find_if(begin(boons), end(boons), [&hero = state.hero, &faith = state.hero.getFaith()](Boon boon) {
-                return faith.isAvailable(boon, hero);
+                return faith.getPiety() >= faith.getCosts(boon, hero) && faith.isAvailable(boon, hero);
               });
           if (boonIt != end(boons))
             return Request{*boonIt};
@@ -251,6 +251,7 @@ namespace solver
                           [&](Uncover uncover) {
                             hero.recover(uncover.numTiles);
                             monster.recover(uncover.numTiles);
+                            state.resources.numBlackTiles -= uncover.numTiles;
                           },
                           [&hero, &shops = state.resources.shops](Buy buy) {
                             shops.erase(std::find(begin(shops), end(shops), buy.item));
