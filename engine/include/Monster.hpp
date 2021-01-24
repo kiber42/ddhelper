@@ -91,3 +91,13 @@ private:
 };
 
 std::vector<std::string> describe(const Monster& monster);
+
+inline bool operator==(const Monster& lhs, const Monster& rhs)
+{
+  return lhs.getID() == rhs.getID();
+}
+
+inline bool operator!=(const Monster& lhs, const Monster& rhs)
+{
+  return !(lhs == rhs);
+}
