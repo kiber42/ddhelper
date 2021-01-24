@@ -8,9 +8,9 @@
 
 struct Resources
 {
-  int numBlackTiles;
   std::vector<Item> shops;
   std::vector<Spell> spells;
   std::vector<God> altars;
-  bool pactMakerAvailable;
+  int numBlackTiles = 0;
+  bool pactMakerAvailable = false;
 };
