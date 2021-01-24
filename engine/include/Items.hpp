@@ -77,7 +77,9 @@ enum class Item
   Wereward,
   Gloat,
   Will,
-  Last = Will
+  // Puzzle Items
+  TikkisCharm,
+  Last = TikkisCharm
 };
 
 constexpr const char* toString(Item item)
@@ -198,12 +200,18 @@ constexpr const char* toString(Item item)
   case Item::Gorgward:
     return "Gorgward";
 
-  case Item::FabulousTreasure: return "Fabulous Treasure";
-  case Item::DragonShield: return "Dragon Shield";
-  case Item::NamtarsWard: return "Namtar's Ward";
-  case Item::AvatarsCodex: return "Avatar's Codex";
-  case Item::NagaCauldron: return "Naga Cauldron";
-  case Item::SensationStone: return "Sensation Stone";
+  case Item::FabulousTreasure:
+    return "Fabulous Treasure";
+  case Item::DragonShield:
+    return "Dragon Shield";
+  case Item::NamtarsWard:
+    return "Namtar's Ward";
+  case Item::AvatarsCodex:
+    return "Avatar's Codex";
+  case Item::NagaCauldron:
+    return "Naga Cauldron";
+  case Item::SensationStone:
+    return "Sensation Stone";
 
   case Item::PrayerBead:
     return "Prayer Bead";
@@ -218,6 +226,9 @@ constexpr const char* toString(Item item)
     return "Gloat";
   case Item::Will:
     return "Will";
+
+  case Item::TikkisCharm:
+    return "Tikki's Charm";
   }
 }
 
@@ -339,12 +350,18 @@ constexpr int price(Item item)
   case Item::Gorgward:
     return 18;
 
-  case Item::FabulousTreasure: return 95;
-  case Item::DragonShield: return 23;
-  case Item::NamtarsWard: return 50;
-  case Item::AvatarsCodex: return 35;
-  case Item::NagaCauldron: return 12;
-  case Item::SensationStone: return 25;
+  case Item::FabulousTreasure:
+    return 95;
+  case Item::DragonShield:
+    return 23;
+  case Item::NamtarsWard:
+    return 50;
+  case Item::AvatarsCodex:
+    return 35;
+  case Item::NagaCauldron:
+    return 12;
+  case Item::SensationStone:
+    return 25;
 
   case Item::PrayerBead:
   case Item::EnchantedPrayerBead:
@@ -353,6 +370,9 @@ constexpr int price(Item item)
   case Item::Gloat:
   case Item::Will:
     return 0;
+
+  case Item::TikkisCharm:
+    return 1;
   }
 }
 
@@ -474,12 +494,18 @@ constexpr int conversionPointsInitial(Item item)
   case Item::Gorgward:
     return 50;
 
-  case Item::FabulousTreasure: return 1;
-  case Item::DragonShield: return 100;
-  case Item::NamtarsWard: return 100;
-  case Item::AvatarsCodex: return 50;
-  case Item::NagaCauldron: return 35;
-  case Item::SensationStone: return 150;
+  case Item::FabulousTreasure:
+    return 1;
+  case Item::DragonShield:
+    return 100;
+  case Item::NamtarsWard:
+    return 100;
+  case Item::AvatarsCodex:
+    return 50;
+  case Item::NagaCauldron:
+    return 35;
+  case Item::SensationStone:
+    return 150;
 
   case Item::PrayerBead:
     return -1;
@@ -491,6 +517,9 @@ constexpr int conversionPointsInitial(Item item)
   case Item::Gloat:
   case Item::Will:
     return 60;
+
+  case Item::TikkisCharm:
+    return 5;
   }
 }
 
@@ -506,7 +535,7 @@ constexpr bool isSmall(Item item)
   return isPotion(item) || item == Item::Spoon || item == Item::WitchalokPendant || item == Item::BalancedDagger ||
          item == Item::VenomDagger || item == Item::StoneSigil || item == Item::BlueBead || item == Item::ViperWard ||
          item == Item::SoulOrb || item == Item::PerseveranceBadge || item == Item::Gorgward ||
-         item == Item::PrayerBead || item == Item::EnchantedPrayerBead;
+         item == Item::PrayerBead || item == Item::EnchantedPrayerBead || item == Item::TikkisCharm;
 }
 
 constexpr bool canGroup(Item item)

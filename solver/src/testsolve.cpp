@@ -25,7 +25,7 @@ void testPrinting()
 
 void testSolve(Solver solver, Scenario scenario)
 {
-  SolverState state{getHeroForScenario(scenario), getMonstersForScenario(scenario), {}};
+  SolverState state{getHeroForScenario(scenario), getMonstersForScenario(scenario), getResourcesForScenario(scenario)};
 
   auto solution = run(solver, state);
   if (solution)
@@ -40,6 +40,6 @@ void testSolve(Solver solver, Scenario scenario)
 int main()
 {
   //testSolve(Solver::SimulatedAnnealing, Scenario::HalflingTrial);
-  testSolve(Solver::GeneticAlgorithm, Scenario::HalflingTrial);
+  testSolve(Solver::GeneticAlgorithm, Scenario::TheThirdAct);
   return 0;
 }

@@ -34,25 +34,37 @@ Hero getHeroForScenario(Scenario scenario)
     hero.addStatus(HeroStatus::Pessimist);
     return hero;
   }
+  case Scenario::TheThirdAct:
+  {
+    Hero hero;
+    hero.followDeity(God::TikkiTooki);
+    hero.getFaith().gainPiety(22);
+    hero.addGold(100 - hero.gold());
+    hero.clearInventory();
+    hero.receive(Item::TikkisCharm);
+    return hero;
+  }
   }
 }
 
 std::vector<Monster> getMonstersForScenario(Scenario scenario)
 {
-  std::vector<Monster> pool;
   switch (scenario)
   {
   case Scenario::AgbaarsAcademySlowingPart2:
   {
+    std::vector<Monster> pool;
     pool.emplace_back(Monster{MonsterType::Goblin, 1});
     pool.emplace_back(Monster{"Djinn level 1", {1, 19, 99, 0}, {}, MonsterTraitsBuilder().addRetaliate().get()});
     pool.emplace_back(
         Monster{"Zombie level 2", {2, 10, 27, 0}, {}, MonsterTraitsBuilder().addUndead().addBloodless().get()});
     pool.emplace_back(
         Monster{"Eeblis (level 3)", {3, 28, 999, 0}, {}, MonsterTraitsBuilder().addFirstStrike().addRetaliate().get()});
+    return pool;
   }
   case Scenario::HalflingTrial:
   {
+    std::vector<Monster> pool;
     pool.emplace_back(Monster{"Goblin level 2", {2, 17, 8, 0}, {}, MonsterTraitsBuilder().addFirstStrike()});
     pool.emplace_back(Monster{MonsterType::Warlock, 2});
     pool.emplace_back(Monster{"Meat Man level 2", {2, 30, 4, 0}, {0, 100}, {}});
@@ -61,8 +73,23 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
         Monster{"Zombie level 3", {3, 39, 12, 0}, {0, 100}, MonsterTraitsBuilder().addBloodless().addUndead()});
     pool.emplace_back(
         Monster{"Jörmungandr (level 4)", {4, 58, 21, 0}, {}, MonsterTraitsBuilder().addFirstStrike().addPoisonous()});
+    return pool;
   }
-  break;
+  case Scenario::TheThirdAct:
+  {
+    std::vector<Monster> pool;
+    for (int i = 0; i < 5; ++i)
+      pool.emplace_back(MonsterType::MeatMan, 1);
+    pool.emplace_back(Monster{"Puryton", {1, 53, 15, 0}, {}, {}});
+    return pool;
   }
-  return pool;
+  }
+
+}
+
+Resources getResourcesForScenario(Scenario scenario)
+{
+  if (scenario == Scenario::TheThirdAct)
+    return {{Item::HealthPotion, Item::VenomDagger, Item::BadgeOfHonour}, {}, {God::TikkiTooki}, 3, false};
+  return {};
 }
