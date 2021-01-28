@@ -10,11 +10,8 @@ namespace Combat
   // Perform melee attack
   Summary attack(Hero&, Monster&);
 
-  // Pretend hero attack's another monster than the current (burn stack damage)
+  // Pretend hero attacks another monster than the current (burn stack damage)
   Summary attackOther(Hero&, Monster& current);
-
-  // Determines which debuffs the hero received due to a fight or other action
-  Debuffs findDebuffs(const Hero& heroBefore, const Hero& heroAfter);
 
   namespace detail
   {

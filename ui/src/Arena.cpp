@@ -23,7 +23,7 @@ namespace
       summary = (*heroAction)(*newState.hero);
     else if (auto attackAction = std::get_if<AttackAction>(&action))
       summary = (*attackAction)(*newState.hero, *newState.monster);
-    Outcome outcome = {summary, Combat::findDebuffs(*initialState.hero, *newState.hero),
+    Outcome outcome = {summary, findDebuffs(*initialState.hero, *newState.hero),
                        newState.hero->getPiety() - initialState.hero->getPiety()};
     return {std::move(newState), std::move(outcome)};
   }
