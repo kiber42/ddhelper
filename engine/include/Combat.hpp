@@ -7,11 +7,8 @@
 
 namespace Combat
 {
-  // Perform melee attack
-  Summary attack(Hero&, Monster&);
-
-  // Pretend hero attacks another monster than the current (burn stack damage)
-  Summary attackOther(Hero&, Monster& current);
+  // Perform melee attack on monster, evaluate effects on all monsters
+  Summary attack(Hero&, Monster&, Monsters&);
 
   namespace detail
   {
@@ -21,8 +18,5 @@ namespace Combat
                                  const Monster& monsterAfterFight,
                                  bool monsterWasSlowed,
                                  bool monsterWasBurning);
-
-    // If the monster was defeated, applies or lifts curse
-    void monsterDefeatedCurse(Hero& hero, const Monster& monster);
   } // namespace detail
 } // namespace Combat

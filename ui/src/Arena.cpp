@@ -85,14 +85,11 @@ Arena::StateUpdate Arena::run(const State& currentState)
     const bool withMonster = currentState.monster && !currentState.monster->isDefeated();
     if (withMonster)
     {
-      addActionButton("Attack", [](Hero& hero, Monster& monster) { return Combat::attack(hero, monster); });
+      addActionButton("Attack", [](Hero& hero, Monster& monster) {
+        Monsters TODO;
+        return Combat::attack(hero, monster, TODO);
+      });
       ImGui::SameLine();
-      if (currentState.monster->isBurning())
-      {
-        addActionButton("Attack Other",
-                        [](Hero& hero, Monster& current) { return Combat::attackOther(hero, current); });
-        ImGui::SameLine();
-      }
     }
 
     ImGui::Button("Cast");

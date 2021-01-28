@@ -366,6 +366,17 @@ void testDefenceBasics()
   });
 }
 
+namespace Combat
+{
+  Monsters noOtherMonsters;
+
+  // Helper function: For most tests the presence of other monsters is irrelevant
+  Summary attack(Hero& hero, Monster& monster)
+  {
+    return attack(hero, monster, noOtherMonsters);
+  }
+}
+
 void testMelee()
 {
   describe("Melee simulation", [] {

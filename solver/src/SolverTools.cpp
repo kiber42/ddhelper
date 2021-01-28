@@ -246,7 +246,7 @@ namespace solver
       return state;
     auto& hero = state.hero;
     auto& monster = state.monsters.front();
-    std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster); },
+    std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, state.monsters); },
                           [&](Cast cast) { Magic::cast(hero, monster, cast.spell); },
                           [&](Uncover uncover) {
                             hero.recover(uncover.numTiles);
@@ -270,8 +270,9 @@ namespace solver
                             hero.desecrate(desecrate.altar);
                           }},
                step);
-    while (!state.monsters.empty() && state.monsters.front().isDefeated())
-      state.monsters.erase(state.monsters.begin());
+    state.monsters.erase(std::remove_if(begin(state.monsters), end(state.monsters),
+                                        [](const auto& monster) { return monster.isDefeated(); }),
+                         end(state.monsters));
     return state;
   }
 

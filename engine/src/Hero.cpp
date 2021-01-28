@@ -575,7 +575,9 @@ bool Hero::hasTrait(HeroTrait trait) const
 
 void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning)
 {
+  assert(monster.isDefeated());
   gainExperienceForKill(monster.getLevel(), monsterWasSlowed);
+  addStatus(HeroStatus::Cursed, monster.bearsCurse() ? 1 : -1);
   applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning));
   if (has(Item::GlovesOfMidas))
     ++inventory.gold;

@@ -27,7 +27,6 @@ namespace Magic
     {
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
-      const bool monsterWasBurning = monster.isBurning();
       const int multiplier =
           4 + hero.hasBoon(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(Item::BattlemageRing) ? 1 : 0);
 
@@ -49,13 +48,11 @@ namespace Magic
           monster.takeManaShieldDamage(hero.getLevel());
       }
 
-      if (monster.isDefeated())
-        hero.collect(hero.getFaith().monsterKilled(monster, hero.getLevel(), monsterWasBurning));
-
-      // Curses and side effects
-      Combat::detail::monsterDefeatedCurse(hero, monster);
+      // Side effects
       if (hero.has(Item::WitchalokPendant))
         hero.addStatus(HeroStatus::StoneSkin);
+
+      hero.adjustMomentum(monster.isDefeated());
     }
   } // namespace
 
@@ -252,7 +249,6 @@ namespace Magic
       break;
     case Spell::Burndayraz:
       burndayraz(hero, monster);
-      hero.adjustMomentum(monster.isDefeated());
       break;
     case Spell::Imawal:
       // Imawal is handled below, since no XP is awarded for the kill (except +1 bonus XP for slowing)
@@ -287,15 +283,17 @@ namespace Magic
 
     applyCastingSideEffects(hero, manaCosts);
 
-    if (spell != Spell::Imawal)
-      return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
+    if (spell == Spell::Imawal)
+    {
+      const bool levelBefore = hero.getLevel() + hero.getPrestige();
+      hero.gainExperienceForPetrification(monster.isSlowed());
+      monster.petrify();
+      hero.addStatus(HeroStatus::ExperienceBoost);
+      // Remove one curse stack, even for cursed monsters
+      hero.removeStatus(HeroStatus::Cursed, false);
+      return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
+    }
 
-    const bool levelBefore = hero.getLevel() + hero.getPrestige();
-    hero.gainExperienceForPetrification(monster.isSlowed());
-    monster.petrify();
-    hero.addStatus(HeroStatus::ExperienceBoost);
-    // Remove one curse stack, even for cursed monsters
-    hero.removeStatus(HeroStatus::Cursed, false);
-    return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
+    return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
   }
 } // namespace Magic
