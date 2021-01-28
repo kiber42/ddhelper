@@ -48,17 +48,12 @@ bool History::run()
   return undoRequested;
 }
 
-std::pair<State, std::optional<Monster>> History::undo()
+State History::undo()
 {
   assert(!history.empty());
-  std::optional<Monster> undoMonster;
-  auto& restore = history.back();
-  AnyAction& action = std::get<AnyAction>(std::get<ActionEntry>(restore));
-  if (auto monster = std::get_if<MonsterFromPool>(&action))
-    undoMonster.emplace(std::move(*monster));
-  auto previousState = std::move(std::get<State>(restore));
+  auto previousState = std::get<State>(std::move(history.back()));
   history.pop_back();
-  return std::pair{std::move(previousState), std::move(undoMonster)};
+  return previousState;
 }
 
 bool History::empty() const

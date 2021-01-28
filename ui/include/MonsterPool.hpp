@@ -3,16 +3,7 @@
 #include "Monster.hpp"
 
 #include <optional>
-#include <vector>
 
-class MonsterPool
-{
-public:
-  void add(Monster);
-  void assign(std::vector<Monster> newMonsters);
-  std::optional<Monster> run();
-  void reset();
+void addMonsterToPool(Monster newMonster, Monsters& pool);
 
-private:
-  std::vector<Monster> monsters;
-};
+std::optional<Monster> runMonsterPool(Monsters& monsters);

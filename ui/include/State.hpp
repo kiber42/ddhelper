@@ -10,7 +10,7 @@
 #include <variant>
 
 using HeroAction = std::function<Summary(Hero&)>;
-using AttackAction = std::function<Summary(Hero&, Monster&)>;
+using AttackAction = std::function<Summary(Hero&, Monster&, Monsters&)>;
 using MonsterFromPool = Monster;
 
 using AnyAction = std::variant<HeroAction, AttackAction, MonsterFromPool, std::monostate>;
@@ -21,4 +21,5 @@ struct State
 {
   std::optional<Hero> hero;
   std::optional<Monster> monster;
+  Monsters monsterPool;
 };

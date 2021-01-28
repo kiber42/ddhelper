@@ -21,7 +21,6 @@ private:
   MonsterSelection monsterSelection;
   CustomHeroBuilder heroBuilder;
   CustomMonsterBuilder monsterBuilder;
-  MonsterPool monsterPool;
   State state;
   History history;
   Arena arena;
@@ -46,12 +45,10 @@ std::optional<Scenario> runScenarioSelection()
   return selection;
 }
 
-// Prepare state and monster pool for a specific challenge
-void prepareScenario(State& state, MonsterPool& pool, Scenario scenario)
+// Return initial state for a specific challenge
+State prepareScenario(Scenario scenario)
 {
-  state.hero.emplace(getHeroForScenario(scenario));
-  state.monster.reset();
-  pool.assign(getMonstersForScenario(scenario));
+  return { getHeroForScenario(scenario), {}, getMonstersForScenario(scenario) };
 }
 
 void DDHelperApp::populateFrame()
@@ -79,7 +76,7 @@ void DDHelperApp::populateFrame()
     monster = monsterBuilder.toArena();
   if (monster.has_value())
   {
-    AttackAction action = [newMonster = Monster(*monster)](Hero&, Monster& monster) {
+    AttackAction action = [newMonster = Monster(*monster)](Hero&, Monster& monster, Monsters&) {
       monster = Monster(newMonster);
       return Summary::None;
     };
@@ -92,16 +89,16 @@ void DDHelperApp::populateFrame()
   if (!monster.has_value())
     monster = monsterBuilder.toPool();
   if (monster.has_value())
-    monsterPool.add(std::move(*monster));
+    addMonsterToPool(std::move(*monster), state.monsterPool);
 
-  auto poolMonster = monsterPool.run();
+  auto poolMonster = runMonsterPool(state.monsterPool);
   if (poolMonster.has_value())
   {
     MonsterFromPool action = Monster(*poolMonster);
     ActionEntry entry(poolMonster->getName() + " enters (from pool)"s, std::move(action), {});
     history.add(state, std::move(entry));
     if (state.monster && !state.monster->isDefeated())
-      monsterPool.add(std::move(*state.monster));
+      addMonsterToPool(std::move(*state.monster), state.monsterPool);
     state.monster = std::move(poolMonster);
   }
 
@@ -113,18 +110,13 @@ void DDHelperApp::populateFrame()
   }
 
   if (history.run())
-  {
-    auto undoInfo = history.undo();
-    state = std::move(undoInfo.first);
-    if (undoInfo.second)
-      monsterPool.add(std::move(*undoInfo.second));
-  }
+    state = history.undo();
 
   auto scenario = runScenarioSelection();
   if (scenario)
   {
     history.reset();
-    prepareScenario(state, monsterPool, *scenario);
+    state = prepareScenario(*scenario);
   }
 }
 

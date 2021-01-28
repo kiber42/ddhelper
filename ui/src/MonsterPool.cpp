@@ -4,22 +4,17 @@
 
 #include <algorithm>
 
-void MonsterPool::add(Monster newMonster)
+void addMonsterToPool(Monster newMonster, Monsters& pool)
 {
   // Undo functionality could result in duplicate entries
-  const bool duplicate = std::find_if(cbegin(monsters), cend(monsters), [id = newMonster.getID()](const auto& poolMonster) {
+  const bool duplicate = std::find_if(cbegin(pool), cend(pool), [id = newMonster.getID()](const auto& poolMonster) {
         return poolMonster.getID() == id;
-      }) != cend(monsters);
+      }) != cend(pool);
   if (!duplicate)
-    monsters.emplace_back(std::move(newMonster));
+    pool.emplace_back(std::move(newMonster));
 }
 
-void MonsterPool::assign(std::vector<Monster> newMonsters)
-{
-  monsters = std::move(newMonsters);
-}
-
-std::optional<Monster> MonsterPool::run()
+std::optional<Monster> runMonsterPool(Monsters& monsters)
 {
   ImGui::Begin("Monster Pool");
   auto selected = end(monsters);
@@ -38,9 +33,4 @@ std::optional<Monster> MonsterPool::run()
     return monster;
   }
   return std::nullopt;
-}
-
-void MonsterPool::reset()
-{
-  monsters.clear();
 }

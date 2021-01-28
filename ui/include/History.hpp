@@ -17,8 +17,8 @@ public:
   // Returns true if an undo was requested
   bool run();
 
-  // Returns the previous state and optionally a Monster to be returned to the Pool
-  [[nodiscard]] std::pair<State, std::optional<Monster>> undo();
+  // Returns the previous state
+  [[nodiscard]] State undo();
 
   [[nodiscard]] bool empty() const;
 

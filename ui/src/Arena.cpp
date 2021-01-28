@@ -16,13 +16,13 @@ namespace
   std::pair<State, Outcome> applyAction(const State& initialState, AnyAction action, bool pessimistMode)
   {
     Summary summary;
-    State newState{initialState.hero, initialState.monster};
+    State newState{initialState.hero, initialState.monster, initialState.monsterPool};
     if (pessimistMode)
       newState.hero->addStatus(HeroStatus::Pessimist);
     if (auto heroAction = std::get_if<HeroAction>(&action))
       summary = (*heroAction)(*newState.hero);
     else if (auto attackAction = std::get_if<AttackAction>(&action))
-      summary = (*attackAction)(*newState.hero, *newState.monster);
+      summary = (*attackAction)(*newState.hero, *newState.monster, newState.monsterPool);
     Outcome outcome = {summary, findDebuffs(*initialState.hero, *newState.hero),
                        newState.hero->getPiety() - initialState.hero->getPiety()};
     return {std::move(newState), std::move(outcome)};
@@ -30,7 +30,6 @@ namespace
 
   void showPredictedOutcomeTooltip(const State& initialState, AnyAction action)
   {
-
     ImGui::BeginTooltip();
     ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
     const auto& [newState, outcome] = applyAction(initialState, std::move(action), true);
@@ -85,10 +84,8 @@ Arena::StateUpdate Arena::run(const State& currentState)
     const bool withMonster = currentState.monster && !currentState.monster->isDefeated();
     if (withMonster)
     {
-      addActionButton("Attack", [](Hero& hero, Monster& monster) {
-        Monsters TODO;
-        return Combat::attack(hero, monster, TODO);
-      });
+      addActionButton("Attack",
+                      [](Hero& hero, Monster& monster, Monsters& pool) { return Combat::attack(hero, monster, pool); });
       ImGui::SameLine();
     }
 
@@ -121,7 +118,8 @@ Arena::StateUpdate Arena::run(const State& currentState)
         bool becameSelected;
         if (withMonster)
           becameSelected = addPopupAction(
-              label, historyTitle, [spell](Hero& hero, Monster& monster) { return Magic::cast(hero, monster, spell); },
+              label, historyTitle,
+              [spell](Hero& hero, Monster& monster, Monsters& pool) { return Magic::cast(hero, monster, spell); },
               isSelected);
         else
           becameSelected = addPopupAction(
@@ -174,7 +172,7 @@ Arena::StateUpdate Arena::run(const State& currentState)
         {
           if (addPopupAction(
                   std::move(label), historyTitle,
-                  [item](Hero& hero, Monster& monster) {
+                  [item](Hero& hero, Monster& monster, Monsters&) {
                     hero.use(item, monster);
                     return Summary::None;
                   },
@@ -410,17 +408,22 @@ Arena::StateUpdate Arena::run(const State& currentState)
     const int numSquares = currentState.hero->numSquaresForFullRecovery();
     if (withMonster)
     {
-      addActionButton("Uncover Tile", [](Hero& hero, Monster& monster) {
+      addActionButton("Uncover Tile", [](Hero& hero, Monster& monster, Monsters& monsters) {
         hero.recover(1);
         monster.recover(1);
-        return hero.isDefeated() ? Summary::Death : Summary::None;
+        for (auto& poolMonster : monsters)
+          poolMonster.recover(1);
+        return Summary::None;
       });
     }
     else if (numSquares > 0)
     {
+
+      // TODO: These actions ignore pool monster recovery
+
       addActionButton("Uncover Tile", [](Hero& hero) {
         hero.recover(1);
-        return hero.isDefeated() ? Summary::Death : Summary::None;
+        return Summary::None;
       });
       if (numSquares > 1)
       {
