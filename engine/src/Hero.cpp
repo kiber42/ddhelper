@@ -427,6 +427,8 @@ int Hero::recoveryMultiplier() const
 
 int Hero::numSquaresForFullRecovery() const
 {
+  // TODO: For Goatperson, never return a number larger than the amount of food in inventory!
+
   int numHP = 0;
   if (!hasStatus(HeroStatus::Poisoned))
   {
