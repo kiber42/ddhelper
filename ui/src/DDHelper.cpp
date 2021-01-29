@@ -41,6 +41,9 @@ std::optional<Scenario> runScenarioSelection()
   ImGui::TextUnformatted("Hello, halflings!");
   if (ImGui::Button("Halfling Trial"))
     selection = Scenario::HalflingTrial;
+  ImGui::TextUnformatted("A Godly Giggle");
+  if (ImGui::Button("The Third Act"))
+    selection = Scenario::TheThirdAct;
   ImGui::End();
   return selection;
 }
