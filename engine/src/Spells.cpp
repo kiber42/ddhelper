@@ -261,8 +261,9 @@ namespace Magic
       break;
     }
     case Spell::Pisorf:
-      // 60% of base damage as knockback damage if against wall
-      // (TODO?) 50% of base damage as knockback damage if against enemy
+      // 60% of base damage as physical damage if against wall
+      // (TODO?) 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage
+      // Net damage to first enemy as typeless damage to second enemy; second enemy cannot drop below 1 HP
       monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
       break;
     case Spell::Weytwut:
