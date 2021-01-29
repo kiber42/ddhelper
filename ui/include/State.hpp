@@ -6,16 +6,7 @@
 
 #include <functional>
 #include <optional>
-#include <tuple>
-#include <variant>
-
-using HeroAction = std::function<Summary(Hero&)>;
-using AttackAction = std::function<Summary(Hero&, Monster&, Monsters&)>;
-using MonsterFromPool = Monster;
-
-using AnyAction = std::variant<HeroAction, AttackAction, MonsterFromPool, std::monostate>;
-
-using ActionEntry = std::tuple<std::string, AnyAction, Outcome>;
+#include <utility>
 
 struct State
 {
@@ -23,3 +14,7 @@ struct State
   std::optional<Monster> monster;
   Monsters monsterPool;
 };
+
+using GameAction = std::function<Summary(State&)>;
+
+std::pair<State, Outcome> applyAction(const State& initialState, const GameAction& stateUpdate, bool pessimistMode);

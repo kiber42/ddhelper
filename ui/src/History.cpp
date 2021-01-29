@@ -4,21 +4,16 @@
 
 #include "imgui.h"
 
-void History::add(State previous, ActionEntry entry)
-{
-  history.emplace_back(std::tuple(std::move(previous), std::move(entry)));
-}
-
 bool History::run()
 {
   ImGui::Begin("History");
   int repeated = 1;
   for (unsigned i = 0; i < history.size(); ++i)
   {
-    const auto& entry = std::get<ActionEntry>(history[i]);
+    const auto& entry = std::get<HistoryEntry>(history[i]);
     if (i < history.size() - 1)
     {
-      const auto next = std::get<ActionEntry>(history[i + 1]);
+      const auto next = std::get<HistoryEntry>(history[i + 1]);
       if (std::get<0>(entry) == std::get<0>(next) && std::get<2>(entry) == std::get<2>(next))
       {
         ++repeated;
@@ -46,6 +41,11 @@ bool History::run()
   ImGui::End();
 
   return undoRequested;
+}
+
+void History::add(State previous, HistoryEntry entry)
+{
+  history.emplace_back(std::tuple(std::move(previous), std::move(entry)));
 }
 
 State History::undo()

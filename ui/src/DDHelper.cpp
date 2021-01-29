@@ -48,66 +48,76 @@ std::optional<Scenario> runScenarioSelection()
 // Return initial state for a specific challenge
 State prepareScenario(Scenario scenario)
 {
-  return { getHeroForScenario(scenario), {}, getMonstersForScenario(scenario) };
+  return {getHeroForScenario(scenario), {}, getMonstersForScenario(scenario)};
 }
 
 void DDHelperApp::populateFrame()
 {
   using namespace std::string_literals;
 
+  auto applyUndoable = [&](std::string title, GameAction stateUpdate) {
+    auto [newState, outcome] = applyAction(state, stateUpdate, false);
+    history.add(std::move(state), {std::move(title), std::move(stateUpdate), std::move(outcome)});
+    state = std::move(newState);
+  };
+
   auto hero = heroSelection.run();
-  if (!hero.has_value())
-    hero = std::move(heroBuilder.run());
-  if (hero.has_value())
+  if (!hero)
+    hero = heroBuilder.run();
+  if (hero)
   {
-    HeroAction action = [newHero = Hero(*hero)](Hero& hero) {
-      hero = Hero(newHero);
+    std::string title = hero->getName() + " enters"s;
+    applyUndoable(std::move(title), [newHero = Hero(*hero)](State& state) {
+      state.hero = newHero;
       return Summary::None;
-    };
-    ActionEntry entry(hero->getName() + " enters"s, std::move(action), {});
-    history.add(state, std::move(entry));
-    state.hero = std::move(hero);
+    });
   }
 
   monsterSelection.run();
   monsterBuilder.run();
   auto monster = monsterSelection.toArena();
-  if (!monster.has_value())
+  if (!monster)
     monster = monsterBuilder.toArena();
-  if (monster.has_value())
+  if (monster)
   {
-    AttackAction action = [newMonster = Monster(*monster)](Hero&, Monster& monster, Monsters&) {
-      monster = Monster(newMonster);
+    std::string title = monster->getName() + " enters"s;
+    applyUndoable(std::move(title), [newMonster = std::move(*monster)](State& state) {
+      if (state.monster)
+        state.monsterPool.emplace_back(std::move(*state.monster));
+      state.monster = newMonster;
       return Summary::None;
-    };
-    ActionEntry entry(monster->getName() + " enters"s, std::move(action), {});
-    history.add(state, std::move(entry));
-    state.monster = std::move(monster);
+    });
   }
 
   monster = monsterSelection.toPool();
-  if (!monster.has_value())
+  if (!monster)
     monster = monsterBuilder.toPool();
-  if (monster.has_value())
-    addMonsterToPool(std::move(*monster), state.monsterPool);
+  if (monster)
+  {
+    std::string title = monster->getName() + " added to pool"s;
+    applyUndoable(std::move(title), [newMonster = std::move(*monster)](State& state) {
+      state.monsterPool.emplace_back(newMonster);
+      return Summary::None;
+    });
+  }
 
   auto poolMonster = runMonsterPool(state.monsterPool);
-  if (poolMonster.has_value())
+  if (poolMonster != end(state.monsterPool))
   {
-    MonsterFromPool action = Monster(*poolMonster);
-    ActionEntry entry(poolMonster->getName() + " enters (from pool)"s, std::move(action), {});
-    history.add(state, std::move(entry));
-    if (state.monster && !state.monster->isDefeated())
-      addMonsterToPool(std::move(*state.monster), state.monsterPool);
-    state.monster = std::move(poolMonster);
+    std::string title = poolMonster->getName() + " enters from pool"s;
+    applyUndoable(std::move(title), [poolIndex = std::distance(begin(state.monsterPool), poolMonster)](State& state) {
+      if (state.monster && !state.monster->isDefeated())
+        state.monsterPool.emplace_back(*state.monster);
+      auto poolMonster = begin(state.monsterPool) + poolIndex;
+      state.monster = *poolMonster;
+      state.monsterPool.erase(poolMonster);
+      return Summary::None;
+    });
   }
 
-  Arena::StateUpdate result = arena.run(state);
-  if (result.has_value())
-  {
-    history.add(std::move(state), result->first);
-    state = std::move(result->second);
-  }
+  auto result = arena.run(state);
+  if (result)
+    applyUndoable(std::move(result->first), std::move(result->second));
 
   if (history.run())
     state = history.undo();

@@ -2,20 +2,21 @@
 
 #include "State.hpp"
 
-#include "Monster.hpp"
+#include "Outcome.hpp"
 
-#include <optional>
+#include <string>
 #include <tuple>
-#include <utility>
 #include <vector>
+
+using HistoryEntry = std::tuple<std::string, GameAction, Outcome>;
 
 class History
 {
 public:
-  void add(State previous, ActionEntry entry);
-
-  // Returns true if an undo was requested
+  // Produce imgui history frame. Returns true if an undo was requested
   bool run();
+
+  void add(State previous, HistoryEntry entry);
 
   // Returns the previous state
   [[nodiscard]] State undo();
@@ -26,5 +27,5 @@ public:
 
 private:
   // Each element contains the original state and the action that was then performed on it
-  std::vector<std::tuple<State, ActionEntry>> history;
+  std::vector<std::tuple<State, HistoryEntry>> history;
 };

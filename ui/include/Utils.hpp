@@ -23,6 +23,8 @@ extern ImVec4 colorUnavailable;
 const ImVec4& summaryColor(Summary, bool debuffed);
 const ImVec4& outcomeColor(const Outcome& outcome);
 
+void createToolTip(std::function<void()> createToolTipContents);
+
 void showStatus(const Hero&);
 void showStatus(const Monster&);
 void showStatus(const State&);

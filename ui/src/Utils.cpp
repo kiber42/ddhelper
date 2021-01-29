@@ -34,6 +34,15 @@ const ImVec4& outcomeColor(const Outcome& outcome)
   return summaryColor(outcome.summary, !outcome.debuffs.empty() || outcome.pietyChange < 0);
 }
 
+void createToolTip(std::function<void()> createToolTipContents)
+{
+  ImGui::BeginTooltip();
+  ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+  createToolTipContents();
+  ImGui::PopTextWrapPos();
+  ImGui::EndTooltip();
+}
+
 void showStatus(const std::vector<std::string>& description)
 {
   bool first = true;
