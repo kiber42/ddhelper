@@ -102,7 +102,7 @@ void Arena::runCastPopup(const State& state)
       const std::string historyTitle = "Cast "s + toString(spell);
       auto cast = [spell, withMonster](State& state) {
         if (withMonster)
-          return Magic::cast(*state.hero, *state.monster, spell);
+          return Magic::cast(*state.hero, *state.monster, state.monsterPool, spell);
         Magic::cast(*state.hero, spell);
         return Summary::None;
       };

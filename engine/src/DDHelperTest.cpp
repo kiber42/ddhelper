@@ -377,6 +377,17 @@ namespace Combat
   }
 }
 
+namespace Magic
+{
+  Monsters noOtherMonsters;
+
+  // Helper function: For most tests the presence of other monsters is irrelevant
+  Summary cast(Hero& hero, Monster& monster, Spell spell)
+  {
+    return cast(hero, monster, noOtherMonsters, spell);
+  }
+}
+
 void testMelee()
 {
   describe("Melee simulation", [] {

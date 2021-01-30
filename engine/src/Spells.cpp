@@ -54,40 +54,135 @@ namespace Magic
 
       hero.adjustMomentum(monster.isDefeated());
     }
-  } // namespace
 
-  constexpr int baseSpellCosts(Spell spell)
-  {
-    switch (spell)
+    void applyCastingSideEffects(Hero& hero, int manaCosts)
     {
-    case Spell::Apheelsik:
-      return 5;
-    case Spell::Bludtupowa:
-      return 0;
-    case Spell::Burndayraz:
-      return 6;
-    case Spell::Bysseps:
-      return 2;
-    case Spell::Cydstepp:
-      return 10;
-    case Spell::Endiswal:
-      return 6;
-    case Spell::Getindare:
-      return 3;
-    case Spell::Halpmeh:
-      return 5;
-    case Spell::Imawal:
-      return 5;
-    case Spell::Lemmisi:
-      return 2;
-    case Spell::Pisorf:
-      return 4;
-    case Spell::Weytwut:
-      return 8;
-    case Spell::Wonafyt:
-      return 5;
+      if (hero.isDefeated())
+        return;
+      // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
+      if (hero.hasTrait(HeroTrait::EssenceTransit))
+        hero.healHitPoints(2 * manaCosts);
+      // TODO: Transmuter: Gain conversion points (Inner Focus)
+      if (hero.has(Item::DragonSoul))
+        hero.applyDragonSoul(manaCosts);
+      if (manaCosts >= 3)
+      {
+        if (hero.has(Item::FireHeart))
+          hero.chargeFireHeart();
+        if (hero.has(Item::CrystalBall))
+          hero.chargeCrystalBall();
+      }
     }
-  }
+
+    Summary cast(Hero& hero, Monster& monster, Spell spell)
+    {
+      if (!isPossible(hero, monster, spell))
+        return Summary::NotPossible;
+
+      if (!needsMonster(spell) && !monsterIsOptional(spell))
+      {
+        Magic::cast(hero, spell);
+        return Summary::Safe;
+      }
+
+      const bool monsterWasSlowed = monster.isSlowed();
+      const bool monsterWasBurning = monster.isBurning();
+
+      const int manaCosts = spellCosts(spell, hero);
+      hero.loseManaPoints(manaCosts);
+
+      hero.startPietyCollection();
+
+      switch (spell)
+      {
+      case Spell::Apheelsik:
+        if (monster.poison(10 * hero.getLevel()))
+          hero.collect(hero.getFaith().monsterPoisoned(monster));
+        break;
+      case Spell::Burndayraz:
+        burndayraz(hero, monster);
+        break;
+      case Spell::Imawal:
+        // Imawal is handled below, since no XP is awarded for the kill (except +1 bonus XP for slowing)
+        break;
+      case Spell::Lemmisi:
+      {
+        const int uncoveredTiles = 3;
+        hero.recover(uncoveredTiles);
+        monster.recover(uncoveredTiles);
+        break;
+      }
+      case Spell::Pisorf:
+        // 60% of base damage as physical damage if against wall
+        // (TODO?) 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage.
+        // Net damage to first enemy as typeless damage to second enemy; second enemy cannot drop below 1 HP.
+        monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
+        break;
+      case Spell::Weytwut:
+        // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
+        monster.slow();
+        break;
+      case Spell::Wonafyt:
+        // adds Slowed to monster, can only be cast against same or lower level
+        monster.slow();
+        break;
+      default:
+        assert(false);
+        break;
+      }
+
+      hero.collect(hero.getFaith().spellCast(spell, manaCosts));
+      hero.applyCollectedPiety();
+
+      applyCastingSideEffects(hero, manaCosts);
+
+      if (spell == Spell::Imawal)
+      {
+        const bool levelBefore = hero.getLevel() + hero.getPrestige();
+        hero.gainExperienceForPetrification(monster.isSlowed());
+        monster.petrify();
+        hero.addStatus(HeroStatus::ExperienceBoost);
+        // Remove one curse stack, even for cursed monsters
+        hero.removeStatus(HeroStatus::Cursed, false);
+        return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
+      }
+
+      return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
+    }
+
+    constexpr int baseSpellCosts(Spell spell)
+    {
+      switch (spell)
+      {
+      case Spell::Apheelsik:
+        return 5;
+      case Spell::Bludtupowa:
+        return 0;
+      case Spell::Burndayraz:
+        return 6;
+      case Spell::Bysseps:
+        return 2;
+      case Spell::Cydstepp:
+        return 10;
+      case Spell::Endiswal:
+        return 6;
+      case Spell::Getindare:
+        return 3;
+      case Spell::Halpmeh:
+        return 5;
+      case Spell::Imawal:
+        return 5;
+      case Spell::Lemmisi:
+        return 2;
+      case Spell::Pisorf:
+        return 4;
+      case Spell::Weytwut:
+        return 8;
+      case Spell::Wonafyt:
+        return 5;
+      }
+    }
+  } // namespace
 
   int spellCosts(Spell spell, const Hero& hero)
   {
@@ -129,25 +224,6 @@ namespace Magic
     return hero.getManaPoints() >= spellCosts(spell, hero) && monster.getMagicalResistPercent() < 100 &&
            (spell != Spell::Apheelsik || !monster.isUndead()) &&
            (spell != Spell::Wonafyt || hero.getLevel() >= monster.getLevel());
-  }
-
-  void applyCastingSideEffects(Hero& hero, int manaCosts)
-  {
-    if (hero.isDefeated())
-      return;
-    // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
-    if (hero.hasTrait(HeroTrait::EssenceTransit))
-      hero.healHitPoints(2 * manaCosts);
-    // TODO: Transmuter: Gain conversion points (Inner Focus)
-    if (hero.has(Item::DragonSoul))
-      hero.applyDragonSoul(manaCosts);
-    if (manaCosts >= 3)
-    {
-      if (hero.has(Item::FireHeart))
-        hero.chargeFireHeart();
-      if (hero.has(Item::CrystalBall))
-        hero.chargeCrystalBall();
-    }
   }
 
   void cast(Hero& hero, Spell spell)
@@ -222,79 +298,21 @@ namespace Magic
     applyCastingSideEffects(hero, manaCosts);
   }
 
-  Summary cast(Hero& hero, Monster& monster, Spell spell)
+  Summary cast(Hero& hero, Monster& monster, Monsters& monsters, Spell spell)
   {
-    if (!isPossible(hero, monster, spell))
-      return Summary::NotPossible;
-
-    if (!needsMonster(spell) && !monsterIsOptional(spell))
+    const int levelBefore = hero.getLevel() + hero.getPrestige();
+    auto summary = cast(hero, monster, spell);
+    // In the case of Pisorf, assume the monster was pushed into a breakable wall or another monster
+    if (!hero.isDefeated() && (spell == Spell::Burndayraz || spell == Spell::Pisorf))
     {
-      cast(hero, spell);
-      return Summary::Safe;
+      for (auto& otherMonster : monsters)
+      {
+        if (otherMonster != monster)
+          Combat::detail::attackedOther(hero, otherMonster);
+      }
+      if (hero.getLevel() + hero.getPrestige() > levelBefore)
+        summary = Summary::LevelUp;
     }
-
-    const bool monsterWasSlowed = monster.isSlowed();
-    const bool monsterWasBurning = monster.isBurning();
-
-    const int manaCosts = spellCosts(spell, hero);
-    hero.loseManaPoints(manaCosts);
-
-    hero.startPietyCollection();
-
-    switch (spell)
-    {
-    case Spell::Apheelsik:
-      if (monster.poison(10 * hero.getLevel()))
-        hero.collect(hero.getFaith().monsterPoisoned(monster));
-      break;
-    case Spell::Burndayraz:
-      burndayraz(hero, monster);
-      break;
-    case Spell::Imawal:
-      // Imawal is handled below, since no XP is awarded for the kill (except +1 bonus XP for slowing)
-      break;
-    case Spell::Lemmisi:
-    {
-      const int uncoveredTiles = 3;
-      hero.recover(uncoveredTiles);
-      monster.recover(uncoveredTiles);
-      break;
-    }
-    case Spell::Pisorf:
-      // 60% of base damage as physical damage if against wall
-      // (TODO?) 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage
-      // Net damage to first enemy as typeless damage to second enemy; second enemy cannot drop below 1 HP
-      monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
-      break;
-    case Spell::Weytwut:
-      // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
-      monster.slow();
-      break;
-    case Spell::Wonafyt:
-      // adds Slowed to monster, can only be cast against same or lower level
-      monster.slow();
-      break;
-    default:
-      assert(false);
-      break;
-    }
-
-    hero.collect(hero.getFaith().spellCast(spell, manaCosts));
-    hero.applyCollectedPiety();
-
-    applyCastingSideEffects(hero, manaCosts);
-
-    if (spell == Spell::Imawal)
-    {
-      const bool levelBefore = hero.getLevel() + hero.getPrestige();
-      hero.gainExperienceForPetrification(monster.isSlowed());
-      monster.petrify();
-      hero.addStatus(HeroStatus::ExperienceBoost);
-      // Remove one curse stack, even for cursed monsters
-      hero.removeStatus(HeroStatus::Cursed, false);
-      return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
-    }
-
-    return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
+    return summary;
   }
 } // namespace Magic

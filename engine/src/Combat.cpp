@@ -188,16 +188,6 @@ namespace Combat
       hero.applyCollectedPiety();
       return summary;
     }
-
-    void attackedOther(Hero& hero, Monster& monster)
-    {
-      if (!monster.isBurning())
-        return;
-      const bool monsterWasSlowed = monster.isSlowed();
-      monster.burnDown();
-      if (monster.isDefeated())
-        hero.monsterKilled(monster, monsterWasSlowed, true);
-    }
   } // namespace
 
   // Perform melee attack on monster, evaluate effects on all monsters
@@ -210,7 +200,7 @@ namespace Combat
       for (auto& otherMonster : monsters)
       {
         if (otherMonster != monster)
-          attackedOther(hero, otherMonster);
+          detail::attackedOther(hero, otherMonster);
       }
       if (hero.getLevel() + hero.getPrestige() > levelBefore)
         summary = Summary::LevelUp;
@@ -220,6 +210,16 @@ namespace Combat
 
   namespace detail
   {
+    void attackedOther(Hero& hero, Monster& monster)
+    {
+      if (!monster.isBurning())
+        return;
+      const bool monsterWasSlowed = monster.isSlowed();
+      monster.burnDown();
+      if (monster.isDefeated())
+        hero.monsterKilled(monster, monsterWasSlowed, true);
+    }
+
     Summary summaryAndExperience(Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning)
     {
       if (hero.isDefeated())

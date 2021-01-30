@@ -64,8 +64,8 @@ namespace Magic
   // Cast spell that does not target a monster
   void cast(Hero& hero, Spell spell);
 
-  // Cast spell on monster
-  Summary cast(Hero& hero, Monster& monster, Spell spell);
+  // Cast spell on monster, evaluate effect on remaining monsters
+  Summary cast(Hero& hero, Monster& monster, Monsters& monsters, Spell spell);
 
   // Spells that need to target a monster
   constexpr bool needsMonster(Spell spell)
