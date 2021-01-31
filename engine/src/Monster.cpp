@@ -308,7 +308,7 @@ void Monster::addPhysicalResist(int additionalResistPercent)
 
 void Monster::addMagicResist(int additionalResistPercent)
 {
-defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() + additionalResistPercent);
+  defence.setMagicalResistPercent(defence.getMagicalResistPercent() + additionalResistPercent);
 }
 
 void Monster::makeFast()
