@@ -51,12 +51,12 @@ void testHeroExperience()
     hero.gainExperienceNoBonuses(10);
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
     it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30)); });
-    hero.addStatus(HeroStatus::Poisoned);
-    hero.addStatus(HeroStatus::ManaBurned);
+    hero.addStatus(HeroDebuff::Poisoned);
+    hero.addStatus(HeroDebuff::ManaBurned);
     hero.gainExperienceNoBonuses(15);
     it("should remove poison and mana burn", [&] {
-      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
-      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
     });
   });
 
@@ -67,12 +67,12 @@ void testHeroExperience()
     hero.gainLevel();
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
     it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30)); });
-    hero.addStatus(HeroStatus::Poisoned);
-    hero.addStatus(HeroStatus::ManaBurned);
+    hero.addStatus(HeroDebuff::Poisoned);
+    hero.addStatus(HeroDebuff::ManaBurned);
     hero.gainLevel();
     it("should remove poison and mana burn", [&] {
-      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
-      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
     });
   });
 
@@ -227,7 +227,7 @@ void testDefenceBasics()
         AssertThat(monster.getHitPoints(), Equals(10 - 5 - 1));
       });
     });
-    describe("Corrosion", [] {
+    describe("Corroded", [] {
       it("should add 1 damage point per level", [] {
         Hero hero;
         Monster monster(1, 20, 1);
@@ -331,22 +331,22 @@ void testDefenceBasics()
         AssertThat(hero.isDefeated(), IsTrue());
       });
     });
-    describe("Corrosion", [] {
+    describe("Corroded", [] {
       it("should increase damage taken by 1 per stack size", [] {
         Hero hero;
-        hero.addStatus(HeroStatus::Corrosion);
+        hero.addStatus(HeroDebuff::Corroded);
         hero.takeDamage(1, false);
         AssertThat(hero.getHitPoints(), Equals(8));
         hero.takeDamage(1, true);
         AssertThat(hero.getHitPoints(), Equals(6));
-        hero.addStatus(HeroStatus::Corrosion);
-        hero.addStatus(HeroStatus::Corrosion);
+        hero.addStatus(HeroDebuff::Corroded);
+        hero.addStatus(HeroDebuff::Corroded);
         hero.takeDamage(3, true);
         AssertThat(hero.isDefeated(), IsTrue());
       });
       it("should only cause extra damage if any damage was taken at all", [] {
         Hero hero;
-        hero.addStatus(HeroStatus::Corrosion);
+        hero.addStatus(HeroDebuff::Corroded);
         hero.addStatus(HeroStatus::DamageReduction);
         hero.takeDamage(1, false);
         AssertThat(hero.getHitPoints(), Equals(10));
@@ -357,7 +357,7 @@ void testDefenceBasics()
         Hero hero;
         hero.setPhysicalResistPercent(50);
         hero.addStatus(HeroStatus::DamageReduction, 2);
-        hero.addStatus(HeroStatus::Corrosion, 5);
+        hero.addStatus(HeroDebuff::Corroded, 5);
         hero.takeDamage(3, false);
         const int expectedDamage = (3 - 2) - 0 /* 50% of 1, rounded down */ + 5;
         AssertThat(hero.getHitPoints(), Equals(10 - expectedDamage));
@@ -526,7 +526,7 @@ void testStatusEffects()
         hero.setPhysicalResistPercent(50);
         hero.takeDamage(4, false);
         AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2));
-        hero.addStatus(HeroStatus::Cursed);
+        hero.addStatus(HeroDebuff::Cursed);
         hero.takeDamage(4, false);
         AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2 - 4));
       });
@@ -536,10 +536,10 @@ void testStatusEffects()
         Monster monster("", MonsterStats{1, 10, 3, 0}, {}, MonsterTraitsBuilder().addCurse());
         Combat::attack(hero, monster);
         // One curse from hit, one from killing
-        AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(2));
+        AssertThat(hero.getStatusIntensity(HeroDebuff::Cursed), Equals(2));
         Monster monster2(1, 10, 3);
         Combat::attack(hero, monster2);
-        AssertThat(hero.getStatusIntensity(HeroStatus::Cursed), Equals(1));
+        AssertThat(hero.getStatusIntensity(HeroDebuff::Cursed), Equals(1));
       });
       it("should take effect immediately after hero's attack", [] {
         Hero hero;
@@ -548,7 +548,7 @@ void testStatusEffects()
         hero.setPhysicalResistPercent(50);
         Monster monster("", MonsterStats(1, 100, 10, 0), {}, MonsterTraitsBuilder().addCurse());
         Combat::attack(hero, monster);
-        AssertThat(hero.hasStatus(HeroStatus::Cursed), IsTrue());
+        AssertThat(hero.hasStatus(HeroDebuff::Cursed), IsTrue());
         AssertThat(hero.getHitPoints(), Equals(health - 10));
       });
     });
@@ -556,13 +556,13 @@ void testStatusEffects()
       it("should prevent being cursed", [] {
         Hero hero;
         hero.addStatus(HeroStatus::CurseImmune);
-        hero.addStatus(HeroStatus::Cursed);
-        AssertThat(hero.hasStatus(HeroStatus::Cursed), Equals(false));
+        hero.addStatus(HeroDebuff::Cursed);
+        AssertThat(hero.hasStatus(HeroDebuff::Cursed), Equals(false));
         Hero hero2;
-        hero2.addStatus(HeroStatus::Cursed);
-        AssertThat(hero2.hasStatus(HeroStatus::Cursed), Equals(true));
+        hero2.addStatus(HeroDebuff::Cursed);
+        AssertThat(hero2.hasStatus(HeroDebuff::Cursed), Equals(true));
         hero2.addStatus(HeroStatus::CurseImmune);
-        AssertThat(hero2.hasStatus(HeroStatus::Cursed), Equals(false));
+        AssertThat(hero2.hasStatus(HeroDebuff::Cursed), Equals(false));
       });
     });
     describe("Death Gaze", [] { /* TODO */ });
@@ -598,7 +598,9 @@ void testStatusEffects()
           while (!hero.predictDodgeNext() && attempts < 100)
           {
             ++attempts;
-            hero.addStatus(HeroStatus::DodgeTemporary, 0); // trigger reroll
+            // trigger reroll
+            hero.addStatus(HeroStatus::DodgeTemporary);
+            hero.removeStatus(HeroStatus::DodgeTemporary, false);
           }
           const int tolerance = 2 * (11 - chance / 10);
           const int expectedWithTolerance = 100 / chance * tolerance;
@@ -806,14 +808,14 @@ void testStatusEffects()
     describe("Mana Burned", [] {
       it("should prevent mana recovery by uncovering tiles", [] {
         Hero hero;
-        hero.addStatus(HeroStatus::ManaBurned);
+        hero.addStatus(HeroDebuff::ManaBurned);
         AssertThat(hero.getManaPoints(), Equals(0));
         hero.recover(10);
         AssertThat(hero.getManaPoints(), Equals(0));
       });
       it("should allow other means of mana recovery", [] {
         Hero hero(HeroClass::Thief, HeroRace::Human);
-        hero.addStatus(HeroStatus::ManaBurned);
+        hero.addStatus(HeroDebuff::ManaBurned);
         AssertThat(hero.getManaPoints(), Equals(0));
         hero.addStatus(HeroStatus::Schadenfreude);
         Monster monster(MonsterType::MeatMan, 1);
@@ -827,13 +829,13 @@ void testStatusEffects()
       it("should prevent being mana burned", [] {
         Hero hero;
         hero.addStatus(HeroStatus::ManaBurnImmune);
-        hero.addStatus(HeroStatus::ManaBurned);
-        AssertThat(hero.hasStatus(HeroStatus::ManaBurned), Equals(false));
+        hero.addStatus(HeroDebuff::ManaBurned);
+        AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), Equals(false));
         Hero hero2;
-        hero2.addStatus(HeroStatus::ManaBurned);
-        AssertThat(hero2.hasStatus(HeroStatus::ManaBurned), Equals(true));
+        hero2.addStatus(HeroDebuff::ManaBurned);
+        AssertThat(hero2.hasStatus(HeroDebuff::ManaBurned), Equals(true));
         hero2.addStatus(HeroStatus::ManaBurnImmune);
-        AssertThat(hero2.hasStatus(HeroStatus::ManaBurned), Equals(false));
+        AssertThat(hero2.hasStatus(HeroDebuff::ManaBurned), Equals(false));
       });
     });
     describe("Might", [] {
@@ -857,7 +859,7 @@ void testStatusEffects()
         hero.loseHitPointsOutsideOfFight(9);
         hero.recover(1);
         AssertThat(hero.getHitPoints(), Equals(2));
-        hero.addStatus(HeroStatus::Poisoned);
+        hero.addStatus(HeroDebuff::Poisoned);
         hero.recover(10);
         AssertThat(hero.getHitPoints(), Equals(2));
       });
@@ -875,13 +877,13 @@ void testStatusEffects()
       it("should prevent being poisoned", [] {
         Hero hero;
         hero.addStatus(HeroStatus::PoisonImmune);
-        hero.addStatus(HeroStatus::Poisoned);
-        AssertThat(hero.hasStatus(HeroStatus::Poisoned), Equals(false));
+        hero.addStatus(HeroDebuff::Poisoned);
+        AssertThat(hero.hasStatus(HeroDebuff::Poisoned), Equals(false));
         Hero hero2;
-        hero2.addStatus(HeroStatus::Poisoned);
-        AssertThat(hero2.hasStatus(HeroStatus::Poisoned), Equals(true));
+        hero2.addStatus(HeroDebuff::Poisoned);
+        AssertThat(hero2.hasStatus(HeroDebuff::Poisoned), Equals(true));
         hero2.addStatus(HeroStatus::PoisonImmune);
-        AssertThat(hero2.hasStatus(HeroStatus::Poisoned), Equals(false));
+        AssertThat(hero2.hasStatus(HeroDebuff::Poisoned), Equals(false));
       });
     });
     describe("Reflexes", [] {
@@ -976,16 +978,16 @@ void testStatusEffects()
         AssertThat(hero.getDamageBonusPercent(), Equals(100));
         const int base_initial = hero.getBaseDamage();
         const int damage_initial = hero.getDamageVersusStandard();
-        hero.addStatus(HeroStatus::Weakened);
+        hero.addStatus(HeroDebuff::Weakened);
         AssertThat(hero.getBaseDamage(), Equals(base_initial - 1));
         AssertThat(hero.getDamageVersusStandard(), Equals(damage_initial - 2));
         AssertThat(hero.getDamageBonusPercent(), Equals(100));
-        hero.addStatus(HeroStatus::Weakened);
+        hero.addStatus(HeroDebuff::Weakened);
         AssertThat(hero.getBaseDamage(), Equals(base_initial - 2));
       });
       it("should not reduce damage below zero", [] {
         Hero hero;
-        hero.addStatus(HeroStatus::Weakened, hero.getBaseDamage() + 1);
+        hero.addStatus(HeroDebuff::Weakened, hero.getBaseDamage() + 1);
         AssertThat(hero.getBaseDamage(), Is().Not().LessThan(0));
         AssertThat(hero.getDamageVersusStandard(), Is().Not().LessThan(0));
       });
@@ -1005,9 +1007,9 @@ void testPotions()
     });
     it("removes poison", [] {
       Hero hero;
-      hero.addStatus(HeroStatus::Poisoned);
+      hero.addStatus(HeroDebuff::Poisoned);
       hero.use(Item::HealthPotion);
-      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
     });
     it("does not overheal", [] {
       Hero hero;
@@ -1030,29 +1032,29 @@ void testPotions()
     });
     it("removes mana burn", [] {
       Hero hero;
-      hero.addStatus(HeroStatus::ManaBurned);
+      hero.addStatus(HeroDebuff::ManaBurned);
       hero.use(Item::ManaPotion);
-      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
     });
   });
   describe("Fortitude Tonic", [] {
     it("removes poison and weakening", [] {
       Hero hero;
-      hero.addStatus(HeroStatus::Poisoned);
-      hero.addStatus(HeroStatus::Weakened, 50);
+      hero.addStatus(HeroDebuff::Poisoned);
+      hero.addStatus(HeroDebuff::Weakened, 50);
       hero.use(Item::FortitudeTonic);
-      AssertThat(hero.hasStatus(HeroStatus::Poisoned), IsFalse());
-      AssertThat(hero.hasStatus(HeroStatus::Weakened), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::Weakened), IsFalse());
     });
   });
   describe("Burn Salve", [] {
     it("removes mana burn and corrosion", [] {
       Hero hero;
-      hero.addStatus(HeroStatus::ManaBurned);
-      hero.addStatus(HeroStatus::Corrosion, 50);
+      hero.addStatus(HeroDebuff::ManaBurned);
+      hero.addStatus(HeroDebuff::Corroded, 50);
       hero.use(Item::BurnSalve);
-      AssertThat(hero.hasStatus(HeroStatus::ManaBurned), IsFalse());
-      AssertThat(hero.hasStatus(HeroStatus::Corrosion), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
+      AssertThat(hero.hasStatus(HeroDebuff::Corroded), IsFalse());
     });
   });
   describe("Strength Potion", [] {

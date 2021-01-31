@@ -69,7 +69,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
       case 0:
         if (rerolls >= thresholdPoison)
         {
-          hero.addStatus(HeroStatus::Poisoned);
+          hero.addStatus(HeroDebuff::Poisoned);
           ++thresholdPoison;
           return;
         }
@@ -77,7 +77,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
       case 1:
         if (rerolls >= thresholdManaBurn)
         {
-          hero.addStatus(HeroStatus::ManaBurned);
+          hero.addStatus(HeroDebuff::ManaBurned);
           ++thresholdManaBurn;
           return;
         }
@@ -94,7 +94,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
     case 1:
       if (rerolls >= thresholdWeakened)
       {
-        hero.addStatus(HeroStatus::Weakened);
+        hero.addStatus(HeroDebuff::Weakened);
         ++thresholdWeakened;
         return;
       }
@@ -102,14 +102,14 @@ void Jehora::applyRandomPunishment(Hero& hero)
     case 2:
       if (rerolls >= thresholdCorrosion)
       {
-        hero.addStatus(HeroStatus::Corrosion);
+        hero.addStatus(HeroDebuff::Corroded);
         ++thresholdCorrosion;
       }
       break;
     case 3:
       if (rerolls >= thresholdCursed)
       {
-        hero.addStatus(HeroStatus::Cursed);
+        hero.addStatus(HeroDebuff::Cursed);
         ++thresholdCursed;
         return;
       }

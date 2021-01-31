@@ -12,15 +12,15 @@ namespace Combat
     void inflictDebuffs(Hero& hero, const Monster& monster, bool includeCurse)
     {
       if (monster.isPoisonous())
-        hero.addStatus(HeroStatus::Poisoned);
+        hero.addStatus(HeroDebuff::Poisoned);
       if (monster.hasManaBurn())
-        hero.addStatus(HeroStatus::ManaBurned);
+        hero.addStatus(HeroDebuff::ManaBurned);
       if (monster.isCorrosive())
-        hero.addStatus(HeroStatus::Corrosion);
+        hero.addStatus(HeroDebuff::Corroded);
       if (monster.isWeakening())
-        hero.addStatus(HeroStatus::Weakened);
+        hero.addStatus(HeroDebuff::Weakened);
       if (includeCurse && monster.bearsCurse())
-        hero.addStatus(HeroStatus::Cursed);
+        hero.addStatus(HeroDebuff::Cursed);
     }
 
     void applyLifeSteal(Hero& hero, const Monster& monster, int monsterHitPointsBefore)
@@ -101,7 +101,7 @@ namespace Combat
           if (!hero.tryDodge())
           {
             if (monster.bearsCurse())
-              hero.addStatus(HeroStatus::Cursed);
+              hero.addStatus(HeroDebuff::Cursed);
             if (willPetrify)
             {
               // Hero either dies or death protection is triggered
@@ -139,7 +139,7 @@ namespace Combat
         if (!hero.tryDodge())
         {
           if (monster.bearsCurse())
-            hero.addStatus(HeroStatus::Cursed);
+            hero.addStatus(HeroDebuff::Cursed);
           if (willPetrify)
           {
             // Hero either dies or death protection is triggered

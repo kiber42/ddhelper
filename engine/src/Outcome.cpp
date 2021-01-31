@@ -51,15 +51,15 @@ Debuffs findDebuffs(const Hero& before, const Hero& after)
   Debuffs debuffs;
   if (before.hasStatus(HeroStatus::DeathProtection) && !after.hasStatus(HeroStatus::DeathProtection))
     debuffs.insert(Debuff::LostDeathProtection);
-  if (before.getStatusIntensity(HeroStatus::Cursed) < after.getStatusIntensity(HeroStatus::Cursed))
+  if (before.getStatusIntensity(HeroDebuff::Cursed) < after.getStatusIntensity(HeroDebuff::Cursed))
     debuffs.insert(Debuff::Cursed);
-  if (!before.hasStatus(HeroStatus::ManaBurned) && after.hasStatus(HeroStatus::ManaBurned))
+  if (!before.hasStatus(HeroDebuff::ManaBurned) && after.hasStatus(HeroDebuff::ManaBurned))
     debuffs.insert(Debuff::ManaBurned);
-  if (!before.hasStatus(HeroStatus::Poisoned) && after.hasStatus(HeroStatus::Poisoned))
+  if (!before.hasStatus(HeroDebuff::Poisoned) && after.hasStatus(HeroDebuff::Poisoned))
     debuffs.insert(Debuff::Poisoned);
-  if (before.getStatusIntensity(HeroStatus::Corrosion) < after.getStatusIntensity(HeroStatus::Corrosion))
+  if (before.getStatusIntensity(HeroDebuff::Corroded) < after.getStatusIntensity(HeroDebuff::Corroded))
     debuffs.insert(Debuff::Corroded);
-  if (before.getStatusIntensity(HeroStatus::Weakened) < after.getStatusIntensity(HeroStatus::Weakened))
+  if (before.getStatusIntensity(HeroDebuff::Weakened) < after.getStatusIntensity(HeroDebuff::Weakened))
     debuffs.insert(Debuff::Weakened);
   return debuffs;
 }

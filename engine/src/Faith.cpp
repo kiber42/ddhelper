@@ -249,7 +249,7 @@ bool Faith::request(Boon boon, Hero& hero)
     break;
   case Boon::BloodSwell:
     hero.healHitPoints(hero.getHitPointsMax());
-    hero.addStatus(HeroStatus::Cursed);
+    hero.addStatus(HeroDebuff::Cursed);
     break;
 
   case Boon::Plantation:
@@ -264,7 +264,7 @@ bool Faith::request(Boon boon, Hero& hero)
     // TODO: Every monster receives +1 Corrosion
     hero.changeBaseDamage(1); // TODO: Remove
     // TODO: Spawns 3 random plants
-    hero.removeStatus(HeroStatus::Cursed, false);
+    hero.removeStatus(HeroDebuff::Cursed, false);
     break;
   case Boon::Entanglement:
     // TODO: Every monster is slowed
@@ -285,10 +285,10 @@ bool Faith::request(Boon boon, Hero& hero)
     hero.receive(Item::PrayerBead);
     break;
   case Boon::Cleansing:
-    hero.removeStatus(HeroStatus::Poisoned, true);
-    hero.removeStatus(HeroStatus::ManaBurned, true);
-    hero.removeStatus(HeroStatus::Weakened, false);
-    hero.removeStatus(HeroStatus::Corrosion, false);
+    hero.removeStatus(HeroDebuff::Poisoned, true);
+    hero.removeStatus(HeroDebuff::ManaBurned, true);
+    hero.removeStatus(HeroDebuff::Weakened, false);
+    hero.removeStatus(HeroDebuff::Corroded, false);
     hero.addStatus(HeroStatus::ConsecratedStrike);
     hero.receive(Item::PrayerBead);
     break;
@@ -319,8 +319,8 @@ bool Faith::request(Boon boon, Hero& hero)
     hero.gainLevel();
     hero.refillHealthAndMana(); // for Goatperson
     hero.addConversionPoints(100);
-    hero.removeStatus(HeroStatus::Weakened, true);
-    hero.removeStatus(HeroStatus::Corrosion, true);
+    hero.removeStatus(HeroDebuff::Weakened, true);
+    hero.removeStatus(HeroDebuff::Corroded, true);
     // TODO: -20% physical and magic resist for all monsters on current level
     break;
 
@@ -579,7 +579,7 @@ void Faith::punish(God god, Hero& hero)
     hero.changeHitPointsMax(-20);
     break;
   case God::TheEarthmother:
-    hero.addStatus(HeroStatus::Corrosion, 5);
+    hero.addStatus(HeroDebuff::Corroded, 5);
     break;
   case God::GlowingGuardian:
     hero.clearInventory();

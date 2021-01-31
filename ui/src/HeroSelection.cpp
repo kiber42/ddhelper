@@ -72,16 +72,15 @@ std::optional<Hero> CustomHeroBuilder::run()
   ImGui::DragInt("Magical Resistance", &data[7], 0.2f, 0, 80);
   ImGui::DragInt("XP", &data[8], 0.1f, 0, 50);
 
-  for (HeroStatus status :
-       {HeroStatus::FirstStrikePermanent, HeroStatus::FirstStrikeTemporary, HeroStatus::SlowStrike, HeroStatus::Reflexes, HeroStatus::MagicalAttack,
-        HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball, HeroStatus::DeathProtection,
-        HeroStatus::ExperienceBoost, HeroStatus::Poisoned, HeroStatus::ManaBurned})
+  for (HeroStatus status : {HeroStatus::FirstStrikePermanent, HeroStatus::FirstStrikeTemporary, HeroStatus::SlowStrike,
+                            HeroStatus::Reflexes, HeroStatus::MagicalAttack, HeroStatus::ConsecratedStrike,
+                            HeroStatus::HeavyFireball, HeroStatus::DeathProtection, HeroStatus::ExperienceBoost})
   {
     bool current = statuses[status] > 0;
     if (ImGui::Checkbox(toString(status), &current))
       statuses[status] = current;
   }
-  for (HeroStatus status : {HeroStatus::Corrosion, HeroStatus::Cursed, HeroStatus::Learning, HeroStatus::Weakened})
+  for (HeroStatus status : {HeroStatus::Learning})
   {
     int current = statuses[status];
     if (ImGui::InputInt(toString(status), &current))

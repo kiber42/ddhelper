@@ -4,10 +4,8 @@ enum class HeroStatus
 {
   BurningStrike,
   ConsecratedStrike,
-  Corrosion,
   CorrosiveStrike,
   CrushingBlow,
-  Cursed,
   CurseImmune,
   DamageReduction,
   DeathGaze, // TODO
@@ -25,12 +23,10 @@ enum class HeroStatus
   Learning,
   LifeSteal,
   MagicalAttack,
-  ManaBurned,
   ManaBurnImmune,
   Might,
   Momentum,
   PiercePhysical, // TODO
-  Poisoned,
   Poisonous,
   PoisonImmune,
   Reflexes,
@@ -39,9 +35,18 @@ enum class HeroStatus
   SlowStrike,
   SpiritStrength,
   StoneSkin,
-  Weakened,
-  Last = Weakened,
+  Last = StoneSkin,
   Pessimist, // Loses all dice rolls
+};
+
+enum class HeroDebuff
+{
+  Corroded,
+  Cursed,
+  ManaBurned,
+  Poisoned,
+  Weakened,
+  Last = Weakened
 };
 
 constexpr const char* toString(HeroStatus status)
@@ -52,14 +57,10 @@ constexpr const char* toString(HeroStatus status)
     return "Burning Strike";
   case HeroStatus::ConsecratedStrike:
     return "Consecrated Strike";
-  case HeroStatus::Corrosion:
-    return "Corrosion";
   case HeroStatus::CorrosiveStrike:
     return "Corrosive Strike";
   case HeroStatus::CrushingBlow:
     return "Crushing Blow";
-  case HeroStatus::Cursed:
-    return "Cursed";
   case HeroStatus::CurseImmune:
     return "Curse Immune";
   case HeroStatus::DamageReduction:
@@ -94,8 +95,6 @@ constexpr const char* toString(HeroStatus status)
     return "Life Steal";
   case HeroStatus::MagicalAttack:
     return "Magical Attack";
-  case HeroStatus::ManaBurned:
-    return "Mana Burned";
   case HeroStatus::ManaBurnImmune:
     return "Mana Burn Immune";
   case HeroStatus::Might:
@@ -104,8 +103,6 @@ constexpr const char* toString(HeroStatus status)
     return "Momentum";
   case HeroStatus::PiercePhysical:
     return "Pierce Physical";
-  case HeroStatus::Poisoned:
-    return "Poisoned";
   case HeroStatus::Poisonous:
     return "Poisonous";
   case HeroStatus::PoisonImmune:
@@ -122,20 +119,39 @@ constexpr const char* toString(HeroStatus status)
     return "Spirit Strength";
   case HeroStatus::StoneSkin:
     return "Stone Skin";
-  case HeroStatus::Weakened:
-    return "Weakened";
   case HeroStatus::Pessimist:
     return "Pessimist";
   }
 }
 
+constexpr const char* toString(HeroDebuff debuff)
+{
+  switch (debuff)
+  {
+  case HeroDebuff::Corroded:
+    return "Corroded";
+  case HeroDebuff::Cursed:
+    return "Cursed";
+  case HeroDebuff::ManaBurned:
+    return "Mana Burned";
+  case HeroDebuff::Poisoned:
+    return "Poisoned";
+  case HeroDebuff::Weakened:
+    return "Weakened";
+  }
+}
+
 constexpr bool canHaveMultiple(HeroStatus status)
 {
-  return status == HeroStatus::Corrosion || status == HeroStatus::CorrosiveStrike ||
-         status == HeroStatus::CrushingBlow || status == HeroStatus::Cursed || status == HeroStatus::DamageReduction ||
-         status == HeroStatus::DeathGaze || status == HeroStatus::DodgePermanent ||
-         status == HeroStatus::DodgeTemporary || status == HeroStatus::Knockback || status == HeroStatus::Learning ||
-         status == HeroStatus::LifeSteal || status == HeroStatus::Momentum || status == HeroStatus::Poisonous ||
-         status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin ||
-         status == HeroStatus::Weakened;
+  return status == HeroStatus::CorrosiveStrike || status == HeroStatus::CrushingBlow ||
+         status == HeroStatus::DamageReduction || status == HeroStatus::DeathGaze ||
+         status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
+         status == HeroStatus::Knockback || status == HeroStatus::Learning || status == HeroStatus::LifeSteal ||
+         status == HeroStatus::Momentum || status == HeroStatus::Poisonous || status == HeroStatus::Sanguine ||
+         status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin;
+}
+
+constexpr bool canHaveMultiple(HeroDebuff debuff)
+{
+  return debuff == HeroDebuff::Corroded || debuff == HeroDebuff::Cursed || debuff == HeroDebuff::Weakened;
 }

@@ -229,7 +229,7 @@ void Hero::drinkHealthPotion()
   if (hasNagaCauldron)
     percentHealed += nagaCauldronBonus();
   stats.healHitPoints(getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
-  removeStatus(HeroStatus::Poisoned, true);
+  removeStatus(HeroDebuff::Poisoned, true);
   if (hasTrait(HeroTrait::Survivor))
     stats.recoverManaPoints(getManaPointsMax() * 2 / 10);
 }
@@ -246,7 +246,7 @@ void Hero::drinkManaPotion()
   if (hasNagaCauldron)
     percentRestored += nagaCauldronBonus();
   stats.recoverManaPoints(getManaPointsMax() * percentRestored / 100);
-  removeStatus(HeroStatus::ManaBurned, true);
+  removeStatus(HeroDebuff::ManaBurned, true);
   if (hasTrait(HeroTrait::Courageous))
     addStatus(HeroStatus::Might);
   if (hasTrait(HeroTrait::Survivor))
@@ -255,14 +255,14 @@ void Hero::drinkManaPotion()
 
 int Hero::nagaCauldronBonus() const
 {
-  return 5 * (static_cast<int>(hasStatus(HeroStatus::Poisoned)) + static_cast<int>(hasStatus(HeroStatus::ManaBurned)) +
-              static_cast<int>(hasStatus(HeroStatus::Corrosion)) + static_cast<int>(hasStatus(HeroStatus::Weakened)) +
-              static_cast<int>(hasStatus(HeroStatus::Cursed)));
+  return 5 * (static_cast<int>(hasStatus(HeroDebuff::Poisoned)) + static_cast<int>(hasStatus(HeroDebuff::ManaBurned)) +
+              static_cast<int>(hasStatus(HeroDebuff::Corroded)) + static_cast<int>(hasStatus(HeroDebuff::Weakened)) +
+              static_cast<int>(hasStatus(HeroDebuff::Cursed)));
 }
 
 int Hero::getBaseDamage() const
 {
-  const int modifiers = getStatusIntensity(HeroStatus::SpiritStrength) - getStatusIntensity(HeroStatus::Weakened);
+  const int modifiers = getStatusIntensity(HeroStatus::SpiritStrength) - getStatusIntensity(HeroDebuff::Weakened);
   return std::max(stats.getBaseDamage() + modifiers, 0);
 }
 
@@ -407,9 +407,9 @@ void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
 void Hero::recover(int nSquares)
 {
   const bool exhausted = hasStatus(HeroStatus::Exhausted);
-  if (!hasStatus(HeroStatus::Poisoned))
+  if (!hasStatus(HeroDebuff::Poisoned))
     stats.healHitPoints(nSquares * recoveryMultiplier(), false);
-  if (!hasStatus(HeroStatus::ManaBurned) && !exhausted)
+  if (!hasStatus(HeroDebuff::ManaBurned) && !exhausted)
     stats.recoverManaPoints(nSquares);
 }
 
@@ -430,12 +430,12 @@ int Hero::numSquaresForFullRecovery() const
   // TODO: For Goatperson, never return a number larger than the amount of food in inventory!
 
   int numHP = 0;
-  if (!hasStatus(HeroStatus::Poisoned))
+  if (!hasStatus(HeroDebuff::Poisoned))
   {
     const int multiplier = recoveryMultiplier();
     numHP = (getHitPointsMax() - getHitPoints() + (multiplier - 1) /* always round up */) / multiplier;
   }
-  const int numMP = hasStatus(HeroStatus::ManaBurned) ? 0 : getManaPointsMax() - getManaPoints();
+  const int numMP = hasStatus(HeroDebuff::ManaBurned) ? 0 : getManaPointsMax() - getManaPoints();
   if (hasTrait(HeroTrait::Damned))
     return numHP + numMP;
   return std::max(numHP, numMP);
@@ -473,8 +473,9 @@ void Hero::addStatus(HeroStatus status, int addedIntensity)
 
 void Hero::removeStatus(HeroStatus status, bool completely)
 {
-  if (statuses[status] > 0)
-    setStatusIntensity(status, completely ? 0 : statuses[status] - 1);
+  auto iter = statuses.find(status);
+  if (iter != statuses.end() && iter->second > 0)
+    setStatusIntensity(status, completely ? 0 : iter->second - 1);
 }
 
 bool Hero::hasStatus(HeroStatus status) const
@@ -491,13 +492,9 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
   else if (newIntensity < 0)
     newIntensity = 0;
 
-  // Reject changes if there is a corresponding immunity
-  if (newIntensity > 0 && ((status == HeroStatus::Cursed && hasStatus(HeroStatus::CurseImmune)) ||
-                           (status == HeroStatus::ManaBurned && hasStatus(HeroStatus::ManaBurnImmune)) ||
-                           (status == HeroStatus::Poisoned && hasStatus(HeroStatus::PoisonImmune))))
-    return;
-
   const int oldIntensity = std::exchange(statuses[status], newIntensity);
+  if (newIntensity == oldIntensity)
+    return;
 
   if (status == HeroStatus::Momentum)
     changeDamageBonusPercent(newIntensity - oldIntensity);
@@ -505,24 +502,11 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
   if (newIntensity > 0)
   {
     if (status == HeroStatus::CurseImmune)
-      removeStatus(HeroStatus::Cursed, true);
+      removeStatus(HeroDebuff::Cursed, true);
     else if (status == HeroStatus::ManaBurnImmune)
-      removeStatus(HeroStatus::ManaBurned, true);
+      removeStatus(HeroDebuff::ManaBurned, true);
     else if (status == HeroStatus::PoisonImmune)
-      removeStatus(HeroStatus::Poisoned, true);
-
-    else if (status == HeroStatus::ManaBurned)
-    {
-      PietyChange pietyChange;
-      if (oldIntensity == 0)
-        pietyChange += faith.becameManaBurned();
-      const int mp = getManaPoints();
-      pietyChange += faith.manaPointsBurned(mp);
-      loseManaPoints(mp);
-      applyOrCollect(pietyChange);
-    }
-    else if (status == HeroStatus::Poisoned && oldIntensity == 0)
-      applyOrCollect(faith.becamePoisoned());
+      removeStatus(HeroDebuff::Poisoned, true);
   }
   else if (newIntensity == 0)
     statuses.erase(status);
@@ -530,7 +514,8 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
   if (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary)
     rerollDodgeNext();
 
-  propagateStatus(status, newIntensity);
+  if (status == HeroStatus::StoneSkin)
+    defence.setStoneSkin(newIntensity);
 }
 
 int Hero::getStatusIntensity(HeroStatus status) const
@@ -543,21 +528,68 @@ int Hero::getStatusIntensity(HeroStatus status) const
   return iter != statuses.end() ? iter->second : 0;
 }
 
-void Hero::propagateStatus(HeroStatus status, int intensity)
+void Hero::addStatus(HeroDebuff debuff, int addedIntensity)
 {
-  switch (status)
+  setStatusIntensity(debuff, debuffs[debuff] + addedIntensity);
+}
+
+void Hero::removeStatus(HeroDebuff debuff, bool completely)
+{
+  auto iter = debuffs.find(debuff);
+  if (iter != debuffs.end() && iter->second > 0)
+    setStatusIntensity(debuff, completely ? 0 : iter->second - 1);
+}
+
+bool Hero::hasStatus(HeroDebuff debuff) const
+{
+  return getStatusIntensity(debuff) > 0;
+}
+
+void Hero::setStatusIntensity(HeroDebuff debuff, int newIntensity)
+{
+  if (newIntensity > 1 && !canHaveMultiple(debuff))
+    newIntensity = 1;
+  else if (newIntensity < 0)
+    newIntensity = 0;
+
+  // Reject changes if there is a corresponding immunity
+  if (newIntensity > 0 && ((debuff == HeroDebuff::Cursed && hasStatus(HeroStatus::CurseImmune)) ||
+                           (debuff == HeroDebuff::ManaBurned && hasStatus(HeroStatus::ManaBurnImmune)) ||
+                           (debuff == HeroDebuff::Poisoned && hasStatus(HeroStatus::PoisonImmune))))
+    return;
+
+  const int oldIntensity = std::exchange(debuffs[debuff], newIntensity);
+  if (oldIntensity == newIntensity)
+    return;
+
+  if (newIntensity > 0)
   {
-  case HeroStatus::Corrosion:
-    defence.setCorrosion(intensity);
-    break;
-  case HeroStatus::Cursed:
-    defence.setCursed(intensity > 0);
-    break;
-  case HeroStatus::StoneSkin:
-    defence.setStoneSkin(intensity);
-  default:
-    break;
+    if (debuff == HeroDebuff::ManaBurned)
+    {
+      PietyChange pietyChange;
+      if (oldIntensity == 0)
+        pietyChange += faith.becameManaBurned();
+      const int mp = getManaPoints();
+      pietyChange += faith.manaPointsBurned(mp);
+      loseManaPoints(mp);
+      applyOrCollect(pietyChange);
+    }
+    else if (debuff == HeroDebuff::Poisoned && oldIntensity == 0)
+      applyOrCollect(faith.becamePoisoned());
   }
+  else if (newIntensity == 0)
+    debuffs.erase(debuff);
+
+  if (debuff == HeroDebuff::Corroded)
+    defence.setCorrosion(newIntensity);
+  else if (debuff == HeroDebuff::Cursed)
+    defence.setCursed(newIntensity > 0);
+}
+
+int Hero::getStatusIntensity(HeroDebuff debuff) const
+{
+  auto iter = debuffs.find(debuff);
+  return iter != debuffs.end() ? iter->second : 0;
 }
 
 void Hero::addTrait(HeroTrait trait)
@@ -579,7 +611,7 @@ void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool mon
 {
   assert(monster.isDefeated());
   gainExperienceForKill(monster.getLevel(), monsterWasSlowed);
-  addStatus(HeroStatus::Cursed, monster.bearsCurse() ? 1 : -1);
+  addStatus(HeroDebuff::Cursed, monster.bearsCurse() ? 1 : -1);
   applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning));
   if (has(Item::GlovesOfMidas))
     ++inventory.gold;
@@ -625,7 +657,7 @@ void Hero::levelGainedUpdate(int newLevel)
     addStatus(HeroStatus::DamageReduction, 2);
   if (has(Item::MartyrWraps))
   {
-    addStatus(HeroStatus::Corrosion);
+    addStatus(HeroDebuff::Corroded);
     // TODO: Corrode all visible monsters
   }
   if (has(Item::MagePlate) && newLevel % 2 == 1)
@@ -642,8 +674,8 @@ void Hero::levelGainedUpdate(int newLevel)
 void Hero::levelUpRefresh()
 {
   // TODO: Don't do anything for Goatperson
-  removeStatus(HeroStatus::Poisoned, true);
-  removeStatus(HeroStatus::ManaBurned, true);
+  removeStatus(HeroDebuff::Poisoned, true);
+  removeStatus(HeroDebuff::ManaBurned, true);
   stats.refresh();
 }
 
@@ -883,7 +915,7 @@ void Hero::receiveEnlightenment()
   if (conversion.addPoints(10 * enchantedBeads))
     conversion.applyBonus(*this);
   gainExperienceNoBonuses(enchantedBeads);
-  removeStatus(HeroStatus::Cursed, true);
+  removeStatus(HeroDebuff::Cursed, true);
 }
 
 void Hero::clearInventory()
@@ -1065,12 +1097,12 @@ void Hero::use(Item item)
     drinkManaPotion();
     break;
   case Item::FortitudeTonic:
-    removeStatus(HeroStatus::Poisoned, true);
-    removeStatus(HeroStatus::Weakened, true);
+    removeStatus(HeroDebuff::Poisoned, true);
+    removeStatus(HeroDebuff::Weakened, true);
     break;
   case Item::BurnSalve:
-    removeStatus(HeroStatus::ManaBurned, true);
-    removeStatus(HeroStatus::Corrosion, true);
+    removeStatus(HeroDebuff::ManaBurned, true);
+    removeStatus(HeroDebuff::Corroded, true);
     break;
   case Item::StrengthPotion:
   {
@@ -1328,12 +1360,27 @@ std::vector<std::string> describe(const Hero& hero)
   if (hero.getMagicalResistPercent() > 0)
     description.emplace_back(std::to_string(hero.getMagicalResistPercent()) + "% magic resist");
 
+  for (int i = 0; i < static_cast<int>(HeroDebuff::Last); ++i)
+  {
+    const auto debuff = static_cast<HeroDebuff>(i);
+    const auto intensity = hero.getStatusIntensity(debuff);
+    if (intensity > 0)
+    {
+      if (canHaveMultiple(debuff) && intensity > 1)
+        description.emplace_back("is "s + toString(debuff) + " (x" + std::to_string(intensity) + ")");
+      else
+        description.emplace_back("is "s + toString(debuff));
+    }
+  }
+
+  const bool isPessimist = hero.hasStatus(HeroStatus::Pessimist);
   for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
   {
-    auto status = static_cast<HeroStatus>(i);
-    if (!hero.hasStatus(status) || (hero.hasStatus(HeroStatus::Pessimist) &&
-                                    (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
-                                     status == HeroStatus::DodgePrediction)))
+    const auto status = static_cast<HeroStatus>(i);
+    const auto intensity = hero.getStatusIntensity(status);
+    if (intensity == 0 ||
+        (isPessimist && (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
+                         status == HeroStatus::DodgePrediction)))
       continue;
     if (status == HeroStatus::DodgePrediction)
     {
@@ -1343,11 +1390,9 @@ std::vector<std::string> describe(const Hero& hero)
         description.emplace_back("won't dodge next attack");
       continue;
     }
-    const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
-                       status == HeroStatus::DeathGazeImmune || status == HeroStatus::Exhausted ||
-                       status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||
-                       status == HeroStatus::Poisoned || status == HeroStatus::Poisonous ||
-                       status == HeroStatus::PoisonImmune || status == HeroStatus::Weakened;
+    const bool useIs = status == HeroStatus::CurseImmune || status == HeroStatus::DeathGazeImmune ||
+                       status == HeroStatus::Exhausted || status == HeroStatus::ManaBurnImmune ||
+                       status == HeroStatus::Poisonous || status == HeroStatus::PoisonImmune;
     std::string statusStr;
     if (useIs)
       statusStr = "is ";
@@ -1355,7 +1400,10 @@ std::vector<std::string> describe(const Hero& hero)
       statusStr = "has ";
     statusStr += toString(status);
     if (canHaveMultiple(status))
-      statusStr += " (x" + std::to_string(hero.getStatusIntensity(status)) + ")";
+    {
+      if (intensity > 1)
+        statusStr += " (x" + std::to_string(intensity) + ")";
+    }
     description.emplace_back(std::move(statusStr));
   }
 
@@ -1419,10 +1467,31 @@ std::vector<std::string> describe_diff(const Hero& before, const Hero& now)
     description.emplace_back("magical resist: "s + std::to_string(before.getMagicalResistPercent()) + "% -> " +
                              std::to_string(now.getMagicalResistPercent()) + "%");
 
+  for (int i = 0; i < static_cast<int>(HeroDebuff::Last); ++i)
+  {
+    const auto debuff = static_cast<HeroDebuff>(i);
+    const auto intensityBefore = before.getStatusIntensity(debuff);
+    const auto intensityNow = now.getStatusIntensity(debuff);
+    if (intensityBefore != intensityNow)
+    {
+      if (canHaveMultiple(debuff))
+      {
+        description.emplace_back(toString(debuff) + " x"s + std::to_string(intensityBefore) + " -> x" +
+                                 std::to_string(intensityNow));
+      }
+      else if (intensityBefore == 0)
+        description.emplace_back("is "s + toString(debuff));
+      else
+        description.emplace_back("was "s + toString(debuff));
+    }
+  }
+
   for (int i = 0; i < static_cast<int>(HeroStatus::Last); ++i)
   {
-    auto status = static_cast<HeroStatus>(i);
-    if (before.getStatusIntensity(status) == now.getStatusIntensity(status))
+    const auto status = static_cast<HeroStatus>(i);
+    const auto intensityBefore = before.getStatusIntensity(status);
+    const auto intensityNow = now.getStatusIntensity(status);
+    if (intensityBefore == intensityNow)
       continue;
     if ((now.hasStatus(HeroStatus::Pessimist) &&
          (status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
@@ -1430,16 +1499,14 @@ std::vector<std::string> describe_diff(const Hero& before, const Hero& now)
       continue;
     if (canHaveMultiple(status))
     {
-      description.emplace_back(toString(status) + " x"s + std::to_string(before.getStatusIntensity(status)) + " -> x" +
-                               std::to_string(now.getStatusIntensity(status)));
+      description.emplace_back(toString(status) + " x"s + std::to_string(intensityBefore) + " -> x" +
+                               std::to_string(intensityNow));
     }
     else
     {
-      const bool useIs = status == HeroStatus::Cursed || status == HeroStatus::CurseImmune ||
-                         status == HeroStatus::DeathGazeImmune || status == HeroStatus::Exhausted ||
-                         status == HeroStatus::ManaBurned || status == HeroStatus::ManaBurnImmune ||
-                         status == HeroStatus::Poisoned || status == HeroStatus::Poisonous ||
-                         status == HeroStatus::PoisonImmune || status == HeroStatus::Weakened;
+      const bool useIs = status == HeroStatus::CurseImmune || status == HeroStatus::DeathGazeImmune ||
+                         status == HeroStatus::Exhausted || status == HeroStatus::ManaBurnImmune ||
+                         status == HeroStatus::Poisonous || status == HeroStatus::PoisonImmune;
       const bool usePast = !now.hasStatus(status);
       std::string statusStr = [useIs, usePast]() -> std::string {
         if (useIs)

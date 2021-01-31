@@ -143,7 +143,7 @@ namespace Magic
         monster.petrify();
         hero.addStatus(HeroStatus::ExperienceBoost);
         // Remove one curse stack, even for cursed monsters
-        hero.removeStatus(HeroStatus::Cursed, false);
+        hero.removeStatus(HeroDebuff::Cursed, false);
         return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
       }
 
@@ -213,7 +213,7 @@ namespace Magic
             (!hero.hasStatus(HeroStatus::DeathProtection) &&
              (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant)))) &&
            (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrikeTemporary)) &&
-           (spell != Spell::Halpmeh || hero.hasStatus(HeroStatus::Poisoned) ||
+           (spell != Spell::Halpmeh || hero.hasStatus(HeroDebuff::Poisoned) ||
             hero.getHitPoints() < hero.getHitPointsMax());
   }
 
@@ -272,7 +272,7 @@ namespace Magic
       break;
     case Spell::Halpmeh:
       hero.healHitPoints(hero.getLevel() * (hero.hasTrait(HeroTrait::HolyHands) ? 5 : 4));
-      hero.removeStatus(HeroStatus::Poisoned, true);
+      hero.removeStatus(HeroDebuff::Poisoned, true);
       break;
     case Spell::Imawal:
       hero.recoverManaPoints(2);

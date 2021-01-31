@@ -64,7 +64,7 @@ public:
   bool hasInitiativeVersus(const Monster& monster) const;
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
   void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
-  void recover(int nSquares);  
+  void recover(int nSquares);
   int recoveryMultiplier() const;
   int numSquaresForFullRecovery() const;
 
@@ -77,8 +77,12 @@ public:
   void addStatus(HeroStatus status, int addedIntensity = 1);
   void removeStatus(HeroStatus status, bool completely);
   bool hasStatus(HeroStatus status) const;
-  void setStatusIntensity(HeroStatus status, int newIntensity);
   int getStatusIntensity(HeroStatus status) const;
+
+  void addStatus(HeroDebuff debuff, int addedIntensity = 1);
+  void removeStatus(HeroDebuff debuff, bool completely);
+  bool hasStatus(HeroDebuff debuff) const;
+  int getStatusIntensity(HeroDebuff debuff) const;
 
   void addTrait(HeroTrait trait);
   bool hasTrait(HeroTrait trait) const;
@@ -163,6 +167,7 @@ private:
   Conversion conversion;
   Faith faith;
   std::map<HeroStatus, int> statuses;
+  std::map<HeroDebuff, int> debuffs;
   std::vector<HeroTrait> traits;
   std::optional<PietyChange> collectedPiety;
   std::mt19937 generator;
@@ -171,12 +176,13 @@ private:
   bool namtarsWardUsedThisLevel;
   int momentum;
 
+  void gainExperience(int xpGained, int xpBonuses);
   void drinkHealthPotion();
   void drinkManaPotion();
   int nagaCauldronBonus() const;
   void loseHitPoints(int amountPointsLost);
-  void propagateStatus(HeroStatus status, int intensity);
-  void gainExperience(int xpGained, int xpBonuses);
+  void setStatusIntensity(HeroStatus status, int newIntensity);
+  void setStatusIntensity(HeroDebuff debuff, int newIntensity);
   void levelGainedUpdate(int newLevel);
   void levelUpRefresh();
   void rerollDodgeNext();
