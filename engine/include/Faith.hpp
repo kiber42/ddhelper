@@ -357,8 +357,6 @@ using ItemOrSpell = std::variant<Item, Spell>;
 class Faith
 {
 public:
-  void assignMonsterPool(std::vector<Monster>& allMonsters);
-
   bool followDeity(God god, Hero& hero);
   std::optional<God> getFollowedDeity() const;
 
@@ -367,14 +365,14 @@ public:
   int boonCount(Boon) const;
 
   void gainPiety(int pointsGained);
-  void losePiety(int pointsLost, Hero& hero);
+  void losePiety(int pointsLost, Hero& hero, Monsters& allMonsters);
 
   // Apply one of Jehora's random event (piety gain or punishment)
   void applyRandomJehoraEvent(Hero& hero);
 
-  void apply(PietyChange, Hero& hero);
+  void apply(PietyChange, Hero& hero, Monsters& allMonsters);
 
-  bool request(Boon boon, Hero& hero);
+  bool request(Boon boon, Hero& hero, Monsters& allMonsters);
   int getCosts(Boon boon, const Hero& hero) const;
   int isAvailable(Boon boon, const Hero& hero) const;
 
@@ -382,7 +380,7 @@ public:
   bool enter(Pact pact);
   bool enteredConsensus() const;
 
-  void desecrate(God altar, Hero& hero, bool hasAgnosticCollar);
+  void desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgnosticCollar);
 
   // The following methods address the gods' likes and dislikes.
   PietyChange monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning);
@@ -416,13 +414,11 @@ public:
   PietyChange deathProtectionTriggered();
 
   // Instantly triggers special Taurog punishment
-  void convertedTaurogItem(Hero& hero);
+  void convertedTaurogItem(Hero& hero, Monsters& allMonsters);
 
 private:
   void initialBoon(God god, Hero& hero);
-  void punish(God god, Hero& hero);
-
-  std::vector<Monster>* monsterPool;
+  void punish(God god, Hero& hero, Monsters& allMonsters);
 
   std::optional<God> followedDeity;
   std::vector<Boon> boons;

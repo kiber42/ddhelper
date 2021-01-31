@@ -1,25 +1,25 @@
 #pragma once
 
 class Hero;
-enum class HeroClass;
-enum class HeroRace;
+#include "HeroClass.hpp"
+#include "Monster.hpp"
 
 #include <functional>
 
 class Conversion
 {
 public:
-    Conversion(HeroClass theClass, HeroRace race);
-    int getPoints() const;
-    int getThreshold() const;
+  Conversion(HeroClass theClass, HeroRace race);
+  int getPoints() const;
+  int getThreshold() const;
 
-    // Add points, returns true if threshold was reached
-    [[nodiscard]] bool addPoints(int pointsAdded);
+  // Add points, returns true if threshold was reached
+  [[nodiscard]] bool addPoints(int pointsAdded);
 
-    void applyBonus(Hero& hero);
+  void applyBonus(Hero& hero, Monsters& allMonsters);
 
 private:
-    int points;
-    int threshold;
-    std::function<void(Hero&)> bonus;
+  int points;
+  int threshold;
+  std::function<void(Hero&, Monsters&)> bonus;
 };

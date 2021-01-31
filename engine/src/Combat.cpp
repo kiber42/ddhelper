@@ -9,18 +9,18 @@ namespace Combat
 {
   namespace
   {
-    void inflictDebuffs(Hero& hero, const Monster& monster, bool includeCurse)
+    void inflictDebuffs(Hero& hero, const Monster& monster, bool includeCurse, Monsters& allMonsters)
     {
       if (monster.isPoisonous())
-        hero.addStatus(HeroDebuff::Poisoned);
+        hero.addStatus(HeroDebuff::Poisoned, allMonsters);
       if (monster.hasManaBurn())
-        hero.addStatus(HeroDebuff::ManaBurned);
+        hero.addStatus(HeroDebuff::ManaBurned, allMonsters);
       if (monster.isCorrosive())
-        hero.addStatus(HeroDebuff::Corroded);
+        hero.addStatus(HeroDebuff::Corroded, allMonsters);
       if (monster.isWeakening())
-        hero.addStatus(HeroDebuff::Weakened);
+        hero.addStatus(HeroDebuff::Weakened, allMonsters);
       if (includeCurse && monster.bearsCurse())
-        hero.addStatus(HeroDebuff::Cursed);
+        hero.addStatus(HeroDebuff::Cursed, allMonsters);
     }
 
     void applyLifeSteal(Hero& hero, const Monster& monster, int monsterHitPointsBefore)
@@ -38,43 +38,122 @@ namespace Combat
         }
       }
     }
+  } // namespace
 
-    Summary attack(Hero& hero, Monster& monster)
+  // Perform melee attack on monster, evaluate effects on all monsters
+  Summary attack(Hero& hero, Monster& monster, Monsters& allMonsters)
+  {
+    if (hero.isDefeated())
     {
-      if (hero.isDefeated())
+      std::cerr << "Dead hero cannot fight." << std::endl;
+      return Summary::NotPossible;
+    }
+    if (monster.isDefeated())
+    {
+      std::cerr << "Cannot fight defeated monster." << std::endl;
+      return Summary::NotPossible;
+    }
+
+    hero.startPietyCollection();
+
+    // TODO Better handling of dodge and dodge prediction -- manual selection?
+
+    // TODO Handle knockback?
+    // TODO Handle burn stack pop on other monsters?
+
+    // Bonus experience is added if the monster was slowed before the final attack
+    bool monsterWasSlowed = monster.isSlowed();
+    bool monsterWasBurning = monster.isBurning();
+    bool heroReceivedHit = false;
+
+    const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
+    const bool willPetrify = !hero.hasStatus(HeroStatus::DeathGazeImmune) &&
+                             (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
+
+    if (swiftHand)
+    {
+      monster.die();
+    }
+    else if (hero.hasInitiativeVersus(monster))
+    {
+      const int monsterDamageInitial = monster.getDamage();
+      const int monsterHPBefore = monster.getHitPoints();
+      if (hero.hasStatus(HeroStatus::CrushingBlow))
+        monster.receiveCrushingBlow();
+      else if (hero.hasStatus(HeroStatus::BurningStrike))
+        monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.doesMagicalDamage());
+      else
+        monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
+      applyLifeSteal(hero, monster, monsterHPBefore);
+      if (hero.hasStatus(HeroStatus::Poisonous) && !monster.isDefeated())
       {
-        std::cerr << "Dead hero cannot fight." << std::endl;
-        return Summary::NotPossible;
+        if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
+          hero.collect(hero.getFaith().monsterPoisoned(monster));
       }
-      if (monster.isDefeated())
+      if (hero.hasStatus(HeroStatus::CorrosiveStrike))
+        monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
+      if (hero.hasStatus(HeroStatus::Might))
+        monster.erodeResitances();
+      if (!monster.isDefeated())
       {
-        std::cerr << "Cannot fight defeated monster." << std::endl;
-        return Summary::NotPossible;
+        // If monster is defeated beyond this point, it was not slowed before the final blow
+        monsterWasSlowed = false;
+        monsterWasBurning = hero.hasStatus(HeroStatus::BurningStrike);
+        if (!hero.tryDodge(allMonsters))
+        {
+          if (monster.bearsCurse())
+            hero.addStatus(HeroDebuff::Cursed, allMonsters);
+          if (willPetrify)
+          {
+            // Hero either dies or death protection is triggered
+            hero.loseHitPointsOutsideOfFight(hero.getHitPoints(), allMonsters);
+          }
+          else
+            hero.takeDamage(monsterDamageInitial, monster.doesMagicalDamage(), allMonsters);
+          heroReceivedHit = true;
+        }
+        if (!hero.isDefeated())
+        {
+          if (heroReceivedHit && hero.hasTrait(HeroTrait::ManaShield))
+            monster.takeManaShieldDamage(hero.getLevel());
+          if (hero.hasStatus(HeroStatus::Reflexes) && !monster.isDefeated())
+          {
+            hero.removeOneTimeAttackEffects();
+            const int monsterHPBefore = monster.getHitPoints();
+            if (hero.hasStatus(HeroStatus::BurningStrike))
+              monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(),
+                                              hero.doesMagicalDamage());
+            else
+              monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
+            applyLifeSteal(hero, monster, monsterHPBefore);
+            if (hero.hasStatus(HeroStatus::Poisonous))
+              monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel());
+            if (hero.hasStatus(HeroStatus::CorrosiveStrike))
+              monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
+          }
+        }
       }
-
-      hero.startPietyCollection();
-
-      // TODO Better handling of dodge and dodge prediction -- manual selection?
-
-      // TODO Handle knockback?
-      // TODO Handle burn stack pop on other monsters?
-
-      // Bonus experience is added if the monster was slowed before the final attack
-      bool monsterWasSlowed = monster.isSlowed();
-      bool monsterWasBurning = monster.isBurning();
-      bool heroReceivedHit = false;
-
-      const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
-      const bool willPetrify = !hero.hasStatus(HeroStatus::DeathGazeImmune) &&
-                               (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
-
-      if (swiftHand)
+    }
+    else
+    {
+      assert(!hero.hasStatus(HeroStatus::Reflexes));
+      if (!hero.tryDodge(allMonsters))
       {
-        monster.die();
+        if (monster.bearsCurse())
+          hero.addStatus(HeroDebuff::Cursed, allMonsters);
+        if (willPetrify)
+        {
+          // Hero either dies or death protection is triggered
+          hero.loseHitPointsOutsideOfFight(hero.getHitPoints(), allMonsters);
+        }
+        else
+          hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage(), allMonsters);
+        heroReceivedHit = true;
       }
-      else if (hero.hasInitiativeVersus(monster))
+      if (!hero.isDefeated())
       {
-        const int monsterDamageInitial = monster.getDamage();
+        if (heroReceivedHit && hero.hasTrait(HeroTrait::ManaShield))
+          monster.takeManaShieldDamage(hero.getLevel());
         const int monsterHPBefore = monster.getHitPoints();
         if (hero.hasStatus(HeroStatus::CrushingBlow))
           monster.receiveCrushingBlow();
@@ -93,134 +172,39 @@ namespace Combat
           monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
         if (hero.hasStatus(HeroStatus::Might))
           monster.erodeResitances();
-        if (!monster.isDefeated())
-        {
-          // If monster is defeated beyond this point, it was not slowed before the final blow
-          monsterWasSlowed = false;
-          monsterWasBurning = hero.hasStatus(HeroStatus::BurningStrike);
-          if (!hero.tryDodge())
-          {
-            if (monster.bearsCurse())
-              hero.addStatus(HeroDebuff::Cursed);
-            if (willPetrify)
-            {
-              // Hero either dies or death protection is triggered
-              hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
-            }
-            else
-              hero.takeDamage(monsterDamageInitial, monster.doesMagicalDamage());
-            heroReceivedHit = true;
-          }
-          if (!hero.isDefeated())
-          {
-            if (heroReceivedHit && hero.hasTrait(HeroTrait::ManaShield))
-              monster.takeManaShieldDamage(hero.getLevel());
-            if (hero.hasStatus(HeroStatus::Reflexes) && !monster.isDefeated())
-            {
-              hero.removeOneTimeAttackEffects();
-              const int monsterHPBefore = monster.getHitPoints();
-              if (hero.hasStatus(HeroStatus::BurningStrike))
-                monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(),
-                                                hero.doesMagicalDamage());
-              else
-                monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
-              applyLifeSteal(hero, monster, monsterHPBefore);
-              if (hero.hasStatus(HeroStatus::Poisonous))
-                monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel());
-              if (hero.hasStatus(HeroStatus::CorrosiveStrike))
-                monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
-            }
-          }
-        }
       }
-      else
-      {
-        assert(!hero.hasStatus(HeroStatus::Reflexes));
-        if (!hero.tryDodge())
-        {
-          if (monster.bearsCurse())
-            hero.addStatus(HeroDebuff::Cursed);
-          if (willPetrify)
-          {
-            // Hero either dies or death protection is triggered
-            hero.loseHitPointsOutsideOfFight(hero.getHitPoints());
-          }
-          else
-            hero.takeDamage(monster.getDamage(), monster.doesMagicalDamage());
-          heroReceivedHit = true;
-        }
-        if (!hero.isDefeated())
-        {
-          if (heroReceivedHit && hero.hasTrait(HeroTrait::ManaShield))
-            monster.takeManaShieldDamage(hero.getLevel());
-          const int monsterHPBefore = monster.getHitPoints();
-          if (hero.hasStatus(HeroStatus::CrushingBlow))
-            monster.receiveCrushingBlow();
-          else if (hero.hasStatus(HeroStatus::BurningStrike))
-            monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(),
-                                            hero.doesMagicalDamage());
-          else
-            monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
-          applyLifeSteal(hero, monster, monsterHPBefore);
-          if (hero.hasStatus(HeroStatus::Poisonous) && !monster.isDefeated())
-          {
-            if (monster.poison(hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel()))
-              hero.collect(hero.getFaith().monsterPoisoned(monster));
-          }
-          if (hero.hasStatus(HeroStatus::CorrosiveStrike))
-            monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
-          if (hero.hasStatus(HeroStatus::Might))
-            monster.erodeResitances();
-        }
-      }
-
-      if (heroReceivedHit)
-      {
-        inflictDebuffs(hero, monster, false);
-        hero.collect(hero.getFaith().receivedHit(monster));
-      }
-
-      // TODO: Check if attacks on plants count for momentum
-      hero.adjustMomentum(monster.isDefeated());
-
-      const auto summary = detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
-      hero.removeOneTimeAttackEffects();
-      hero.applyCollectedPiety();
-      return summary;
     }
-  } // namespace
 
-  // Perform melee attack on monster, evaluate effects on all monsters
-  Summary attack(Hero& hero, Monster& monster, Monsters& monsters)
-  {
-    const int levelBefore = hero.getLevel() + hero.getPrestige();
-    auto summary = attack(hero, monster);
-    if (!hero.isDefeated())
+    if (heroReceivedHit)
     {
-      for (auto& otherMonster : monsters)
-      {
-        if (otherMonster != monster)
-          detail::attackedOther(hero, otherMonster);
-      }
-      if (hero.getLevel() + hero.getPrestige() > levelBefore)
-        summary = Summary::LevelUp;
+      inflictDebuffs(hero, monster, false, allMonsters);
+      hero.collect(hero.getFaith().receivedHit(monster));
     }
-    return summary;
+
+    // TODO: Check if attacks on plants count for momentum
+    hero.adjustMomentum(monster.isDefeated());
+    hero.removeOneTimeAttackEffects();
+
+    return detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, true, allMonsters);
   }
 
   namespace detail
   {
-    void attackedOther(Hero& hero, Monster& monster)
+    // Evaluate effect of burn down after another monster has been attacked
+    void attackedOther(Hero& hero, Monster& monster, Monsters& allMonsters)
     {
       if (!monster.isBurning())
         return;
       const bool monsterWasSlowed = monster.isSlowed();
       monster.burnDown();
       if (monster.isDefeated())
-        hero.monsterKilled(monster, monsterWasSlowed, true);
+        hero.monsterKilled(monster, monsterWasSlowed, true, allMonsters);
     }
 
-    Summary summaryAndExperience(Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning)
+    // Determines outcome summary and awards experience if applicable.
+    // Helper used by Combat::attack and Magic::cast, do not call directly.
+    Summary summaryAndExperience(
+        Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
     {
       if (hero.isDefeated())
       {
@@ -233,10 +217,32 @@ namespace Combat
         return Summary::Safe;
 
       const int levelBefore = hero.getLevel() + hero.getPrestige();
-      hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning);
+      hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning, allMonsters);
       if (hero.getLevel() + hero.getPrestige() > levelBefore)
         return Summary::LevelUp;
       return Summary::Win;
+    }
+
+    Summary finalizeAttack(
+        Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, bool triggerBurndown, Monsters& allMonsters)
+    {
+      auto summary = detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters);
+
+      if (!hero.isDefeated() && triggerBurndown)
+      {
+        const int levelBefore = hero.getLevel() + hero.getPrestige();
+        for (auto& otherMonster : allMonsters)
+        {
+          if (otherMonster != monster)
+            detail::attackedOther(hero, otherMonster, allMonsters);
+        }
+        if (hero.getLevel() + hero.getPrestige() > levelBefore)
+          summary = Summary::LevelUp;
+      }
+
+      hero.applyCollectedPiety(allMonsters);
+
+      return summary;
     }
   } // namespace detail
 

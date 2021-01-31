@@ -30,10 +30,10 @@ public:
   int getLevel() const;
   int getPrestige() const;
   int getXPforNextLevel() const;
-  void gainExperienceForKill(int monsterLevel, bool monsterWasSlowed);
-  void gainExperienceForPetrification(bool monsterWasSlowed);
-  void gainExperienceNoBonuses(int xpGained);
-  void gainLevel();
+  void gainExperienceForKill(int monsterLevel, bool monsterWasSlowed, Monsters& allMonsters);
+  void gainExperienceForPetrification(bool monsterWasSlowed, Monsters& allMonsters);
+  void gainExperienceNoBonuses(int xpGained, Monsters& allMonsters);
+  void gainLevel(Monsters& allMonsters);
 
   bool isDefeated() const;
   int getHitPoints() const;
@@ -63,13 +63,13 @@ public:
 
   bool hasInitiativeVersus(const Monster& monster) const;
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
-  void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
+  void takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters);
   void recover(int nSquares);
   int recoveryMultiplier() const;
   int numSquaresForFullRecovery() const;
 
   void healHitPoints(int amountPointsHealed, bool mayOverheal = false);
-  void loseHitPointsOutsideOfFight(int amountPointsLost);
+  void loseHitPointsOutsideOfFight(int amountPointsLost, Monsters& allMonsters);
   void recoverManaPoints(int amountPointsRecovered);
   void loseManaPoints(int amountPointsLost);
   void refillHealthAndMana();
@@ -79,7 +79,7 @@ public:
   bool hasStatus(HeroStatus status) const;
   int getStatusIntensity(HeroStatus status) const;
 
-  void addStatus(HeroDebuff debuff, int addedIntensity = 1);
+  void addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensity = 1);
   void removeStatus(HeroDebuff debuff, bool completely);
   bool hasStatus(HeroDebuff debuff) const;
   int getStatusIntensity(HeroDebuff debuff) const;
@@ -88,14 +88,14 @@ public:
   bool hasTrait(HeroTrait trait) const;
 
   // Adds XP and triggers any faith and item effects
-  void monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning);
+  void monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters);
   void adjustMomentum(bool increase);
   void removeOneTimeAttackEffects();
 
   void addDodgeChancePercent(int percent, bool isPermanent);
   int getDodgeChancePercent() const;
   bool predictDodgeNext() const;
-  bool tryDodge();
+  bool tryDodge(Monsters& allMonsters);
 
   // Special functions for items. They don't check if the item is actually in the inventory.
   void applyDragonSoul(int manaCosts); // 15% chance to refund mana
@@ -117,14 +117,14 @@ public:
   int getBoonCosts(Boon boon) const;
 
   bool followDeity(God god);
-  bool request(BoonOrPact boon);
-  void desecrate(God altar);
+  bool request(BoonOrPact boon, Monsters& allMonsters);
+  void desecrate(God altar, Monsters& allMonsters);
 
   // Functions to group all piety events belonging to one action.
   // Make sure each call to startPietyCollection is followed by a call to applyCollectedPiety
   void startPietyCollection();
   void collect(PietyChange);
-  void applyCollectedPiety();
+  void applyCollectedPiety(Monsters& allMonsters);
 
   // Methods required to apply side effects of worship, boons and punishments
   void setHitPointsMax(int hitPointsMax);
@@ -134,10 +134,10 @@ public:
   void changePhysicalResistPercentMax(int deltaPoints);
   void changeMagicalResistPercentMax(int deltaPoints);
   void modifyLevelBy(int delta);
-  void addConversionPoints(int points);
+  void addConversionPoints(int points, Monsters& allMonsters);
   bool lose(Item item);
   void receiveFreeSpell(Spell spell);
-  void receiveEnlightenment();
+  void receiveEnlightenment(Monsters& allMonsters);
   void clearInventory();
 
   // Inventory management
@@ -148,12 +148,12 @@ public:
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
   bool canAfford(Item item) const;
   void receive(ItemOrSpell itemOrSpell);
-  void convert(ItemOrSpell itemOrSpell);
+  void convert(ItemOrSpell itemOrSpell, Monsters& allMonsters);
   bool canConvert(ItemOrSpell itemOrSpell) const;
   bool canUse(Item item) const;
   bool canUse(Item item, const Monster& monster) const;
-  void use(Item item);
-  void use(Item item, Monster& monster);
+  void use(Item item, Monsters& allMonsters);
+  void use(Item item, Monster& monster, Monsters& allMonsters);
 
   int getConversionPoints() const;
   int getConversionThreshold() const;
@@ -176,17 +176,16 @@ private:
   bool namtarsWardUsedThisLevel;
   int momentum;
 
-  void gainExperience(int xpGained, int xpBonuses);
+  void gainExperience(int xpGained, int xpBonuses, Monsters& allMonsters);
   void drinkHealthPotion();
   void drinkManaPotion();
   int nagaCauldronBonus() const;
-  void loseHitPoints(int amountPointsLost);
+  void loseHitPoints(int amountPointsLost, Monsters& allMonsters);
   void setStatusIntensity(HeroStatus status, int newIntensity);
-  void setStatusIntensity(HeroDebuff debuff, int newIntensity);
-  void levelGainedUpdate(int newLevel);
+  void levelGainedUpdate(int newLevel, Monsters& allMonsters);
   void levelUpRefresh();
   void rerollDodgeNext();
-  void applyOrCollect(PietyChange pietyChange);
+  void applyOrCollect(PietyChange pietyChange, Monsters& allMonsters);
   void changeStatsFromItem(Item item, bool itemReceived);
 };
 

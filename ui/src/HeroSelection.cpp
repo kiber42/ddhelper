@@ -49,8 +49,9 @@ std::optional<Hero> HeroSelection::run()
 Hero HeroSelection::get() const
 {
   Hero hero(selectedClass, selectedRace);
+  Monsters ignore;
   for (int i = 1; i < level; ++i)
-    hero.gainLevel();
+    hero.gainLevel(ignore);
   return hero;
 }
 
@@ -107,13 +108,14 @@ Hero CustomHeroBuilder::get() const
   const int magicalResistance = data[7];
   const int xp = data[8];
   Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
+  Monsters ignore;
   hero.clearInventory();
-  hero.gainExperienceNoBonuses(xp);
+  hero.gainExperienceNoBonuses(xp, ignore);
 
   const int deltaHp = maxHp - data[1];
   const int deltaMp = maxMp - data[3];
   if (deltaHp > 0)
-    hero.loseHitPointsOutsideOfFight(deltaHp);
+    hero.loseHitPointsOutsideOfFight(deltaHp, ignore);
   else if (deltaHp < 0)
     hero.healHitPoints(-deltaHp, true);
   else if (deltaMp > 0)

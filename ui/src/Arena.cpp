@@ -103,7 +103,7 @@ void Arena::runCastPopup(const State& state)
       auto cast = [spell, withMonster](State& state) {
         if (withMonster)
           return Magic::cast(*state.hero, *state.monster, state.monsterPool, spell);
-        Magic::cast(*state.hero, spell);
+        Magic::cast(*state.hero, spell, state.monsterPool);
         return Summary::None;
       };
       if (addPopupAction(state, label, historyTitle, cast, isSelected))
@@ -141,7 +141,7 @@ void Arena::runUseItemPopup(const State& state)
         if (addPopupAction(
                 state, std::move(label), historyTitle,
                 [item](State& state) {
-                  state.hero->use(item);
+                  state.hero->use(item, state.monsterPool);
                   return Summary::None;
                 },
                 isSelected))
@@ -152,7 +152,7 @@ void Arena::runUseItemPopup(const State& state)
         if (addPopupAction(
                 state, std::move(label), historyTitle,
                 [item](State& state) {
-                  state.hero->use(item, *state.monster);
+                  state.hero->use(item, *state.monster, state.monsterPool);
                   return Summary::None;
                 },
                 isSelected))
@@ -191,7 +191,7 @@ void Arena::runConvertItemPopup(const State& state)
         if (addPopupAction(
                 state, label, historyTitle,
                 [item](State& state) {
-                  state.hero->convert(item);
+                  state.hero->convert(item, state.monsterPool);
                   return Summary::None;
                 },
                 isSelected))
@@ -214,7 +214,7 @@ void Arena::runConvertItemPopup(const State& state)
         if (addPopupAction(
                 state, label, historyTitle,
                 [spell](State& state) {
-                  state.hero->convert(spell);
+                  state.hero->convert(spell, state.monsterPool);
                   return Summary::None;
                 },
                 isSelected))
@@ -341,7 +341,8 @@ void Arena::runFaithPopup(const State& state)
         if (addPopupAction(
                 state, label, historyTitle,
                 [boon](State& state) {
-                  return state.hero->getFaith().request(boon, *state.hero) ? Summary::None : Summary::NotPossible;
+                  return state.hero->getFaith().request(boon, *state.hero, state.monsterPool) ? Summary::None
+                                                                                              : Summary::NotPossible;
                 },
                 isSelected))
           selectedPopupItem = index;
@@ -377,7 +378,7 @@ void Arena::runFaithPopup(const State& state)
         if (addPopupAction(
                 state, label, historyTitle,
                 [pact](State& state) {
-                  state.hero->request(pact);
+                  state.hero->request(pact, state.monsterPool);
                   return Summary::None;
                 },
                 isSelected))

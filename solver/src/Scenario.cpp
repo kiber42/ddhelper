@@ -14,9 +14,10 @@ Hero getHeroForScenario(Scenario scenario)
   case Scenario::AgbaarsAcademySlowingPart2:
   {
     Hero hero;
-    hero.gainLevel();
-    hero.gainExperienceNoBonuses(4);
-    hero.loseHitPointsOutsideOfFight(3);
+    Monsters ignore;    
+    hero.gainLevel(ignore);
+    hero.gainExperienceNoBonuses(4, ignore);
+    hero.loseHitPointsOutsideOfFight(3, ignore);
     hero.clearInventory();
     for (int i = 0; i < 8; ++i)
       hero.receive(Item::ManaPotion);

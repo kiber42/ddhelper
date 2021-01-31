@@ -257,17 +257,17 @@ namespace solver
                             shops.erase(std::find(begin(shops), end(shops), buy.item));
                             hero.buy(buy.item);
                           },
-                          [&](Use use) { hero.use(use.item); },
-                          [&](Convert convert) { hero.convert(convert.itemOrSpell); },
+                          [&](Use use) { hero.use(use.item, state.monsters); },
+                          [&](Convert convert) { hero.convert(convert.itemOrSpell, state.monsters); },
                           [&hero, &spells = state.resources.spells](Find find) {
                             spells.erase(std::find(begin(spells), end(spells), find.spell));
                             hero.receive(find.spell);
                           },
                           [&](Follow follow) { hero.followDeity(follow.deity); },
-                          [&](Request request) { hero.request(request.boonOrPact); },
-                          [&hero, &altars = state.resources.altars](Desecrate desecrate) {
+                          [&](Request request) { hero.request(request.boonOrPact, state.monsters); },
+                          [&hero, &monsters=state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
                             altars.erase(std::find(begin(altars), end(altars), desecrate.altar));
-                            hero.desecrate(desecrate.altar);
+                            hero.desecrate(desecrate.altar, monsters);
                           }},
                step);
     state.monsters.erase(std::remove_if(begin(state.monsters), end(state.monsters),

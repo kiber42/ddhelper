@@ -12,14 +12,14 @@ namespace Combat
 
   namespace detail
   {
-    // Evaluate effect of burn down after another monster has been attacked
-    void attackedOther(Hero& hero, Monster& monster);
-
     // Determines outcome summary and awards experience if applicable.
     // Helper used by Combat::attack and Magic::cast, do not call directly.
-    Summary summaryAndExperience(Hero& heroAfterFight,
-                                 const Monster& monsterAfterFight,
-                                 bool monsterWasSlowed,
-                                 bool monsterWasBurning);
+    // Optionally, evaluates burn stack damage on other monsters.
+    Summary finalizeAttack(Hero& hero,
+                           const Monster& monster,
+                           bool monsterWasSlowed,
+                           bool monsterWasBurning,
+                           bool triggerBurndown,
+                           Monsters& allMonsters);
   } // namespace detail
 } // namespace Combat

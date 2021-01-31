@@ -23,7 +23,7 @@ namespace Magic
     // - Battlemage Ring, +1 dmg per caster level
     // - Witchalok pendant: add stone skin when burndayraz is cast
     // Note: Attack counts for Crusader's momentum
-    void burndayraz(Hero& hero, Monster& monster)
+    void burndayraz(Hero& hero, Monster& monster, Monsters& allMonsters)
     {
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
@@ -43,7 +43,7 @@ namespace Magic
       // Retaliation
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
       {
-        hero.takeDamage(monster.getDamage() / 2, monster.doesMagicalDamage());
+        hero.takeDamage(monster.getDamage() / 2, monster.doesMagicalDamage(), allMonsters);
         if (hero.hasTrait(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
       }
@@ -72,82 +72,6 @@ namespace Magic
         if (hero.has(Item::CrystalBall))
           hero.chargeCrystalBall();
       }
-    }
-
-    Summary cast(Hero& hero, Monster& monster, Spell spell)
-    {
-      if (!isPossible(hero, monster, spell))
-        return Summary::NotPossible;
-
-      if (!needsMonster(spell) && !monsterIsOptional(spell))
-      {
-        Magic::cast(hero, spell);
-        return Summary::Safe;
-      }
-
-      const bool monsterWasSlowed = monster.isSlowed();
-      const bool monsterWasBurning = monster.isBurning();
-
-      const int manaCosts = spellCosts(spell, hero);
-      hero.loseManaPoints(manaCosts);
-
-      hero.startPietyCollection();
-
-      switch (spell)
-      {
-      case Spell::Apheelsik:
-        if (monster.poison(10 * hero.getLevel()))
-          hero.collect(hero.getFaith().monsterPoisoned(monster));
-        break;
-      case Spell::Burndayraz:
-        burndayraz(hero, monster);
-        break;
-      case Spell::Imawal:
-        // Imawal is handled below, since no XP is awarded for the kill (except +1 bonus XP for slowing)
-        break;
-      case Spell::Lemmisi:
-      {
-        const int uncoveredTiles = 3;
-        hero.recover(uncoveredTiles);
-        monster.recover(uncoveredTiles);
-        break;
-      }
-      case Spell::Pisorf:
-        // 60% of base damage as physical damage if against wall
-        // (TODO?) 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage.
-        // Net damage to first enemy as typeless damage to second enemy; second enemy cannot drop below 1 HP.
-        monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
-        break;
-      case Spell::Weytwut:
-        // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
-        monster.slow();
-        break;
-      case Spell::Wonafyt:
-        // adds Slowed to monster, can only be cast against same or lower level
-        monster.slow();
-        break;
-      default:
-        assert(false);
-        break;
-      }
-
-      hero.collect(hero.getFaith().spellCast(spell, manaCosts));
-      hero.applyCollectedPiety();
-
-      applyCastingSideEffects(hero, manaCosts);
-
-      if (spell == Spell::Imawal)
-      {
-        const bool levelBefore = hero.getLevel() + hero.getPrestige();
-        hero.gainExperienceForPetrification(monster.isSlowed());
-        monster.petrify();
-        hero.addStatus(HeroStatus::ExperienceBoost);
-        // Remove one curse stack, even for cursed monsters
-        hero.removeStatus(HeroDebuff::Cursed, false);
-        return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
-      }
-
-      return Combat::detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning);
     }
 
     constexpr int baseSpellCosts(Spell spell)
@@ -226,7 +150,7 @@ namespace Magic
            (spell != Spell::Wonafyt || hero.getLevel() >= monster.getLevel());
   }
 
-  void cast(Hero& hero, Spell spell)
+  void cast(Hero& hero, Spell spell, Monsters& allMonsters)
   {
     if (!isPossible(hero, spell))
       return;
@@ -244,7 +168,7 @@ namespace Magic
       {
         // uncover 3 tiles without health recovery (neither hero nor monsters)
         const int uncoveredTiles = 3;
-        hero.loseHitPointsOutsideOfFight(3 * hero.getLevel());
+        hero.loseHitPointsOutsideOfFight(3 * hero.getLevel(), allMonsters);
         hero.recoverManaPoints(uncoveredTiles);
       }
       break;
@@ -293,26 +217,86 @@ namespace Magic
       hero.collect(hero.getFaith().spellCast(spell, manaCosts));
     else
       hero.collect(hero.getFaith().imawalCreateWall(manaCosts));
-    hero.applyCollectedPiety();
+    hero.applyCollectedPiety(allMonsters);
 
     applyCastingSideEffects(hero, manaCosts);
   }
 
-  Summary cast(Hero& hero, Monster& monster, Monsters& monsters, Spell spell)
+  Summary cast(Hero& hero, Monster& monster, Monsters& allMonsters, Spell spell)
   {
     const int levelBefore = hero.getLevel() + hero.getPrestige();
-    auto summary = cast(hero, monster, spell);
-    // In the case of Pisorf, assume the monster was pushed into a breakable wall or another monster
-    if (!hero.isDefeated() && (spell == Spell::Burndayraz || spell == Spell::Pisorf))
+    if (!isPossible(hero, monster, spell))
+      return Summary::NotPossible;
+
+    if (!needsMonster(spell) && !monsterIsOptional(spell))
     {
-      for (auto& otherMonster : monsters)
-      {
-        if (otherMonster != monster)
-          Combat::detail::attackedOther(hero, otherMonster);
-      }
-      if (hero.getLevel() + hero.getPrestige() > levelBefore)
-        summary = Summary::LevelUp;
+      Magic::cast(hero, spell, allMonsters);
+      return Summary::Safe;
     }
-    return summary;
+
+    const bool monsterWasSlowed = monster.isSlowed();
+    const bool monsterWasBurning = monster.isBurning();
+
+    const int manaCosts = spellCosts(spell, hero);
+    hero.loseManaPoints(manaCosts);
+
+    hero.startPietyCollection();
+
+    switch (spell)
+    {
+    case Spell::Apheelsik:
+      if (monster.poison(10 * hero.getLevel()))
+        hero.collect(hero.getFaith().monsterPoisoned(monster));
+      break;
+    case Spell::Burndayraz:
+      burndayraz(hero, monster, allMonsters);
+      break;
+    case Spell::Imawal:
+      // Imawal is handled below, since no XP is awarded for the kill (except +1 bonus XP for slowing)
+      break;
+    case Spell::Lemmisi:
+    {
+      const int uncoveredTiles = 3;
+      hero.recover(uncoveredTiles);
+      monster.recover(uncoveredTiles);
+      break;
+    }
+    case Spell::Pisorf:
+      // 60% of base damage as physical damage if against wall
+      // (TODO?) 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage.
+      // Net damage to first enemy as typeless damage to second enemy; second enemy cannot drop below 1 HP.
+      monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
+      break;
+    case Spell::Weytwut:
+      // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
+      monster.slow();
+      break;
+    case Spell::Wonafyt:
+      // adds Slowed to monster, can only be cast against same or lower level
+      monster.slow();
+      break;
+    default:
+      assert(false);
+      break;
+    }
+
+    hero.collect(hero.getFaith().spellCast(spell, manaCosts));
+    applyCastingSideEffects(hero, manaCosts);
+
+    if (spell == Spell::Imawal)
+    {
+      const bool levelBefore = hero.getLevel() + hero.getPrestige();
+      hero.gainExperienceForPetrification(monster.isSlowed(), allMonsters);
+      monster.petrify();
+      hero.addStatus(HeroStatus::ExperienceBoost);
+      // Remove one curse stack, even for cursed monsters
+      hero.removeStatus(HeroDebuff::Cursed, false);
+      hero.applyCollectedPiety(allMonsters);
+      return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
+    }
+
+    const bool triggerBurnDown = spell == Spell::Burndayraz || spell == Spell::Pisorf;
+    return Combat::detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, triggerBurnDown,
+                                          allMonsters);
   }
 } // namespace Magic

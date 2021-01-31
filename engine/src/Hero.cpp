@@ -147,7 +147,7 @@ int Hero::getXPforNextLevel() const
   return experience.getXPforNextLevel();
 }
 
-void Hero::gainExperienceForKill(int monsterLevel, bool monsterWasSlowed)
+void Hero::gainExperienceForKill(int monsterLevel, bool monsterWasSlowed, Monsters& allMonsters)
 {
   const int xpBase = Experience::forHeroAndMonsterLevels(getLevel(), monsterLevel);
   int xpBonuses = getStatusIntensity(HeroStatus::Learning);
@@ -157,21 +157,21 @@ void Hero::gainExperienceForKill(int monsterLevel, bool monsterWasSlowed)
     ++xpBonuses;
   if (has(Item::BalancedDagger) && getLevel() == monsterLevel)
     xpBonuses += 2;
-  gainExperience(xpBase, xpBonuses);
+  gainExperience(xpBase, xpBonuses, allMonsters);
 }
 
-void Hero::gainExperienceForPetrification(bool monsterWasSlowed)
+void Hero::gainExperienceForPetrification(bool monsterWasSlowed, Monsters& allMonsters)
 {
   if (monsterWasSlowed)
-    gainExperience(0, 1);
+    gainExperience(0, 1, allMonsters);
 }
 
-void Hero::gainExperienceNoBonuses(int xpGained)
+void Hero::gainExperienceNoBonuses(int xpGained, Monsters& allMonsters)
 {
-  gainExperience(0, xpGained);
+  gainExperience(0, xpGained, allMonsters);
 }
 
-void Hero::gainExperience(int xpBase, int xpBonuses)
+void Hero::gainExperience(int xpBase, int xpBonuses, Monsters& allMonsters)
 {
   int level = getLevel();
   const int prestige = getPrestige();
@@ -182,18 +182,18 @@ void Hero::gainExperience(int xpBase, int xpBonuses)
   while (getLevel() > level)
   {
     ++level;
-    levelGainedUpdate(level);
+    levelGainedUpdate(level, allMonsters);
   }
   if (levelUp)
     levelUpRefresh();
 }
 
-void Hero::gainLevel()
+void Hero::gainLevel(Monsters& allMonsters)
 {
   const int initialLevel = getLevel();
   experience.gainLevel();
   if (getLevel() > initialLevel)
-    levelGainedUpdate(getLevel());
+    levelGainedUpdate(getLevel(), allMonsters);
   levelUpRefresh();
 }
 
@@ -381,21 +381,21 @@ int Hero::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) con
                                     isMagicalDamage, 0);
 }
 
-void Hero::loseHitPoints(int amountPointsLost)
+void Hero::loseHitPoints(int amountPointsLost, Monsters& allMonsters)
 {
   stats.loseHitPointsWithoutDeathProtection(amountPointsLost);
   if (stats.getHitPoints() == 0 && hasStatus(HeroStatus::DeathProtection))
   {
     stats.barelySurvive();
     removeStatus(HeroStatus::DeathProtection, false);
-    applyOrCollect(faith.deathProtectionTriggered());
+    applyOrCollect(faith.deathProtectionTriggered(), allMonsters);
   }
 }
 
-void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
+void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters)
 {
   const int damagePoints = predictDamageTaken(attackerDamageOutput, isMagicalDamage);
-  loseHitPoints(damagePoints);
+  loseHitPoints(damagePoints, allMonsters);
   if (damagePoints > 0 && hasStatus(HeroStatus::Schadenfreude))
   {
     recoverManaPoints(damagePoints);
@@ -446,9 +446,9 @@ void Hero::healHitPoints(int amountPointsHealed, bool mayOverheal)
   stats.healHitPoints(amountPointsHealed, mayOverheal);
 }
 
-void Hero::loseHitPointsOutsideOfFight(int amountPointsLost)
+void Hero::loseHitPointsOutsideOfFight(int amountPointsLost, Monsters& allMonsters)
 {
-  loseHitPoints(amountPointsLost);
+  loseHitPoints(amountPointsLost, allMonsters);
 }
 
 void Hero::recoverManaPoints(int amountPointsRecovered)
@@ -528,62 +528,74 @@ int Hero::getStatusIntensity(HeroStatus status) const
   return iter != statuses.end() ? iter->second : 0;
 }
 
-void Hero::addStatus(HeroDebuff debuff, int addedIntensity)
+void Hero::addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensity)
 {
-  setStatusIntensity(debuff, debuffs[debuff] + addedIntensity);
+  if (addedIntensity <= 0)
+  {
+    if (addedIntensity < 0)
+    {
+      // For convenience, allow to call addStatus with -1 instead of removeStatus
+      assert(addedIntensity == -1);
+      removeStatus(debuff, false);
+    }
+    return;
+  }
+
+  // Reject changes if there is a corresponding immunity
+  if ((debuff == HeroDebuff::Cursed && hasStatus(HeroStatus::CurseImmune)) ||
+      (debuff == HeroDebuff::ManaBurned && hasStatus(HeroStatus::ManaBurnImmune)) ||
+      (debuff == HeroDebuff::Poisoned && hasStatus(HeroStatus::PoisonImmune)))
+    return;
+
+  int& intensity = debuffs[debuff];
+
+  // Mana burn is special: Although one cannot have multiple layers, adding it will always set mana to 0
+  if (debuff == HeroDebuff::ManaBurned)
+  {
+    PietyChange pietyChange;
+    if (intensity == 0)
+      pietyChange += faith.becameManaBurned();
+    const int mp = getManaPoints();
+    pietyChange += faith.manaPointsBurned(mp);
+    loseManaPoints(mp);
+    applyOrCollect(pietyChange, allMonsters);
+  }
+
+  if (intensity != 0 && !canHaveMultiple(debuff))
+    return;
+  
+  intensity += addedIntensity;
+
+  if (debuff == HeroDebuff::Poisoned)
+    applyOrCollect(faith.becamePoisoned(), allMonsters);
+  else if (debuff == HeroDebuff::Corroded)
+    defence.setCorrosion(intensity);
+  else if (debuff == HeroDebuff::Cursed)
+    defence.setCursed(true);
 }
 
 void Hero::removeStatus(HeroDebuff debuff, bool completely)
 {
   auto iter = debuffs.find(debuff);
-  if (iter != debuffs.end() && iter->second > 0)
-    setStatusIntensity(debuff, completely ? 0 : iter->second - 1);
-}
-
-bool Hero::hasStatus(HeroDebuff debuff) const
-{
-  return getStatusIntensity(debuff) > 0;
-}
-
-void Hero::setStatusIntensity(HeroDebuff debuff, int newIntensity)
-{
-  if (newIntensity > 1 && !canHaveMultiple(debuff))
-    newIntensity = 1;
-  else if (newIntensity < 0)
-    newIntensity = 0;
-
-  // Reject changes if there is a corresponding immunity
-  if (newIntensity > 0 && ((debuff == HeroDebuff::Cursed && hasStatus(HeroStatus::CurseImmune)) ||
-                           (debuff == HeroDebuff::ManaBurned && hasStatus(HeroStatus::ManaBurnImmune)) ||
-                           (debuff == HeroDebuff::Poisoned && hasStatus(HeroStatus::PoisonImmune))))
+  if (iter == debuffs.end() || iter->second == 0)
     return;
 
-  const int oldIntensity = std::exchange(debuffs[debuff], newIntensity);
-  if (oldIntensity == newIntensity)
-    return;
+  const int newIntensity = completely ? 0 : iter->second - 1;
 
-  if (newIntensity > 0)
-  {
-    if (debuff == HeroDebuff::ManaBurned)
-    {
-      PietyChange pietyChange;
-      if (oldIntensity == 0)
-        pietyChange += faith.becameManaBurned();
-      const int mp = getManaPoints();
-      pietyChange += faith.manaPointsBurned(mp);
-      loseManaPoints(mp);
-      applyOrCollect(pietyChange);
-    }
-    else if (debuff == HeroDebuff::Poisoned && oldIntensity == 0)
-      applyOrCollect(faith.becamePoisoned());
-  }
-  else if (newIntensity == 0)
-    debuffs.erase(debuff);
+  if (newIntensity == 0)
+    debuffs.erase(iter);
+  else
+    debuffs[debuff] = newIntensity;
 
   if (debuff == HeroDebuff::Corroded)
     defence.setCorrosion(newIntensity);
   else if (debuff == HeroDebuff::Cursed)
     defence.setCursed(newIntensity > 0);
+}
+
+bool Hero::hasStatus(HeroDebuff debuff) const
+{
+  return getStatusIntensity(debuff) > 0;
 }
 
 int Hero::getStatusIntensity(HeroDebuff debuff) const
@@ -607,12 +619,12 @@ bool Hero::hasTrait(HeroTrait trait) const
   return std::find(begin(traits), end(traits), trait) != end(traits);
 }
 
-void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning)
+void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
 {
   assert(monster.isDefeated());
-  gainExperienceForKill(monster.getLevel(), monsterWasSlowed);
-  addStatus(HeroDebuff::Cursed, monster.bearsCurse() ? 1 : -1);
-  applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning));
+  gainExperienceForKill(monster.getLevel(), monsterWasSlowed, allMonsters);
+  addStatus(HeroDebuff::Cursed, allMonsters, monster.bearsCurse() ? 1 : -1);
+  applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning), allMonsters);
   if (has(Item::GlovesOfMidas))
     ++inventory.gold;
   if (has(Item::StoneSigil))
@@ -649,7 +661,7 @@ void Hero::removeOneTimeAttackEffects()
     changeBaseDamage(-1);
 }
 
-void Hero::levelGainedUpdate(int newLevel)
+void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
 {
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
   changeBaseDamage(hasTrait(HeroTrait::HandToHand) ? +3 : +5);
@@ -657,7 +669,7 @@ void Hero::levelGainedUpdate(int newLevel)
     addStatus(HeroStatus::DamageReduction, 2);
   if (has(Item::MartyrWraps))
   {
-    addStatus(HeroDebuff::Corroded);
+    addStatus(HeroDebuff::Corroded, allMonsters);
     // TODO: Corrode all visible monsters
   }
   if (has(Item::MagePlate) && newLevel % 2 == 1)
@@ -667,7 +679,7 @@ void Hero::levelGainedUpdate(int newLevel)
   }
   alchemistScrollUsedThisLevel = false;
   namtarsWardUsedThisLevel = false;
-  applyOrCollect(faith.levelGained());
+  applyOrCollect(faith.levelGained(), allMonsters);
   adjustMomentum(false);
 }
 
@@ -703,7 +715,7 @@ bool Hero::predictDodgeNext() const
   return dodgeNext;
 }
 
-bool Hero::tryDodge()
+bool Hero::tryDodge(Monsters& allMonsters)
 {
   const bool success = dodgeNext && (!hasStatus(HeroStatus::Pessimist) || getDodgeChancePercent() == 100);
   rerollDodgeNext();
@@ -711,7 +723,7 @@ bool Hero::tryDodge()
   {
     removeStatus(HeroStatus::DodgePrediction, true);
     removeStatus(HeroStatus::DodgeTemporary, true);
-    applyOrCollect(faith.dodgedAttack());
+    applyOrCollect(faith.dodgedAttack(), allMonsters);
   }
   return success;
 }
@@ -813,16 +825,16 @@ bool Hero::followDeity(God god)
   return faith.followDeity(god, *this);
 }
 
-bool Hero::request(BoonOrPact boonOrPact)
+bool Hero::request(BoonOrPact boonOrPact, Monsters& allMonsters)
 {
   if (const auto boon = std::get_if<Boon>(&boonOrPact))
-    return faith.request(*boon, *this);
+    return faith.request(*boon, *this, allMonsters);
   return faith.enter(std::get<Pact>(boonOrPact));
 }
 
-void Hero::desecrate(God altar)
+void Hero::desecrate(God altar, Monsters& allMonsters)
 {
-  faith.desecrate(altar, *this, has(Item::AgnosticCollar));
+  faith.desecrate(altar, *this, allMonsters, has(Item::AgnosticCollar));
 }
 
 void Hero::startPietyCollection()
@@ -837,19 +849,19 @@ void Hero::collect(PietyChange pietyChange)
   *collectedPiety += pietyChange;
 }
 
-void Hero::applyCollectedPiety()
+void Hero::applyCollectedPiety(Monsters& allMonsters)
 {
   assert(collectedPiety);
-  faith.apply(*collectedPiety, *this);
+  faith.apply(*collectedPiety, *this, allMonsters);
   collectedPiety.reset();
 }
 
-void Hero::applyOrCollect(PietyChange pietyChange)
+void Hero::applyOrCollect(PietyChange pietyChange, Monsters& allMonsters)
 {
   if (collectedPiety)
     *collectedPiety += pietyChange;
   else
-    faith.apply(pietyChange, *this);
+    faith.apply(pietyChange, *this, allMonsters);
 }
 
 void Hero::setHitPointsMax(int hitPointsMax)
@@ -887,10 +899,10 @@ void Hero::modifyLevelBy(int delta)
   experience.modifyLevelBy(delta);
 }
 
-void Hero::addConversionPoints(int points)
+void Hero::addConversionPoints(int points, Monsters& allMonsters)
 {
   if (conversion.addPoints(points))
-    conversion.applyBonus(*this);
+    conversion.applyBonus(*this, allMonsters);
 }
 
 bool Hero::lose(Item item)
@@ -906,15 +918,15 @@ void Hero::receiveFreeSpell(Spell spell)
   inventory.addFree(spell);
 }
 
-void Hero::receiveEnlightenment()
+void Hero::receiveEnlightenment(Monsters& allMonsters)
 {
   const int enchantedBeads = inventory.enchantPrayerBeads();
   changeHitPointsMax(enchantedBeads);
   changeDamageBonusPercent(+enchantedBeads);
   changeManaPointsMax(+5);
   if (conversion.addPoints(10 * enchantedBeads))
-    conversion.applyBonus(*this);
-  gainExperienceNoBonuses(enchantedBeads);
+    conversion.applyBonus(*this, allMonsters);
+  gainExperienceNoBonuses(enchantedBeads, allMonsters);
   removeStatus(HeroDebuff::Cursed, true);
 }
 
@@ -974,7 +986,7 @@ void Hero::receive(ItemOrSpell itemOrSpell)
     changeStatsFromItem(*item, true);
 }
 
-void Hero::convert(ItemOrSpell itemOrSpell)
+void Hero::convert(ItemOrSpell itemOrSpell, Monsters& allMonsters)
 {
   const auto conversionResult = inventory.removeForConversion(itemOrSpell);
   if (conversionResult)
@@ -987,11 +999,11 @@ void Hero::convert(ItemOrSpell itemOrSpell)
 
     const auto [conversionPoints, wasSmall] = *conversionResult;
     if (conversion.addPoints(conversionPoints))
-      conversion.applyBonus(*this);
+      conversion.applyBonus(*this, allMonsters);
 
-    applyOrCollect(faith.converted(itemOrSpell, wasSmall));
+    applyOrCollect(faith.converted(itemOrSpell, wasSmall), allMonsters);
     if (item && (*item == Item::Skullpicker || *item == Item::Wereward || *item == Item::Gloat || *item == Item::Will))
-      faith.convertedTaurogItem(*this);
+      faith.convertedTaurogItem(*this, allMonsters);
   }
 }
 
@@ -1044,7 +1056,7 @@ bool Hero::canUse(Item item) const
   }
 }
 
-void Hero::use(Item item)
+void Hero::use(Item item, Monsters& allMonsters)
 {
   bool consumed = isPotion(item);
 
@@ -1082,7 +1094,7 @@ void Hero::use(Item item)
     consumed = true;
     break;
   case Item::AmuletOfYendor:
-    gainExperienceNoBonuses(50);
+    gainExperienceNoBonuses(50, allMonsters);
     consumed = true;
     break;
 
@@ -1135,7 +1147,7 @@ void Hero::use(Item item)
     break;
   }
 
-  applyOrCollect(faith.itemUsed(item));
+  applyOrCollect(faith.itemUsed(item), allMonsters);
 
   if (isPotion(item))
   {
@@ -1162,11 +1174,11 @@ bool Hero::canUse(Item item, const Monster& monster) const
   return canUse(item);
 }
 
-void Hero::use(Item item, Monster& monster)
+void Hero::use(Item item, Monster& monster, Monsters& allMonsters)
 {
   if (item == Item::SlayerWand)
   {
-    gainExperienceForKill(std::min(getLevel(), monster.getLevel()), monster.isSlowed());
+    gainExperienceForKill(std::min(getLevel(), monster.getLevel()), monster.isSlowed(), allMonsters);
     monster.die();
     inventory.remove(item);
   }
