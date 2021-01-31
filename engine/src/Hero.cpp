@@ -1468,7 +1468,7 @@ std::vector<std::string> describe_diff(const Hero& before, const Hero& now)
         std::to_string(now.getDamageBonusPercent()) + "%)");
   if (before.getPiety() != now.getPiety())
     description.emplace_back("piety: "s + std::to_string(before.getPiety()) + " -> " +
-                             std::to_string(before.getPiety()));
+                             std::to_string(now.getPiety()));
   if (before.gold() != now.gold())
     description.emplace_back("gold: " + std::to_string(before.gold()) + " -> " + std::to_string(now.gold()));
 
@@ -1535,19 +1535,6 @@ std::vector<std::string> describe_diff(const Hero& before, const Hero& now)
       description.emplace_back(std::move(statusStr));
     }
   }
-
-  if (before.getFollowedDeity())
-    description.emplace_back("follows "s + toString(*before.getFollowedDeity()));
-  for (auto boon :
-       {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition, Boon::Flames, Boon::MysticBalance})
-  {
-    if (before.hasBoon(boon))
-      description.emplace_back("has "s + toString(boon));
-  }
-  if (before.getFaith().getPact())
-    description.emplace_back("entered "s + toString(*before.getFaith().getPact()));
-  if (before.getFaith().enteredConsensus())
-    description.emplace_back("reached consensus");
 
   return description;
 }
