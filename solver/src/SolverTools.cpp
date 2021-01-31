@@ -174,9 +174,10 @@ namespace solver
         {
           auto boons = offeredBoons(*state.hero.getFollowedDeity());
           std::shuffle(begin(boons), end(boons), generator);
-          auto boonIt =
-              std::find_if(begin(boons), end(boons), [&hero = state.hero, &faith = state.hero.getFaith()](Boon boon) {
-                return faith.getPiety() >= faith.getCosts(boon, hero) && faith.isAvailable(boon, hero);
+          auto boonIt = std::find_if(
+              begin(boons), end(boons),
+              [&hero = state.hero, &faith = state.hero.getFaith(), &monsters = state.monsters](Boon boon) {
+                return faith.getPiety() >= faith.getCosts(boon, hero) && faith.isAvailable(boon, hero, monsters);
               });
           if (boonIt != end(boons))
             return Request{*boonIt};
@@ -227,9 +228,11 @@ namespace solver
                      return (!current || (current != follow.deity && piety >= 50)) &&
                             std::find(begin(altars), end(altars), follow.deity) != end(altars);
                    },
-                   [&faith = hero.getFaith(), &hero, &pactMaker = state.resources.pactMakerAvailable](Request request) {
+                   [&faith = hero.getFaith(), &hero, &pactMaker = state.resources.pactMakerAvailable,
+                    &monsters = state.monsters](Request request) {
                      if (const auto boon = std::get_if<Boon>(&request.boonOrPact))
-                       return faith.isAvailable(*boon, hero) && hero.getPiety() >= faith.getCosts(*boon, hero);
+                       return faith.isAvailable(*boon, hero, monsters) &&
+                              hero.getPiety() >= faith.getCosts(*boon, hero);
                      return pactMaker && !faith.getPact() &&
                             (!faith.enteredConsensus() || std::get<Pact>(request.boonOrPact) != Pact::Consensus);
                    },
@@ -265,7 +268,7 @@ namespace solver
                           },
                           [&](Follow follow) { hero.followDeity(follow.deity); },
                           [&](Request request) { hero.request(request.boonOrPact, state.monsters); },
-                          [&hero, &monsters=state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
+                          [&hero, &monsters = state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
                             altars.erase(std::find(begin(altars), end(altars), desecrate.altar));
                             hero.desecrate(desecrate.altar, monsters);
                           }},

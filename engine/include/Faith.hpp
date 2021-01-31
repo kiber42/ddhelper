@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GlowingGuardian.hpp"
 #include "Jehora.hpp"
 #include "Monster.hpp"
 
@@ -372,9 +373,9 @@ public:
 
   void apply(PietyChange, Hero& hero, Monsters& allMonsters);
 
-  bool request(Boon boon, Hero& hero, Monsters& allMonsters);
+  bool request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor);
   int getCosts(Boon boon, const Hero& hero) const;
-  int isAvailable(Boon boon, const Hero& hero) const;
+  int isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters) const;
 
   std::optional<Pact> getPact() const;
   bool enter(Pact pact);
@@ -444,5 +445,6 @@ private:
   };
   std::map<int, MonsterPietyHistory> history;
 
+  GlowingGuardian glowingGuardian;
   Jehora jehora;
 };
