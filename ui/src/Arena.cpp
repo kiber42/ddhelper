@@ -393,28 +393,24 @@ void Arena::runFaithPopup(const State& state)
 
 void Arena::runUncoverTiles(const State& state)
 {
-  const int numSquares = state.hero->numSquaresForFullRecovery();
-  addActionButton(state, "Uncover Tile", [](State& state) {
-    state.hero->recover(1);
+  auto uncoverForAll = [](State& state, int numSquares) {
+    if (state.hero)
+      state.hero->recover(numSquares);
     if (state.monster)
-      state.monster->recover(1);
+      state.monster->recover(numSquares);
     for (auto& monster : state.monsterPool)
-      monster.recover(1);
+      monster.recover(numSquares);
     return Summary::None;
-  });
+  };
 
+  addActionButton(state, "Uncover Tile", [&](State& state) { return uncoverForAll(state, 1); });
+
+  const int numSquares = state.hero->numSquaresForFullRecovery();
   if (numSquares > 1)
   {
     ImGui::SameLine();
     const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-    addActionButton(state, label, [numSquares](State& state) {
-      state.hero->recover(numSquares);
-      if (state.monster)
-        state.monster->recover(numSquares);
-      for (auto& monster : state.monsterPool)
-        monster.recover(numSquares);
-      return Summary::None;
-    });
+    addActionButton(state, label, [&](State& state) { return uncoverForAll(state, numSquares); });
   }
 }
 
