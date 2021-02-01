@@ -59,9 +59,12 @@ void showStatus(const std::vector<std::string>& description)
 void showStatus(const Hero& hero)
 {
   auto items = describe(hero);
-  items[1] = items[1] + "  " + items[2] + "  " + items[3] + "  " + items[4];
-  items[2] = items[5] + "  " + items[6] + "  " + items[7];
-  items.erase(items.begin() + 3, items.begin() + 8);
+  if (items.size() > 7)
+  {
+    items[1] = items[1] + "  " + items[2] + "  " + items[3] + "  " + items[4];
+    items[2] = items[5] + "  " + items[6] + "  " + items[7];
+    items.erase(items.begin() + 3, items.begin() + 8);
+  }
   showStatus(items);
 }
 
