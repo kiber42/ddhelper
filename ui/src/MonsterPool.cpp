@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 
-Monsters::iterator runMonsterPool(Monsters& monsters)
+Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex)
 {
   ImGui::Begin("Monster Pool");
   auto selected = end(monsters);
@@ -11,7 +11,9 @@ Monsters::iterator runMonsterPool(Monsters& monsters)
   {
     // Button labels need to be unique
     std::string label = std::to_string(++index) + ") " + monsterIt->getName();
-    if (monsterIt->isDefeated())
+    if (index == activeIndex + 1)
+      label += " (in Arena)";
+    else if (monsterIt->isDefeated())
       label += " (dead)";
     else if (monsterIt->isBurning())
       label += " (burning: " + std::to_string(monsterIt->getBurnStackSize()) + ")";

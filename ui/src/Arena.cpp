@@ -57,10 +57,11 @@ bool Arena::addPopupAction(
 
 void Arena::runAttack(const State& state)
 {
-  if (state.monster && !state.monster->isDefeated())
+  const Monster* activeMonster = state.activeMonster >= 0 ? (&state.monsterPool[state.activeMonster]) : nullptr;
+  if (activeMonster && !activeMonster->isDefeated())
   {
     addActionButton(state, "Attack",
-                    [](State& state) { return Combat::attack(*state.hero, *state.monster, state.monsterPool); });
+                    [](State& state) { return Combat::attack(*state.hero, *state.monster(), state.monsterPool); });
   }
   else
   {
@@ -74,7 +75,7 @@ void Arena::runAttack(const State& state)
 
 void Arena::runCastPopup(const State& state)
 {
-  const bool withMonster = state.monster && !state.monster->isDefeated();
+  const bool withMonster = state.monster() && !state.monster()->isDefeated();
   ImGui::Button("Cast");
   if (ImGui::IsItemActive())
   {
@@ -90,7 +91,7 @@ void Arena::runCastPopup(const State& state)
     {
       const bool isSelected = ++index == selectedPopupItem;
       const auto spell = std::get<Spell>(entry.itemOrSpell);
-      const bool possible = (withMonster && Magic::isPossible(*state.hero, *state.monster, spell)) ||
+      const bool possible = (withMonster && Magic::isPossible(*state.hero, *state.monster(), spell)) ||
                             (!withMonster && !Magic::needsMonster(spell) && Magic::isPossible(*state.hero, spell));
       const int costs = Magic::spellCosts(spell, *state.hero);
       const std::string label = toString(spell) + " ("s + std::to_string(costs) + " MP)";
@@ -102,7 +103,7 @@ void Arena::runCastPopup(const State& state)
       const std::string historyTitle = "Cast "s + toString(spell);
       auto cast = [spell, withMonster](State& state) {
         if (withMonster)
-          return Magic::cast(*state.hero, *state.monster, state.monsterPool, spell);
+          return Magic::cast(*state.hero, *state.monster(), state.monsterPool, spell);
         Magic::cast(*state.hero, spell, state.monsterPool);
         return Summary::None;
       };
@@ -147,12 +148,12 @@ void Arena::runUseItemPopup(const State& state)
                 isSelected))
           selectedPopupItem = index;
       }
-      else if (state.monster && !state.monster->isDefeated() && state.hero->canUse(item, *state.monster))
+      else if (auto monster = state.monster(); monster && !monster->isDefeated() && state.hero->canUse(item, *monster))
       {
         if (addPopupAction(
                 state, std::move(label), historyTitle,
                 [item](State& state) {
-                  state.hero->use(item, *state.monster, state.monsterPool);
+                  state.hero->use(item, *state.monster(), state.monsterPool);
                   return Summary::None;
                 },
                 isSelected))
@@ -396,8 +397,6 @@ void Arena::runUncoverTiles(const State& state)
   auto uncoverForAll = [](State& state, int numSquares) {
     if (state.hero)
       state.hero->recover(numSquares);
-    if (state.monster)
-      state.monster->recover(numSquares);
     for (auto& monster : state.monsterPool)
       monster.recover(numSquares);
     return Summary::None;

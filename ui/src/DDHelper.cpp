@@ -51,7 +51,7 @@ std::optional<Scenario> runScenarioSelection()
 // Return initial state for a specific challenge
 State prepareScenario(Scenario scenario)
 {
-  return {getHeroForScenario(scenario), {}, getMonstersForScenario(scenario)};
+  return {getHeroForScenario(scenario), getMonstersForScenario(scenario), -1};
 }
 
 void DDHelperApp::populateFrame()
@@ -85,9 +85,8 @@ void DDHelperApp::populateFrame()
   {
     std::string title = monster->getName() + " enters"s;
     applyUndoable(std::move(title), [newMonster = std::move(*monster)](State& state) {
-      if (state.monster)
-        state.monsterPool.emplace_back(std::move(*state.monster));
-      state.monster = newMonster;
+      state.activeMonster = state.monsterPool.size();
+      state.monsterPool.emplace_back(newMonster);
       return Summary::None;
     });
   }
@@ -104,16 +103,15 @@ void DDHelperApp::populateFrame()
     });
   }
 
-  auto poolMonster = runMonsterPool(state.monsterPool);
+  auto poolMonster = runMonsterPool(state.monsterPool, state.activeMonster);
   if (poolMonster != end(state.monsterPool))
   {
     std::string title = poolMonster->getName() + " enters from pool"s;
     applyUndoable(std::move(title), [poolIndex = std::distance(begin(state.monsterPool), poolMonster)](State& state) {
-      if (state.monster && !state.monster->isDefeated())
-        state.monsterPool.emplace_back(*state.monster);
-      auto poolMonster = begin(state.monsterPool) + poolIndex;
-      state.monster = *poolMonster;
-      state.monsterPool.erase(poolMonster);
+      const auto monster = state.monster();
+      if (monster && monster->isDefeated())
+        state.monsterPool.erase(begin(state.monsterPool) + state.activeMonster);
+      state.activeMonster = poolIndex;
       return Summary::None;
     });
   }

@@ -4,6 +4,7 @@
 #include "Monster.hpp"
 #include "Outcome.hpp"
 
+#include <cassert>
 #include <functional>
 #include <optional>
 #include <utility>
@@ -11,8 +12,20 @@
 struct State
 {
   std::optional<Hero> hero;
-  std::optional<Monster> monster;
   Monsters monsterPool;
+  int activeMonster = -1;
+
+  Monster* monster()
+  {
+    assert(activeMonster < static_cast<int>(monsterPool.size()));
+    return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
+  }
+
+  const Monster* monster() const
+  {
+    assert(activeMonster < static_cast<int>(monsterPool.size()));
+    return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
+  }
 };
 
 using GameAction = std::function<Summary(State&)>;

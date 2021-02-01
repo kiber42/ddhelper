@@ -2,4 +2,4 @@
 
 #include "Monster.hpp"
 
-Monsters::iterator runMonsterPool(Monsters& monsters);
+Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex);
