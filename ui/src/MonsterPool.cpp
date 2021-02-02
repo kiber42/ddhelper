@@ -1,5 +1,7 @@
 #include "MonsterPool.hpp"
 
+#include "Utils.hpp"
+
 #include "imgui.h"
 
 Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex)
@@ -12,7 +14,11 @@ Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex)
     // Button labels need to be unique
     std::string label = std::to_string(++index) + ") " + monsterIt->getName();
     if (index == activeIndex + 1)
+    {
       label += " (in Arena)";
+      disabledButton(label.c_str());
+      continue;
+    }
     else if (monsterIt->isDefeated())
       label += " (dead)";
     else if (monsterIt->isBurning())

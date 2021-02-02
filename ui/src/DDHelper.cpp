@@ -110,8 +110,12 @@ void DDHelperApp::populateFrame()
     applyUndoable(std::move(title), [poolIndex = std::distance(begin(state.monsterPool), poolMonster)](State& state) {
       const auto monster = state.monster();
       if (monster && monster->isDefeated())
+      {
         state.monsterPool.erase(begin(state.monsterPool) + state.activeMonster);
-      state.activeMonster = poolIndex;
+        state.activeMonster = poolIndex - 1;
+      }
+      else
+        state.activeMonster = poolIndex;
       return Summary::None;
     });
   }
