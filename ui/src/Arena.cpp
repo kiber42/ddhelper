@@ -65,9 +65,7 @@ void Arena::runAttack(const State& state)
   }
   else
   {
-    ImGui::PushStyleColor(0, colorUnavailable);
-    ImGui::Button("Attack");
-    ImGui::PopStyleColor();
+    disabledButton("Attack");
     if (ImGui::IsItemHovered())
       createToolTip([] { ImGui::TextUnformatted("Not possible"); });
   }

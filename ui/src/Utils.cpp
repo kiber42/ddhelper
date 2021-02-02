@@ -43,6 +43,13 @@ void createToolTip(std::function<void()> createToolTipContents)
   ImGui::EndTooltip();
 }
 
+void disabledButton(const char* label)
+{
+  ImGui::PushStyleColor(0, colorUnavailable);
+  ImGui::Button(label);
+  ImGui::PopStyleColor();
+}
+
 void showStatus(const std::vector<std::string>& description)
 {
   bool first = true;
@@ -59,7 +66,7 @@ void showStatus(const std::vector<std::string>& description)
 void showStatus(const Hero& hero)
 {
   auto items = describe(hero);
-  if (items.size() > 7)
+  if (items.size() >= 8)
   {
     items[1] = items[1] + "  " + items[2] + "  " + items[3] + "  " + items[4];
     items[2] = items[5] + "  " + items[6] + "  " + items[7];
