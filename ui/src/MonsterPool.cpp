@@ -25,6 +25,8 @@ Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex)
       label += " (burning: " + std::to_string(monsterIt->getBurnStackSize()) + ")";
     if (ImGui::Button(label.c_str()))
       selected = monsterIt;
+    if (ImGui::IsItemHovered())
+      createToolTip([=] { showStatus(*monsterIt); });
   }
   ImGui::End();
   return selected;
