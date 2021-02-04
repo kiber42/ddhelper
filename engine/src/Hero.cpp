@@ -563,7 +563,7 @@ void Hero::addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensit
 
   if (intensity != 0 && !canHaveMultiple(debuff))
     return;
-  
+
   intensity += addedIntensity;
 
   if (debuff == HeroDebuff::Poisoned)
@@ -773,12 +773,17 @@ bool Hero::spendGold(int amountSpent)
   return true;
 }
 
+int Hero::cost(Item item) const
+{
+  if (!hasTrait(HeroTrait::Negotiator))
+    return price(item);
+  else
+    return std::max(1, price(item) - 5);
+}
+
 bool Hero::buy(Item item)
 {
-  int actualPrice = price(item);
-  if (hasTrait(HeroTrait::Negotiator))
-    actualPrice = std::max(1, actualPrice - 5);
-  if (!spendGold(actualPrice))
+  if (!spendGold(cost(item)))
     return false;
   receive(item);
   return true;
@@ -1467,8 +1472,7 @@ std::vector<std::string> describe_diff(const Hero& before, const Hero& now)
         std::to_string(now.getDamageVersusStandard()) + " (" + std::to_string(now.getBaseDamage()) + "+" +
         std::to_string(now.getDamageBonusPercent()) + "%)");
   if (before.getPiety() != now.getPiety())
-    description.emplace_back("piety: "s + std::to_string(before.getPiety()) + " -> " +
-                             std::to_string(now.getPiety()));
+    description.emplace_back("piety: "s + std::to_string(before.getPiety()) + " -> " + std::to_string(now.getPiety()));
   if (before.gold() != now.gold())
     description.emplace_back("gold: " + std::to_string(before.gold()) + " -> " + std::to_string(now.gold()));
 
