@@ -3,6 +3,7 @@
 #include "Hero.hpp"
 #include "Monster.hpp"
 #include "Outcome.hpp"
+#include "Resources.hpp"
 
 #include <cassert>
 #include <functional>
@@ -10,9 +11,10 @@
 
 struct State
 {
-  Hero hero;
-  Monsters monsterPool;
+  Hero hero{};
+  Monsters monsterPool{};
   int activeMonster = -1;
+  Resources resources{};
 
   Monster* monster()
   {

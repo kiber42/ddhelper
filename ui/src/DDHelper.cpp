@@ -51,7 +51,7 @@ std::optional<Scenario> runScenarioSelection()
 // Return initial state for a specific challenge
 State prepareScenario(Scenario scenario)
 {
-  return {getHeroForScenario(scenario), getMonstersForScenario(scenario), -1};
+  return {getHeroForScenario(scenario), getMonstersForScenario(scenario), -1, getResourcesForScenario(scenario)};
 }
 
 void DDHelperApp::populateFrame()
