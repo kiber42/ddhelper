@@ -4,11 +4,9 @@ std::pair<State, Outcome> applyAction(const State& initialState, const GameActio
 {
   State newState = initialState;
   if (pessimistMode)
-    newState.hero->addStatus(HeroStatus::Pessimist);
+    newState.hero.addStatus(HeroStatus::Pessimist);
   const auto summary = stateUpdate(newState);
-  const Outcome outcome = initialState.hero && newState.hero
-                              ? Outcome{summary, findDebuffs(*initialState.hero, *newState.hero),
-                                        newState.hero->getPiety() - initialState.hero->getPiety()}
-                              : Outcome{summary, {}, 0};
+  const Outcome outcome = Outcome{summary, findDebuffs(initialState.hero, newState.hero),
+                                  newState.hero.getPiety() - initialState.hero.getPiety()};
   return {std::move(newState), std::move(outcome)};
 }

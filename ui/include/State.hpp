@@ -6,12 +6,11 @@
 
 #include <cassert>
 #include <functional>
-#include <optional>
 #include <utility>
 
 struct State
 {
-  std::optional<Hero> hero;
+  Hero hero;
   Monsters monsterPool;
   int activeMonster = -1;
 

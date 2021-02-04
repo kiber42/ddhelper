@@ -88,8 +88,7 @@ void showStatus(const Monster& monster)
 
 void showStatus(const State& state)
 {
-  if (state.hero)
-    showStatus(*state.hero);
+  showStatus(state.hero);
   if (state.activeMonster >= 0)
     showStatus(state.monsterPool[state.activeMonster]);
 }
