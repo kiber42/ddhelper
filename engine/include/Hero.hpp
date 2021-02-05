@@ -175,7 +175,6 @@ private:
   bool dodgeNext;
   bool alchemistScrollUsedThisLevel;
   bool namtarsWardUsedThisLevel;
-  int momentum;
 
   void gainExperience(int xpGained, int xpBonuses, Monsters& allMonsters);
   void drinkHealthPotion();

@@ -244,7 +244,7 @@ void Arena::runShopPopup(const State& state)
   {
     if (state.resources.shops.empty())
       ImGui::TextUnformatted("No shops");
-    int index;
+    int index = 0;
     bool havePotionShop = false;
     for (size_t itemIndex = 0u; itemIndex < state.resources.shops.size(); ++itemIndex)
     {

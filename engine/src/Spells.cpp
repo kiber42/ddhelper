@@ -224,7 +224,6 @@ namespace Magic
 
   Summary cast(Hero& hero, Monster& monster, Monsters& allMonsters, Spell spell)
   {
-    const int levelBefore = hero.getLevel() + hero.getPrestige();
     if (!isPossible(hero, monster, spell))
       return Summary::NotPossible;
 

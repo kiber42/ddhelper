@@ -17,7 +17,6 @@ public:
 private:
   HeroClass selectedClass;
   HeroRace selectedRace;
-  int selectedClassIndex;
   int level;
 };
 

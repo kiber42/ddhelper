@@ -7,11 +7,11 @@
 #include <numeric>
 
 Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, bool allItemsLarge)
-  : numSlots(numSlots)
+  : gold(20)
+  , numSlots(numSlots)
   , spellConversionPoints(spellConversionPoints)
   , spellsSmall(spellsSmall)
   , allItemsLarge(allItemsLarge)
-  , gold(20)
   , fireHeartCharge(0)
   , crystalBallCharge(10)
   , crystalBallCosts(4)
@@ -74,7 +74,6 @@ std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell i
   int conversionPoints = it->conversionPoints;
   if (conversionPoints < 0)
     return std::nullopt;
-  const bool wasSmall = it->isSmall;
   it->count--;
   if (it->count <= 0)
   {

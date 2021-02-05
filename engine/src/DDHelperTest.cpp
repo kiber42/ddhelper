@@ -758,6 +758,7 @@ void testStatusEffects()
         hero.addStatus(HeroStatus::LifeSteal);
         const int expected = 2 * hero.getLevel() * hero.getStatusIntensity(HeroStatus::LifeSteal);
         const int limit = hero.getDamageVersusStandard();
+        AssertThat(expected > limit, IsTrue());
         hero.loseHitPointsOutsideOfFight(limit, noOtherMonsters);
         Monster monster("", {1, limit + 1, 0, 0}, {}, {});
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
@@ -1136,7 +1137,7 @@ void testDungeonBasics()
     auto monster2 = std::make_shared<Monster>(*monster);
     it("should allow adding monsters if there is space", [&] {
       dungeon.add(monster, dungeon.randomFreePosition().value());
-      AssertThat(dungeon.getMonsters().size(), Equals(1));
+      AssertThat(dungeon.getMonsters().size(), Equals(1u));
       for (unsigned n = 2; n <= 9; ++n)
       {
         AssertThat(dungeon.randomFreePosition().has_value(), IsTrue());

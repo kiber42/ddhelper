@@ -19,10 +19,10 @@ public:
 protected:
   ImVec4 background_color;
 
-  virtual void processEvent(SDL_Event& event) {};
+  virtual void processEvent(SDL_Event&) {};
   virtual void populateFrame() {};
 
 private:
-  struct Data;
+  class Data;
   std::unique_ptr<Data> data;
 };

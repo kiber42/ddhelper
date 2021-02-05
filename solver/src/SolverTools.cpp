@@ -306,7 +306,7 @@ namespace solver
     {
       std::cout << toString(step) << '\n';
       auto heroBefore = state.hero;
-      const int poolSize = state.monsters.size();
+      const unsigned poolSize = state.monsters.size();
       state = apply(step, std::move(state));
       print_description(describe_diff(heroBefore, state.hero));
       if (isCombat(step))

@@ -15,23 +15,23 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
     {
     case HeroClass::Vampire:
       threshold = 120;
-      bonus = [](Hero& hero, Monsters& allMonsters) { hero.addStatus(HeroStatus::LifeSteal); };
+      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::LifeSteal); };
       break;
     case HeroClass::HalfDragon:
       threshold = 120;
-      bonus = [](Hero& hero, Monsters& allMonsters) { hero.addStatus(HeroStatus::Knockback, 20); };
+      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::Knockback, 20); };
       break;
     case HeroClass::Gorgon:
       threshold = 100;
-      bonus = [](Hero& hero, Monsters& allMonsters) { hero.addStatus(HeroStatus::DeathGaze, 5); };
+      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::DeathGaze, 5); };
       break;
     case HeroClass::RatMonarch:
       threshold = 80;
-      bonus = [](Hero& hero, Monsters& allMonsters) { hero.addStatus(HeroStatus::CorrosiveStrike); };
+      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::CorrosiveStrike); };
       break;
     case HeroClass::Goatperson:
       threshold = 100;
-      bonus = [&](Hero& hero, Monsters& allMonsters) {
+      bonus = [&](Hero& hero, Monsters&) {
         threshold += 10;
         hero.refillHealthAndMana();
       };
@@ -46,27 +46,27 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
   {
   case HeroRace::Human:
     threshold = 100;
-    bonus = [](Hero& hero, Monsters& allMonsters) { hero.addDamageBonus(); };
+    bonus = [](Hero& hero, Monsters&) { hero.addDamageBonus(); };
     break;
   case HeroRace::Elf:
     threshold = 70;
-    bonus = [](Hero& hero, Monsters& allMonsters) { hero.addManaBonus(); };
+    bonus = [](Hero& hero, Monsters&) { hero.addManaBonus(); };
     break;
   case HeroRace::Dwarf:
     threshold = 80;
-    bonus = [](Hero& hero, Monsters& allMonsters) { hero.addHealthBonus(); };
+    bonus = [](Hero& hero, Monsters&) { hero.addHealthBonus(); };
     break;
   case HeroRace::Halfling:
     threshold = 80;
-    bonus = [](Hero& hero, Monsters& allMonsters) { hero.receive(Item::HealthPotion); };
+    bonus = [](Hero& hero, Monsters&) { hero.receive(Item::HealthPotion); };
     break;
   case HeroRace::Gnome:
     threshold = 90;
-    bonus = [](Hero& hero, Monsters& allMonsters) { hero.receive(Item::ManaPotion); };
+    bonus = [](Hero& hero, Monsters&) { hero.receive(Item::ManaPotion); };
     break;
   case HeroRace::Orc:
     threshold = 80;
-    bonus = [](Hero& hero, Monsters& allMonsters) { hero.changeBaseDamage(+2); };
+    bonus = [](Hero& hero, Monsters&) { hero.changeBaseDamage(+2); };
     break;
   case HeroRace::Goblin:
     threshold = 85;

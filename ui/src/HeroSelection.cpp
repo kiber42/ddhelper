@@ -5,7 +5,6 @@
 HeroSelection::HeroSelection()
   : selectedClass(HeroClass::Fighter)
   , selectedRace(HeroRace::Human)
-  , selectedClassIndex(0)
   , level(1)
 {
 }
