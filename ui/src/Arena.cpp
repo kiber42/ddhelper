@@ -130,8 +130,8 @@ void Arena::runUseItemPopup(const State& state)
     {
       const bool isSelected = ++index == selectedPopupItem;
       const auto item = std::get<Item>(entry.itemOrSpell);
-      const std::string historyTitle = toString(item);
-      std::string label = historyTitle;
+      const std::string historyTitle = "Use "s + toString(item);
+      std::string label = toString(item);
       if (entry.count > 1)
         label += " (x" + std::to_string(entry.count) + ")";
       if (state.hero.canUse(item))
