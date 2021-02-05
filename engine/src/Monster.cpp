@@ -7,8 +7,17 @@
 
 int Monster::lastId = 0;
 
+namespace
+{
+  std::string makeMonsterName(MonsterType type, int level)
+  {
+    using namespace std::string_literals;
+    return toString(type) + " level "s + std::to_string(level);
+  }
+}
+
 Monster::Monster(MonsterType type, int level, int dungeonMultiplier)
-  : name(std::string(toString(type)) + " level " + std::to_string(level))
+  : name(makeMonsterName(type, level))
   , id(++lastId)
   , stats(type, level, dungeonMultiplier)
   , defence(type)
@@ -27,7 +36,7 @@ Monster::Monster(std::string name, MonsterStats stats, Defence damage, MonsterTr
 }
 
 Monster::Monster(int level, int hp, int damage)
-  : Monster("Monster Level " + std::to_string(level), {level, hp, damage, 0}, {}, {})
+  : Monster("Monster level " + std::to_string(level), {level, hp, damage, 0}, {}, {})
 {
 }
 
@@ -206,6 +215,30 @@ void Monster::corrode(int amount)
   defence.setCorrosion(getCorroded());
 }
 
+void Monster::zot()
+{
+  if (!status.isZotted())
+  {
+    status.setZotted();
+    stats.setHitPointsMax(stats.getHitPointsMax() / 2);
+  }
+}
+
+void Monster::makeWickedSick()
+{
+  const int level = getLevel();
+  if (level < 10 && !status.isWickedSick())
+  {
+    const auto type = stats.getType();
+    const int newLevel = level + 1;
+    const bool hasStandardName = name == makeMonsterName(type, level);
+    status.setWickedSick();
+    stats = MonsterStats(stats.getType(), newLevel, stats.getDungeonMultiplier());
+    if (hasStandardName)
+      name = makeMonsterName(type, newLevel);
+  }
+}
+
 bool Monster::isBurning() const
 {
   return status.isBurning();
@@ -219,6 +252,16 @@ bool Monster::isPoisoned() const
 bool Monster::isSlowed() const
 {
   return status.isSlowed();
+}
+
+bool Monster::isZotted() const
+{
+  return status.isZotted();
+}
+
+bool Monster::isWickedSick() const
+{
+  return status.isWickedSick();
 }
 
 int Monster::getBurnStackSize() const
@@ -364,6 +407,10 @@ std::vector<std::string> describe(const Monster& monster)
     description.emplace_back("Poisoned (amount: "s + std::to_string(monster.getPoisonAmount()) + ")");
   if (monster.isSlowed())
     description.emplace_back("Slowed");
+  if (monster.isZotted())
+    description.emplace_back("Zotted");
+  if (monster.isWickedSick())
+    description.emplace_back("Wicked Sick");
   if (monster.getCorroded() > 0)
     description.emplace_back("Corroded (x"s + std::to_string(monster.getCorroded()) + ")");
   if (monster.isUndead())

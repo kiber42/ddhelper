@@ -43,10 +43,15 @@ public:
   void petrify();
   void die();
   void corrode(int amount = 1);
+  void zot();
+  void makeWickedSick();
 
   bool isBurning() const;
   bool isPoisoned() const;
   bool isSlowed() const;
+  bool isZotted() const;
+  bool isWickedSick() const;
+
   int getBurnStackSize() const;
   int getPoisonAmount() const;
   int getDeathProtection() const;

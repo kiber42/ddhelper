@@ -46,7 +46,9 @@ enum class MonsterType
   Thrall,
   Tokoloshe,
   Vampire,
-  Last = Vampire
+  Last = Vampire,
+  // Internal
+  Generic
 };
 
 constexpr const char* toString(MonsterType type)
@@ -133,6 +135,8 @@ constexpr const char* toString(MonsterType type)
     return "Tokoloshe";
   case MonsterType::Vampire:
     return "Vampire";
+  case MonsterType::Generic:
+    return "Monster";
   }
 }
 
@@ -220,6 +224,8 @@ constexpr int getHPMultiplierPercent(MonsterType type)
     return 100;
   case MonsterType::Vampire:
     return 100;
+  case MonsterType::Generic:
+    return 100;
   }
 }
 
@@ -306,6 +312,8 @@ constexpr int getDamageMultiplierPercent(MonsterType type)
   case MonsterType::Tokoloshe:
     return 100;
   case MonsterType::Vampire:
+    return 100;
+  case MonsterType::Generic:
     return 100;
   }
 }

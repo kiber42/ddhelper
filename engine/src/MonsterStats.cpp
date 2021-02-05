@@ -4,17 +4,34 @@
 
 #include <algorithm>
 
+namespace
+{
+constexpr int hpInitial(int level, int multiplier1, int multiplier2)
+{
+  // TODO: Result sometimes appears to be 1 too high (at least for "Shifting Passages")
+  return (level * (level + 6) - 1) * multiplier1 / 100 * multiplier2 / 100;
+}
+
+constexpr int damageInitial(int level, int multiplier1, int multiplier2)
+{
+  return (level * (level + 5) / 2) * multiplier1 / 100 * multiplier2 / 100;
+}
+}
+
 MonsterStats::MonsterStats(MonsterType type, int level, int dungeonMultiplier)
-  : MonsterStats(level,
-                 // HP sometimes appears to be 1 too high (at least for "Shifting Passages")
-                 (level * (level + 6) - 1) * dungeonMultiplier / 100 * getHPMultiplierPercent(type) / 100,
-                 (level * (level + 5) / 2) * dungeonMultiplier / 100 * getDamageMultiplierPercent(type) / 100,
-                 getDeathProtectionInitial(type, level))
+  : type(type)
+  , level(level)
+  , dungeonMultiplier(dungeonMultiplier)
+  , hp(hpInitial(level, dungeonMultiplier, getHPMultiplierPercent(type)))
+  , hpMax(hp)
+  , damage(damageInitial(level, dungeonMultiplier, getDamageMultiplierPercent(type)))
+  , deathProtection(getDeathProtectionInitial(type, level))
 {
 }
 
 MonsterStats::MonsterStats(int level, int hpMax, int damage, int deathProtection)
-  : level(level)
+  : type(MonsterType::Generic)
+  , level(level)
   , hp(hpMax)
   , hpMax(hpMax)
   , damage(damage)
@@ -25,6 +42,16 @@ MonsterStats::MonsterStats(int level, int hpMax, int damage, int deathProtection
 int MonsterStats::getLevel() const
 {
   return level;
+}
+
+MonsterType MonsterStats::getType() const
+{
+  return type;
+}
+
+int MonsterStats::getDungeonMultiplier() const
+{
+  return dungeonMultiplier;
 }
 
 bool MonsterStats::isDefeated() const
@@ -45,7 +72,8 @@ int MonsterStats::getHitPointsMax() const
 void MonsterStats::healHitPoints(int amountPointsHealed, bool allowOverheal)
 {
   const int max = allowOverheal ? hpMax * 3 / 2 : hpMax;
-  hp = std::min(hp + amountPointsHealed, max);
+  if (hp < max)
+    hp = std::min(hp + amountPointsHealed, max);
 }
 
 void MonsterStats::loseHitPoints(int amountPointsLost)
@@ -56,6 +84,11 @@ void MonsterStats::loseHitPoints(int amountPointsLost)
     hp = 1;
     --deathProtection;
   }
+}
+
+void MonsterStats::setHitPointsMax(int newHitPointsMax)
+{
+  hpMax = std::max(newHitPointsMax, 1);
 }
 
 int MonsterStats::getDamage() const

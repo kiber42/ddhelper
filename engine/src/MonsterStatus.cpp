@@ -1,13 +1,5 @@
 #include "MonsterStatus.hpp"
 
-MonsterStatus::MonsterStatus()
-  : burnStackSize(0)
-  , poisonAmount(0)
-  , slowed(false)
-  , corroded(0)
-{
-}
-
 bool MonsterStatus::isBurning() const
 {
   return burnStackSize > 0;
@@ -21,6 +13,16 @@ bool MonsterStatus::isPoisoned() const
 bool MonsterStatus::isSlowed() const
 {
   return slowed;
+}
+
+bool MonsterStatus::isZotted() const
+{
+  return zotted;
+}
+
+bool MonsterStatus::isWickedSick() const
+{
+  return wickedSick;
 }
 
 int MonsterStatus::getBurnStackSize() const
@@ -56,4 +58,14 @@ void MonsterStatus::setSlowed(bool newStunned)
 void MonsterStatus::setCorroded(int numCorrosionStacks)
 {
   corroded = numCorrosionStacks;
+}
+
+void MonsterStatus::setZotted()
+{
+  zotted = true;
+}
+
+void MonsterStatus::setWickedSick()
+{
+  wickedSick = true;
 }

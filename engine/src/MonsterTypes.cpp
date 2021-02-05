@@ -136,6 +136,8 @@ MonsterTraits getTraits(MonsterType type)
   case MonsterType::Vampire:
     traits.setLifeStealPercent(40).addMagicalDamage();
     break;
+  case MonsterType::Generic:
+    break;
   }
   return traits.get();
 }

@@ -670,7 +670,8 @@ void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
   if (has(Item::MartyrWraps))
   {
     addStatus(HeroDebuff::Corroded, allMonsters);
-    // TODO: Corrode all visible monsters
+    for (auto& monster : allMonsters)
+      monster.corrode();
   }
   if (has(Item::MagePlate) && newLevel % 2 == 1)
   {
@@ -1037,8 +1038,9 @@ bool Hero::canUse(Item item) const
   case Item::AmuletOfYendor:
     return true;
 
-  // TODO: Orb of Zot
-  // TODO: Wicked Guitar
+  case Item::OrbOfZot:
+  case Item::WickedGuitar:
+    return true;
 
   // Potions
   case Item::HealthPotion:
@@ -1103,8 +1105,17 @@ void Hero::use(Item item, Monsters& allMonsters)
     consumed = true;
     break;
 
-  // TODO: Orb of Zot
-  // TODO: Wicked Guitar
+  case Item::OrbOfZot:
+    // TODO: Only apply to visible monsters
+    for (auto& monster : allMonsters)
+      monster.zot();
+    consumed = true;
+    break;
+  case Item::WickedGuitar:
+    // TODO: Only apply to visible monsters
+    for (auto& monster : allMonsters)
+      monster.makeWickedSick();
+    break;
 
   // Potions
   case Item::HealthPotion:
