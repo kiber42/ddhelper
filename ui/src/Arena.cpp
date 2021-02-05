@@ -355,6 +355,8 @@ void Arena::runFaithPopup(const State& state)
       ImGui::Separator();
       for (const God deity : altars)
       {
+        if (following == deity)
+          continue;
         const bool isSelected = ++index == selectedPopupItem;
         if (addPopupAction(
                 state, toString(deity), "Follow "s + toString(deity),
@@ -374,7 +376,7 @@ void Arena::runFaithPopup(const State& state)
       ImGui::Separator();
       const int last =
           static_cast<int>(state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus);
-      for (int pactIndex = 0; pactIndex < last; ++pactIndex)
+      for (int pactIndex = 0; pactIndex <= last; ++pactIndex)
       {
         const Pact pact = static_cast<Pact>(pactIndex);
         const bool isSelected = ++index == selectedPopupItem;
@@ -391,7 +393,29 @@ void Arena::runFaithPopup(const State& state)
       }
     }
 
-    // TODO: Desecration
+    if (following && haveAvailableAltars)
+    {
+      ImGui::Separator();
+      ImGui::Text("Desecrate");
+      ImGui::Separator();
+      for (size_t altarIndex = 0; altarIndex < altars.size(); ++altarIndex)
+      {
+        const God god = altars[altarIndex];
+        if (following == god)
+          continue;
+        const bool isSelected = ++index == selectedPopupItem;
+        if (addPopupAction(
+                state, toString(god), "Desecrate "s + toString(god) + "'s altar",
+                [god, altarIndex](State& state) {
+                  state.hero.desecrate(god, state.monsterPool);
+                  auto& altars = state.resources.altars;
+                  altars.erase(begin(altars) + altarIndex);
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+    }
 
     if (index == 0)
       ImGui::TextUnformatted("No altars");
