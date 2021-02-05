@@ -26,6 +26,8 @@ private:
   void runConvertItemPopup(const State&);
   void runShopPopup(const State&);
   void runFaithPopup(const State&);
+  void runBoonSelection(const State& state, God deity);
+  void runWorship(const State& state);
   void runUncoverTiles(const State&);
   void runFindPopup(const State&);
 };

@@ -317,16 +317,16 @@ void Arena::runFaithPopup(const State& state)
   }
   if (ImGui::BeginPopup("FaithPopup"))
   {
-    if (state.hero.getFollowedDeity())
+    int index = 0;
+    const auto following = state.hero.getFollowedDeity();
+    const auto& altars = state.resources.altars;
+    if (following && std::find(begin(altars), end(altars), *following) != end(altars))
     {
       ImGui::Text("Request Boon");
       ImGui::Separator();
-      for (int index = 0; index <= static_cast<int>(Boon::Last); ++index)
+      for (const Boon boon : offeredBoons(*following))
       {
-        const Boon boon = static_cast<Boon>(index);
-        if (deity(boon) != state.hero.getFollowedDeity())
-          continue;
-        const bool isSelected = index == selectedPopupItem;
+        const bool isSelected = ++index == selectedPopupItem;
         const int costs = state.hero.getBoonCosts(boon);
         const std::string label = toString(boon) + " ("s + std::to_string(costs) + ")";
         const std::string historyTitle = "Request "s + toString(boon);
@@ -339,32 +339,45 @@ void Arena::runFaithPopup(const State& state)
                 isSelected))
           selectedPopupItem = index;
       }
-      ImGui::Separator();
     }
-    ImGui::Text("Worship");
-    ImGui::Separator();
-    for (int index = 0; index <= static_cast<int>(God::Last); ++index)
+    const bool haveAvailableAltars =
+        !altars.empty() &&
+        (!following || altars.size() > static_cast<unsigned>(std::count(begin(altars), end(altars), *following)));
+    if (haveAvailableAltars)
     {
-      const God deity = static_cast<God>(index);
-      const bool isSelected = index + 100 == selectedPopupItem;
-      if (addPopupAction(
-              state, toString(deity), "Follow "s + toString(deity),
-              [deity](State& state) {
-                return state.hero.getFaith().followDeity(deity, state.hero) ? Summary::None : Summary::NotPossible;
-              },
-              isSelected))
-        selectedPopupItem = index + 100;
-    }
-    if (!state.hero.getFaith().getPact())
-    {
+      if (following)
+      {
+        ImGui::Separator();
+        ImGui::Text("Convert");
+      }
+      else
+        ImGui::Text("Worship");
       ImGui::Separator();
+      for (const God deity : altars)
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        if (addPopupAction(
+                state, toString(deity), "Follow "s + toString(deity),
+                [deity](State& state) {
+                  return state.hero.getFaith().followDeity(deity, state.hero) ? Summary::None : Summary::NotPossible;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+    }
+
+    if (state.resources.pactMakerAvailable && !state.hero.getFaith().getPact())
+    {
+      if (following || haveAvailableAltars)
+        ImGui::Separator();
       ImGui::Text("Pactmaker");
       ImGui::Separator();
-      const auto last = state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus;
-      for (int index = 0; index <= static_cast<int>(last); ++index)
+      const int last =
+          static_cast<int>(state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus);
+      for (int pactIndex = 0; pactIndex < last; ++pactIndex)
       {
-        const Pact pact = static_cast<Pact>(index);
-        const bool isSelected = index + 200 == selectedPopupItem;
+        const Pact pact = static_cast<Pact>(pactIndex);
+        const bool isSelected = ++index == selectedPopupItem;
         const std::string label = toString(pact);
         const std::string historyTitle = "Enter " + label;
         if (addPopupAction(
@@ -374,9 +387,15 @@ void Arena::runFaithPopup(const State& state)
                   return Summary::None;
                 },
                 isSelected))
-          selectedPopupItem = index + 200;
+          selectedPopupItem = index;
       }
     }
+
+    // TODO: Desecration
+
+    if (index == 0)
+      ImGui::TextUnformatted("No altars");
+
     if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
       ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
@@ -413,17 +432,46 @@ void Arena::runFindPopup(const State& state)
   }
   if (ImGui::BeginPopup("FindPopup"))
   {
-    int index;
+    int index = 0;
     if (ImGui::BeginMenu("Spells"))
     {
-      for (index = 0; index <= static_cast<int>(Spell::Last); ++index)
+      for (int spellIndex = 0; spellIndex <= static_cast<int>(Spell::Last); ++spellIndex)
       {
-        const Spell spell = static_cast<Spell>(index);
-        const bool isSelected = index == selectedPopupItem;
+        const Spell spell = static_cast<Spell>(spellIndex);
+        const bool isSelected = ++index == selectedPopupItem;
         if (addPopupAction(
                 state, toString(spell), "Find "s + toString(spell),
                 [spell](State& state) {
                   state.hero.receive(spell);
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Altars"))
+    {
+      for (int altarIndex = 0; altarIndex <= static_cast<int>(God::Last); ++altarIndex)
+      {
+        const God god = static_cast<God>(altarIndex);
+        const bool isSelected = ++index == selectedPopupItem;
+        if (addPopupAction(
+                state, toString(god), "Find "s + toString(god) + "'s altar",
+                [god](State& state) {
+                  state.resources.altars.emplace_back(god);
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+      if (!state.resources.pactMakerAvailable)
+      {
+        const bool isSelected = ++index == selectedPopupItem;
+        if (addPopupAction(
+                state, "The Pactmaker", "Find The Pactmaker's altar",
+                [](State& state) {
+                  state.resources.pactMakerAvailable = true;
                   return Summary::None;
                 },
                 isSelected))
