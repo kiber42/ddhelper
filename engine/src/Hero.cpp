@@ -1426,14 +1426,18 @@ std::vector<std::string> describe(const Hero& hero)
 
   if (hero.getFollowedDeity())
     description.emplace_back("follows "s + toString(*hero.getFollowedDeity()));
+  const int indulgence = hero.getFaith().getIndulgence();
+  if (indulgence > 0)
+    description.emplace_back("indulgence points: "s + std::to_string(indulgence));
   for (auto boon :
        {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition, Boon::Flames, Boon::MysticBalance})
   {
     if (hero.hasBoon(boon))
       description.emplace_back("has "s + toString(boon));
   }
-  if (hero.getFaith().getPact())
-    description.emplace_back("entered "s + toString(*hero.getFaith().getPact()));
+  const auto pact = hero.getFaith().getPact();
+  if (pact)
+    description.emplace_back("entered "s + toString(*pact));
   if (hero.getFaith().enteredConsensus())
     description.emplace_back("reached consensus");
 
@@ -1539,6 +1543,10 @@ std::vector<std::string> describe_diff(const Hero& before, const Hero& now)
       description.emplace_back(std::move(statusStr));
     }
   }
+
+  if (before.getFaith().getIndulgence() != now.getFaith().getIndulgence())
+    description.emplace_back("indulgence: "s + std::to_string(before.getFaith().getIndulgence()) + " -> " +
+                             std::to_string(now.getFaith().getIndulgence()));
 
   return description;
 }

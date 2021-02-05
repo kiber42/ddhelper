@@ -105,6 +105,11 @@ int Faith::boonCount(Boon boon) const
   return std::count(begin(boons), end(boons), boon);
 }
 
+int Faith::getIndulgence() const
+{
+  return indulgence;
+}
+
 void Faith::gainPiety(int pointsGained)
 {
   if (pointsGained > 0)
