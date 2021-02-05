@@ -1118,9 +1118,9 @@ void testFaith()
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5));
-        hero.gainExperienceNoBonuses(hero.getXPforNextLevel() - 1, noOtherMonsters);
+        hero.gainExperienceNoBonuses(7, noOtherMonsters);
         Monster monster2(2, 1, 1);
-        AssertThat(Combat::attack(hero, monster2, noOtherMonsters), Equals(Summary::Win));
+        AssertThat(Combat::attack(hero, monster2, noOtherMonsters), Equals(Summary::LevelUp));
         AssertThat(hero.getLevel(), Equals(3));
         AssertThat(hero.getPiety(), Equals(5));
       });
@@ -1129,19 +1129,19 @@ void testFaith()
       it("shall subtract 3 piety for taking more than one hit from an enemy", [] {
         Hero hero;
         hero.addStatus(HeroStatus::Learning, 4);
-        hero.getFaith().gainPiety(6);
+        hero.getFaith().gainPiety(5);
         hero.followDeity(God::TikkiTooki);
         Monsters meatMen{{MonsterType::MeatMan, 1}, {MonsterType::MeatMan, 1}};
         AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::Safe));
         AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::Safe));
-        AssertThat(hero.getPiety(), Equals(3));
+        AssertThat(hero.getPiety(), Equals(2));
         AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::LevelUp));
-        AssertThat(hero.getPiety(), Equals(0));
-
-        AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(0));
         AssertThat(meatMen[1].hasFirstStrike(), IsTrue());
         AssertThat(meatMen[1].isWeakening(), IsTrue());
+
+        AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(0));
         AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5));
       });
