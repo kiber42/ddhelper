@@ -54,9 +54,24 @@ PietyChange& PietyChange::operator+=(const PietyChange& other)
 
 bool Faith::followDeity(God god, Hero& hero)
 {
+  if (!canFollow(god, hero))
+    return false;
+  if (followedDeity)
+  {
+    piety /= 2;
+    numConsecutiveLevelUpsWithGlowingGuardian = 0;
+  }
+  else
+    initialBoon(god, hero);
+  followedDeity = god;
+  return true;
+}
+
+bool Faith::canFollow(God god, const Hero& hero) const
+{
   if (hero.hasTrait(HeroTrait::Damned) || hero.hasTrait(HeroTrait::Scapegoat))
     return false;
-  if (followedDeity.has_value())
+  if (followedDeity)
   {
     if (followedDeity == god)
       return false;
@@ -64,14 +79,6 @@ bool Faith::followDeity(God god, Hero& hero)
       return false;
     if (piety < 50)
       return false;
-    piety /= 2;
-    followedDeity = god;
-    numConsecutiveLevelUpsWithGlowingGuardian = 0;
-  }
-  else
-  {
-    followedDeity = god;
-    initialBoon(god, hero);
   }
   return true;
 }

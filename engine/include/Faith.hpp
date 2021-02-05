@@ -360,6 +360,7 @@ class Faith
 public:
   bool followDeity(God god, Hero& hero);
   std::optional<God> getFollowedDeity() const;
+  bool canFollow(God god, const Hero& hero) const;
 
   int getPiety() const;
   int getMaxPiety() const;

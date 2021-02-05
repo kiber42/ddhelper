@@ -23,15 +23,10 @@ namespace
     if (outcome.summary == Summary::None)
       return;
     createToolTip([&] {
-      if (outcome.summary == Summary::NotPossible)
-        ImGui::TextUnformatted("Not possible");
-      else
-      {
-        const auto outcomeStr = toString(outcome);
-        if (!outcomeStr.empty())
-          ImGui::TextColored(outcomeColor(outcome), "%s", outcomeStr.c_str());
-        showStatus(newState);
-      }
+      const auto outcomeStr = toString(outcome);
+      if (!outcomeStr.empty())
+        ImGui::TextColored(outcomeColor(outcome), "%s", outcomeStr.c_str());
+      showStatus(newState);
     });
   }
 } // namespace
@@ -286,18 +281,23 @@ void Arena::runShopPopup(const State& state)
         const int price = state.hero.cost(potion);
         const std::string label = toString(potion) + " ("s + std::to_string(price) + " gold)";
         const std::string historyTitle = "Buy " + label;
-        if (addPopupAction(
-                state, label, historyTitle,
-                [potion](State& state) {
-                  if (state.hero.buy(potion))
-                  {
-                    auto& shops = state.resources.shops;
-                    shops.erase(std::find(begin(shops), end(shops), Item::AnyPotion));
-                  }
-                  return Summary::None;
-                },
-                isSelected))
-          selectedPopupItem = index;
+        if (state.hero.gold() >= price)
+        {
+          if (addPopupAction(
+                  state, label, historyTitle,
+                  [potion](State& state) {
+                    if (state.hero.buy(potion))
+                    {
+                      auto& shops = state.resources.shops;
+                      shops.erase(std::find(begin(shops), end(shops), Item::AnyPotion));
+                    }
+                    return Summary::None;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
+        else
+          ImGui::TextColored(colorUnavailable, "%s", label.c_str());
       }
       ImGui::EndMenu();
     }
@@ -329,15 +329,20 @@ void Arena::runFaithPopup(const State& state)
         const bool isSelected = ++index == selectedPopupItem;
         const int costs = state.hero.getBoonCosts(boon);
         const std::string label = toString(boon) + " ("s + std::to_string(costs) + ")";
-        const std::string historyTitle = "Request "s + toString(boon);
-        if (addPopupAction(
-                state, label, historyTitle,
-                [boon](State& state) {
-                  return state.hero.getFaith().request(boon, state.hero, state.monsterPool) ? Summary::None
-                                                                                            : Summary::NotPossible;
-                },
-                isSelected))
-          selectedPopupItem = index;
+        if (state.hero.getFaith().isAvailable(boon, state.hero, state.monsterPool))
+        {
+          const std::string historyTitle = "Request "s + toString(boon);
+          if (addPopupAction(
+                  state, label, historyTitle,
+                  [boon](State& state) {
+                    state.hero.getFaith().request(boon, state.hero, state.monsterPool);
+                    return Summary::None;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
+        else
+          ImGui::TextColored(colorUnavailable, "%s", label.c_str());
       }
     }
     const bool haveAvailableAltars =
@@ -358,13 +363,19 @@ void Arena::runFaithPopup(const State& state)
         if (following == deity)
           continue;
         const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                state, toString(deity), "Follow "s + toString(deity),
-                [deity](State& state) {
-                  return state.hero.getFaith().followDeity(deity, state.hero) ? Summary::None : Summary::NotPossible;
-                },
-                isSelected))
-          selectedPopupItem = index;
+        const std::string label = "Follow "s + toString(deity);
+        if (state.hero.getFaith().canFollow(deity, state.hero))
+        {
+          if (addPopupAction(
+                  state, toString(deity), label,
+                  [deity](State& state) {
+                    return state.hero.getFaith().followDeity(deity, state.hero) ? Summary::None : Summary::NotPossible;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
+        else
+          ImGui::TextColored(colorUnavailable, "%s", label.c_str());
       }
     }
 
@@ -386,7 +397,7 @@ void Arena::runFaithPopup(const State& state)
                 state, label, historyTitle,
                 [pact](State& state) {
                   state.hero.request(pact, state.monsterPool);
-                  return Summary::None;
+                  return Summary::Safe;
                 },
                 isSelected))
           selectedPopupItem = index;
@@ -410,7 +421,7 @@ void Arena::runFaithPopup(const State& state)
                   state.hero.desecrate(god, state.monsterPool);
                   auto& altars = state.resources.altars;
                   altars.erase(begin(altars) + altarIndex);
-                  return Summary::None;
+                  return Summary::Safe;
                 },
                 isSelected))
           selectedPopupItem = index;
