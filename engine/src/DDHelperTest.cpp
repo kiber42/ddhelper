@@ -1108,6 +1108,45 @@ void testFaith()
       });
     });
   });
+  describe("Tikki Tooki", [] {
+    describe("Likes", [] {
+      it("shall award 5 piety for killing an XP-valuable enemy of lower level", [] {
+        Hero hero;
+        hero.gainLevel(noOtherMonsters);
+        hero.followDeity(God::TikkiTooki);
+        Monster monster(MonsterType::MeatMan, 1);
+        AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Win));
+        AssertThat(hero.getPiety(), Equals(5));
+        hero.gainExperienceNoBonuses(hero.getXPforNextLevel() - 1, noOtherMonsters);
+        Monster monster2(2, 1, 1);
+        AssertThat(Combat::attack(hero, monster2, noOtherMonsters), Equals(Summary::Win));
+        AssertThat(hero.getLevel(), Equals(3));
+        AssertThat(hero.getPiety(), Equals(5));
+      });
+    });
+    describe("Dislikes", [] {
+      it("shall subtract 3 piety for taking more than one hit from an enemy", [] {
+        Hero hero;
+        hero.addStatus(HeroStatus::Learning, 4);
+        hero.getFaith().gainPiety(6);
+        hero.followDeity(God::TikkiTooki);
+        Monsters meatMen{{MonsterType::MeatMan, 1}, {MonsterType::MeatMan, 1}};
+        AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::Safe));
+        AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(3));
+        AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::LevelUp));
+        AssertThat(hero.getPiety(), Equals(0));
+
+        AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(0));
+        AssertThat(meatMen[1].hasFirstStrike(), IsTrue());
+        AssertThat(meatMen[1].isWeakening(), IsTrue());
+        AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Win));
+        AssertThat(hero.getPiety(), Equals(5));
+      });
+    });
+  });
 }
 
 void testCombatInitiative()
@@ -1116,12 +1155,8 @@ void testCombatInitiative()
     Hero hero;
     Monster boss(10, 10, 3);
     Monster monster(1, 10, 3);
-    it("should go to the monster of higher level", [&] { //
-      AssertThat(hero.hasInitiativeVersus(boss), IsFalse());
-    });
-    it("should go to the monster of equal level", [&] { //
-      AssertThat(hero.hasInitiativeVersus(monster), IsFalse());
-    });
+    it("should go to the monster of higher level", [&] { AssertThat(hero.hasInitiativeVersus(boss), IsFalse()); });
+    it("should go to the monster of equal level", [&] { AssertThat(hero.hasInitiativeVersus(monster), IsFalse()); });
     it("should go to the hero if he has higher level", [&] {
       hero.gainLevel(noOtherMonsters);
       AssertThat(hero.hasInitiativeVersus(monster), IsTrue());
