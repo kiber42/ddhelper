@@ -341,13 +341,13 @@ public:
   PietyChange(int deltaPoints = 0);
   PietyChange(Pact activated);
   PietyChange(JehoraTriggered);
-  int operator()() const;
+  const std::vector<int>& operator()() const;
   std::optional<Pact> activatedPact() const;
   bool randomJehoraEvent() const;
   PietyChange& operator+=(const PietyChange&);
 
 private:
-  int value;
+  std::vector<int> values;
   std::optional<Pact> pact;
   bool jehora;
 };

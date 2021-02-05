@@ -8,29 +8,29 @@
 #include <cassert>
 
 PietyChange::PietyChange(int deltaPoints)
-  : value(deltaPoints)
+  : values({deltaPoints})
   , pact(std::nullopt)
   , jehora(false)
 {
 }
 
 PietyChange::PietyChange(Pact activated)
-  : value(0)
+  : values()
   , pact(activated)
   , jehora(false)
 {
 }
 
 PietyChange::PietyChange(JehoraTriggered)
-  : value(0)
+  : values()
   , pact(std::nullopt)
   , jehora(true)
 {
 }
 
-int PietyChange::operator()() const
+const std::vector<int>& PietyChange::operator()() const
 {
-  return value;
+  return values;
 }
 
 std::optional<Pact> PietyChange::activatedPact() const
@@ -45,7 +45,8 @@ bool PietyChange::randomJehoraEvent() const
 
 PietyChange& PietyChange::operator+=(const PietyChange& other)
 {
-  value += other.value;
+  for (auto otherValue : other.values)
+    values.emplace_back(otherValue);
   if (!pact.has_value())
     pact = other.pact;
   jehora |= other.jehora;
@@ -145,12 +146,14 @@ void Faith::applyRandomJehoraEvent(Hero& hero)
 
 void Faith::apply(PietyChange change, Hero& hero, Monsters& allMonsters)
 {
-  const int value = change();
-  if (value > 0)
-    gainPiety(value);
-  else if (value < 0)
-    losePiety(-value, hero, allMonsters);
-  else if (change.randomJehoraEvent())
+  for (int value : change())
+  {
+    if (value > 0)
+      gainPiety(value);
+    else if (value < 0)
+      losePiety(-value, hero, allMonsters);
+  }
+  if (change.randomJehoraEvent())
     applyRandomJehoraEvent(hero);
   const auto pact = change.activatedPact();
   if (pact)
