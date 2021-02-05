@@ -24,7 +24,8 @@ private:
   void runCastPopup(const State&);
   void runUseItemPopup(const State&);
   void runConvertItemPopup(const State&);
-  void runFindPopup(const State&);
+  void runShopPopup(const State&);
   void runFaithPopup(const State&);
   void runUncoverTiles(const State&);
+  void runFindPopup(const State&);
 };

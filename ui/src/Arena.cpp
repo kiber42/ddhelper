@@ -17,8 +17,12 @@ namespace
 {
   void showPredictedOutcomeTooltip(const State& initialState, const GameAction& stateUpdate)
   {
+    const auto result = applyAction(initialState, stateUpdate, true);
+    const auto& newState = result.first;
+    const auto& outcome = result.second;
+    if (outcome.summary == Summary::None)
+      return;
     createToolTip([&] {
-      const auto [newState, outcome] = applyAction(initialState, stateUpdate, true);
       if (outcome.summary == Summary::NotPossible)
         ImGui::TextUnformatted("Not possible");
       else
@@ -228,84 +232,73 @@ void Arena::runConvertItemPopup(const State& state)
   }
 }
 
-void Arena::runFindPopup(const State& state)
+void Arena::runShopPopup(const State& state)
 {
-  ImGui::Button("Find");
+  ImGui::Button("Buy");
   if (ImGui::IsItemActive())
   {
-    ImGui::OpenPopup("FindPopup");
+    ImGui::OpenPopup("ShopPopup");
     selectedPopupItem = -1;
   }
-  if (ImGui::BeginPopup("FindPopup"))
+  if (ImGui::BeginPopup("ShopPopup"))
   {
+    if (state.resources.shops.empty())
+      ImGui::TextUnformatted("No shops");
     int index;
-    if (ImGui::BeginMenu("Spells"))
+    bool havePotionShop = false;
+    for (size_t itemIndex = 0u; itemIndex < state.resources.shops.size(); ++itemIndex)
     {
-      for (index = 0; index <= static_cast<int>(Spell::Last); ++index)
+      const auto item = state.resources.shops[itemIndex];
+      if (item == Item::AnyPotion)
       {
-        const Spell spell = static_cast<Spell>(index);
-        const bool isSelected = index == selectedPopupItem;
+        havePotionShop = true;
+        continue;
+      }
+      const bool isSelected = ++index == selectedPopupItem;
+      const int price = state.hero.cost(item);
+      const std::string label = toString(item) + " ("s + std::to_string(price) + " gold)";
+      const std::string historyTitle = "Buy " + label;
+      if (state.hero.gold() >= price)
+      {
         if (addPopupAction(
-                state, toString(spell), "Find "s + toString(spell),
-                [spell](State& state) {
-                  state.hero.receive(spell);
+                state, label, historyTitle,
+                [item, itemIndex](State& state) {
+                  if (state.hero.buy(item))
+                  {
+                    auto& shops = state.resources.shops;
+                    shops.erase(begin(shops) + itemIndex);
+                  }
                   return Summary::None;
                 },
                 isSelected))
           selectedPopupItem = index;
       }
-      ImGui::EndMenu();
+      else
+        ImGui::TextColored(colorUnavailable, "%s", label.c_str());
     }
-    struct SubMenu
+    if (havePotionShop && ImGui::BeginMenu("Potion Shop"))
     {
-      std::string title;
-      Item first;
-      Item last;
-    };
-    const std::vector<SubMenu> submenus = {{"Potions", Item::HealthPotion, Item::CanOfWhupaz},
-                                           {"Blacksmith Items", Item::BearMace, Item::Sword},
-                                           {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
-                                           {"Quest Items", Item::PiercingWand, Item::SoulOrb},
-                                           {"Elite Items", Item::KegOfHealth, Item::WickedGuitar},
-                                           {"Boss Rewards", Item::FabulousTreasure, Item::SensationStone}};
-    for (auto submenu : submenus)
-    {
-      if (ImGui::BeginMenu(submenu.title.c_str()))
+      for (int potionIndex = static_cast<int>(Item::HealthPotion); potionIndex <= static_cast<int>(Item::CanOfWhupaz);
+           ++potionIndex)
       {
-        for (int itemIndex = static_cast<int>(submenu.first); itemIndex <= static_cast<int>(submenu.last); ++itemIndex)
-        {
-          const bool isSelected = ++index == selectedPopupItem;
-          const auto item = static_cast<Item>(itemIndex);
-          if (addPopupAction(
-                  state, toString(item), "Find "s + toString(item),
-                  [item](State& state) {
-                    state.hero.receive(item);
-                    return Summary::None;
-                  },
-                  isSelected))
-            selectedPopupItem = index;
-        }
-        ImGui::EndMenu();
+        const bool isSelected = ++index == selectedPopupItem;
+        const auto potion = static_cast<Item>(potionIndex);
+        const int price = state.hero.cost(potion);
+        const std::string label = toString(potion) + " ("s + std::to_string(price) + " gold)";
+        const std::string historyTitle = "Buy " + label;
+        if (addPopupAction(
+                state, label, historyTitle,
+                [potion](State& state) {
+                  if (state.hero.buy(potion))
+                  {
+                    auto& shops = state.resources.shops;
+                    shops.erase(std::find(begin(shops), end(shops), Item::AnyPotion));
+                  }
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
       }
-    }
-    if (ImGui::BeginMenu("Cheat"))
-    {
-      if (addPopupAction(
-              state, "+50 piety", "Cheat: +50 piety",
-              [](State& state) {
-                state.hero.getFaith().gainPiety(50);
-                return Summary::None;
-              },
-              ++index == selectedPopupItem))
-        selectedPopupItem = index;
-      if (addPopupAction(
-              state, "+20 gold", "Cheat: +20 gold",
-              [](State& state) {
-                state.hero.addGold(20);
-                return Summary::None;
-              },
-              ++index == selectedPopupItem))
-        selectedPopupItem = index;
       ImGui::EndMenu();
     }
     if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
@@ -410,6 +403,102 @@ void Arena::runUncoverTiles(const State& state)
   }
 }
 
+void Arena::runFindPopup(const State& state)
+{
+  ImGui::Button("Find");
+  if (ImGui::IsItemActive())
+  {
+    ImGui::OpenPopup("FindPopup");
+    selectedPopupItem = -1;
+  }
+  if (ImGui::BeginPopup("FindPopup"))
+  {
+    int index;
+    if (ImGui::BeginMenu("Spells"))
+    {
+      for (index = 0; index <= static_cast<int>(Spell::Last); ++index)
+      {
+        const Spell spell = static_cast<Spell>(index);
+        const bool isSelected = index == selectedPopupItem;
+        if (addPopupAction(
+                state, toString(spell), "Find "s + toString(spell),
+                [spell](State& state) {
+                  state.hero.receive(spell);
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+      ImGui::EndMenu();
+    }
+
+    const int isSelected = ++index == selectedPopupItem;
+    if (addPopupAction(
+            state, "Add potion shop", "Add potion shop",
+            [](State& state) {
+              state.resources.shops.emplace_back(Item::AnyPotion);
+              return Summary::None;
+            },
+            isSelected))
+      selectedPopupItem = index;
+
+    struct SubMenu
+    {
+      std::string title;
+      Item first;
+      Item last;
+    };
+    const std::vector<SubMenu> submenus = {{"Blacksmith Items", Item::BearMace, Item::Sword},
+                                           {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
+                                           {"Quest Items", Item::PiercingWand, Item::SoulOrb},
+                                           {"Elite Items", Item::KegOfHealth, Item::WickedGuitar},
+                                           {"Boss Rewards", Item::FabulousTreasure, Item::SensationStone}};
+    for (auto submenu : submenus)
+    {
+      if (ImGui::BeginMenu(submenu.title.c_str()))
+      {
+        for (int itemIndex = static_cast<int>(submenu.first); itemIndex <= static_cast<int>(submenu.last); ++itemIndex)
+        {
+          const bool isSelected = ++index == selectedPopupItem;
+          const auto item = static_cast<Item>(itemIndex);
+          if (addPopupAction(
+                  state, toString(item), "Add shop: "s + toString(item),
+                  [item](State& state) {
+                    state.resources.shops.emplace_back(item);
+                    return Summary::None;
+                  },
+                  isSelected))
+            selectedPopupItem = index;
+        }
+        ImGui::EndMenu();
+      }
+    }
+    if (ImGui::BeginMenu("Cheat"))
+    {
+      if (addPopupAction(
+              state, "+50 piety", "Cheat: +50 piety",
+              [](State& state) {
+                state.hero.getFaith().gainPiety(50);
+                return Summary::None;
+              },
+              ++index == selectedPopupItem))
+        selectedPopupItem = index;
+      if (addPopupAction(
+              state, "+20 gold", "Cheat: +20 gold",
+              [](State& state) {
+                state.hero.addGold(20);
+                return Summary::None;
+              },
+              ++index == selectedPopupItem))
+        selectedPopupItem = index;
+      ImGui::EndMenu();
+    }
+    if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+  }
+}
+
 Arena::ArenaResult Arena::run(const State& state)
 {
   result.reset();
@@ -426,11 +515,13 @@ Arena::ArenaResult Arena::run(const State& state)
     ImGui::SameLine();
     runConvertItemPopup(state);
 
-    runFindPopup(state);
+    runShopPopup(state);
     ImGui::SameLine();
     runFaithPopup(state);
     ImGui::SameLine();
     runUncoverTiles(state);
+
+    runFindPopup(state);
   }
   ImGui::End();
 
