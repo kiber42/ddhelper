@@ -29,7 +29,7 @@ enum class HeroTrait
   GoodHealth,
   HandToHand,
   Herbivore,
-  Hoarder,   // not implemented: +33% more items on dungeon map
+  Hoarder, // not implemented: +33% more items on dungeon map
   HolyHands,
   HolyShield,
   HolyWork,
@@ -37,14 +37,14 @@ enum class HeroTrait
   Insane,    // partially implemented, missing: drinking blood restores 1 mana
   Instincts, // not implemented: monsters of equal or lower level always have their location revealed
   LightFoot, // not implemented: exploring the area around a monster grants first strike
-  Macguyver,
+  Macguyver, // partially implemented, missing: can sense dungeon stairs
   Mageslay,
   MagicAffinity,
   MagicAttunement,
   MagicSense, // not implemented: can see locations of all glyphs from level start, all glyphs are small items
   ManaShield,
-  Martyr, // not implemented: +1 altar in dungeon
-  Merchant,
+  Martyr,   // not implemented: +1 altar in dungeon
+  Merchant, // not implemented: +2 shops in dungeon
   Momentum,
   Negotiator,
   PitDog,

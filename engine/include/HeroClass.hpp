@@ -155,7 +155,7 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   case HeroClass::Transmuter:
     return {HeroTrait::InnerFocus, HeroTrait::DungeonLore, HeroTrait::SpiritSword};
   case HeroClass::Tinker:
-    // return {HeroTrait::Merchant, HeroTrait::Negotiator, HeroTrait::Macguyver};
+    return {HeroTrait::Merchant, HeroTrait::Negotiator, HeroTrait::Macguyver};
   case HeroClass::Chemist:
     // return {HeroTrait::Additives, HeroTrait::Preservatives, HeroTrait::Colourants};
   case HeroClass::Vampire:

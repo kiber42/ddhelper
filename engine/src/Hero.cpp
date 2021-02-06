@@ -34,7 +34,6 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     experience = Experience(Experience::IsVeteran{});
   if (hasTrait(HeroTrait::Dangerous))
     stats = HeroStats(HeroStats::IsDangerous{});
-
   if (hasTrait(HeroTrait::PitDog))
     addStatus(HeroStatus::DeathProtection);
   if (hasTrait(HeroTrait::Mageslay))
@@ -54,14 +53,12 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     addDodgeChancePercent(20, true);
   if (hasTrait(HeroTrait::PoisonedBlade))
     changeDamageBonusPercent(-20);
-
   if (hasTrait(HeroTrait::GoodHealth))
   {
     stats.addHealthBonus(1);
     stats.addHealthBonus(1);
     stats.addHealthBonus(1);
   }
-
   if (hasTrait(HeroTrait::HandToHand))
   {
     stats.setBaseDamage(3);
@@ -74,7 +71,20 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   }
   if (hasTrait(HeroTrait::HolyShield))
     defence.setPhysicalResistPercent(25);
-
+  if (hasTrait(HeroTrait::Scars))
+  {
+    addStatus(HeroStatus::PoisonImmune);
+    addStatus(HeroStatus::ManaBurnImmune);
+    addStatus(HeroStatus::CurseImmune);
+  }
+  if (hasTrait(HeroTrait::Macguyver))
+  {
+    inventory.add(Item::CompressionSeal);
+    inventory.add(Item::CompressionSeal);
+    inventory.add(Item::TransmutationSeal);
+    inventory.add(Item::TransmutationSeal);
+    inventory.add(Item::TranslocationSeal);
+  }
   if (hasTrait(HeroTrait::Undead))
   {
     addStatus(HeroStatus::PoisonImmune);
@@ -84,12 +94,6 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   {
     addStatus(HeroStatus::Sanguine, 5);
     addStatus(HeroStatus::LifeSteal, 1);
-  }
-  if (hasTrait(HeroTrait::Scars))
-  {
-    addStatus(HeroStatus::PoisonImmune);
-    addStatus(HeroStatus::ManaBurnImmune);
-    addStatus(HeroStatus::CurseImmune);
   }
 
   if (hasTrait(HeroTrait::Defiant))
