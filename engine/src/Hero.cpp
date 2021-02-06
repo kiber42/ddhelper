@@ -979,12 +979,7 @@ bool Hero::hasRoomFor(ItemOrSpell itemOrSpell) const
 
 bool Hero::canAfford(Item item) const
 {
-  const int have = gold();
-  if (have >= price(item))
-    return true;
-  if (have == 0 || !hasTrait(HeroTrait::Negotiator))
-    return false;
-  return have >= price(item) - 5;
+  return gold() >= cost(item);
 }
 
 void Hero::receive(ItemOrSpell itemOrSpell)
