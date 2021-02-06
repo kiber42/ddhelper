@@ -61,6 +61,13 @@ enum class Item
   QuicksilverPotion,
   ReflexPotion,
   CanOfWhupaz,
+  // Alchemist Seals
+  CompressionSeal,
+  TransmutationSeal,
+  TranslocationSeal,
+  // Misc Items
+  ShopScroll,
+  PatchesTheTeddy,
   // Subdungeon Items, Lockerable
   Gorgward,
   // Boss Rewards
@@ -198,6 +205,17 @@ constexpr const char* toString(Item item)
     return "Reflex Potion";
   case Item::CanOfWhupaz:
     return "Can of Whupaz";
+
+  case Item::CompressionSeal:
+    return "Compression Seal";
+  case Item::TransmutationSeal:
+    return "Transmutation Seal";
+  case Item::TranslocationSeal:
+    return "Translocation Seal";
+  case Item::ShopScroll:
+    return "Shop Scroll";
+  case Item::PatchesTheTeddy:
+    return "Patches the Teddy";
 
   case Item::Gorgward:
     return "Gorgward";
@@ -352,6 +370,17 @@ constexpr int price(Item item)
   case Item::CanOfWhupaz:
     return 20;
 
+  case Item::CompressionSeal:
+    return 16;
+  case Item::TransmutationSeal:
+    return 36;
+  case Item::TranslocationSeal:
+    return 43;
+  case Item::ShopScroll:
+    return 10;
+  case Item::PatchesTheTeddy:
+    return 0;
+
   case Item::Gorgward:
     return 18;
 
@@ -496,6 +525,17 @@ constexpr int conversionPointsInitial(Item item)
   case Item::ReflexPotion:
     return 10;
   case Item::CanOfWhupaz:
+    return 10;
+
+  case Item::CompressionSeal:
+    return 5;
+  case Item::TransmutationSeal:
+    return 5;
+  case Item::TranslocationSeal:
+    return 5;
+  case Item::ShopScroll:
+    return 20;
+  case Item::PatchesTheTeddy:
     return 10;
 
   case Item::Gorgward:
