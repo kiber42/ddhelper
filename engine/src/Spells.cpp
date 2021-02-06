@@ -55,14 +55,15 @@ namespace Magic
       hero.adjustMomentum(monster.isDefeated());
     }
 
-    void applyCastingSideEffects(Hero& hero, int manaCosts)
+    void applyCastingSideEffects(Hero& hero, int manaCosts, Monsters& allMonsters)
     {
       if (hero.isDefeated())
         return;
       // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
       if (hero.hasTrait(HeroTrait::EssenceTransit))
         hero.healHitPoints(2 * manaCosts);
-      // TODO: Transmuter: Gain conversion points (Inner Focus)
+      if (hero.hasTrait(HeroTrait::InnerFocus))
+        hero.addConversionPoints(3, allMonsters);
       if (hero.has(Item::DragonSoul))
         hero.applyDragonSoul(manaCosts);
       if (manaCosts >= 3)
@@ -219,7 +220,7 @@ namespace Magic
       hero.collect(hero.getFaith().imawalCreateWall(manaCosts));
     hero.applyCollectedPiety(allMonsters);
 
-    applyCastingSideEffects(hero, manaCosts);
+    applyCastingSideEffects(hero, manaCosts, allMonsters);
   }
 
   Summary cast(Hero& hero, Monster& monster, Monsters& allMonsters, Spell spell)
@@ -280,7 +281,7 @@ namespace Magic
     }
 
     hero.collect(hero.getFaith().spellCast(spell, manaCosts));
-    applyCastingSideEffects(hero, manaCosts);
+    applyCastingSideEffects(hero, manaCosts, allMonsters);
 
     if (spell == Spell::Imawal)
     {

@@ -102,6 +102,8 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     inventory.add(Spell::Apheelsik);
   if (hasTrait(HeroTrait::HolyHands))
     inventory.add(Spell::Halpmeh);
+  if (hasTrait(HeroTrait::DungeonLore))
+    inventory.add(Spell::Lemmisi);
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)

@@ -100,5 +100,11 @@ void Conversion::applyBonus(Hero& hero, Monsters& allMonsters)
   {
     points -= getThreshold();
     bonus(hero, allMonsters);
+    if (hero.hasTrait(HeroTrait::SpiritSword))
+    {
+      const int mp = hero.getManaPoints();
+      hero.addStatus(HeroStatus::SpiritStrength, hero.getLevel() + mp);
+      hero.loseManaPoints(mp);
+    }
   }
 }
