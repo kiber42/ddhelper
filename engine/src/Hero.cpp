@@ -635,7 +635,7 @@ void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool mon
     ++inventory.gold;
   if (has(Item::StoneSigil))
     faith.gainPiety(1);
-  if (has(Item::BlueBead))
+  if (has(Item::BlueBead) && !hasStatus(HeroDebuff::ManaBurned))
     recoverManaPoints(1);
 }
 
