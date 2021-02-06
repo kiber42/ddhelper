@@ -688,10 +688,10 @@ void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
 
 void Hero::levelUpRefresh()
 {
-  // TODO: Don't do anything for Goatperson
   removeStatus(HeroDebuff::Poisoned, true);
   removeStatus(HeroDebuff::ManaBurned, true);
-  stats.refresh();
+  if (!hasTrait(HeroTrait::Prototype))
+    stats.refresh();
 }
 
 void Hero::addDodgeChancePercent(int percent, bool isPermanent)
