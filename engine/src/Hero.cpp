@@ -187,7 +187,7 @@ void Hero::gainExperience(int xpBase, int xpBonuses, Monsters& allMonsters)
     levelGainedUpdate(level, allMonsters);
   }
   if (levelUp)
-    levelUpRefresh();
+    levelUpRefresh(allMonsters);
 }
 
 void Hero::gainLevel(Monsters& allMonsters)
@@ -196,7 +196,7 @@ void Hero::gainLevel(Monsters& allMonsters)
   experience.gainLevel();
   if (getLevel() > initialLevel)
     levelGainedUpdate(getLevel(), allMonsters);
-  levelUpRefresh();
+  levelUpRefresh(allMonsters);
 }
 
 bool Hero::isDefeated() const
@@ -686,10 +686,51 @@ void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
   adjustMomentum(false);
 }
 
-void Hero::levelUpRefresh()
+void Hero::levelUpRefresh(Monsters& allMonsters)
 {
   removeStatus(HeroDebuff::Poisoned, true);
   removeStatus(HeroDebuff::ManaBurned, true);
+
+  if (has(Item::PatchesTheTeddy) && !hasStatus(HeroStatus::Pessimist))
+  {
+    // Random positive effect
+    switch (std::uniform_int_distribution<>(0, 4)(generator))
+    {
+    case 0:
+      setHitPointsMax(getHitPointsMax() + 3);
+      break;
+    case 1:
+      addGold(3);
+      break;
+    case 2:
+      changeDamageBonusPercent(5);
+      break;
+    case 3:
+      setManaPointsMax(getManaPoints() + 1);
+      break;
+    case 4:
+      changePhysicalResistPercent(4);
+      changeMagicalResistPercent(4);
+      break;
+    }
+    // Random negative effect
+    switch (std::uniform_int_distribution<>(0, 2)(generator))
+    {
+    case 0:
+      addStatus(HeroDebuff::Poisoned, allMonsters);
+      break;
+    case 1:
+      addStatus(HeroDebuff::ManaBurned, allMonsters);
+      break;
+    case 2:
+      // not implemented: random teleport
+      break;
+    case 3:
+      // not implemented: grid reveal (rare?)
+      break;
+    }
+  }
+
   if (!hasTrait(HeroTrait::Prototype))
     stats.refresh();
 }

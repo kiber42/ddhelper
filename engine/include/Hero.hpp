@@ -183,7 +183,7 @@ private:
   void loseHitPoints(int amountPointsLost, Monsters& allMonsters);
   void setStatusIntensity(HeroStatus status, int newIntensity);
   void levelGainedUpdate(int newLevel, Monsters& allMonsters);
-  void levelUpRefresh();
+  void levelUpRefresh(Monsters& allMonsters);
   void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange, Monsters& allMonsters);
   void changeStatsFromItem(Item item, bool itemReceived);
