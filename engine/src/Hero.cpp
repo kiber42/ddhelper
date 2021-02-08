@@ -183,7 +183,7 @@ void Hero::gainExperience(int xpBase, int xpBonuses, Monsters& allMonsters)
   const int prestige = getPrestige();
   experience.gain(xpBase, xpBonuses, hasStatus(HeroStatus::ExperienceBoost));
   if (xpBase > 0)
-    removeStatus(HeroStatus::ExperienceBoost, true);
+    resetStatus(HeroStatus::ExperienceBoost);
   const bool levelUp = getLevel() > level || getPrestige() > prestige;
   while (getLevel() > level)
   {
@@ -235,7 +235,7 @@ void Hero::drinkHealthPotion()
   if (hasNagaCauldron)
     percentHealed += nagaCauldronBonus();
   stats.healHitPoints(getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
-  removeStatus(HeroDebuff::Poisoned, true);
+  resetStatus(HeroDebuff::Poisoned);
   if (hasTrait(HeroTrait::Survivor))
     stats.recoverManaPoints(getManaPointsMax() * 2 / 10);
 }
@@ -252,7 +252,7 @@ void Hero::drinkManaPotion()
   if (hasNagaCauldron)
     percentRestored += nagaCauldronBonus();
   stats.recoverManaPoints(getManaPointsMax() * percentRestored / 100);
-  removeStatus(HeroDebuff::ManaBurned, true);
+  resetStatus(HeroDebuff::ManaBurned);
   if (hasTrait(HeroTrait::Courageous))
     addStatus(HeroStatus::Might);
   if (hasTrait(HeroTrait::Survivor))
@@ -393,7 +393,7 @@ void Hero::loseHitPoints(int amountPointsLost, Monsters& allMonsters)
   if (stats.getHitPoints() == 0 && hasStatus(HeroStatus::DeathProtection))
   {
     stats.barelySurvive();
-    removeStatus(HeroStatus::DeathProtection, false);
+    resetStatus(HeroStatus::DeathProtection);
     applyOrCollect(faith.deathProtectionTriggered(), allMonsters);
   }
 }
@@ -405,9 +405,9 @@ void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& 
   if (damagePoints > 0 && hasStatus(HeroStatus::Schadenfreude))
   {
     recoverManaPoints(damagePoints);
-    removeStatus(HeroStatus::Schadenfreude, true);
+    resetStatus(HeroStatus::Schadenfreude);
   }
-  removeStatus(HeroStatus::StoneSkin, true);
+  resetStatus(HeroStatus::StoneSkin);
 }
 
 void Hero::recover(int nSquares)
@@ -477,11 +477,14 @@ void Hero::addStatus(HeroStatus status, int addedIntensity)
   setStatusIntensity(status, statuses[status] + addedIntensity);
 }
 
-void Hero::removeStatus(HeroStatus status, bool completely)
+void Hero::reduceStatus(HeroStatus status)
 {
-  auto iter = statuses.find(status);
-  if (iter != statuses.end() && iter->second > 0)
-    setStatusIntensity(status, completely ? 0 : iter->second - 1);
+  setStatusIntensity(status, statuses[status] - 1);
+}
+
+void Hero::resetStatus(HeroStatus status)
+{
+  setStatusIntensity(status, 0);
 }
 
 bool Hero::hasStatus(HeroStatus status) const
@@ -508,11 +511,11 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
   if (newIntensity > 0)
   {
     if (status == HeroStatus::CurseImmune)
-      removeStatus(HeroDebuff::Cursed, true);
+      resetStatus(HeroDebuff::Cursed);
     else if (status == HeroStatus::ManaBurnImmune)
-      removeStatus(HeroDebuff::ManaBurned, true);
+      resetStatus(HeroDebuff::ManaBurned);
     else if (status == HeroStatus::PoisonImmune)
-      removeStatus(HeroDebuff::Poisoned, true);
+      resetStatus(HeroDebuff::Poisoned);
   }
   else if (newIntensity == 0)
     statuses.erase(status);
@@ -540,9 +543,9 @@ void Hero::addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensit
   {
     if (addedIntensity < 0)
     {
-      // For convenience, allow to call addStatus with -1 instead of removeStatus
+      // For convenience, allow to call addStatus with -1 instead of reduceStatus
       assert(addedIntensity == -1);
-      removeStatus(debuff, false);
+      reduceStatus(debuff);
     }
     return;
   }
@@ -580,23 +583,35 @@ void Hero::addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensit
     defence.setCursed(true);
 }
 
-void Hero::removeStatus(HeroDebuff debuff, bool completely)
+void Hero::reduceStatus(HeroDebuff debuff)
 {
   auto iter = debuffs.find(debuff);
   if (iter == debuffs.end() || iter->second == 0)
     return;
 
-  const int newIntensity = completely ? 0 : iter->second - 1;
+  const int newIntensity = iter->second - 1;
 
   if (newIntensity == 0)
-    debuffs.erase(iter);
-  else
-    debuffs[debuff] = newIntensity;
+  {
+    resetStatus(debuff);
+    return;
+  }
+
+  debuffs[debuff] = newIntensity;
 
   if (debuff == HeroDebuff::Corroded)
     defence.setCorrosion(newIntensity);
-  else if (debuff == HeroDebuff::Cursed)
-    defence.setCursed(newIntensity > 0);
+}
+
+void Hero::resetStatus(HeroDebuff debuff)
+{
+  if (debuffs.erase(debuff))
+  {
+    if (debuff == HeroDebuff::Corroded)
+      defence.setCorrosion(0);
+    else if (debuff == HeroDebuff::Cursed)
+      defence.setCursed(false);
+  }
 }
 
 bool Hero::hasStatus(HeroDebuff debuff) const
@@ -656,12 +671,12 @@ void Hero::adjustMomentum(bool increase)
 
 void Hero::removeOneTimeAttackEffects()
 {
-  removeStatus(HeroStatus::ConsecratedStrike, true);
-  removeStatus(HeroStatus::CrushingBlow, true);
-  removeStatus(HeroStatus::Might, true);
-  removeStatus(HeroStatus::SpiritStrength, true);
-  removeStatus(HeroStatus::FirstStrikeTemporary, true);
-  removeStatus(HeroStatus::Reflexes, true);
+  resetStatus(HeroStatus::ConsecratedStrike);
+  resetStatus(HeroStatus::CrushingBlow);
+  resetStatus(HeroStatus::Might);
+  resetStatus(HeroStatus::SpiritStrength);
+  resetStatus(HeroStatus::FirstStrikeTemporary);
+  resetStatus(HeroStatus::Reflexes);
 
   if (inventory.triswordUsed())
     changeBaseDamage(-1);
@@ -692,8 +707,8 @@ void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
 
 void Hero::levelUpRefresh(Monsters& allMonsters)
 {
-  removeStatus(HeroDebuff::Poisoned, true);
-  removeStatus(HeroDebuff::ManaBurned, true);
+  resetStatus(HeroDebuff::Poisoned);
+  resetStatus(HeroDebuff::ManaBurned);
 
   if (has(Item::PatchesTheTeddy) && !hasStatus(HeroStatus::Pessimist))
   {
@@ -769,8 +784,8 @@ bool Hero::tryDodge(Monsters& allMonsters)
   rerollDodgeNext();
   if (success)
   {
-    removeStatus(HeroStatus::DodgePrediction, true);
-    removeStatus(HeroStatus::DodgeTemporary, true);
+    resetStatus(HeroStatus::DodgePrediction);
+    resetStatus(HeroStatus::DodgeTemporary);
     applyOrCollect(faith.dodgedAttack(), allMonsters);
   }
   return success;
@@ -980,7 +995,7 @@ void Hero::receiveEnlightenment(Monsters& allMonsters)
   if (conversion.addPoints(10 * enchantedBeads))
     conversion.applyBonus(*this, allMonsters);
   gainExperienceNoBonuses(enchantedBeads, allMonsters);
-  removeStatus(HeroDebuff::Cursed, true);
+  resetStatus(HeroDebuff::Cursed);
 }
 
 void Hero::clearInventory()
@@ -1167,12 +1182,12 @@ void Hero::use(Item item, Monsters& allMonsters)
     drinkManaPotion();
     break;
   case Item::FortitudeTonic:
-    removeStatus(HeroDebuff::Poisoned, true);
-    removeStatus(HeroDebuff::Weakened, true);
+    resetStatus(HeroDebuff::Poisoned);
+    resetStatus(HeroDebuff::Weakened);
     break;
   case Item::BurnSalve:
-    removeStatus(HeroDebuff::ManaBurned, true);
-    removeStatus(HeroDebuff::Corroded, true);
+    resetStatus(HeroDebuff::ManaBurned);
+    resetStatus(HeroDebuff::Corroded);
     break;
   case Item::StrengthPotion:
   {
@@ -1322,13 +1337,13 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     if (itemReceived)
       addStatus(HeroStatus::PoisonImmune);
     else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
-      removeStatus(HeroStatus::PoisonImmune, true);
+      resetStatus(HeroStatus::PoisonImmune);
     break;
   case Item::SoulOrb:
     if (itemReceived)
       addStatus(HeroStatus::ManaBurnImmune);
     else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
-      removeStatus(HeroStatus::ManaBurnImmune, true);
+      resetStatus(HeroStatus::ManaBurnImmune);
     break;
   case Item::ElvenBoots:
     changeManaPointsMax(3 * sign);
@@ -1371,7 +1386,7 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     if (itemReceived)
       addStatus(HeroStatus::DeathGazeImmune);
     else if (!hasTrait(HeroTrait::AzureBody))
-      removeStatus(HeroStatus::DeathGazeImmune, true);
+      resetStatus(HeroStatus::DeathGazeImmune);
     break;
   case Item::DragonShield:
     changePhysicalResistPercent(18 * sign);

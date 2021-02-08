@@ -581,7 +581,7 @@ void testStatusEffects()
             ++attempts;
             // trigger reroll
             hero.addStatus(HeroStatus::DodgeTemporary);
-            hero.removeStatus(HeroStatus::DodgeTemporary, false);
+            hero.reduceStatus(HeroStatus::DodgeTemporary);
           }
           const int tolerance = 2 * (11 - chance / 10);
           const int expectedWithTolerance = 100 / chance * tolerance;
@@ -901,7 +901,7 @@ void testStatusEffects()
         hero.addStatus(HeroStatus::FirstStrikeTemporary);
         AssertThat(hero.hasInitiativeVersus(meatMan), IsTrue());
         AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
-        hero.removeStatus(HeroStatus::FirstStrikeTemporary, true);
+        hero.resetStatus(HeroStatus::FirstStrikeTemporary);
       });
       it("should give initiative to slowed monsters of any level (regardless of monster's first strike)", [&] {
         meatMan.slow();

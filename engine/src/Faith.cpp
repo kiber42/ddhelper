@@ -273,7 +273,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
     break;
   case Boon::Greenblood:
     // TODO: Spawns 3 random plants
-    hero.removeStatus(HeroDebuff::Cursed, false);
+    hero.reduceStatus(HeroDebuff::Cursed);
     for (auto& monster : allMonsters)
       monster.corrode();
     break;
@@ -304,10 +304,10 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
     break;
   }
   case Boon::Cleansing:
-    hero.removeStatus(HeroDebuff::Poisoned, true);
-    hero.removeStatus(HeroDebuff::ManaBurned, true);
-    hero.removeStatus(HeroDebuff::Weakened, false);
-    hero.removeStatus(HeroDebuff::Corroded, false);
+    hero.resetStatus(HeroDebuff::Poisoned);
+    hero.resetStatus(HeroDebuff::ManaBurned);
+    hero.reduceStatus(HeroDebuff::Weakened);
+    hero.reduceStatus(HeroDebuff::Corroded);
     hero.addStatus(HeroStatus::ConsecratedStrike);
     hero.receive(Item::PrayerBead);
     break;
@@ -338,8 +338,8 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
     hero.gainLevel(allMonsters);
     hero.refillHealthAndMana(); // for Goatperson
     hero.addConversionPoints(100, allMonsters);
-    hero.removeStatus(HeroDebuff::Weakened, true);
-    hero.removeStatus(HeroDebuff::Corroded, true);
+    hero.resetStatus(HeroDebuff::Weakened);
+    hero.resetStatus(HeroDebuff::Corroded);
     for (auto& monster : allMonsters)
     {
       monster.addPhysicalResist(-20);
@@ -600,7 +600,7 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
     hero.changeMagicalResistPercent(-50);
     break;
   case God::Dracul:
-    hero.removeStatus(HeroStatus::LifeSteal, false);
+    hero.reduceStatus(HeroStatus::LifeSteal);
     hero.changeHitPointsMax(-20);
     break;
   case God::TheEarthmother:
@@ -630,9 +630,9 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
       monster.addMagicResist(10);
     break;
   case God::TikkiTooki:
-    hero.removeStatus(HeroStatus::DodgePermanent, true);
-    hero.removeStatus(HeroStatus::DodgeTemporary, true);
-    hero.removeStatus(HeroStatus::Poisonous, true);
+    hero.resetStatus(HeroStatus::DodgePermanent);
+    hero.resetStatus(HeroStatus::DodgeTemporary);
+    hero.resetStatus(HeroStatus::Poisonous);
     for (auto& monster : allMonsters)
     {
       monster.makeFast();

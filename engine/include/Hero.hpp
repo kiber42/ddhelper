@@ -75,12 +75,14 @@ public:
   void refillHealthAndMana();
 
   void addStatus(HeroStatus status, int addedIntensity = 1);
-  void removeStatus(HeroStatus status, bool completely);
+  void reduceStatus(HeroStatus status);
+  void resetStatus(HeroStatus status);
   bool hasStatus(HeroStatus status) const;
   int getStatusIntensity(HeroStatus status) const;
 
   void addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensity = 1);
-  void removeStatus(HeroDebuff debuff, bool completely);
+  void reduceStatus(HeroDebuff debuff);
+  void resetStatus(HeroDebuff debuff);
   bool hasStatus(HeroDebuff debuff) const;
   int getStatusIntensity(HeroDebuff debuff) const;
 
