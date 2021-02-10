@@ -1241,11 +1241,8 @@ void Hero::use(Item item, Monsters& allMonsters)
     }
   }
 
-  if (consumed)
-  {
-    inventory.remove(item);
+  if (consumed && inventory.remove(item))
     changeStatsFromItem(item, false);
-  }
 }
 
 bool Hero::canUse(Item item, const Monster& monster) const
