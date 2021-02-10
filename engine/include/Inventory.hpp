@@ -47,6 +47,9 @@ public:
   // Check if there is enough space in the inventory for an item or a spell
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
 
+  // Mark an item or spell as small.  Returns false if no matching normal-sized entry was found in inventory.
+  bool compress(ItemOrSpell itemOrSpell);
+
   // Remove all items and spells from inventory
   void clear();
 

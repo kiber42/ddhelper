@@ -1262,6 +1262,16 @@ void Hero::use(Item item, Monster& monster, Monsters& allMonsters)
   }
 }
 
+bool Hero::useCompressionSealOn(ItemOrSpell itemOrSpell)
+{
+  if (has(Item::CompressionSeal) && inventory.compress(itemOrSpell))
+  {
+    lose(Item::CompressionSeal);
+    return true;
+  }
+  return false;
+}
+
 void Hero::changeStatsFromItem(Item item, bool itemReceived)
 {
   // Apply passive item effects on hero status

@@ -4,6 +4,7 @@
 #include "Spells.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <numeric>
 
 Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, bool allItemsLarge)
@@ -129,6 +130,17 @@ int Inventory::numFreeSmallSlots() const
 bool Inventory::hasRoomFor(ItemOrSpell itemOrSpell) const
 {
   return numFreeSmallSlots() >= isInitiallySmall(itemOrSpell) ? 1 : LargeItemSize;
+}
+
+bool Inventory::compress(ItemOrSpell itemOrSpell)
+{
+  auto entry = std::find_if(begin(entries), end(entries),
+                            [&itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell && !entry.isSmall; });
+  if (entry == end(entries))
+    return false;
+  assert(entry->count == 1 /* only small items can be stacked */);
+  entry->isSmall = true;
+  return true;
 }
 
 void Inventory::clear()
