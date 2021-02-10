@@ -123,8 +123,6 @@ void Arena::runUseItemPopup(const State& state)
   }
   if (ImGui::BeginPopup("UseItemPopup"))
   {
-    ImGui::Text("Items");
-    ImGui::Separator();
     int index = -1;
     for (const auto& entry : state.hero.getItems())
     {
@@ -158,6 +156,33 @@ void Arena::runUseItemPopup(const State& state)
       }
       else
         ImGui::TextColored(colorUnavailable, "%s", label.c_str());
+    }
+
+    const auto& inventory = state.hero.getItemsAndSpells();
+    const bool canCompress =
+        state.hero.has(Item::CompressionSeal) &&
+        std::find_if(begin(inventory), end(inventory), [](auto& entry) { return !entry.isSmall; }) != end(inventory);
+    if (canCompress)
+    {
+      ImGui::Separator();
+      ImGui::Text("Compress");
+      ImGui::Separator();
+      for (const auto& entry : state.hero.getItemsAndSpells())
+      {
+        if (entry.isSmall)
+          continue;
+        const bool isSelected = ++index == selectedPopupItem;
+        const std::string label = toString(entry.itemOrSpell);
+        const std::string historyTitle = "Compress " + label;
+        if (addPopupAction(
+                state, std::move(label), historyTitle,
+                [itemOrSpell = entry.itemOrSpell](State& state) {
+                  state.hero.useCompressionSealOn(itemOrSpell);
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
     }
     if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
       ImGui::CloseCurrentPopup();

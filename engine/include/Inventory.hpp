@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -8,6 +9,8 @@ enum class Item;
 enum class Spell;
 
 using ItemOrSpell = std::variant<Item, Spell>;
+
+std::string toString(ItemOrSpell itemOrSpell);
 
 class Inventory
 {

@@ -254,3 +254,18 @@ auto Inventory::find(ItemOrSpell itemOrSpell) const -> std::vector<Entry>::const
   return std::find_if(begin(entries), end(entries),
                       [&itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell; });
 }
+
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+std::string toString(ItemOrSpell itemOrSpell)
+{
+  return std::visit(overloaded{[](Item item) { return toString(item); }, [](Spell spell) { return toString(spell); }},
+                    itemOrSpell);
+}
