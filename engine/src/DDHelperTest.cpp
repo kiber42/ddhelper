@@ -917,19 +917,49 @@ void testStatusEffects()
     });
     describe("Spirit Strength", [] {
       Hero hero;
-      it("should add damage points to the next attack", [&] {
+      it("should add base damage for the next attack", [&] {
         AssertThat(hero.getBaseDamage(), Equals(5));
         hero.addStatus(HeroStatus::SpiritStrength, 7);
         AssertThat(hero.getBaseDamage(), Equals(12));
         hero.changeDamageBonusPercent(100);
         AssertThat(hero.getDamageVersusStandard(), Equals(24));
       });
-      it("should wear off", [&] {
-        Monster monster("", {2, 35, 1, 0}, {}, {});
+      it("should wear off after the next physical attack", [&] {
+        Monster monster("", {2, 40, 1, 0}, {}, {});
         hero.addStatus(HeroStatus::Reflexes);
+        AssertThat(Magic::cast(hero, monster, noOtherMonsters, Spell::Burndayraz), Equals(Summary::Safe));
         AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsTrue());
+        AssertThat(monster.getHitPoints(), Equals(36));
+        AssertThat(monster.getBurnStackSize(), Equals(1));
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
+        const int expected = 36 - 1 /* burn stack */ - 24 /* spirit attack */ - 10 /* regular attack */;
+        AssertThat(monster.getHitPoints(), Equals(expected));
         AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsFalse());
+      });
+      it("should wear off after casting Pisorf", [] {
+        Hero hero(HeroClass::Transmuter, HeroRace::Human);
+        Monster monster("", {1, 31, 1, 0}, {}, {});
+        hero.addConversionPoints(100, noOtherMonsters);
+        AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
+        AssertThat(hero.getBaseDamage(), Equals(16));
+        hero.changeBaseDamage(34);
+        AssertThat(hero.getBaseDamage(), Equals(50));
+        hero.use(Item::ManaPotion, noOtherMonsters);
+        AssertThat(Magic::cast(hero, monster, noOtherMonsters, Spell::Pisorf), Equals(Summary::Safe));
+        AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsFalse());
+        AssertThat(monster.getHitPoints(), Equals(1 /* 31 - 60% * 50 */));
+      });
+      it("should not pile up", [] {
+        Hero hero(HeroClass::Transmuter, HeroRace::Human);
+        hero.addConversionPoints(100, noOtherMonsters);
+        AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
+        hero.addConversionPoints(100, noOtherMonsters);
+        AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
+        hero.recover(10);
+        hero.use(Item::StrengthPotion, noOtherMonsters);
+        AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
+        hero.use(Item::StrengthPotion, noOtherMonsters);
+        AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
       });
     });
     describe("Stone Skin", [] {
@@ -973,6 +1003,41 @@ void testStatusEffects()
         AssertThat(hero.getBaseDamage(), Is().Not().LessThan(0));
         AssertThat(hero.getDamageVersusStandard(), Is().Not().LessThan(0));
       });
+    });
+  });
+}
+
+void testHeroTraits()
+{
+  describe("Elf", [] {
+    it("should receive one max mana point on conversion", [] {
+      Hero hero(HeroClass::Guard, HeroRace::Elf);
+      hero.addConversionPoints(70, noOtherMonsters);
+      AssertThat(hero.getManaPointsMax(), Equals(11));
+      AssertThat(hero.getManaPoints(), Equals(10));
+    });
+  });
+  describe("Spirit Sword", [] {
+    it("should apply spirit strength on conversion", [] {
+      Hero hero;
+      hero.gainLevel(noOtherMonsters);
+      const int baseDamage = hero.getBaseDamage();
+      hero.addTrait(HeroTrait::SpiritSword);
+      hero.addConversionPoints(1000, noOtherMonsters);
+      const int spiritStrength = hero.getLevel() + hero.getManaPointsMax();
+      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(spiritStrength));
+      AssertThat(hero.getManaPoints(), Equals(0));
+      AssertThat(hero.getBaseDamage(), Equals(baseDamage + spiritStrength));
+    });
+    it("should work correctly for Transmuter Elves", [] {
+      // Elf transmuter conversion threshold is a special case:
+      // the freshly added mana point is counted for spirit strength
+      Hero hero(HeroClass::Transmuter, HeroRace::Elf);
+      AssertThat(hero.getManaPoints(), Equals(10));
+      hero.addConversionPoints(70, noOtherMonsters);
+      AssertThat(hero.getManaPointsMax(), Equals(11));
+      AssertThat(hero.getManaPoints(), Equals(0));
+      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(hero.getLevel() + hero.getManaPointsMax()));
     });
   });
 }
@@ -1219,6 +1284,7 @@ go_bandit([] {
   testDefenceBasics();
   testMelee();
   testStatusEffects();
+  testHeroTraits();
   testPotions();
   testFaith();
   testCombatInitiative();
