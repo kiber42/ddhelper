@@ -50,7 +50,11 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
     break;
   case HeroRace::Elf:
     threshold = 70;
-    bonus = [](Hero& hero, Monsters&) { hero.addManaBonus(); };
+    bonus = [](Hero& hero, Monsters&) {
+      hero.addManaBonus();
+      if (hero.hasTrait(HeroTrait::SpiritSword))
+        hero.recoverManaPoints(1);
+    };
     break;
   case HeroRace::Dwarf:
     threshold = 80;
@@ -101,10 +105,6 @@ void Conversion::applyBonus(Hero& hero, Monsters& allMonsters)
     points -= getThreshold();
     bonus(hero, allMonsters);
     if (hero.hasTrait(HeroTrait::SpiritSword))
-    {
-      const int mp = hero.getManaPoints();
-      hero.addStatus(HeroStatus::SpiritStrength, hero.getLevel() + mp);
-      hero.loseManaPoints(mp);
-    }
+      hero.addSpiritStrength();
   }
 }

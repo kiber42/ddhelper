@@ -472,6 +472,18 @@ void Hero::refillHealthAndMana()
   stats.refresh();
 }
 
+void Hero::addSpiritStrength()
+{
+  const int mp = getManaPoints();
+  const int newSpiritStrength = getLevel() + mp;
+  auto iter = statuses.find(HeroStatus::SpiritStrength);
+  if (iter == end(statuses))
+    statuses[HeroStatus::SpiritStrength] = newSpiritStrength;
+  else
+    iter->second = std::max(newSpiritStrength, iter->second);
+  loseManaPoints(mp);
+}
+
 void Hero::addStatus(HeroStatus status, int addedIntensity)
 {
   setStatusIntensity(status, statuses[status] + addedIntensity);
@@ -1190,12 +1202,8 @@ void Hero::use(Item item, Monsters& allMonsters)
     resetStatus(HeroDebuff::Corroded);
     break;
   case Item::StrengthPotion:
-  {
-    const int mp = getManaPoints();
-    stats.loseManaPoints(mp); // lose MP without other side-effects
-    addStatus(HeroStatus::SpiritStrength, getLevel() + mp);
-  }
-  break;
+    addSpiritStrength();
+    break;
   case Item::Schadenfreude:
     addStatus(HeroStatus::Schadenfreude);
     break;

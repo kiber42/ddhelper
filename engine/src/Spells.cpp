@@ -263,9 +263,10 @@ namespace Magic
     }
     case Spell::Pisorf:
       // 60% of base damage as physical damage if against wall
-      // (TODO?) 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage.
-      // Net damage to first enemy as typeless damage to second enemy; second enemy cannot drop below 1 HP.
+      // (TODO?) slightly less than 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage.
+      // Net damage to first enemy is applied as typeless damage to second enemy; second enemy cannot drop below 1 HP.
       monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
+      hero.resetStatus(HeroStatus::SpiritStrength);
       break;
     case Spell::Weytwut:
       // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)

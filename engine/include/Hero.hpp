@@ -73,6 +73,7 @@ public:
   void recoverManaPoints(int amountPointsRecovered);
   void loseManaPoints(int amountPointsLost);
   void refillHealthAndMana();
+  void addSpiritStrength();
 
   void addStatus(HeroStatus status, int addedIntensity = 1);
   void reduceStatus(HeroStatus status);
