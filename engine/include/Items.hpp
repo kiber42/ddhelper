@@ -584,7 +584,8 @@ constexpr bool isSmall(Item item)
 {
   return isPotion(item) || item == Item::Spoon || item == Item::WitchalokPendant || item == Item::BalancedDagger ||
          item == Item::VenomDagger || item == Item::StoneSigil || item == Item::BlueBead || item == Item::ViperWard ||
-         item == Item::SoulOrb || item == Item::PerseveranceBadge || item == Item::Gorgward ||
+         item == Item::SoulOrb || item == Item::CompressionSeal || item == Item::TransmutationSeal ||
+         item == Item::TranslocationSeal || item == Item::PerseveranceBadge || item == Item::Gorgward ||
          item == Item::PrayerBead || item == Item::EnchantedPrayerBead || item == Item::TikkisCharm;
 }
 
