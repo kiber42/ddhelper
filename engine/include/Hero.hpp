@@ -158,7 +158,11 @@ public:
   bool canUse(Item item, const Monster& monster) const;
   void use(Item item, Monsters& allMonsters);
   void use(Item item, Monster& monster, Monsters& allMonsters);
+
   bool useCompressionSealOn(ItemOrSpell itemOrSpell);
+  bool useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters);
+  bool useTransmutationSealOnPetrifiedEnemy();
+  bool useTransmutationSealOnWallOrPetrifiedPlant();
 
   int getConversionPoints() const;
   int getConversionThreshold() const;

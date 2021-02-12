@@ -850,10 +850,11 @@ bool Hero::spendGold(int amountSpent)
 
 int Hero::cost(Item item) const
 {
+  if (price(item) <= 0)
+    return 0;
   if (!hasTrait(HeroTrait::Negotiator))
     return price(item);
-  else
-    return std::max(1, price(item) - 5);
+  return std::max(1, price(item) - 5);
 }
 
 bool Hero::buy(Item item)
@@ -1267,6 +1268,52 @@ bool Hero::useCompressionSealOn(ItemOrSpell itemOrSpell)
   if (has(Item::CompressionSeal) && inventory.compress(itemOrSpell))
   {
     lose(Item::CompressionSeal);
+    return true;
+  }
+  return false;
+}
+
+bool Hero::useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters)
+{
+  if (!has(Item::TransmutationSeal) || !has(itemOrSpell))
+    return false;
+  auto item = std::get_if<Item>(&itemOrSpell);
+  // A few items cannot be removed from inventory with a transmutation seal
+  if (item && price(*item) < 0)
+    return false;
+  inventory.remove(Item::TransmutationSeal);
+  inventory.remove(itemOrSpell);
+  if (item)
+  {
+    changeStatsFromItem(*item, false);
+    // Refund the cost of the item the hero would pay in a shop (might be off for starting equipment).
+    // Spells always have a price of 0.
+    addGold(cost(*item));
+    // Taurog doesn't tolerate this!
+    if (*item == Item::Skullpicker || *item == Item::Wereward || *item == Item::Gloat || *item == Item::Will)
+      faith.convertedTaurogItem(*this, allMonsters);
+  }
+  return true;
+}
+
+bool Hero::useTransmutationSealOnPetrifiedEnemy()
+{
+  // A pile of gold will appear below an enemy petrified with Imawal (not with Death Gaze!).
+  // Since we don't model gold piles yet, just add the gold directly.
+  if (useTransmutationSealOnWallOrPetrifiedPlant())
+  {
+    addGold(1); // TODO: +1 with black market
+    return true;
+  }
+  return false;
+}
+
+bool Hero::useTransmutationSealOnWallOrPetrifiedPlant()
+{
+  if (has(Item::TransmutationSeal))
+  {
+    lose(Item::TransmutationSeal);
+    addGold(10); // TODO: +1 with black market
     return true;
   }
   return false;
