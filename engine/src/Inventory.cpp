@@ -18,8 +18,8 @@ Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, 
   , crystalBallCosts(4)
   , triswordDamage(2)
 {
-  add(Item::HealthPotion);
-  add(Item::ManaPotion);
+  add(Item::FreeHealthPotion);
+  add(Item::FreeManaPotion);
 }
 
 void Inventory::add(ItemOrSpell itemOrSpell)

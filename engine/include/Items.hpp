@@ -52,6 +52,8 @@ enum class Item
   SlayerWand,
   Sword,
   // Potions
+  FreeHealthPotion,
+  FreeManaPotion,
   HealthPotion,
   ManaPotion,
   FortitudeTonic,
@@ -187,8 +189,10 @@ constexpr const char* toString(Item item)
   case Item::Sword:
     return "Sword";
 
+  case Item::FreeHealthPotion:
   case Item::HealthPotion:
     return "Health Potion";
+  case Item::FreeManaPotion:
   case Item::ManaPotion:
     return "Mana Potion";
   case Item::FortitudeTonic:
@@ -351,6 +355,10 @@ constexpr int price(Item item)
   case Item::Sword:
     return 25;
 
+  case Item::FreeHealthPotion:
+    return 0;
+  case Item::FreeManaPotion:
+    return 0;
   case Item::HealthPotion:
     return 10;
   case Item::ManaPotion:
@@ -399,6 +407,8 @@ constexpr int price(Item item)
 
   case Item::PrayerBead:
   case Item::EnchantedPrayerBead:
+    return -1; // cannot be transmuted
+
   case Item::Skullpicker:
   case Item::Wereward:
   case Item::Gloat:
@@ -508,31 +518,24 @@ constexpr int conversionPointsInitial(Item item)
   case Item::Sword:
     return 35;
 
+  case Item::FreeHealthPotion:
+  case Item::FreeManaPotion:
   case Item::HealthPotion:
-    return 10;
   case Item::ManaPotion:
-    return 10;
   case Item::FortitudeTonic:
-    return 10;
   case Item::BurnSalve:
-    return 10;
   case Item::StrengthPotion:
-    return 10;
   case Item::Schadenfreude:
-    return 10;
   case Item::QuicksilverPotion:
-    return 10;
   case Item::ReflexPotion:
-    return 10;
   case Item::CanOfWhupaz:
     return 10;
 
   case Item::CompressionSeal:
-    return 5;
   case Item::TransmutationSeal:
-    return 5;
   case Item::TranslocationSeal:
     return 5;
+
   case Item::ShopScroll:
     return 20;
   case Item::PatchesTheTeddy:
@@ -575,9 +578,10 @@ constexpr int conversionPointsInitial(Item item)
 
 constexpr bool isPotion(Item item)
 {
-  return item == Item::HealthPotion || item == Item::ManaPotion || item == Item::FortitudeTonic ||
-         item == Item::BurnSalve || item == Item::StrengthPotion || item == Item::Schadenfreude ||
-         item == Item::QuicksilverPotion || item == Item::ReflexPotion || item == Item::CanOfWhupaz;
+  return item == Item::FreeHealthPotion || item == Item::FreeManaPotion || item == Item::HealthPotion ||
+         item == Item::ManaPotion || item == Item::FortitudeTonic || item == Item::BurnSalve ||
+         item == Item::StrengthPotion || item == Item::Schadenfreude || item == Item::QuicksilverPotion ||
+         item == Item::ReflexPotion || item == Item::CanOfWhupaz;
 }
 
 constexpr bool isSmall(Item item)
