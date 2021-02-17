@@ -145,9 +145,11 @@ public:
   void clearInventory();
 
   // Inventory management
-  std::vector<Inventory::Entry> getItems() const;
-  std::vector<Inventory::Entry> getSpells() const;
   const std::vector<Inventory::Entry>& getItemsAndSpells() const;
+  std::vector<std::pair<Item, int>> getItemCounts() const;
+  std::vector<std::pair<Spell, int>> getSpellCounts() const;
+  std::vector<std::pair<Inventory::Entry, int>> getItemsGrouped() const;
+  std::vector<Inventory::Entry> getSpells() const;
   bool has(ItemOrSpell itemOrSpell) const;
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
   bool canAfford(Item item) const;

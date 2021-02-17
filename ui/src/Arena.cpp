@@ -84,10 +84,9 @@ void Arena::runCastPopup(const State& state)
     ImGui::Text("Spells");
     ImGui::Separator();
     int index = -1;
-    for (const auto& entry : state.hero.getSpells())
+    for (const auto& [spell, _] : state.hero.getSpellCounts())
     {
       const bool isSelected = ++index == selectedPopupItem;
-      const auto spell = std::get<Spell>(entry.itemOrSpell);
       const bool possible = (withMonster && Magic::isPossible(state.hero, *state.monster(), spell)) ||
                             (!withMonster && !Magic::needsMonster(spell) && Magic::isPossible(state.hero, spell));
       const int costs = Magic::spellCosts(spell, state.hero);
@@ -98,7 +97,7 @@ void Arena::runCastPopup(const State& state)
         continue;
       }
       const std::string historyTitle = "Cast "s + toString(spell);
-      auto cast = [spell, withMonster](State& state) {
+      auto cast = [spell=spell, withMonster](State& state) {
         if (withMonster)
           return Magic::cast(state.hero, *state.monster(), state.monsterPool, spell);
         Magic::cast(state.hero, spell, state.monsterPool);
@@ -124,19 +123,18 @@ void Arena::runUseItemPopup(const State& state)
   if (ImGui::BeginPopup("UseItemPopup"))
   {
     int index = -1;
-    for (const auto& entry : state.hero.getItems())
+    for (const auto& [item, count] : state.hero.getItemCounts())
     {
       const bool isSelected = ++index == selectedPopupItem;
-      const auto item = std::get<Item>(entry.itemOrSpell);
       const std::string historyTitle = "Use "s + toString(item);
       std::string label = toString(item);
-      if (entry.count > 1)
-        label += " (x" + std::to_string(entry.count) + ")";
+      if (count > 1)
+        label += " (x" + std::to_string(count) + ")";
       if (state.hero.canUse(item))
       {
         if (addPopupAction(
                 state, std::move(label), historyTitle,
-                [item](State& state) {
+                [item=item](State& state) {
                   state.hero.use(item, state.monsterPool);
                   return Summary::None;
                 },
@@ -147,7 +145,7 @@ void Arena::runUseItemPopup(const State& state)
       {
         if (addPopupAction(
                 state, std::move(label), historyTitle,
-                [item](State& state) {
+                [item=item](State& state) {
                   state.hero.use(item, *state.monster(), state.monsterPool);
                   return Summary::None;
                 },
@@ -203,13 +201,13 @@ void Arena::runConvertItemPopup(const State& state)
     ImGui::Text("Items");
     ImGui::Separator();
     int index = -1;
-    for (const auto& entry : state.hero.getItems())
+    for (const auto& [itemEntry, count] : state.hero.getItemsGrouped())
     {
       const bool isSelected = ++index == selectedPopupItem;
-      const auto item = std::get<Item>(entry.itemOrSpell);
-      if (entry.conversionPoints >= 0)
+      const auto item = std::get<Item>(itemEntry.itemOrSpell);
+      if (itemEntry.conversionPoints >= 0)
       {
-        const std::string label = toString(item) + " ("s + std::to_string(entry.conversionPoints) + " CP)";
+        const std::string label = toString(item) + " ("s + std::to_string(itemEntry.conversionPoints) + " CP)";
         const std::string historyTitle = "Convert " + label;
         if (addPopupAction(
                 state, label, historyTitle,

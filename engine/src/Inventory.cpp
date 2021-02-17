@@ -24,28 +24,14 @@ Inventory::Inventory(int numSlots, int spellConversionPoints, bool spellsSmall, 
 
 void Inventory::add(ItemOrSpell itemOrSpell)
 {
-  int conversionPoints = spellConversionPoints;
-
-  if (auto item = std::get_if<Item>(&itemOrSpell))
-  {
-    conversionPoints = conversionPointsInitial(*item);
-    if (canGroup(*item))
-    {
-      auto it = find(*item);
-      if (it != end(entries))
-      {
-        it->count++;
-        return;
-      }
-    }
-  }
-
-  entries.emplace_back(Entry{itemOrSpell, isInitiallySmall(itemOrSpell), 1, conversionPoints});
+  const auto item = std::get_if<Item>(&itemOrSpell);
+  int conversionPoints = item ? conversionPointsInitial(*item) : spellConversionPoints;
+  entries.emplace_back(Entry{itemOrSpell, isInitiallySmall(itemOrSpell), conversionPoints});
 }
 
 void Inventory::addFree(Spell spell)
 {
-  entries.emplace_back(Entry{spell, isInitiallySmall(spell), 1, 0});
+  entries.emplace_back(Entry{spell, isInitiallySmall(spell), 0});
 }
 
 bool Inventory::has(ItemOrSpell itemOrSpell) const
@@ -75,20 +61,16 @@ std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell i
   int conversionPoints = it->conversionPoints;
   if (conversionPoints < 0)
     return std::nullopt;
-  it->count--;
-  if (it->count <= 0)
+  entries.erase(it);
+  if (magicAffinity && itemOrSpell.index() == 1)
   {
-    entries.erase(it);
-    if (magicAffinity && itemOrSpell.index() == 1)
+    // All remaining spells donate 10 of their conversion points
+    for (auto& entry : entries)
     {
-      // All remaining spells donate 10 of their conversion points
-      for (auto& entry : entries)
+      if (entry.itemOrSpell.index() == 1 && entry.conversionPoints >= 10)
       {
-        if (entry.itemOrSpell.index() == 1 && entry.conversionPoints >= 10)
-        {
-          entry.conversionPoints -= 10;
-          conversionPoints += 10;
-        }
+        entry.conversionPoints -= 10;
+        conversionPoints += 10;
       }
     }
   }
@@ -100,9 +82,7 @@ bool Inventory::remove(ItemOrSpell itemOrSpell)
   auto it = find(itemOrSpell);
   if (it == end(entries))
     return false;
-  it->count--;
-  if (it->count <= 0)
-    entries.erase(it);
+  entries.erase(it);
   return true;
 }
 
@@ -122,8 +102,9 @@ namespace
 
 int Inventory::numFreeSmallSlots() const
 {
-  const int roomTaken = std::transform_reduce(begin(entries), end(entries), 0, std::plus<>(),
-                                              [](auto& entry) { return entry.isSmall ? 1 : LargeItemSize; });
+  int roomTaken = getSpells().size();
+  for (const auto& [entry, _] : getItemsGrouped())
+    roomTaken += entry.isSmall ? 1 : LargeItemSize;
   return numSlots * LargeItemSize - roomTaken;
 }
 
@@ -144,7 +125,6 @@ bool Inventory::compress(ItemOrSpell itemOrSpell)
                             [&itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell && !entry.isSmall; });
   if (entry == end(entries))
     return false;
-  assert(entry->count == 1 /* only small items can be stacked */);
   entry->isSmall = true;
   return true;
 }
@@ -226,13 +206,35 @@ int Inventory::enchantPrayerBeads()
   return count;
 }
 
-auto Inventory::getItems() const -> std::vector<Entry>
+auto Inventory::getItemsAndSpells() const -> const std::vector<Entry>&
 {
-  std::vector<Entry> items(entries.size());
-  auto it = std::copy_if(begin(entries), end(entries), begin(items),
-                         [](const auto& entry) { return entry.itemOrSpell.index() == 0; });
-  items.erase(it, end(items));
-  return items;
+  return entries;
+}
+
+auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, int>>
+{
+  std::vector<std::pair<Entry, int>> itemsGrouped;
+  for (const auto& entry : entries)
+  {
+    const auto item = std::get_if<Item>(&entry.itemOrSpell);
+    if (!item)
+      continue;
+    auto pairToUpdate = [&itemsGrouped, item = *item] {
+      if (!canGroup(item))
+        return end(itemsGrouped);
+      return std::find_if(begin(itemsGrouped), end(itemsGrouped), [item = ItemOrSpell{item}](const auto& groupedEntry) {
+        return groupedEntry.first.itemOrSpell == item;
+      });
+    }();
+    if (pairToUpdate == end(itemsGrouped))
+      itemsGrouped.emplace_back(entry, 1);
+    else
+    {
+      pairToUpdate->first.conversionPoints = std::max(pairToUpdate->first.conversionPoints, entry.conversionPoints);
+      ++pairToUpdate->second;
+    }
+  }
+  return itemsGrouped;
 }
 
 auto Inventory::getSpells() const -> std::vector<Entry>
@@ -244,9 +246,46 @@ auto Inventory::getSpells() const -> std::vector<Entry>
   return spells;
 }
 
-auto Inventory::getItemsAndSpells() const -> const std::vector<Entry>&
+namespace
 {
-  return entries;
+  template <class T>
+  std::vector<std::pair<T, int>> getEntryCountsOrdered(const std::vector<Inventory::Entry>& entries)
+  {
+    std::map<T, int> counts;
+    std::vector<T> filteredEntries;
+    for (const auto& entry : entries)
+    {
+      const auto filtered = std::get_if<T>(&entry.itemOrSpell);
+      if (filtered)
+      {
+        ++counts[*filtered];
+        filteredEntries.emplace_back(*filtered);
+      }
+    }
+    std::vector<std::pair<T, int>> result;
+    result.reserve(counts.size());
+    for (const auto& entry : filteredEntries)
+    {
+      auto& count = counts[entry];
+      if (count > 0)
+      {
+        result.emplace_back(std::pair{entry, count});
+        count = 0;
+      }
+    }
+    assert(result.size() == counts.size());
+    return result;
+  }
+} // namespace
+
+std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
+{
+  return getEntryCountsOrdered<Item>(entries);
+}
+
+std::vector<std::pair<Spell, int>> Inventory::getSpellCounts() const
+{
+  return getEntryCountsOrdered<Spell>(entries);
 }
 
 auto Inventory::find(ItemOrSpell itemOrSpell) -> std::vector<Entry>::iterator

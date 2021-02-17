@@ -98,18 +98,16 @@ namespace solver
       case 1:
         if (!spells)
         {
-          const auto spellEntries = state.hero.getSpells();
-          spells.emplace(spellEntries.size());
-          std::transform(begin(spellEntries), end(spellEntries), begin(*spells),
-                         [](const auto& entry) { return std::get<Spell>(entry.itemOrSpell); });
-          std::shuffle(begin(*spells), end(*spells), generator);
-          const auto spellIt = std::find_if(begin(*spells), end(*spells),
-                                            [&hero = state.hero, &monster = state.monsters.front()](const Spell spell) {
+          auto spellCounts = state.hero.getSpellCounts();
+          std::shuffle(begin(spellCounts), end(spellCounts), generator);
+          const auto spellIt = std::find_if(begin(spellCounts), end(spellCounts),
+                                            [&hero = state.hero, &monster = state.monsters.front()](const auto& spellCount) {
+                                              const Spell spell = spellCount.first;
                                               return Magic::isPossible(hero, monster, spell) ||
                                                      (!Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
                                             });
-          if (spellIt != end(*spells))
-            return Cast{*spellIt};
+          if (spellIt != end(spellCounts))
+            return Cast{spellIt->first};
         }
         break;
       case 2:
@@ -133,15 +131,12 @@ namespace solver
       case 4:
         if (!items)
         {
-          const auto itemEntries = state.hero.getItems();
-          items.emplace(itemEntries.size());
-          std::transform(begin(itemEntries), end(itemEntries), begin(*items),
-                         [](const auto& entry) { return std::get<Item>(entry.itemOrSpell); });
-          std::shuffle(begin(*items), end(*items), generator);
-          const auto itemIt = std::find_if(begin(*items), end(*items),
-                                           [&hero = state.hero](const Item item) { return hero.canUse(item); });
-          if (itemIt != end(*items))
-            return Use{*itemIt};
+          auto itemCounts = state.hero.getItemCounts();
+          std::shuffle(begin(itemCounts), end(itemCounts), generator);
+          const auto itemIt = std::find_if(begin(itemCounts), end(itemCounts),
+                                           [&hero = state.hero](const auto& itemCount) { return hero.canUse(itemCount.first); });
+          if (itemIt != end(itemCounts))
+            return Use{itemIt->first};
         }
         break;
       case 5:

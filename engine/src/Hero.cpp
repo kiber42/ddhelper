@@ -1015,29 +1015,35 @@ void Hero::clearInventory()
 {
   for (auto& entry : inventory.getItemsAndSpells())
   {
-    const auto item = std::get_if<Item>(&entry.itemOrSpell);
-    if (item)
-    {
-      for (int i = 0; i < entry.count; ++i)
-        changeStatsFromItem(*item, false);
-    }
+    if (auto item = std::get_if<Item>(&entry.itemOrSpell); item)
+      changeStatsFromItem(*item, false);
   }
   inventory.clear();
-}
-
-std::vector<Inventory::Entry> Hero::getItems() const
-{
-  return inventory.getItems();
-}
-
-std::vector<Inventory::Entry> Hero::getSpells() const
-{
-  return inventory.getSpells();
 }
 
 const std::vector<Inventory::Entry>& Hero::getItemsAndSpells() const
 {
   return inventory.getItemsAndSpells();
+}
+
+std::vector<std::pair<Item, int>> Hero::getItemCounts() const
+{
+  return inventory.getItemCounts();
+}
+
+std::vector<std::pair<Spell, int>> Hero::getSpellCounts() const
+{
+  return inventory.getSpellCounts();
+}
+
+std::vector<std::pair<Inventory::Entry, int>> Hero::getItemsGrouped() const
+{
+  return inventory.getItemsGrouped();
+}
+
+std::vector<Inventory::Entry> Hero::getSpells() const
+{
+  return inventory.getSpells();
 }
 
 bool Hero::has(ItemOrSpell itemOrSpell) const
