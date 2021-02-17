@@ -116,7 +116,7 @@ bool Inventory::hasRoomFor(ItemOrSpell itemOrSpell) const
     if (item && canGroup(*item))
       return true;
   }
-  return numFreeSmallSlots() >= isInitiallySmall(itemOrSpell) ? 1 : LargeItemSize;
+  return numFreeSmallSlots() >= (isInitiallySmall(itemOrSpell) ? 1 : LargeItemSize);
 }
 
 bool Inventory::compress(ItemOrSpell itemOrSpell)
