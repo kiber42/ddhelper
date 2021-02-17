@@ -129,6 +129,12 @@ int Inventory::numFreeSmallSlots() const
 
 bool Inventory::hasRoomFor(ItemOrSpell itemOrSpell) const
 {
+  if (has(itemOrSpell))
+  {
+    auto item = std::get_if<Item>(&itemOrSpell);
+    if (item && canGroup(*item))
+      return true;
+  }
   return numFreeSmallSlots() >= isInitiallySmall(itemOrSpell) ? 1 : LargeItemSize;
 }
 
