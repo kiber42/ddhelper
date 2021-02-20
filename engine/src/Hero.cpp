@@ -34,6 +34,12 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     experience = Experience(Experience::IsVeteran{});
   if (hasTrait(HeroTrait::Dangerous))
     stats = HeroStats(HeroStats::IsDangerous{});
+  if (hasTrait(HeroTrait::RegalSize))
+  {
+    stats = HeroStats(HeroStats::RegalSize{});
+    inventory = Inventory(6, 100, false, true);
+  }
+
   if (hasTrait(HeroTrait::PitDog))
     addStatus(HeroStatus::DeathProtection);
   if (hasTrait(HeroTrait::Mageslay))
@@ -95,6 +101,8 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     addStatus(HeroStatus::Sanguine, 5);
     addStatus(HeroStatus::LifeSteal, 1);
   }
+  if (hasTrait(HeroTrait::RegalHygiene))
+    addStatus(HeroStatus::CorrosiveStrike);
 
   if (hasTrait(HeroTrait::Defiant))
     inventory.add(Spell::Cydstepp);
@@ -697,7 +705,16 @@ void Hero::removeOneTimeAttackEffects()
 void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
 {
   stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
-  changeBaseDamage(hasTrait(HeroTrait::HandToHand) ? +3 : +5);
+  const int addedBaseDamage = [&] {
+    if (hasTrait(HeroTrait::HandToHand))
+      return 3;
+    else if (hasTrait(HeroTrait::RegalSize))
+      return 1;
+    return 5;
+  }();
+  changeBaseDamage(addedBaseDamage);
+  if (hasTrait(HeroTrait::RegalHygiene))
+    addStatus(HeroStatus::CorrosiveStrike);
   if (has(Item::Platemail))
     addStatus(HeroStatus::DamageReduction, 2);
   if (has(Item::MartyrWraps))
@@ -861,6 +878,8 @@ bool Hero::buy(Item item)
 {
   if (!spendGold(cost(item)))
     return false;
+  if (hasTrait(HeroTrait::RegalPerks))
+    healHitPoints(getHitPointsMax() / 2, true);
   receive(item);
   return true;
 }
@@ -1355,7 +1374,7 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
     break;
   case Item::TrollHeart:
     // Add 2 additional max HP on future level ups.
-    // Was not removed when coverting item in early versions.
+    // Was not removed when coverting item in early versions of the game.
     if (itemReceived)
     {
       stats.addHealthBonus(0);

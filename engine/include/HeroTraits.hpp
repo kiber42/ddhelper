@@ -53,7 +53,7 @@ enum class HeroTrait
   Preservatives,
   Prototype,
   RegalHygiene,
-  RegalPerks,
+  RegalPerks, // partially implemented, missing: shops are scouted
   RegalSize,
   Sanguine,
   SapphireLocks,

@@ -19,6 +19,17 @@ HeroStats::HeroStats(IsDangerous)
 {
 }
 
+HeroStats::HeroStats(RegalSize)
+  : hp(8)
+  , hpMax(8)
+  , mp(8)
+  , mpMax(8)
+  , baseDamage(1)
+  , damageBonusPercent(0)
+  , healthBonus(-2)
+{
+}
+
 HeroStats::HeroStats(int hpMax, int mpMax, int baseDamage)
   : hp(hpMax)
   , hpMax(hpMax)

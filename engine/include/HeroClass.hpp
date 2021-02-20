@@ -165,7 +165,7 @@ inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
   case HeroClass::Gorgon:
     // return {HeroTrait::AzureBody, HeroTrait::SapphireLocks, HeroTrait::AmethystStare};
   case HeroClass::RatMonarch:
-    // return {HeroTrait::RegalHygiene, HeroTrait::RegalPerks, HeroTrait::RegalSize};
+    return {HeroTrait::RegalHygiene, HeroTrait::RegalPerks, HeroTrait::RegalSize};
   case HeroClass::Goatperson:
     // return {HeroTrait::Scapegoat, HeroTrait::Prototype, HeroTrait::Herbivore};
     break;

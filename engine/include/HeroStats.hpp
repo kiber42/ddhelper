@@ -4,9 +4,11 @@ class HeroStats
 {
 public:
   struct IsDangerous {};
+  struct RegalSize {};
 
   HeroStats();
   HeroStats(IsDangerous);
+  HeroStats(RegalSize);
   HeroStats(int hpMax, int mpMax, int baseDamage);
 
   bool isDefeated() const;
