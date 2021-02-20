@@ -3,6 +3,7 @@
 #include "Combat.hpp"
 #include "Dungeon.hpp"
 #include "Hero.hpp"
+#include "Inventory.hpp"
 #include "Items.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
@@ -1037,7 +1038,89 @@ void testHeroTraits()
       hero.addConversionPoints(70, noOtherMonsters);
       AssertThat(hero.getManaPointsMax(), Equals(11));
       AssertThat(hero.getManaPoints(), Equals(0));
-      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(hero.getLevel() + hero.getManaPointsMax()));
+      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength),
+                 Equals(hero.getLevel() + hero.getManaPointsMax()));
+    });
+  });
+}
+
+void testInventory()
+{
+  describe("Inventory", [] {
+    it("shall have free health and mana potion by default", [] {
+      Inventory inv;
+      AssertThat(inv.has(Item::FreeHealthPotion), IsTrue());
+      AssertThat(inv.has(Item::FreeManaPotion), IsTrue());
+    });
+    it("shall have room for 30 small / 6 large items", [] {
+      Inventory inv;
+      AssertThat(inv.numFreeSmallSlots(), Equals(28));
+      inv.clear();
+      AssertThat(inv.numFreeSmallSlots(), Equals(30));
+      inv.add(Item::BadgeOfHonour);
+      AssertThat(inv.numFreeSmallSlots(), Equals(25));
+      inv.add(Item::BloodySigil);
+      inv.add(Item::FineSword);
+      inv.add(Item::PendantOfHealth);
+      inv.add(Item::PendantOfMana);
+      AssertThat(inv.numFreeSmallSlots(), Equals(5));
+      AssertThat(inv.hasRoomFor(Item::TowerShield), IsTrue());
+      inv.add(Item::Spoon);
+      AssertThat(inv.numFreeSmallSlots(), Equals(4));
+      AssertThat(inv.hasRoomFor(Item::MagePlate), IsFalse());
+      AssertThat(inv.hasRoomFor(Item::TowerShield), IsFalse());
+      AssertThat(inv.hasRoomFor(Item::DragonSoul), IsTrue());
+      inv.add(Item::Spoon);
+      inv.add(Item::HealthPotion);
+      inv.add(Item::DragonSoul);
+      inv.add(Item::CompressionSeal);
+      AssertThat(inv.numFreeSmallSlots(), Equals(0));
+    });
+    it("shall account for grouping", [] {
+      Inventory inv;
+      inv.clear();
+      inv.add(Item::HealthPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(29));
+      inv.add(Item::HealthPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(29));
+      inv.add(Item::HealthPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(29));
+    });
+    it("shall also consider free potions when asked for regular potions, but not the other way round", [] {
+      Inventory inv;
+      AssertThat(inv.has(Item::HealthPotion), IsTrue());
+      AssertThat(inv.has(Item::ManaPotion), IsTrue());
+      AssertThat(inv.has(Item::FreeHealthPotion), IsTrue());
+      AssertThat(inv.has(Item::FreeManaPotion), IsTrue());
+      inv.clear();
+      inv.add(Item::HealthPotion);
+      inv.add(Item::ManaPotion);
+      AssertThat(inv.has(Item::HealthPotion), IsTrue());
+      AssertThat(inv.has(Item::ManaPotion), IsTrue());
+      AssertThat(inv.has(Item::FreeHealthPotion), IsFalse());
+      AssertThat(inv.has(Item::FreeManaPotion), IsFalse());
+    });
+    it("shall group free and regular potions correctly", [] {
+      Inventory inv;
+      inv.add(Item::HealthPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(28));
+      inv.add(Item::FreeHealthPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(28));
+      inv.add(Item::ManaPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(28));
+      inv.add(Item::FreeManaPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(28));
+    });
+    it("shall consider all items as large for Rat Monarch", [] {
+      Hero hero(HeroClass::RatMonarch);
+      hero.receive(Item::FreeHealthPotion);
+      hero.receive(Item::DragonSoul);
+      hero.receive(Spell::Burndayraz);
+      hero.receive(Item::CompressionSeal);
+      AssertThat(hero.hasRoomFor(Item::BearMace), IsTrue());
+      hero.receive(Item::BearMace);
+      AssertThat(hero.hasRoomFor(Item::BearMace), IsFalse());
+      AssertThat(hero.hasRoomFor(Item::QuicksilverPotion), IsFalse());
     });
   });
 }
@@ -1285,6 +1368,7 @@ go_bandit([] {
   testMelee();
   testStatusEffects();
   testHeroTraits();
+  testInventory();
   testPotions();
   testFaith();
   testCombatInitiative();

@@ -20,8 +20,7 @@ class Monster;
 class Hero
 {
 public:
-  Hero();
-  Hero(HeroClass, HeroRace);
+  explicit Hero(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human);
   Hero(HeroStats, Defence, Experience);
 
   std::string getName() const;

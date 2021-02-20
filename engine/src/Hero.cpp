@@ -9,11 +9,6 @@
 #include <cassert>
 #include <utility>
 
-Hero::Hero()
-  : Hero(HeroClass::Guard, HeroRace::Human)
-{
-}
-
 Hero::Hero(HeroClass theClass, HeroRace race)
   : name(isMonsterClass(theClass) ? toString(theClass) : (toString(race) + std::string(" ") + toString(theClass)))
   , stats()
@@ -876,7 +871,7 @@ int Hero::cost(Item item) const
 
 bool Hero::buy(Item item)
 {
-  if (!spendGold(cost(item)))
+  if (!hasRoomFor(item) || !spendGold(cost(item)))
     return false;
   if (hasTrait(HeroTrait::RegalPerks))
     healHitPoints(getHitPointsMax() / 2, true);
