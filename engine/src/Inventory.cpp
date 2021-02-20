@@ -36,7 +36,9 @@ void Inventory::addFree(Spell spell)
 
 bool Inventory::has(ItemOrSpell itemOrSpell) const
 {
-  return find(itemOrSpell) != end(entries);
+  return find(itemOrSpell) != end(entries) ||
+         (itemOrSpell == ItemOrSpell{Item::HealthPotion} && find(Item::FreeHealthPotion) != end(entries)) ||
+         (itemOrSpell == ItemOrSpell{Item::ManaPotion} && find(Item::FreeManaPotion) != end(entries));
 }
 
 bool Inventory::canConvert(ItemOrSpell itemOrSpell) const
@@ -211,15 +213,59 @@ auto Inventory::getItemsAndSpells() const -> const std::vector<Entry>&
   return entries;
 }
 
+namespace
+{
+  struct FreePotionInfo
+  {
+    bool onlyFreeHealthPotions = true;
+    bool onlyFreeManaPotions = true;
+  };
+
+  FreePotionInfo checkFreePotions(const std::vector<Inventory::Entry>& entries)
+  {
+    FreePotionInfo result;
+    for (const auto& entry : entries)
+    {
+      const auto item = std::get_if<Item>(&entry.itemOrSpell);
+      if (!item)
+        continue;
+      if (*item == Item::HealthPotion)
+      {
+        if (result.onlyFreeHealthPotions)
+          result.onlyFreeHealthPotions = false;
+        if (!result.onlyFreeManaPotions)
+          break;
+      }
+      else if (*item == Item::ManaPotion)
+      {
+        result.onlyFreeManaPotions = false;
+        if (!result.onlyFreeHealthPotions)
+          break;
+      }
+    }
+    return result;
+  }
+} // namespace
+
 auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, int>>
 {
+  // Free and regular potion variants are grouped; regular variant takes precedence
+  auto replaceFreePotions = [info = checkFreePotions(entries)](Item item) {
+    if (item == Item::FreeHealthPotion && !info.onlyFreeHealthPotions)
+      return Item::HealthPotion;
+    else if (item == Item::FreeManaPotion && !info.onlyFreeManaPotions)
+      return Item::ManaPotion;
+    return item;
+  };
+
   std::vector<std::pair<Entry, int>> itemsGrouped;
   for (const auto& entry : entries)
   {
-    const auto item = std::get_if<Item>(&entry.itemOrSpell);
-    if (!item)
+    const auto maybeItem = std::get_if<Item>(&entry.itemOrSpell);
+    if (!maybeItem)
       continue;
-    auto pairToUpdate = [&itemsGrouped, item = *item] {
+    const Item item = replaceFreePotions(*maybeItem);
+    auto pairToUpdate = [&itemsGrouped, item] {
       if (!canGroup(item))
         return end(itemsGrouped);
       return std::find_if(begin(itemsGrouped), end(itemsGrouped), [item = ItemOrSpell{item}](const auto& groupedEntry) {
@@ -227,10 +273,15 @@ auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, int>>
       });
     }();
     if (pairToUpdate == end(itemsGrouped))
-      itemsGrouped.emplace_back(entry, 1);
+    {
+      auto newEntry = entry;
+      newEntry.itemOrSpell = ItemOrSpell{item};
+      itemsGrouped.emplace_back(newEntry, 1);
+    }
     else
     {
-      pairToUpdate->first.conversionPoints = std::max(pairToUpdate->first.conversionPoints, entry.conversionPoints);
+      auto& itemToUpdate = pairToUpdate->first;
+      itemToUpdate.conversionPoints = std::max(itemToUpdate.conversionPoints, entry.conversionPoints);
       ++pairToUpdate->second;
     }
   }
