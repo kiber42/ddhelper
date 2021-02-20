@@ -1102,6 +1102,14 @@ void testInventory()
     });
     it("shall group free and regular potions correctly", [] {
       Inventory inv;
+      {
+        const auto itemsGrouped = inv.getItemsGrouped();
+        AssertThat(itemsGrouped.size(), Equals(2u));
+        AssertThat(itemsGrouped.front().first.itemOrSpell, Equals(ItemOrSpell{Item::FreeHealthPotion}));
+        AssertThat(itemsGrouped.front().second, Equals(1));
+        AssertThat(itemsGrouped.back().first.itemOrSpell, Equals(ItemOrSpell{Item::FreeManaPotion}));
+        AssertThat(itemsGrouped.back().second, Equals(1));
+      }
       inv.add(Item::HealthPotion);
       AssertThat(inv.numFreeSmallSlots(), Equals(28));
       inv.add(Item::FreeHealthPotion);
@@ -1110,6 +1118,50 @@ void testInventory()
       AssertThat(inv.numFreeSmallSlots(), Equals(28));
       inv.add(Item::FreeManaPotion);
       AssertThat(inv.numFreeSmallSlots(), Equals(28));
+      {
+        const auto itemsGrouped = inv.getItemsGrouped();
+        AssertThat(itemsGrouped.size(), Equals(2u));
+        AssertThat(itemsGrouped.front().first.itemOrSpell, Equals(ItemOrSpell{Item::HealthPotion}));
+        AssertThat(itemsGrouped.front().second, Equals(3));
+        AssertThat(itemsGrouped.back().first.itemOrSpell, Equals(ItemOrSpell{Item::ManaPotion}));
+        AssertThat(itemsGrouped.back().second, Equals(3));
+      }
+    });
+    it("shall treat spells as small for Wizards", [] {
+      Hero hero(HeroClass::Wizard);
+      AssertThat(hero.has(Spell::Burndayraz), IsTrue());
+      hero.receiveFreeSpell(Spell::Apheelsik);
+      hero.receive(Spell::Apheelsik);
+      hero.receive(Spell::Bludtupowa);
+      hero.receiveFreeSpell(Spell::Burndayraz);
+      hero.receive(Spell::Bysseps);
+      hero.receive(Spell::Cydstepp);
+      hero.receive(Spell::Endiswal);
+      hero.receive(Spell::Getindare);
+      hero.receive(Spell::Halpmeh);
+      hero.receive(Spell::Imawal);
+      hero.receive(Spell::Lemmisi);
+      hero.receive(Spell::Pisorf);
+      hero.receive(Spell::Weytwut);
+      hero.receive(Spell::Wonafyt);
+      hero.receiveFreeSpell(Spell::Wonafyt);
+      hero.receive(Spell::Wonafyt);
+      AssertThat(hero.getItemsAndSpells().size(), Equals(19u));
+      AssertThat(hero.getSpells().size(), Equals(17u));
+      AssertThat(hero.getItemCounts().size(), Equals(2u));
+      const auto spellCounts = hero.getSpellCounts();
+      AssertThat(spellCounts.size(), Equals((unsigned)Spell::Last + 1));
+      AssertThat(spellCounts.back().first, Equals(Spell::Wonafyt));
+      AssertThat(spellCounts.back().second, Equals(3));
+      AssertThat(hero.hasRoomFor(Item::KegOfMana), IsTrue());
+      hero.receive(Item::KegOfMana);
+      AssertThat(hero.hasRoomFor(Item::WickedGuitar), IsTrue());
+      hero.receive(Item::WickedGuitar);
+      AssertThat(hero.hasRoomFor(Item::OrbOfZot), IsFalse());
+      AssertThat(hero.hasRoomFor(Item::QuicksilverPotion), IsTrue());
+      hero.receive(Item::QuicksilverPotion);
+      AssertThat(hero.hasRoomFor(Item::QuicksilverPotion), IsTrue());
+      AssertThat(hero.hasRoomFor(Item::ReflexPotion), IsFalse());
     });
     it("shall consider all items as large for Rat Monarch", [] {
       Hero hero(HeroClass::RatMonarch);
