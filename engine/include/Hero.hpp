@@ -164,6 +164,7 @@ public:
   bool useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters);
   bool useTransmutationSealOnPetrifiedEnemy();
   bool useTransmutationSealOnWallOrPetrifiedPlant();
+  bool useTranslocationSealOn(Item shopItem);
 
   int getConversionPoints() const;
   int getConversionThreshold() const;

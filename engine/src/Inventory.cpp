@@ -131,6 +131,12 @@ bool Inventory::compress(ItemOrSpell itemOrSpell)
   return true;
 }
 
+bool Inventory::translocate(Item shopItem)
+{
+  entries.emplace_back(Entry{shopItem, isInitiallySmall(shopItem), conversionPointsInitial(shopItem) / 2});
+  return true;
+}
+
 void Inventory::clear()
 {
   entries.clear();

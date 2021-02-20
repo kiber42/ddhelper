@@ -1339,6 +1339,16 @@ bool Hero::useTransmutationSealOnWallOrPetrifiedPlant()
   return false;
 }
 
+bool Hero::useTranslocationSealOn(Item shopItem)
+{
+  if (has(Item::TranslocationSeal))
+  {
+    lose(Item::TranslocationSeal);
+    return inventory.translocate(shopItem);
+  }
+  return false;
+}
+
 void Hero::changeStatsFromItem(Item item, bool itemReceived)
 {
   // Apply passive item effects on hero status

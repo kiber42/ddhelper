@@ -53,6 +53,9 @@ public:
   // Mark an item or spell as small.  Returns false if no matching normal-sized entry was found in inventory.
   bool compress(ItemOrSpell itemOrSpell);
 
+  // Add item obtained using a Translocation Seal, i.e. with half its usual conversion points (rounded down)
+  bool translocate(Item itemOrSpell);
+
   // Remove all items and spells from inventory
   void clear();
 
