@@ -15,83 +15,87 @@ Inventory::Inventory(
   , spellsSmall(spellsSmall)
   , allItemsLarge(allItemsLarge)
   , negotiator(hasNegotiatorTrait)
-  , numFreeHealthPotions(1)
-  , numFreeManaPotions(1)
   , fireHeartCharge(0)
   , crystalBallCharge(10)
   , crystalBallCosts(4)
   , triswordDamage(2)
 {
-  add(Item::HealthPotion);
-  add(Item::ManaPotion);
+  addFree(Item::HealthPotion);
+  addFree(Item::ManaPotion);
 }
 
 void Inventory::add(ItemOrSpell itemOrSpell)
 {
-  bool smallItem;
-  int conversionPoints;
-  if (const auto item = std::get_if<Item>(&itemOrSpell))
-  {
-    smallItem = isSmall(*item) && !allItemsLarge;
-    conversionPoints = conversionPointsInitial(*item);
-  }
-  else
-  {
-    smallItem = spellsSmall && !allItemsLarge;
-    conversionPoints = spellConversionPoints;
-  }
-  entries.emplace_back(Entry{itemOrSpell, smallItem, conversionPoints});
+  const auto [smallItem, price, conversionPoints] = [&, item = std::get_if<Item>(&itemOrSpell)] {
+    if (item)
+      return std::tuple{isSmall(*item) && !allItemsLarge, buyingPrice(*item), conversionPointsInitial(*item)};
+    else
+      return std::tuple{spellsSmall && !allItemsLarge, 0, spellConversionPoints};
+  }();
+  entries.emplace_back(Entry{itemOrSpell, smallItem, price, conversionPoints});
+}
+
+void Inventory::addFree(Item item)
+{
+  entries.emplace_back(Entry{ItemOrSpell{item}, isSmall(item) && !allItemsLarge, 0, conversionPointsInitial(item)});
 }
 
 void Inventory::addFree(Spell spell)
 {
-  entries.emplace_back(Entry{spell, spellsSmall && !allItemsLarge, 0});
+  entries.emplace_back(Entry{spell, spellsSmall && !allItemsLarge, 0, 0});
 }
 
 bool Inventory::has(ItemOrSpell itemOrSpell) const
 {
-  return find(itemOrSpell) != end(entries);
+  return std::find_if(begin(entries), end(entries),
+                      [itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell; }) != end(entries);
 }
 
 bool Inventory::canConvert(ItemOrSpell itemOrSpell) const
 {
-  const auto it = find(itemOrSpell);
-  return it != end(entries) && it->conversionPoints >= 0;
+  return getConversionPoints(itemOrSpell).has_value();
 }
 
 std::optional<int> Inventory::getConversionPoints(ItemOrSpell itemOrSpell) const
 {
-  const auto it = find(itemOrSpell);
-  if (it == end(entries) || it->conversionPoints < 0)
+  const auto it = std::find_if(begin(entries), end(entries), [itemOrSpell](auto& entry) {
+    return entry.itemOrSpell == itemOrSpell && entry.conversionPoints >= 0;
+  });
+  if (it == end(entries))
     return std::nullopt;
   return it->conversionPoints;
 }
 
 std::optional<std::pair<int, bool>> Inventory::removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale)
 {
-  auto it = find(itemOrSpell);
-  if (it == end(entries))
-    return {};
-  const int conversionPoints = it->conversionPoints;
-  if (forConversion && conversionPoints < 0)
-    return {};
-  const bool wasSmall = it->isSmall;
-  // Prices of initial potions are special. Prefer removing the cheaper versions from inventory, except when selling.
-  if (const auto item = std::get_if<Item>(&itemOrSpell); item)
+  std::vector<Entry>::iterator toRemove = end(entries);
+  for (auto it = begin(entries); it != end(entries); ++it)
   {
-    if (*item == Item::HealthPotion)
+    if (it->itemOrSpell == itemOrSpell && (!forConversion || it->conversionPoints >= 0))
     {
-      if (numFreeHealthPotions > 0 && (!forSale || onlyHaveFreeHealthPotions()))
-        --numFreeHealthPotions;
-    }
-    else if (*item == Item::ManaPotion)
-    {
-      if (numFreeManaPotions > 0 && (!forSale || onlyHaveFreeManaPotions()))
-        --numFreeManaPotions;
+      // When selling, prefer highest price (secondary: lowest CP);
+      // when converting, prefer highest CP (secondary: lowest price),
+      // otherwise prefer lowest CP (secondary: lowest price).
+      const bool select = [&] {
+        if (toRemove == end(entries))
+          return true;
+        const int deltaPrice = it->price - toRemove->price;
+        const int deltaCP = it->conversionPoints - toRemove->conversionPoints;
+        if (forSale)
+          return deltaPrice > 0 || (deltaPrice == 0 && deltaCP < 0);
+        if (forConversion)
+          return deltaCP > 0 || (deltaCP == 0 && deltaPrice < 0);
+        return deltaCP < 0 || (deltaCP == 0 && deltaPrice < 0);
+      }();
+      if (select)
+        toRemove = it;
     }
   }
-  entries.erase(it);
-  return {{conversionPoints, wasSmall}};
+  if (toRemove == end(entries))
+    return {};
+  std::pair result = {toRemove->conversionPoints, toRemove->isSmall};
+  entries.erase(toRemove);
+  return {std::move(result)};
 }
 
 std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell itemOrSpell, bool magicAffinity)
@@ -114,7 +118,7 @@ std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell i
 
 bool Inventory::remove(ItemOrSpell itemOrSpell)
 {
-  return bool(removeImpl(itemOrSpell, false, false));
+  return removeImpl(itemOrSpell, false, false).has_value();
 }
 
 int Inventory::buyingPrice(Item item) const
@@ -125,20 +129,15 @@ int Inventory::buyingPrice(Item item) const
   return std::max(1, thePrice - 5);
 }
 
-int Inventory::sellingPrice(Item item) const
+int Inventory::sellingPrice(ItemOrSpell itemOrSpell) const
 {
-  const auto thePrice = buyingPrice(item);
-  if (item == Item::HealthPotion)
+  int highestPrice = -1;
+  for (const auto& entry : entries)
   {
-    if (numFreeHealthPotions > 0 && onlyHaveFreeHealthPotions())
-      return 0;
+    if (entry.itemOrSpell == itemOrSpell && entry.price > highestPrice)
+      highestPrice = entry.price;
   }
-  else if (item == Item::ManaPotion)
-  {
-    if (numFreeManaPotions > 0 && onlyHaveFreeManaPotions())
-      return 0;
-  }
-  return thePrice;
+  return highestPrice;
 }
 
 namespace
@@ -194,15 +193,14 @@ bool Inventory::transmute(ItemOrSpell itemOrSpell)
 bool Inventory::translocate(Item shopItem)
 {
   assert(!isPotion(shopItem));
-  entries.emplace_back(Entry{shopItem, isSmall(shopItem) && !allItemsLarge, conversionPointsInitial(shopItem) / 2});
+  entries.emplace_back(Entry{ItemOrSpell{shopItem}, isSmall(shopItem) && !allItemsLarge, price(shopItem),
+                             conversionPointsInitial(shopItem) / 2});
   return true;
 }
 
 void Inventory::clear()
 {
   entries.clear();
-  numFreeHealthPotions = 0;
-  numFreeManaPotions = 0;
 }
 
 void Inventory::chargeFireHeart()
@@ -359,38 +357,6 @@ std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
 std::vector<std::pair<Spell, int>> Inventory::getSpellCounts() const
 {
   return getEntryCountsOrdered<Spell>(entries);
-}
-
-auto Inventory::find(ItemOrSpell itemOrSpell) -> std::vector<Entry>::iterator
-{
-  return std::find_if(begin(entries), end(entries),
-                      [itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell; });
-}
-
-auto Inventory::find(ItemOrSpell itemOrSpell) const -> std::vector<Entry>::const_iterator
-{
-  return std::find_if(begin(entries), end(entries),
-                      [itemOrSpell](auto& entry) { return entry.itemOrSpell == itemOrSpell; });
-}
-
-bool Inventory::onlyHaveFreeHealthPotions() const
-{
-  const int numHealthPotions =
-      std::count_if(begin(entries), end(entries), [search = ItemOrSpell{Item::HealthPotion}](const Entry& entry) {
-        return entry.itemOrSpell == search;
-      });
-  assert(numHealthPotions >= numFreeHealthPotions);
-  return numHealthPotions == numFreeHealthPotions;
-}
-
-bool Inventory::onlyHaveFreeManaPotions() const
-{
-  const int numManaPotions =
-      std::count_if(begin(entries), end(entries), [search = ItemOrSpell{Item::ManaPotion}](const Entry& entry) {
-        return entry.itemOrSpell == search;
-      });
-  assert(numManaPotions >= numFreeManaPotions);
-  return numManaPotions == numFreeManaPotions;
 }
 
 template <class... Ts>

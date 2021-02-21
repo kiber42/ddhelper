@@ -23,7 +23,9 @@ public:
 
   // Add item or spell to inventory (currently this does not check space requirements)
   void add(ItemOrSpell itemOrSpell);
-  // Add spell to inventory, set its conversion value to 0
+  // Add item to inventory, set its selling price to 0 (conversion points are unchanged)
+  void addFree(Item item);
+  // Add spell to inventory, set its conversion value to 0 (price is always 0)
   void addFree(Spell spell);
 
   bool has(ItemOrSpell itemOrSpell) const;
@@ -45,10 +47,8 @@ public:
   // Return the shop price of an item; can differ from the regular price for negotiator.
   int buyingPrice(Item item) const;
 
-  // Return the price of an item when "selling" it (by using a transmutation scroll)
-  // Prices of initial potions are special: the health and mana potions are always free, other initial potions have
-  // their full price even when playing a Tinker (there is currently no support for non-free initial potions).
-  int sellingPrice(Item item) const;
+  // Return the price of an item when "selling" it (by using a transmutation scroll). Spell prices are always 0.
+  int sellingPrice(ItemOrSpell itemOrSpell) const;
 
   // Return number of free small inventory slots
   int numFreeSmallSlots() const;
@@ -89,6 +89,7 @@ public:
   {
     ItemOrSpell itemOrSpell;
     bool isSmall;
+    int price;
     int conversionPoints;
   };
 
@@ -109,19 +110,12 @@ private:
   std::vector<Entry> entries;
 
   std::optional<std::pair<int, bool>> removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale);
-  std::vector<Entry>::iterator find(ItemOrSpell itemOrSpell);
-  std::vector<Entry>::const_iterator find(ItemOrSpell itemOrSpell) const;
-
-  bool onlyHaveFreeHealthPotions() const;
-  bool onlyHaveFreeManaPotions() const;
 
   int numSlots;
   int spellConversionPoints;
   bool spellsSmall;
   bool allItemsLarge;
   bool negotiator;
-  int numFreeHealthPotions;
-  int numFreeManaPotions;
 
   int fireHeartCharge;
   int crystalBallCharge;

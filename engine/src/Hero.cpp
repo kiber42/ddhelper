@@ -77,11 +77,11 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   }
   if (hasTrait(HeroTrait::Macguyver))
   {
-    inventory.add(Item::CompressionSeal);
-    inventory.add(Item::CompressionSeal);
-    inventory.add(Item::TransmutationSeal);
-    inventory.add(Item::TransmutationSeal);
-    inventory.add(Item::TranslocationSeal);
+    inventory.addFree(Item::CompressionSeal);
+    inventory.addFree(Item::CompressionSeal);
+    inventory.addFree(Item::TransmutationSeal);
+    inventory.addFree(Item::TransmutationSeal);
+    inventory.addFree(Item::TranslocationSeal);
   }
   if (hasTrait(HeroTrait::Undead))
   {
