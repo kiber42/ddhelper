@@ -300,6 +300,10 @@ void Arena::runShopPopup(const State& state)
       ImGui::TextUnformatted("No shops");
     int index = 0;
     bool havePotionShop = false;
+    if (state.hero.has(Item::TranslocationSeal))
+      ImGui::Checkbox("Use Translocation Seal", &useTranslocationSeal);
+    else
+      useTranslocationSeal = false;
     for (size_t itemIndex = 0u; itemIndex < state.resources.shops.size(); ++itemIndex)
     {
       const auto item = state.resources.shops[itemIndex];
@@ -311,9 +315,25 @@ void Arena::runShopPopup(const State& state)
       const bool isSelected = ++index == selectedPopupItem;
       const int price = state.hero.buyingPrice(item);
       const std::string label = toString(item) + " ("s + std::to_string(price) + " gold)";
-      const std::string historyTitle = "Buy " + label;
-      if (state.hero.gold() >= price)
+      if (useTranslocationSeal)
       {
+        const std::string historyTitle = "Translocate " + label;
+        if (addPopupAction(
+                state, label, historyTitle,
+                [item, itemIndex](State& state) {
+                  if (state.hero.useTranslocationSealOn(item))
+                  {
+                    auto& shops = state.resources.shops;
+                    shops.erase(begin(shops) + itemIndex);
+                  }
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+      else if (state.hero.gold() >= price)
+      {
+        const std::string historyTitle = "Buy " + label;
         if (addPopupAction(
                 state, label, historyTitle,
                 [item, itemIndex](State& state) {

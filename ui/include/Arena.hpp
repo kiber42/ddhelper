@@ -15,6 +15,7 @@ public:
 private:
   ArenaResult result;
   int selectedPopupItem;
+  bool useTranslocationSeal;
 
   void addAction(const State&, std::string title, const GameAction&, bool activated);
   void addActionButton(const State&, std::string title, const GameAction&);
