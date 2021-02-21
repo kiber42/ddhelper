@@ -43,11 +43,13 @@ void createToolTip(std::function<void()> createToolTipContents)
   ImGui::EndTooltip();
 }
 
-void disabledButton(const char* label)
+void disabledButton(const char* label, const char* tooltip)
 {
   ImGui::PushStyleColor(0, colorUnavailable);
   ImGui::Button(label);
   ImGui::PopStyleColor();
+  if (strlen(tooltip) && ImGui::IsItemHovered())
+    createToolTip([&] { ImGui::TextUnformatted(tooltip); });
 }
 
 void showStatus(const std::vector<std::string>& description)

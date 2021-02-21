@@ -24,7 +24,7 @@ const ImVec4& summaryColor(Summary, bool debuffed);
 const ImVec4& outcomeColor(const Outcome& outcome);
 
 void createToolTip(std::function<void()> createToolTipContents);
-void disabledButton(const char* label);
+void disabledButton(const char* label, const char* tooltip = "");
 
 void showStatus(const Hero&);
 void showStatus(const Monster&);
