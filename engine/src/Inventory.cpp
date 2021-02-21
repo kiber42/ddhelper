@@ -345,7 +345,25 @@ namespace
 
 std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
 {
-  return getEntryCountsOrdered<Item>(entries);
+  auto itemCounts = getEntryCountsOrdered<Item>(entries);
+  // If only free potions are present, adjust entry to show the free variant
+  if (numFreeHealthPotions > 0)
+  {
+    auto healthPotions = std::find_if(begin(itemCounts), end(itemCounts),
+                                      [](const auto& itemCount) { return itemCount.first == Item::HealthPotion; });
+    assert(healthPotions != end(itemCounts));
+    if (healthPotions->second == numFreeHealthPotions)
+      healthPotions->first = Item::FreeHealthPotion;
+  }
+  if (numFreeManaPotions > 0)
+  {
+    auto manaPotions = std::find_if(begin(itemCounts), end(itemCounts),
+                                    [](const auto& itemCount) { return itemCount.first == Item::ManaPotion; });
+    assert(manaPotions != end(itemCounts));
+    if (manaPotions->second == numFreeManaPotions)
+      manaPotions->first = Item::FreeManaPotion;
+  }
+  return itemCounts;
 }
 
 std::vector<std::pair<Spell, int>> Inventory::getSpellCounts() const
