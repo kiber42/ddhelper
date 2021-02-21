@@ -1133,6 +1133,8 @@ bool Hero::canUse(Item item) const
     return true;
 
   // Potions
+  case Item::FreeHealthPotion:
+  case Item::FreeManaPotion:
   case Item::HealthPotion:
   case Item::ManaPotion:
   case Item::FortitudeTonic:

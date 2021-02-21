@@ -391,16 +391,20 @@ ItemOrSpell Inventory::replaceFreePotions(ItemOrSpell itemOrSpell) const
 
 auto Inventory::find(ItemOrSpell itemOrSpell) -> std::vector<Entry>::iterator
 {
-  return std::find_if(begin(entries), end(entries), [itemOrSpell = replaceFreePotions(itemOrSpell)](auto& entry) {
-    return entry.itemOrSpell == itemOrSpell;
-  });
+  const auto revIt =
+      std::find_if(rbegin(entries), rend(entries), [itemOrSpell = replaceFreePotions(itemOrSpell)](auto& entry) {
+        return entry.itemOrSpell == itemOrSpell;
+      });
+  return revIt != rend(entries) ? std::prev(revIt.base()) : end(entries);
 }
 
 auto Inventory::find(ItemOrSpell itemOrSpell) const -> std::vector<Entry>::const_iterator
 {
-  return std::find_if(begin(entries), end(entries), [itemOrSpell = replaceFreePotions(itemOrSpell)](auto& entry) {
-    return entry.itemOrSpell == itemOrSpell;
-  });
+  const auto revIt =
+      std::find_if(rbegin(entries), rend(entries), [itemOrSpell = replaceFreePotions(itemOrSpell)](auto& entry) {
+        return entry.itemOrSpell == itemOrSpell;
+      });
+  return revIt != rend(entries) ? std::prev(revIt.base()) : end(entries);
 }
 
 template <class... Ts>
