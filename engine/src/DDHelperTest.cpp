@@ -1049,8 +1049,8 @@ void testInventory()
   describe("Inventory", [] {
     it("shall have free health and mana potion by default", [] {
       Inventory inv;
-      AssertThat(inv.has(Item::FreeHealthPotion), IsTrue());
-      AssertThat(inv.has(Item::FreeManaPotion), IsTrue());
+      AssertThat(inv.has(Item::HealthPotion), IsTrue());
+      AssertThat(inv.has(Item::ManaPotion), IsTrue());
     });
     it("shall have room for 30 small / 6 large items", [] {
       Inventory inv;
@@ -1085,47 +1085,6 @@ void testInventory()
       AssertThat(inv.numFreeSmallSlots(), Equals(29));
       inv.add(Item::HealthPotion);
       AssertThat(inv.numFreeSmallSlots(), Equals(29));
-    });
-    it("shall also consider free potions when asked for regular potions, but not the other way round", [] {
-      Inventory inv;
-      AssertThat(inv.has(Item::HealthPotion), IsTrue());
-      AssertThat(inv.has(Item::ManaPotion), IsTrue());
-      AssertThat(inv.has(Item::FreeHealthPotion), IsTrue());
-      AssertThat(inv.has(Item::FreeManaPotion), IsTrue());
-      inv.clear();
-      inv.add(Item::HealthPotion);
-      inv.add(Item::ManaPotion);
-      AssertThat(inv.has(Item::HealthPotion), IsTrue());
-      AssertThat(inv.has(Item::ManaPotion), IsTrue());
-      AssertThat(inv.has(Item::FreeHealthPotion), IsFalse());
-      AssertThat(inv.has(Item::FreeManaPotion), IsFalse());
-    });
-    it("shall group free and regular potions correctly", [] {
-      Inventory inv;
-      {
-        const auto itemsGrouped = inv.getItemsGrouped();
-        AssertThat(itemsGrouped.size(), Equals(2u));
-        AssertThat(itemsGrouped.front().first.itemOrSpell, Equals(ItemOrSpell{Item::FreeHealthPotion}));
-        AssertThat(itemsGrouped.front().second, Equals(1));
-        AssertThat(itemsGrouped.back().first.itemOrSpell, Equals(ItemOrSpell{Item::FreeManaPotion}));
-        AssertThat(itemsGrouped.back().second, Equals(1));
-      }
-      inv.add(Item::HealthPotion);
-      AssertThat(inv.numFreeSmallSlots(), Equals(28));
-      inv.add(Item::FreeHealthPotion);
-      AssertThat(inv.numFreeSmallSlots(), Equals(28));
-      inv.add(Item::ManaPotion);
-      AssertThat(inv.numFreeSmallSlots(), Equals(28));
-      inv.add(Item::FreeManaPotion);
-      AssertThat(inv.numFreeSmallSlots(), Equals(28));
-      {
-        const auto itemsGrouped = inv.getItemsGrouped();
-        AssertThat(itemsGrouped.size(), Equals(2u));
-        AssertThat(itemsGrouped.front().first.itemOrSpell, Equals(ItemOrSpell{Item::HealthPotion}));
-        AssertThat(itemsGrouped.front().second, Equals(3));
-        AssertThat(itemsGrouped.back().first.itemOrSpell, Equals(ItemOrSpell{Item::ManaPotion}));
-        AssertThat(itemsGrouped.back().second, Equals(3));
-      }
     });
     it("shall treat spells as large for most classes", [] {
       Hero hero(HeroClass::Sorcerer);
@@ -1176,14 +1135,17 @@ void testInventory()
     });
     it("shall consider all items as large for Rat Monarch", [] {
       Hero hero(HeroClass::RatMonarch);
-      hero.receive(Item::FreeHealthPotion);
       hero.receive(Item::DragonSoul);
       hero.receive(Spell::Burndayraz);
       hero.receive(Item::CompressionSeal);
       AssertThat(hero.hasRoomFor(Item::BearMace), IsTrue());
+      AssertThat(hero.hasRoomFor(Item::HealthPotion), IsTrue());
+      hero.receive(Item::HealthPotion);
+      AssertThat(hero.hasRoomFor(Item::BearMace), IsTrue());
       hero.receive(Item::BearMace);
       AssertThat(hero.hasRoomFor(Item::BearMace), IsFalse());
       AssertThat(hero.hasRoomFor(Item::QuicksilverPotion), IsFalse());
+      AssertThat(hero.hasRoomFor(Item::HealthPotion), IsTrue());
     });
   });
 }

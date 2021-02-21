@@ -52,8 +52,6 @@ enum class Item
   SlayerWand,
   Sword,
   // Potions
-  FreeHealthPotion,
-  FreeManaPotion,
   HealthPotion,
   ManaPotion,
   FortitudeTonic,
@@ -189,10 +187,8 @@ constexpr const char* toString(Item item)
   case Item::Sword:
     return "Sword";
 
-  case Item::FreeHealthPotion:
   case Item::HealthPotion:
     return "Health Potion";
-  case Item::FreeManaPotion:
   case Item::ManaPotion:
     return "Mana Potion";
   case Item::FortitudeTonic:
@@ -355,10 +351,6 @@ constexpr int price(Item item)
   case Item::Sword:
     return 25;
 
-  case Item::FreeHealthPotion:
-    return 0;
-  case Item::FreeManaPotion:
-    return 0;
   case Item::HealthPotion:
     return 10;
   case Item::ManaPotion:
@@ -518,8 +510,6 @@ constexpr int conversionPointsInitial(Item item)
   case Item::Sword:
     return 35;
 
-  case Item::FreeHealthPotion:
-  case Item::FreeManaPotion:
   case Item::HealthPotion:
   case Item::ManaPotion:
   case Item::FortitudeTonic:
@@ -578,10 +568,9 @@ constexpr int conversionPointsInitial(Item item)
 
 constexpr bool isPotion(Item item)
 {
-  return item == Item::FreeHealthPotion || item == Item::FreeManaPotion || item == Item::HealthPotion ||
-         item == Item::ManaPotion || item == Item::FortitudeTonic || item == Item::BurnSalve ||
-         item == Item::StrengthPotion || item == Item::Schadenfreude || item == Item::QuicksilverPotion ||
-         item == Item::ReflexPotion || item == Item::CanOfWhupaz;
+  return item == Item::HealthPotion || item == Item::ManaPotion || item == Item::FortitudeTonic ||
+         item == Item::BurnSalve || item == Item::StrengthPotion || item == Item::Schadenfreude ||
+         item == Item::QuicksilverPotion || item == Item::ReflexPotion || item == Item::CanOfWhupaz;
 }
 
 constexpr bool isSmall(Item item)

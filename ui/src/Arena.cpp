@@ -189,7 +189,7 @@ void Arena::runUseItemPopup(const State& state)
     const bool canTransmute = state.hero.has(Item::TransmutationSeal) &&
                               std::find_if(begin(inventory), end(inventory), [hero = state.hero](auto& entry) {
                                 const auto item = std::get_if<Item>(&entry.itemOrSpell);
-                                return !item || hero.cost(*item) >= 0;
+                                return !item || hero.sellingPrice(*item) >= 0;
                               }) != end(inventory);
     if (canTransmute)
     {
@@ -201,8 +201,11 @@ void Arena::runUseItemPopup(const State& state)
         // If there's only one transmuation seal, cannot transmute the seal itself
         if (item == Item::TransmutationSeal && count == 1)
           continue;
+        const auto price = state.hero.sellingPrice(item);
+        if (price < 0)
+          continue;
         const bool isSelected = ++index == selectedPopupItem;
-        std::string label = toString(item) + " ("s + std::to_string(state.hero.cost(item)) + " gold)";
+        std::string label = toString(item) + " ("s + std::to_string(price) + " gold)";
         const std::string historyTitle = "Transmute " + label;
         if (addPopupAction(
                 state, std::move(label), historyTitle,
@@ -306,7 +309,7 @@ void Arena::runShopPopup(const State& state)
         continue;
       }
       const bool isSelected = ++index == selectedPopupItem;
-      const int price = state.hero.cost(item);
+      const int price = state.hero.buyingPrice(item);
       const std::string label = toString(item) + " ("s + std::to_string(price) + " gold)";
       const std::string historyTitle = "Buy " + label;
       if (state.hero.gold() >= price)
@@ -334,7 +337,7 @@ void Arena::runShopPopup(const State& state)
       {
         const bool isSelected = ++index == selectedPopupItem;
         const auto potion = static_cast<Item>(potionIndex);
-        const int price = state.hero.cost(potion);
+        const int price = state.hero.buyingPrice(potion);
         const std::string label = toString(potion) + " ("s + std::to_string(price) + " gold)";
         const std::string historyTitle = "Buy " + label;
         if (state.hero.gold() >= price)

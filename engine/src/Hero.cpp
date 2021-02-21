@@ -15,7 +15,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
-  , inventory(6, 100, hasTrait(HeroTrait::MagicSense), hasTrait(HeroTrait::RegalSize))
+  , inventory(6, 100, hasTrait(HeroTrait::MagicSense), hasTrait(HeroTrait::RegalSize), hasTrait(HeroTrait::Negotiator))
   , conversion(theClass, race)
   , faith()
   , statuses()
@@ -857,22 +857,19 @@ bool Hero::spendGold(int amountSpent)
   return true;
 }
 
-int Hero::cost(Item item) const
+int Hero::buyingPrice(Item item) const
 {
-  return cost(item, hasTrait(HeroTrait::Negotiator));
+  return inventory.buyingPrice(item);
 }
 
-int Hero::cost(Item item, bool hasNegotiatorTrait)
+int Hero::sellingPrice(Item item) const
 {
-  const auto thePrice = price(item);
-  if (thePrice <= 0 || !hasNegotiatorTrait)
-    return thePrice;
-  return std::max(1, thePrice - 5);
+  return inventory.sellingPrice(item);
 }
 
 bool Hero::buy(Item item)
 {
-  if (!hasRoomFor(item) || !spendGold(cost(item)))
+  if (!hasRoomFor(item) || !spendGold(buyingPrice(item)))
     return false;
   if (hasTrait(HeroTrait::RegalPerks))
     healHitPoints(getHitPointsMax() / 2, true);
@@ -1073,7 +1070,7 @@ bool Hero::hasRoomFor(ItemOrSpell itemOrSpell) const
 
 bool Hero::canAfford(Item item) const
 {
-  return gold() >= cost(item);
+  return gold() >= buyingPrice(item);
 }
 
 void Hero::receive(ItemOrSpell itemOrSpell)
@@ -1134,8 +1131,6 @@ bool Hero::canUse(Item item) const
     return true;
 
   // Potions
-  case Item::FreeHealthPotion:
-  case Item::FreeManaPotion:
   case Item::HealthPotion:
   case Item::ManaPotion:
   case Item::FortitudeTonic:
@@ -1298,7 +1293,7 @@ bool Hero::useCompressionSealOn(ItemOrSpell itemOrSpell)
 
 bool Hero::useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters)
 {
-  if (has(Item::TransmutationSeal) && inventory.transmute(itemOrSpell, hasTrait(HeroTrait::Negotiator)))
+  if (has(Item::TransmutationSeal) && inventory.transmute(itemOrSpell))
   {
     inventory.remove(Item::TransmutationSeal);
     if (const auto item = std::get_if<Item>(&itemOrSpell))

@@ -18,7 +18,8 @@ public:
   explicit Inventory(int numSlots = 6,
                      int spellConversionPoints = 100,
                      bool spellsSmall = false,
-                     bool allItemsLarge = false);
+                     bool allItemsLarge = false,
+                     bool hasNegotiatorTrait = false);
 
   // Add item or spell to inventory (currently this does not check space requirements)
   void add(ItemOrSpell itemOrSpell);
@@ -41,6 +42,14 @@ public:
   // No additional restrictions are applied: also removes non-convertable items and items that cannot be transmuted.
   bool remove(ItemOrSpell itemOrSpell);
 
+  // Return the shop price of an item; can differ from the regular price for negotiator.
+  int buyingPrice(Item item) const;
+
+  // Return the price of an item when "selling" it (by using a transmutation scroll)
+  // Prices of initial potions are special: the health and mana potions are always free, other initial potions have
+  // their full price even when playing a Tinker (there is currently no support for non-free initial potions).
+  int sellingPrice(Item item) const;
+
   // Return number of free small inventory slots
   int numFreeSmallSlots() const;
 
@@ -51,7 +60,7 @@ public:
   bool compress(ItemOrSpell itemOrSpell);
 
   // Remove an item and receive its cost in gold.  Returns false if item not in inventory or if it cannot be transmuted.
-  bool transmute(ItemOrSpell itemOrSpell, bool hasNegotiatorTrait);
+  bool transmute(ItemOrSpell itemOrSpell);
 
   // Add item obtained using a Translocation Seal, i.e. with half its usual conversion points (rounded down)
   bool translocate(Item itemOrSpell);
@@ -100,14 +109,17 @@ private:
   std::vector<Entry> entries;
 
   std::optional<std::pair<int, bool>> removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale);
-  ItemOrSpell replaceFreePotions(ItemOrSpell itemOrSpell) const;
   std::vector<Entry>::iterator find(ItemOrSpell itemOrSpell);
   std::vector<Entry>::const_iterator find(ItemOrSpell itemOrSpell) const;
+
+  bool onlyHaveFreeHealthPotions() const;
+  bool onlyHaveFreeManaPotions() const;
 
   int numSlots;
   int spellConversionPoints;
   bool spellsSmall;
   bool allItemsLarge;
+  bool negotiator;
   int numFreeHealthPotions;
   int numFreeManaPotions;
 
