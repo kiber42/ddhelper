@@ -862,11 +862,15 @@ bool Hero::spendGold(int amountSpent)
 
 int Hero::cost(Item item) const
 {
-  if (price(item) <= 0)
-    return 0;
-  if (!hasTrait(HeroTrait::Negotiator))
-    return price(item);
-  return std::max(1, price(item) - 5);
+  return cost(item, hasTrait(HeroTrait::Negotiator));
+}
+
+int Hero::cost(Item item, bool hasNegotiatorTrait)
+{
+  const auto thePrice = price(item);
+  if (thePrice <= 0 || !hasNegotiatorTrait)
+    return thePrice;
+  return std::max(1, thePrice - 5);
 }
 
 bool Hero::buy(Item item)
@@ -1297,25 +1301,19 @@ bool Hero::useCompressionSealOn(ItemOrSpell itemOrSpell)
 
 bool Hero::useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters)
 {
-  if (!has(Item::TransmutationSeal) || !has(itemOrSpell))
-    return false;
-  auto item = std::get_if<Item>(&itemOrSpell);
-  // A few items cannot be removed from inventory with a transmutation seal
-  if (item && price(*item) < 0)
-    return false;
-  inventory.remove(Item::TransmutationSeal);
-  inventory.remove(itemOrSpell);
-  if (item)
+  if (has(Item::TransmutationSeal) && inventory.transmute(itemOrSpell, hasTrait(HeroTrait::Negotiator)))
   {
-    changeStatsFromItem(*item, false);
-    // Refund the cost of the item the hero would pay in a shop (might be off for starting equipment).
-    // Spells always have a price of 0.
-    addGold(cost(*item));
-    // Taurog doesn't tolerate this!
-    if (*item == Item::Skullpicker || *item == Item::Wereward || *item == Item::Gloat || *item == Item::Will)
-      faith.convertedTaurogItem(*this, allMonsters);
+    inventory.remove(Item::TransmutationSeal);
+    if (const auto item = std::get_if<Item>(&itemOrSpell))
+    {
+      changeStatsFromItem(*item, false);
+      // Taurog doesn't tolerate transmuting one of his boons
+      if (*item == Item::Skullpicker || *item == Item::Wereward || *item == Item::Gloat || *item == Item::Will)
+        faith.convertedTaurogItem(*this, allMonsters);
+    }
+    return true;
   }
-  return true;
+  return false;
 }
 
 bool Hero::useTransmutationSealOnPetrifiedEnemy()

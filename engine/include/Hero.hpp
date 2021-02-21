@@ -108,6 +108,7 @@ public:
   void addGold(int amountAdded);
   bool spendGold(int amountSpent);
   int cost(Item item) const;
+  static int cost(Item item, bool hasNegotiatorTrait);
   bool buy(Item item);
 
   Faith& getFaith();

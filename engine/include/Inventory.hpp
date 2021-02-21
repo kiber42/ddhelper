@@ -38,7 +38,7 @@ public:
   std::optional<std::pair<int, bool>> removeForConversion(ItemOrSpell itemOrSpell, bool magicAffinity = false);
 
   // If item or spell is present in inventory, remove it and return true; false otherwise.
-  // Also removes non-convertable items.
+  // No additional restrictions are applied: also removes non-convertable items and items that cannot be transmuted.
   bool remove(ItemOrSpell itemOrSpell);
 
   // Return number of free small inventory slots
@@ -49,6 +49,9 @@ public:
 
   // Mark an item or spell as small.  Returns false if no matching normal-sized entry was found in inventory.
   bool compress(ItemOrSpell itemOrSpell);
+
+  // Remove an item and receive its cost in gold.  Returns false if item not in inventory or if it cannot be transmuted.
+  bool transmute(ItemOrSpell itemOrSpell, bool hasNegotiatorTrait);
 
   // Add item obtained using a Translocation Seal, i.e. with half its usual conversion points (rounded down)
   bool translocate(Item itemOrSpell);
@@ -96,7 +99,7 @@ public:
 private:
   std::vector<Entry> entries;
 
-  std::pair<int, bool> removeImpl(ItemOrSpell itemOrSpell, bool forConversion);
+  std::optional<std::pair<int, bool>> removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale);
   ItemOrSpell replaceFreePotions(ItemOrSpell itemOrSpell) const;
   std::vector<Entry>::iterator find(ItemOrSpell itemOrSpell);
   std::vector<Entry>::const_iterator find(ItemOrSpell itemOrSpell) const;

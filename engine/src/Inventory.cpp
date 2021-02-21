@@ -73,18 +73,26 @@ std::optional<int> Inventory::getConversionPoints(ItemOrSpell itemOrSpell) const
   return it->conversionPoints;
 }
 
-std::pair<int, bool> Inventory::removeImpl(ItemOrSpell itemOrSpell, bool forConversion)
+std::optional<std::pair<int, bool>> Inventory::removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale)
 {
   auto it = find(itemOrSpell);
   if (it == end(entries))
-    return {-1, false};
+    return {};
   const int conversionPoints = it->conversionPoints;
-  if (conversionPoints < 0 && forConversion)
-    return {-1, false};
+  if (forConversion && conversionPoints < 0)
+    return {};
   const bool wasSmall = it->isSmall;
   entries.erase(it);
   if (const auto item = std::get_if<Item>(&itemOrSpell))
   {
+    if (!forSale)
+    {
+      // If the price does not matter, assume that a free potion was to be removed
+      if (*item == Item::HealthPotion && numFreeHealthPotions > 0)
+        --numFreeHealthPotions;
+      else if (*item == Item::ManaPotion && numFreeManaPotions > 0)
+        --numFreeManaPotions;
+    }
     if (*item == Item::FreeHealthPotion)
     {
       assert(numFreeHealthPotions > 0);
@@ -96,32 +104,30 @@ std::pair<int, bool> Inventory::removeImpl(ItemOrSpell itemOrSpell, bool forConv
       --numFreeManaPotions;
     }
   }
-  return {conversionPoints, wasSmall};
+  return {{conversionPoints, wasSmall}};
 }
 
 std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell itemOrSpell, bool magicAffinity)
 {
-  auto [conversionPoints, wasSmall] = removeImpl(itemOrSpell, true);
-  if (conversionPoints < 0)
-    return std::nullopt;
-  if (magicAffinity && itemOrSpell.index() == 1)
+  auto conversionResult = removeImpl(itemOrSpell, true, false);
+  if (magicAffinity && conversionResult)
   {
-    // All remaining spells donate 10 of their conversion points
+    // All spells donate 10 of their conversion points
     for (auto& entry : entries)
     {
-      if (entry.itemOrSpell.index() == 1 && entry.conversionPoints >= 10)
+      if (std::get_if<Spell>(&entry.itemOrSpell) && entry.conversionPoints >= 10)
       {
         entry.conversionPoints -= 10;
-        conversionPoints += 10;
+        conversionResult->first += 10;
       }
     }
   }
-  return {{conversionPoints, wasSmall}};
+  return conversionResult;
 }
 
 bool Inventory::remove(ItemOrSpell itemOrSpell)
 {
-  return removeImpl(itemOrSpell, false).first >= 0;
+  return bool(removeImpl(itemOrSpell, false, false));
 }
 
 namespace
@@ -159,6 +165,21 @@ bool Inventory::compress(ItemOrSpell itemOrSpell)
   if (entry == end(entries))
     return false;
   entry->isSmall = true;
+  return true;
+}
+
+bool Inventory::transmute(ItemOrSpell itemOrSpell, bool hasNegotiatorTrait)
+{
+  const auto item = std::get_if<Item>(&itemOrSpell);
+  // A few items cannot be transmuted, signified by a negative price
+  if (item && price(*item) < 0)
+    return false;
+  if (!removeImpl(itemOrSpell, false, true))
+    return false;
+  // Refund the cost of the item the hero would pay in a shop (depends on negotiator trait).
+  // Spells always have a price of 0, nothing to do there.
+  if (item)
+    gold += Hero::cost(*item, hasNegotiatorTrait);
   return true;
 }
 
