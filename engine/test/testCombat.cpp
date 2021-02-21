@@ -4,6 +4,7 @@
 #include "Hero.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
+#include "Spells.hpp"
 
 using namespace bandit;
 using namespace snowhouse;
@@ -91,8 +92,40 @@ void testMelee()
   });
 }
 
+void testCombatWithTwoMonsters()
+{
+  describe("Burn stack damage", [] {
+    Hero hero;
+    Monsters allMonsters;
+    allMonsters.reserve(2); // prevent reallocation
+    Monster& burning = allMonsters.emplace_back(Monster(1, 10, 1));
+    Monster& nextTarget = allMonsters.emplace_back(MonsterType::MeatMan, 1);
+    it("should occur on physical attack to other monster", [&] {
+      AssertThat(Magic::cast(hero, burning, allMonsters, Spell::Burndayraz), Equals(Summary::Safe));
+      AssertThat(burning.getHitPoints(), Equals(6));
+      AssertThat(Combat::attack(hero, nextTarget, allMonsters), Equals(Summary::Safe));
+      AssertThat(burning.isBurning(), IsFalse());
+      AssertThat(burning.getHitPoints(), Equals(5));
+    });
+    it("should count as a burning kill", [&] {
+      hero.recoverManaPoints(2);
+      AssertThat(Magic::cast(hero, burning, allMonsters, Spell::Burndayraz), Equals(Summary::Safe));
+      AssertThat(burning.getHitPoints(), Equals(1));
+      hero.followDeity(God::GlowingGuardian);
+      AssertThat(hero.getPiety(), Equals(5));
+      AssertThat(Combat::attack(hero, nextTarget, allMonsters), Equals(Summary::Safe));
+      AssertThat(burning.isDefeated(), IsTrue());
+      AssertThat(burning.isBurning(), IsFalse());
+      AssertThat(burning.getHitPoints(), Equals(0));
+      AssertThat(hero.getXP(), Equals(1));
+      AssertThat(hero.getPiety(), Equals(6));
+    });
+  });
+}
+
 void testCombat()
 {
   testCombatInitiative();
   testMelee();
+  testCombatWithTwoMonsters();
 }
