@@ -81,7 +81,7 @@ void Arena::runCastPopup(const State& state)
   }
   if (ImGui::BeginPopup("CastPopup"))
   {
-    ImGui::Text("Spells");
+    ImGui::TextUnformatted("Spells");
     ImGui::Separator();
     int index = -1;
     for (const auto& [spell, _] : state.hero.getSpellCounts())
@@ -97,7 +97,7 @@ void Arena::runCastPopup(const State& state)
         continue;
       }
       const std::string historyTitle = "Cast "s + toString(spell);
-      auto cast = [spell=spell, withMonster](State& state) {
+      auto cast = [spell = spell, withMonster](State& state) {
         if (withMonster)
           return Magic::cast(state.hero, *state.monster(), state.monsterPool, spell);
         Magic::cast(state.hero, spell, state.monsterPool);
@@ -134,7 +134,7 @@ void Arena::runUseItemPopup(const State& state)
       {
         if (addPopupAction(
                 state, std::move(label), historyTitle,
-                [item=item](State& state) {
+                [item = item](State& state) {
                   state.hero.use(item, state.monsterPool);
                   return Summary::None;
                 },
@@ -145,7 +145,7 @@ void Arena::runUseItemPopup(const State& state)
       {
         if (addPopupAction(
                 state, std::move(label), historyTitle,
-                [item=item](State& state) {
+                [item = item](State& state) {
                   state.hero.use(item, *state.monster(), state.monsterPool);
                   return Summary::None;
                 },
@@ -163,14 +163,17 @@ void Arena::runUseItemPopup(const State& state)
     if (canCompress)
     {
       ImGui::Separator();
-      ImGui::Text("Compress");
+      ImGui::TextUnformatted("Compress");
       ImGui::Separator();
-      for (const auto& entry : state.hero.getItemsAndSpells())
+      std::set<ItemOrSpell> alreadySeen;
+      for (const auto& entry : inventory)
       {
         if (entry.isSmall)
           continue;
+        if (!alreadySeen.insert(entry.itemOrSpell).second)
+          continue;
         const bool isSelected = ++index == selectedPopupItem;
-        const std::string label = toString(entry.itemOrSpell);
+        std::string label = toString(entry.itemOrSpell);
         const std::string historyTitle = "Compress " + label;
         if (addPopupAction(
                 state, std::move(label), historyTitle,
@@ -182,6 +185,36 @@ void Arena::runUseItemPopup(const State& state)
           selectedPopupItem = index;
       }
     }
+
+    const bool canTransmute = state.hero.has(Item::TransmutationSeal) &&
+                              std::find_if(begin(inventory), end(inventory), [hero = state.hero](auto& entry) {
+                                const auto item = std::get_if<Item>(&entry.itemOrSpell);
+                                return !item || hero.cost(*item) >= 0;
+                              }) != end(inventory);
+    if (canTransmute)
+    {
+      ImGui::Separator();
+      ImGui::TextUnformatted("Transmute");
+      ImGui::Separator();
+      for (const auto& [item, count] : state.hero.getItemCounts())
+      {
+        // If there's only one transmuation seal, cannot transmute the seal itself
+        if (item == Item::TransmutationSeal && count == 1)
+          continue;
+        const bool isSelected = ++index == selectedPopupItem;
+        std::string label = toString(item) + " ("s + std::to_string(state.hero.cost(item)) + " gold)";
+        const std::string historyTitle = "Transmute " + label;
+        if (addPopupAction(
+                state, std::move(label), historyTitle,
+                [item = item](State& state) {
+                  state.hero.useTransmutationSealOn(item, state.monsterPool);
+                  return Summary::None;
+                },
+                isSelected))
+          selectedPopupItem = index;
+      }
+    }
+
     if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
       ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
@@ -198,7 +231,7 @@ void Arena::runConvertItemPopup(const State& state)
   }
   if (ImGui::BeginPopup("ConvertPopup"))
   {
-    ImGui::Text("Items");
+    ImGui::TextUnformatted("Items");
     ImGui::Separator();
     int index = -1;
     for (const auto& [itemEntry, count] : state.hero.getItemsGrouped())
@@ -222,7 +255,7 @@ void Arena::runConvertItemPopup(const State& state)
         ImGui::TextColored(colorUnavailable, "%s", toString(item));
     }
     ImGui::Separator();
-    ImGui::Text("Spells");
+    ImGui::TextUnformatted("Spells");
     ImGui::Separator();
     for (const auto& entry : state.hero.getSpells())
     {
@@ -345,7 +378,7 @@ void Arena::runFaithPopup(const State& state)
     const auto& altars = state.resources.altars;
     if (following && std::find(begin(altars), end(altars), *following) != end(altars))
     {
-      ImGui::Text("Request Boon");
+      ImGui::TextUnformatted("Request Boon");
       ImGui::Separator();
       for (const Boon boon : offeredBoons(*following))
       {
@@ -376,10 +409,10 @@ void Arena::runFaithPopup(const State& state)
       if (following)
       {
         ImGui::Separator();
-        ImGui::Text("Convert");
+        ImGui::TextUnformatted("Convert");
       }
       else
-        ImGui::Text("Worship");
+        ImGui::TextUnformatted("Worship");
       ImGui::Separator();
       for (const God deity : altars)
       {
@@ -406,7 +439,7 @@ void Arena::runFaithPopup(const State& state)
     {
       if (following || haveAvailableAltars)
         ImGui::Separator();
-      ImGui::Text("Pactmaker");
+      ImGui::TextUnformatted("Pactmaker");
       ImGui::Separator();
       const int last =
           static_cast<int>(state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus);
@@ -430,7 +463,7 @@ void Arena::runFaithPopup(const State& state)
     if (following && haveAvailableAltars)
     {
       ImGui::Separator();
-      ImGui::Text("Desecrate");
+      ImGui::TextUnformatted("Desecrate");
       ImGui::Separator();
       for (size_t altarIndex = 0; altarIndex < altars.size(); ++altarIndex)
       {
