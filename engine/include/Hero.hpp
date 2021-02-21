@@ -172,6 +172,7 @@ public:
 
 private:
   std::string name;
+  std::vector<HeroTrait> traits;
   HeroStats stats;
   Defence defence;
   Experience experience;
@@ -180,7 +181,6 @@ private:
   Faith faith;
   std::map<HeroStatus, int> statuses;
   std::map<HeroDebuff, int> debuffs;
-  std::vector<HeroTrait> traits;
   std::optional<PietyChange> collectedPiety;
   std::mt19937 generator;
   bool dodgeNext;

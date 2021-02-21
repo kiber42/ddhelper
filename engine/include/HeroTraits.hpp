@@ -41,7 +41,7 @@ enum class HeroTrait
   Mageslay,
   MagicAffinity,
   MagicAttunement,
-  MagicSense, // not implemented: can see locations of all glyphs from level start, all glyphs are small items
+  MagicSense, // partially implemented, missing: can see locations of all glyphs from level start
   ManaShield,
   Martyr,   // not implemented: +1 altar in dungeon
   Merchant, // not implemented: +2 shops in dungeon

@@ -137,7 +137,7 @@ namespace
 
 int Inventory::numFreeSmallSlots() const
 {
-  int roomTaken = getSpells().size();
+  int roomTaken = getSpells().size() * (spellsSmall ? 1 : LargeItemSize);
   for (const auto& [entry, _] : getItemsGrouped())
     roomTaken += entry.isSmall ? 1 : LargeItemSize;
   return numSlots * LargeItemSize - roomTaken;

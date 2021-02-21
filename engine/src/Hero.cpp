@@ -11,14 +11,14 @@
 
 Hero::Hero(HeroClass theClass, HeroRace race)
   : name(isMonsterClass(theClass) ? toString(theClass) : (toString(race) + std::string(" ") + toString(theClass)))
+  , traits(startingTraits(theClass))
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
-  , inventory()
+  , inventory(6, 100, hasTrait(HeroTrait::MagicSense), hasTrait(HeroTrait::RegalSize))
   , conversion(theClass, race)
   , faith()
   , statuses()
-  , traits(startingTraits(theClass))
   , collectedPiety()
   , generator(std::random_device{}())
   , dodgeNext(false)
@@ -30,10 +30,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   if (hasTrait(HeroTrait::Dangerous))
     stats = HeroStats(HeroStats::IsDangerous{});
   if (hasTrait(HeroTrait::RegalSize))
-  {
     stats = HeroStats(HeroStats::RegalSize{});
-    inventory = Inventory(6, 100, false, true);
-  }
 
   if (hasTrait(HeroTrait::PitDog))
     addStatus(HeroStatus::DeathProtection);
@@ -115,6 +112,7 @@ Hero::Hero(HeroClass theClass, HeroRace race)
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   : name("Hero")
+  , traits()
   , stats(std::move(stats))
   , defence(std::move(defence))
   , experience(std::move(experience))
@@ -122,7 +120,6 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , conversion(HeroClass::Guard, HeroRace::Human)
   , faith()
   , statuses()
-  , traits()
   , collectedPiety()
   , generator(std::random_device{}())
   , dodgeNext(false)

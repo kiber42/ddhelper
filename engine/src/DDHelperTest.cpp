@@ -1127,6 +1127,17 @@ void testInventory()
         AssertThat(itemsGrouped.back().second, Equals(3));
       }
     });
+    it("shall treat spells as large for most classes", [] {
+      Hero hero(HeroClass::Sorcerer);
+      hero.receive(Spell::Apheelsik);
+      hero.receive(Spell::Bludtupowa);
+      hero.receiveFreeSpell(Spell::Burndayraz);
+      hero.receive(Spell::Bysseps);
+      AssertThat(hero.hasRoomFor(Spell::Cydstepp), IsTrue());
+      hero.receive(Spell::Cydstepp);
+      AssertThat(hero.hasRoomFor(Spell::Endiswal), IsFalse());
+      AssertThat(hero.hasRoomFor(Spell::Cydstepp), IsFalse());
+    });
     it("shall treat spells as small for Wizards", [] {
       Hero hero(HeroClass::Wizard);
       AssertThat(hero.has(Spell::Burndayraz), IsTrue());
