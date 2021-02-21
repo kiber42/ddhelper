@@ -17,7 +17,7 @@ public:
   void gainLevel();
   void modifyLevelBy(int delta);
 
-  //! May differ from getLevel if Humility or Blood Curse are involved
+  // May differ from getLevel if Humility or Blood Curse are involved
   int getUnmodifiedLevel() const;
 
   static int forHeroAndMonsterLevels(int heroLevel, int monsterLevel);
