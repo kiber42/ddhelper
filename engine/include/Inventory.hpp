@@ -41,9 +41,6 @@ public:
   // Also removes non-convertable items.
   bool remove(ItemOrSpell itemOrSpell);
 
-  // Returns whether an item or spell would be small upon entering the inventory, accounting for class effects
-  bool isInitiallySmall(ItemOrSpell itemOrSpell) const;
-
   // Return number of free small inventory slots
   int numFreeSmallSlots() const;
 
@@ -98,6 +95,9 @@ public:
 
 private:
   std::vector<Entry> entries;
+
+  std::pair<int, bool> removeImpl(ItemOrSpell itemOrSpell, bool forConversion);
+  ItemOrSpell replaceFreePotions(ItemOrSpell itemOrSpell) const;
   std::vector<Entry>::iterator find(ItemOrSpell itemOrSpell);
   std::vector<Entry>::const_iterator find(ItemOrSpell itemOrSpell) const;
 
@@ -105,6 +105,8 @@ private:
   int spellConversionPoints;
   bool spellsSmall;
   bool allItemsLarge;
+  int numFreeHealthPotions;
+  int numFreeManaPotions;
 
   int fireHeartCharge;
   int crystalBallCharge;
