@@ -25,6 +25,6 @@ add_library(
   src/Spells.cpp)
 target_include_directories(ddhelperengine PUBLIC include)
 
-add_executable(testengine src/DDHelperTest.cpp)
+add_executable(testengine test/main.cpp)
 target_include_directories(testengine PRIVATE bandit)
 target_link_libraries(testengine ddhelperengine)
