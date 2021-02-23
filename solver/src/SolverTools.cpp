@@ -100,12 +100,13 @@ namespace solver
         {
           auto spellCounts = state.hero.getSpellCounts();
           std::shuffle(begin(spellCounts), end(spellCounts), generator);
-          const auto spellIt = std::find_if(begin(spellCounts), end(spellCounts),
-                                            [&hero = state.hero, &monster = state.monsters.front()](const auto& spellCount) {
-                                              const Spell spell = spellCount.first;
-                                              return Magic::isPossible(hero, monster, spell) ||
-                                                     (!Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
-                                            });
+          const auto spellIt =
+              std::find_if(begin(spellCounts), end(spellCounts),
+                           [&hero = state.hero, &monster = state.monsters.front()](const auto& spellCount) {
+                             const Spell spell = spellCount.first;
+                             return Magic::isPossible(hero, monster, spell) ||
+                                    (!Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
+                           });
           if (spellIt != end(spellCounts))
             return Cast{spellIt->first};
         }
@@ -133,8 +134,9 @@ namespace solver
         {
           auto itemCounts = state.hero.getItemCounts();
           std::shuffle(begin(itemCounts), end(itemCounts), generator);
-          const auto itemIt = std::find_if(begin(itemCounts), end(itemCounts),
-                                           [&hero = state.hero](const auto& itemCount) { return hero.canUse(itemCount.first); });
+          const auto itemIt =
+              std::find_if(begin(itemCounts), end(itemCounts),
+                           [&hero = state.hero](const auto& itemCount) { return hero.canUse(itemCount.first); });
           if (itemIt != end(itemCounts))
             return Use{itemIt->first};
         }
@@ -169,11 +171,10 @@ namespace solver
         {
           auto boons = offeredBoons(*state.hero.getFollowedDeity());
           std::shuffle(begin(boons), end(boons), generator);
-          auto boonIt = std::find_if(
-              begin(boons), end(boons),
-              [&hero = state.hero, &faith = state.hero.getFaith(), &monsters = state.monsters](Boon boon) {
-                return faith.getPiety() >= faith.getCosts(boon, hero) && faith.isAvailable(boon, hero, monsters);
-              });
+          auto boonIt = std::find_if(begin(boons), end(boons), [&state, &faith = state.hero.getFaith()](Boon boon) {
+            return faith.getPiety() >= faith.getCosts(boon, state.hero) &&
+                   faith.isAvailable(boon, state.hero, state.monsters, state.resources);
+          });
           if (boonIt != end(boons))
             return Request{*boonIt};
         }
@@ -223,12 +224,12 @@ namespace solver
                      return (!current || (current != follow.deity && piety >= 50)) &&
                             std::find(begin(altars), end(altars), follow.deity) != end(altars);
                    },
-                   [&faith = hero.getFaith(), &hero, &pactMaker = state.resources.pactMakerAvailable,
+                   [&faith = hero.getFaith(), &hero, &resources = state.resources,
                     &monsters = state.monsters](Request request) {
                      if (const auto boon = std::get_if<Boon>(&request.boonOrPact))
-                       return faith.isAvailable(*boon, hero, monsters) &&
+                       return faith.isAvailable(*boon, hero, monsters, resources) &&
                               hero.getPiety() >= faith.getCosts(*boon, hero);
-                     return pactMaker && !faith.getPact() &&
+                     return resources.pactMakerAvailable && !faith.getPact() &&
                             (!faith.enteredConsensus() || std::get<Pact>(request.boonOrPact) != Pact::Consensus);
                    },
                    [current = hero.getFollowedDeity(), &altars = state.resources.altars](Desecrate desecrate) {
@@ -262,7 +263,7 @@ namespace solver
                             hero.receive(find.spell);
                           },
                           [&](Follow follow) { hero.followDeity(follow.deity); },
-                          [&](Request request) { hero.request(request.boonOrPact, state.monsters); },
+                          [&](Request request) { hero.request(request.boonOrPact, state.monsters, state.resources); },
                           [&hero, &monsters = state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
                             altars.erase(std::find(begin(altars), end(altars), desecrate.altar));
                             hero.desecrate(desecrate.altar, monsters);

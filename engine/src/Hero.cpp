@@ -918,10 +918,10 @@ bool Hero::followDeity(God god)
   return faith.followDeity(god, *this);
 }
 
-bool Hero::request(BoonOrPact boonOrPact, Monsters& allMonsters)
+bool Hero::request(BoonOrPact boonOrPact, Monsters& allMonsters, Resources& resources)
 {
   if (const auto boon = std::get_if<Boon>(&boonOrPact))
-    return faith.request(*boon, *this, allMonsters);
+    return faith.request(*boon, *this, allMonsters, resources);
   return faith.enter(std::get<Pact>(boonOrPact));
 }
 

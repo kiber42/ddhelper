@@ -203,9 +203,23 @@ void Faith::apply(PietyChange change, Hero& hero, Monsters& allMonsters)
   }
 }
 
-bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
+int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters, const Resources& /*resources*/) const
 {
-  if (!isAvailable(boon, hero, allMonsters))
+  // TODO: Check number of available walls / petrified enemies for Binlor's boons
+  return deity(boon) == followedDeity && (allowRepeatedUse(boon) || !boonCount(boon)) &&
+         (boon != Boon::Absolution || glowingGuardian.canUseAbsolution(hero.getLevel(), allMonsters)) &&
+         (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1) &&
+         (boon != Boon::BoostHealth || hero.has(Item::HealthPotion)) &&
+         (boon != Boon::BoostMana || hero.has(Item::ManaPotion)) &&
+         (boon != Boon::UnstoppableFury ||
+          (!hero.hasStatus(HeroStatus::DeathProtection) && hero.has(Item::Skullpicker) && hero.has(Item::Wereward) &&
+           hero.has(Item::Gloat) && hero.has(Item::Will))) &&
+         (boon != Boon::Tribute || hero.gold() >= 15) && (boon != Boon::Reflexes || hero.has(Item::HealthPotion));
+}
+
+bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resources& resources)
+{
+  if (!isAvailable(boon, hero, allMonstersOnFloor, resources))
     return false;
   const int costs = getCosts(boon, hero);
   if (costs > piety)
@@ -237,7 +251,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
   case Boon::StoneHeart:
     // TODO: Destroys 15 nearby walls
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
-    for (auto& monster : allMonsters)
+    for (auto& monster : allMonstersOnFloor)
       monster.addMagicResist(-5);
     break;
 
@@ -260,7 +274,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
     break;
   case Boon::BloodSwell:
     hero.healHitPoints(hero.getHitPointsMax());
-    hero.addStatus(HeroDebuff::Cursed, allMonsters);
+    hero.addStatus(HeroDebuff::Cursed, allMonstersOnFloor);
     break;
 
   case Boon::Plantation:
@@ -274,12 +288,12 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
   case Boon::Greenblood:
     // TODO: Spawns 3 random plants
     hero.reduceStatus(HeroDebuff::Cursed);
-    for (auto& monster : allMonsters)
+    for (auto& monster : allMonstersOnFloor)
       monster.corrode();
     break;
   case Boon::Entanglement:
     // TODO: Spawns 5 random plants
-    for (auto& monster : allMonsters)
+    for (auto& monster : allMonstersOnFloor)
       monster.slow();
     break;
   case Boon::VineForm:
@@ -294,10 +308,10 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
   case Boon::Absolution:
   {
     // Precondition: Removes one monster of <= hero's level (except undead, bosses, other dungeon levels)
-    auto monsterIt = glowingGuardian.pickMonsterForAbsolution(hero.getLevel(), allMonsters);
-    if (monsterIt != end(allMonsters))
+    auto monsterIt = glowingGuardian.pickMonsterForAbsolution(hero.getLevel(), allMonstersOnFloor);
+    if (monsterIt != end(allMonstersOnFloor))
     {
-      allMonsters.erase(monsterIt);
+      allMonstersOnFloor.erase(monsterIt);
       hero.changeHitPointsMax(4);
       hero.receive(Item::PrayerBead);
     }
@@ -318,7 +332,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
     break;
   case Boon::Enlightenment:
   {
-    hero.receiveEnlightenment(allMonsters);
+    hero.receiveEnlightenment(allMonstersOnFloor);
     break;
   }
 
@@ -335,12 +349,12 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
     hero.changeManaPointsMax(+3);
     break;
   case Boon::ChaosAvatar:
-    hero.gainLevel(allMonsters);
+    hero.gainLevel(allMonstersOnFloor);
     hero.refillHealthAndMana(); // for Goatperson
-    hero.addConversionPoints(100, allMonsters);
+    hero.addConversionPoints(100, allMonstersOnFloor);
     hero.resetStatus(HeroDebuff::Weakened);
     hero.resetStatus(HeroDebuff::Corroded);
-    for (auto& monster : allMonsters)
+    for (auto& monster : allMonstersOnFloor)
     {
       monster.addPhysicalResist(-20);
       monster.addMagicResist(-20);
@@ -355,7 +369,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonsters)
     break;
   case Boon::Weakening:
     hero.changeMagicalResistPercent(-10);
-    for (auto& monster : allMonsters)
+    for (auto& monster : allMonstersOnFloor)
       monster.addMagicResist(-10);
     break;
 
@@ -513,20 +527,6 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
   if (hero.hasTrait(HeroTrait::HolyWork))
     return baseCosts * 8 / 10 + (increase * 8 / 10) * count;
   return baseCosts + increase * count;
-}
-
-int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters) const
-{
-  // TODO: Check number of available walls / petrified enemies for Binlor's boons
-  return deity(boon) == followedDeity && (allowRepeatedUse(boon) || !boonCount(boon)) &&
-         (boon != Boon::Absolution || glowingGuardian.canUseAbsolution(hero.getLevel(), allMonsters)) &&
-         (boon != Boon::BloodCurse || hero.getLevel() < 10) && (boon != Boon::Humility || hero.getLevel() > 1) &&
-         (boon != Boon::BoostHealth || hero.has(Item::HealthPotion)) &&
-         (boon != Boon::BoostMana || hero.has(Item::ManaPotion)) &&
-         (boon != Boon::UnstoppableFury ||
-          (!hero.hasStatus(HeroStatus::DeathProtection) && hero.has(Item::Skullpicker) && hero.has(Item::Wereward) &&
-           hero.has(Item::Gloat) && hero.has(Item::Will))) &&
-         (boon != Boon::Tribute || hero.gold() >= 15) && (boon != Boon::Reflexes || hero.has(Item::HealthPotion));
 }
 
 std::optional<Pact> Faith::getPact() const

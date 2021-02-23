@@ -442,13 +442,13 @@ void Arena::runFaithPopup(const State& state)
         const bool isSelected = ++index == selectedPopupItem;
         const int costs = state.hero.getBoonCosts(boon);
         const std::string label = toString(boon) + " ("s + std::to_string(costs) + ")";
-        if (state.hero.getFaith().isAvailable(boon, state.hero, state.monsterPool))
+        if (state.hero.getFaith().isAvailable(boon, state.hero, state.monsterPool, state.resources))
         {
           const std::string historyTitle = "Request "s + toString(boon);
           if (addPopupAction(
                   state, label, historyTitle,
                   [boon](State& state) {
-                    state.hero.getFaith().request(boon, state.hero, state.monsterPool);
+                    state.hero.getFaith().request(boon, state.hero, state.monsterPool, state.resources);
                     return Summary::None;
                   },
                   isSelected))
@@ -509,7 +509,7 @@ void Arena::runFaithPopup(const State& state)
         if (addPopupAction(
                 state, label, historyTitle,
                 [pact](State& state) {
-                  state.hero.request(pact, state.monsterPool);
+                  state.hero.request(pact, state.monsterPool, state.resources);
                   return Summary::Safe;
                 },
                 isSelected))

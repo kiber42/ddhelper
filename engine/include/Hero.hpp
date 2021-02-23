@@ -9,6 +9,7 @@
 #include "HeroStatus.hpp"
 #include "HeroTraits.hpp"
 #include "Inventory.hpp"
+#include "Resources.hpp"
 
 #include <map>
 #include <random>
@@ -121,7 +122,7 @@ public:
   int getBoonCosts(Boon boon) const;
 
   bool followDeity(God god);
-  bool request(BoonOrPact boon, Monsters& allMonsters);
+  bool request(BoonOrPact boon, Monsters& allMonsters, Resources& resources);
   void desecrate(God altar, Monsters& allMonsters);
 
   // Functions to group all piety events belonging to one action.

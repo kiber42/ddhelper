@@ -3,6 +3,7 @@
 #include "GlowingGuardian.hpp"
 #include "Jehora.hpp"
 #include "Monster.hpp"
+#include "Resources.hpp"
 
 #include <map>
 #include <optional>
@@ -375,9 +376,9 @@ public:
 
   void apply(PietyChange, Hero& hero, Monsters& allMonsters);
 
-  bool request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor);
+  int isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters, const Resources& resources) const;
+  bool request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resources& resources);
   int getCosts(Boon boon, const Hero& hero) const;
-  int isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters) const;
 
   std::optional<Pact> getPact() const;
   bool enter(Pact pact);

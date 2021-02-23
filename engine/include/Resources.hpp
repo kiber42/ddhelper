@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Faith.hpp"
-#include "Items.hpp"
-#include "Spells.hpp"
+enum class Item;
+enum class God;
+enum class Spell;
 
 #include <vector>
 
