@@ -346,6 +346,7 @@ public:
   std::optional<Pact> activatedPact() const;
   bool randomJehoraEvent() const;
   PietyChange& operator+=(const PietyChange&);
+  PietyChange& operator+=(int deltaPoints);
 
 private:
   std::vector<int> values;

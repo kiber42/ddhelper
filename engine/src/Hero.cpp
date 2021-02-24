@@ -812,6 +812,26 @@ bool Hero::tryDodge(Monsters& allMonsters)
   return success;
 }
 
+bool Hero::destroyWall(Resources& resources)
+{
+  if (resources.numWalls < 1)
+  {
+    assert(resources.numWalls == 0);
+    return false;
+  }
+  --resources.numWalls;
+  if (has(Boon::StoneForm))
+    addStatus(HeroStatus::Might);
+  if (has(Item::RockHeart))
+  {
+    healHitPoints(1);
+    recoverManaPoints(1);
+  }
+  if (getFollowedDeity() == God::BinlorIronshield)
+    applyOrCollectPietyGain(5);
+  return true;
+}
+
 void Hero::rerollDodgeNext()
 {
   std::uniform_int_distribution<> number(1, 100);
@@ -954,6 +974,15 @@ void Hero::applyOrCollect(PietyChange pietyChange, Monsters& allMonsters)
     *collectedPiety += pietyChange;
   else
     faith.apply(pietyChange, *this, allMonsters);
+}
+
+void Hero::applyOrCollectPietyGain(int pointsGained)
+{
+  assert(pointsGained >= 0);
+  if (collectedPiety)
+    *collectedPiety += pointsGained;
+  else
+    faith.gainPiety(pointsGained);
 }
 
 void Hero::setHitPointsMax(int hitPointsMax)

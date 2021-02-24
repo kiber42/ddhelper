@@ -100,6 +100,9 @@ public:
   bool predictDodgeNext() const;
   bool tryDodge(Monsters& allMonsters);
 
+  // Destroys one wall if possible, and trigger related effects (Binlor)
+  bool destroyWall(Resources& resources);
+
   // Special functions for items. They don't check if the item is actually in the inventory.
   void applyDragonSoul(int manaCosts); // 15% chance to refund mana
   void chargeFireHeart();
@@ -198,6 +201,7 @@ private:
   void levelUpRefresh(Monsters& allMonsters);
   void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange, Monsters& allMonsters);
+  void applyOrCollectPietyGain(int pointsGained);
   void changeStatsFromItem(Item item, bool itemReceived);
 };
 

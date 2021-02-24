@@ -53,6 +53,12 @@ PietyChange& PietyChange::operator+=(const PietyChange& other)
   return *this;
 }
 
+PietyChange& PietyChange::operator+=(int deltaPoints)
+{
+  values.emplace_back(deltaPoints);
+  return *this;
+}
+
 bool Faith::followDeity(God god, Hero& hero)
 {
   if (!canFollow(god, hero))
