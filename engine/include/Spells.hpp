@@ -65,7 +65,7 @@ namespace Magic
   void cast(Hero& hero, Spell spell, Monsters& allMonsters);
 
   // Cast spell on monster, evaluate effect on remaining monsters
-  Summary cast(Hero& hero, Monster& monster, Monsters& allMonsters, Spell spell);
+  Summary cast(Hero& hero, Monster& monster, Spell spell, Monsters& allMonsters);
 
   // Spells that need to target a monster
   constexpr bool needsMonster(Spell spell)

@@ -223,7 +223,7 @@ namespace Magic
     applyCastingSideEffects(hero, manaCosts, allMonsters);
   }
 
-  Summary cast(Hero& hero, Monster& monster, Monsters& allMonsters, Spell spell)
+  Summary cast(Hero& hero, Monster& monster, Spell spell, Monsters& allMonsters)
   {
     if (!isPossible(hero, monster, spell))
       return Summary::NotPossible;
