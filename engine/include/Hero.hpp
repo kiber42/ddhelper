@@ -117,7 +117,7 @@ public:
   int getPiety() const;
 
   std::optional<God> getFollowedDeity() const;
-  bool hasBoon(Boon boon) const;
+  bool has(Boon boon) const;
   int receivedBoonCount(Boon boon) const;
   int getBoonCosts(Boon boon) const;
 

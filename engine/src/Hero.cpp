@@ -897,10 +897,9 @@ std::optional<God> Hero::getFollowedDeity() const
   return faith.getFollowedDeity();
 }
 
-bool Hero::hasBoon(Boon boon) const
+bool Hero::has(Boon boon) const
 {
-  assert(!allowRepeatedUse(boon));
-  return faith.boonCount(boon) > 0;
+  return faith.has(boon);
 }
 
 int Hero::receivedBoonCount(Boon boon) const
@@ -1088,7 +1087,7 @@ void Hero::convert(ItemOrSpell itemOrSpell, Monsters& allMonsters)
     const auto item = std::get_if<Item>(&itemOrSpell);
     if (item)
       changeStatsFromItem(*item, false);
-    else if (hasBoon(Boon::Refreshment))
+    else if (has(Boon::Refreshment))
       recoverManaPoints(getManaPointsMax() * (faith.getFollowedDeity() == God::MysteraAnnur ? 50 : 25) / 100);
 
     const auto [conversionPoints, wasSmall] = *conversionResult;
@@ -1584,7 +1583,7 @@ std::vector<std::string> describe(const Hero& hero)
   for (auto boon :
        {Boon::StoneForm, Boon::BloodCurse, Boon::Humility, Boon::Petition, Boon::Flames, Boon::MysticBalance})
   {
-    if (hero.hasBoon(boon))
+    if (hero.has(boon))
       description.emplace_back("has "s + toString(boon));
   }
   const auto pact = hero.getFaith().getPact();

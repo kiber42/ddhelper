@@ -365,6 +365,7 @@ public:
 
   int getPiety() const;
   int getMaxPiety() const;
+  bool has(Boon) const;
   int boonCount(Boon) const;
   int getIndulgence() const;
 

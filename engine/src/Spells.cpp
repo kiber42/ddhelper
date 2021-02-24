@@ -28,7 +28,7 @@ namespace Magic
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
       const int multiplier =
-          4 + hero.hasBoon(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(Item::BattlemageRing) ? 1 : 0);
+          4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(Item::BattlemageRing) ? 1 : 0);
 
       // Damage and burning
       monster.takeFireballDamage(hero.getLevel(), multiplier);
@@ -117,7 +117,7 @@ namespace Magic
       costs += 2;
     if (hero.hasTrait(HeroTrait::MagicAffinity))
       costs -= 1;
-    if (hero.hasBoon(Boon::MysticBalance))
+    if (hero.has(Boon::MysticBalance))
     {
       if (costs > 5)
         costs -= 2;
@@ -182,7 +182,7 @@ namespace Magic
       break;
     case Spell::Endiswal:
       hero.addStatus(HeroStatus::StoneSkin);
-      if (hero.hasBoon(Boon::StoneForm))
+      if (hero.has(Boon::StoneForm))
         hero.addStatus(HeroStatus::Might);
       if (hero.has(Item::RockHeart))
       {

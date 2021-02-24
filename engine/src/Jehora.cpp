@@ -52,7 +52,7 @@ int Jehora::operator()()
 
 void Jehora::applyRandomPunishment(Hero& hero)
 {
-  if (hero.hasBoon(Boon::Petition))
+  if (hero.has(Boon::Petition))
     return;
   // By design, Jehora's punishments (like poisoning or mana burn) cannot trigger chain reactions
   // (i.e. he will never be upset about them), and none of his punishments affect other monsters.

@@ -99,10 +99,15 @@ int Faith::getMaxPiety() const
   return consensus ? 50 : 100;
 }
 
+bool Faith::has(Boon boon) const
+{
+  return std::find(begin(boons), end(boons), boon) != end(boons);
+}
+
 int Faith::boonCount(Boon boon) const
 {
   if (!allowRepeatedUse(boon))
-    return std::find(begin(boons), end(boons), boon) != end(boons) ? 1 : 0;
+    return (int)(has(boon));
   return std::count(begin(boons), end(boons), boon);
 }
 
