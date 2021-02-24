@@ -11,6 +11,9 @@ struct Resources
   std::vector<Item> shops;
   std::vector<Spell> spells;
   std::vector<God> altars;
-  int numBlackTiles = 0;
+  int numBlackTiles = 20 * 20 - 9;
+  int numWalls = 160;
+  int numPlants = 0;
+  int numBloodPools = 0;
   bool pactMakerAvailable = false;
 };
