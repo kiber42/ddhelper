@@ -100,13 +100,11 @@ namespace solver
         {
           auto spellCounts = state.hero.getSpellCounts();
           std::shuffle(begin(spellCounts), end(spellCounts), generator);
-          const auto spellIt =
-              std::find_if(begin(spellCounts), end(spellCounts),
-                           [&hero = state.hero, &monster = state.monsters.front()](const auto& spellCount) {
-                             const Spell spell = spellCount.first;
-                             return Magic::isPossible(hero, monster, spell) ||
-                                    (!Magic::needsMonster(spell) && Magic::isPossible(hero, spell));
-                           });
+          const auto spellIt = std::find_if(begin(spellCounts), end(spellCounts),
+                                            [&state, &monster = state.monsters.front()](const auto& spellCount) {
+                                              const Spell spell = spellCount.first;
+                                              return Magic::isPossible(state.hero, monster, spell, state.resources);
+                                            });
           if (spellIt != end(spellCounts))
             return Cast{spellIt->first};
         }
@@ -203,10 +201,10 @@ namespace solver
     const auto& hero = state.hero;
     return std::visit(
         overloaded{[&](Attack) { return !state.monsters.empty(); },
-                   [&](Cast cast) {
+                   [&, &monsters=state.monsters, &resources=state.resources](Cast cast) {
                      return hero.has(cast.spell) &&
-                            ((!state.monsters.empty() && Magic::isPossible(hero, state.monsters.front(), cast.spell)) ||
-                             (!Magic::needsMonster(cast.spell) && Magic::isPossible(hero, cast.spell)));
+                            (Magic::isPossible(hero, cast.spell, resources) ||
+                             (!monsters.empty() && Magic::isPossible(hero, monsters.front(), cast.spell, resources)));
                    },
                    [&](Uncover uncover) { return state.resources.numBlackTiles >= uncover.numTiles; },
                    [&, &shops = state.resources.shops](Buy buy) {
@@ -246,7 +244,7 @@ namespace solver
     auto& hero = state.hero;
     auto& monster = state.monsters.front();
     std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, state.monsters); },
-                          [&](Cast cast) { Magic::cast(hero, monster, state.monsters, cast.spell); },
+                          [&](Cast cast) { Magic::cast(hero, monster, cast.spell, state.monsters, state.resources); },
                           [&](Uncover uncover) {
                             hero.recover(uncover.numTiles);
                             monster.recover(uncover.numTiles);

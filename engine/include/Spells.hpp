@@ -58,14 +58,14 @@ constexpr const char* toString(Spell spell)
 namespace Magic
 {
   // Determine whether spell can currently be cast
-  bool isPossible(const Hero& hero, Spell spell);
-  bool isPossible(const Hero& hero, const Monster& monster, Spell spell);
+  bool isPossible(const Hero& hero, Spell spell, const Resources& resources);
+  bool isPossible(const Hero& hero, const Monster& monster, Spell spell, const Resources& resources);
 
   // Cast spell that does not target a monster
-  void cast(Hero& hero, Spell spell, Monsters& allMonsters);
+  void cast(Hero& hero, Spell spell, Monsters& allMonsters, Resources& resources);
 
   // Cast spell on monster, evaluate effect on remaining monsters
-  Summary cast(Hero& hero, Monster& monster, Spell spell, Monsters& allMonsters);
+  Summary cast(Hero& hero, Monster& monster, Spell spell, Monsters& allMonsters, Resources& resources);
 
   // Spells that need to target a monster
   constexpr bool needsMonster(Spell spell)

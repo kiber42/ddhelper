@@ -27,8 +27,7 @@ namespace Magic
     {
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
-      const int multiplier =
-          4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(Item::BattlemageRing) ? 1 : 0);
+      const int multiplier = 4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(Item::BattlemageRing) ? 1 : 0);
 
       // Damage and burning
       monster.takeFireballDamage(hero.getLevel(), multiplier);
@@ -127,33 +126,55 @@ namespace Magic
     return costs;
   }
 
-  bool isPossible(const Hero& hero, Spell spell)
+  bool isPossible(const Hero& hero, Spell spell, const Resources& resources)
   {
     const bool validWithoutTarget = !needsMonster(spell);
-    assert(validWithoutTarget);
-    return validWithoutTarget && hero.getManaPoints() >= spellCosts(spell, hero) &&
-           (spell != Spell::Bludtupowa || hero.getHitPoints() > 3 * hero.getLevel()) &&
-           (spell != Spell::Bysseps || !hero.hasStatus(HeroStatus::Might) || hero.hasTrait(HeroTrait::Additives)) &&
-           (spell != Spell::Cydstepp ||
-            (!hero.hasStatus(HeroStatus::DeathProtection) &&
-             (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant)))) &&
-           (spell != Spell::Getindare || !hero.hasStatus(HeroStatus::FirstStrikeTemporary)) &&
-           (spell != Spell::Halpmeh || hero.hasStatus(HeroDebuff::Poisoned) ||
-            hero.getHitPoints() < hero.getHitPointsMax());
+    if (hero.getManaPoints() < spellCosts(spell, hero) || !validWithoutTarget)
+      return false;
+
+    switch (spell)
+    {
+    case Spell::Bludtupowa:
+      return hero.getHitPoints() > 3 * hero.getLevel();
+    case Spell::Bysseps:
+      return !hero.hasStatus(HeroStatus::Might) || hero.hasTrait(HeroTrait::Additives);
+    case Spell::Cydstepp:
+      return !hero.hasStatus(HeroStatus::DeathProtection) &&
+             (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant));
+    case Spell::Endiswal:
+      return resources.numWalls > 0;
+    case Spell::Getindare:
+      return !hero.hasStatus(HeroStatus::FirstStrikeTemporary);
+    case Spell::Halpmeh:
+      return hero.getHitPoints() < hero.getHitPointsMax() || hero.hasStatus(HeroDebuff::Poisoned);
+    case Spell::Pisorf:
+      // TODO: Currently Pisorf is assumed to always push a monster into a wall
+      return resources.numWalls > 0;
+    default:
+      return true;
+    }
   }
 
-  bool isPossible(const Hero& hero, const Monster& monster, Spell spell)
+  bool isPossible(const Hero& hero, const Monster& monster, Spell spell, const Resources& resources)
   {
     if (!needsMonster(spell))
-      return isPossible(hero, spell);
-    return hero.getManaPoints() >= spellCosts(spell, hero) && monster.getMagicalResistPercent() < 100 &&
-           (spell != Spell::Apheelsik || !monster.isUndead()) &&
-           (spell != Spell::Wonafyt || hero.getLevel() >= monster.getLevel());
+      return isPossible(hero, spell, resources);
+    if (hero.getManaPoints() < spellCosts(spell, hero) || monster.getMagicalResistPercent() >= 100)
+      return false;
+    switch (spell)
+    {
+    case Spell::Apheelsik:
+      return !monster.isUndead();
+    case Spell::Wonafyt:
+      return hero.getLevel() >= monster.getLevel();
+    default:
+      return true;
+    }
   }
 
-  void cast(Hero& hero, Spell spell, Monsters& allMonsters)
+  void cast(Hero& hero, Spell spell, Monsters& allMonsters, Resources& resources)
   {
-    if (!isPossible(hero, spell))
+    if (!isPossible(hero, spell, resources))
       return;
 
     const int manaCosts = spellCosts(spell, hero);
@@ -181,14 +202,8 @@ namespace Magic
       hero.addStatus(HeroStatus::DeathProtection);
       break;
     case Spell::Endiswal:
+      hero.destroyWall(resources);
       hero.addStatus(HeroStatus::StoneSkin);
-      if (hero.has(Boon::StoneForm))
-        hero.addStatus(HeroStatus::Might);
-      if (hero.has(Item::RockHeart))
-      {
-        hero.healHitPoints(1);
-        hero.recoverManaPoints(1);
-      }
       break;
     case Spell::Getindare:
       // first strike, +5% dodge chance (until actual dodge)
@@ -223,14 +238,14 @@ namespace Magic
     applyCastingSideEffects(hero, manaCosts, allMonsters);
   }
 
-  Summary cast(Hero& hero, Monster& monster, Spell spell, Monsters& allMonsters)
+  Summary cast(Hero& hero, Monster& monster, Spell spell, Monsters& allMonsters, Resources& resources)
   {
-    if (!isPossible(hero, monster, spell))
+    if (!isPossible(hero, monster, spell, resources))
       return Summary::NotPossible;
 
     if (!needsMonster(spell) && !monsterIsOptional(spell))
     {
-      Magic::cast(hero, spell, allMonsters);
+      Magic::cast(hero, spell, allMonsters, resources);
       return Summary::Safe;
     }
 
@@ -263,10 +278,14 @@ namespace Magic
     }
     case Spell::Pisorf:
       // 60% of base damage as physical damage if against wall
-      // (TODO?) slightly less than 50% of base damage as physical damage if against enemy + corrosion of first enemy as typeless damage.
-      // Net damage to first enemy is applied as typeless damage to second enemy; second enemy cannot drop below 1 HP.
-      monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
-      hero.resetStatus(HeroStatus::SpiritStrength);
+      // (TODO?) slightly less than 50% of base damage as physical damage if against enemy + corrosion of first enemy as
+      // typeless damage. Net damage to first enemy is applied as typeless damage to second enemy; second enemy cannot
+      // drop below 1 HP.
+      if (hero.destroyWall(resources))
+      {
+        monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
+        hero.resetStatus(HeroStatus::SpiritStrength);
+      }
       break;
     case Spell::Weytwut:
       // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)

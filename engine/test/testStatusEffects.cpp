@@ -13,6 +13,7 @@ using namespace snowhouse;
 namespace
 {
   Monsters noOtherMonsters;
+  Resources resources;
 }
 
 void testStatusEffects()
@@ -259,13 +260,13 @@ void testStatusEffects()
       Monster monster(MonsterType::MeatMan, 3);
       it("should increase fireball damage by 4 per caster level", [&] {
         int hp = monster.getHitPoints();
-        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Safe));
         hp -= 8;
         AssertThat(monster.getHitPoints(), Equals(hp));
         AssertThat(monster.getBurnStackSize(), Equals(2));
         hero.gainLevel(noOtherMonsters);
         hero.gainLevel(noOtherMonsters);
-        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Safe));
         hp -= 8 * 3 + 2;
         AssertThat(monster.getHitPoints(), Equals(hp));
         AssertThat(monster.getBurnStackSize(), Equals(6));
@@ -274,9 +275,9 @@ void testStatusEffects()
         hero.gainLevel(noOtherMonsters);
         monster.recover(15);
         const int retaliateDamage = monster.getDamage() / 2;
-        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Safe));
         AssertThat(hero.getHitPointsMax() - hero.getHitPoints(), Equals(retaliateDamage));
-        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters), Equals(Summary::Win));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Win));
         AssertThat(hero.getHitPointsMax() - hero.getHitPoints(), Equals(retaliateDamage));
       });
     });
@@ -510,7 +511,7 @@ void testStatusEffects()
       it("should wear off after the next physical attack", [&] {
         Monster monster("", {2, 40, 1, 0}, {}, {});
         hero.addStatus(HeroStatus::Reflexes);
-        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Safe));
         AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsTrue());
         AssertThat(monster.getHitPoints(), Equals(36));
         AssertThat(monster.getBurnStackSize(), Equals(1));
@@ -528,7 +529,8 @@ void testStatusEffects()
         hero.changeBaseDamage(34);
         AssertThat(hero.getBaseDamage(), Equals(50));
         hero.use(Item::ManaPotion, noOtherMonsters);
-        AssertThat(Magic::cast(hero, monster, Spell::Pisorf, noOtherMonsters), Equals(Summary::Safe));
+        resources.numWalls += 1;
+        AssertThat(Magic::cast(hero, monster, Spell::Pisorf, noOtherMonsters, resources), Equals(Summary::Safe));
         AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsFalse());
         AssertThat(monster.getHitPoints(), Equals(1 /* 31 - 60% * 50 */));
       });

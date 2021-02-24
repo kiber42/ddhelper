@@ -97,11 +97,12 @@ void testCombatWithTwoMonsters()
   describe("Burn stack damage", [] {
     Hero hero;
     Monsters allMonsters;
+    Resources resources;
     allMonsters.reserve(2); // prevent reallocation
     Monster& burning = allMonsters.emplace_back(Monster(1, 10, 1));
     Monster& nextTarget = allMonsters.emplace_back(MonsterType::MeatMan, 1);
     it("should occur on physical attack to other monster", [&] {
-      AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters), Equals(Summary::Safe));
+      AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.getHitPoints(), Equals(6));
       AssertThat(Combat::attack(hero, nextTarget, allMonsters), Equals(Summary::Safe));
       AssertThat(burning.isBurning(), IsFalse());
@@ -109,7 +110,7 @@ void testCombatWithTwoMonsters()
     });
     it("should count as a burning kill", [&] {
       hero.recoverManaPoints(2);
-      AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters), Equals(Summary::Safe));
+      AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.getHitPoints(), Equals(1));
       hero.followDeity(God::GlowingGuardian);
       AssertThat(hero.getPiety(), Equals(5));

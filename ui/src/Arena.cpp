@@ -89,8 +89,8 @@ void Arena::runCastPopup(const State& state)
     for (const auto& [spell, _] : spellCounts)
     {
       const bool isSelected = ++index == selectedPopupItem;
-      const bool possible = (withMonster && Magic::isPossible(state.hero, *state.monster(), spell)) ||
-                            (!withMonster && !Magic::needsMonster(spell) && Magic::isPossible(state.hero, spell));
+      const bool possible = Magic::isPossible(state.hero, spell, state.resources) ||
+                            (withMonster && Magic::isPossible(state.hero, *state.monster(), spell, state.resources));
       const int costs = Magic::spellCosts(spell, state.hero);
       const std::string label = toString(spell) + " ("s + std::to_string(costs) + " MP)";
       if (!possible)
@@ -101,8 +101,8 @@ void Arena::runCastPopup(const State& state)
       const std::string historyTitle = "Cast "s + toString(spell);
       auto cast = [spell = spell, withMonster](State& state) {
         if (withMonster)
-          return Magic::cast(state.hero, *state.monster(), spell, state.monsterPool);
-        Magic::cast(state.hero, spell, state.monsterPool);
+          return Magic::cast(state.hero, *state.monster(), spell, state.monsterPool, state.resources);
+        Magic::cast(state.hero, spell, state.monsterPool, state.resources);
         return Summary::None;
       };
       if (addPopupAction(state, label, historyTitle, cast, isSelected))

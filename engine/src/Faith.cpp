@@ -770,8 +770,6 @@ PietyChange Faith::spellCast(Spell spell, int manaCost)
   case God::BinlorIronshield:
     if (spell == Spell::Bysseps)
       return 1;
-    if (spell == Spell::Endiswal)
-      return 5;
     break;
   case God::Dracul:
     if (spell == Spell::Cydstepp || spell == Spell::Halpmeh)
