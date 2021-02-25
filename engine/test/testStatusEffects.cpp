@@ -169,7 +169,7 @@ void testStatusEffects()
           }
           const int tolerance = 2 * (11 - chance / 10);
           const int expectedWithTolerance = 100 / chance * tolerance;
-          AssertThat(attempts, IsLessThan(expectedWithTolerance));
+          AssertThat(attempts, IsLessThanOrEqualTo(expectedWithTolerance));
         }
       });
       it("chance should be rerolled after each attack", [] {
