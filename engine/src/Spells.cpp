@@ -58,7 +58,6 @@ namespace Magic
     {
       if (hero.isDefeated())
         return;
-      // Sorcerer: Every mana point spent regenerates 2 health (Essence Transit)
       if (hero.hasTrait(HeroTrait::EssenceTransit))
         hero.healHitPoints(2 * manaCosts);
       if (hero.hasTrait(HeroTrait::InnerFocus))
@@ -126,6 +125,13 @@ namespace Magic
     return costs;
   }
 
+  int healthCostsBludtupowa(const Hero& hero)
+  {
+    if (hero.hasTrait(HeroTrait::EssenceTransit))
+      return hero.getLevel() * 3 + 4;
+    return hero.getLevel() * 3;
+  }
+
   bool isPossible(const Hero& hero, Spell spell, const Resources& resources)
   {
     const bool validWithoutTarget = !needsMonster(spell);
@@ -135,7 +141,7 @@ namespace Magic
     switch (spell)
     {
     case Spell::Bludtupowa:
-      return hero.getHitPoints() > 3 * hero.getLevel();
+      return hero.getHitPoints() > healthCostsBludtupowa(hero);
     case Spell::Bysseps:
       return !hero.hasStatus(HeroStatus::Might) || hero.hasTrait(HeroTrait::Additives);
     case Spell::Cydstepp:
@@ -186,11 +192,12 @@ namespace Magic
     {
     case Spell::Bludtupowa:
     {
+      // uncover up to 3 tiles, monsters do not recover, hero converts health to mana
+      const int uncoveredTiles = std::min(3, resources.numBlackTiles);
+      resources.numBlackTiles -= 3;
       if (hero.getFollowedDeity() != God::GlowingGuardian)
       {
-        // uncover 3 tiles without health recovery (neither hero nor monsters)
-        const int uncoveredTiles = 3;
-        hero.loseHitPointsOutsideOfFight(3 * hero.getLevel(), allMonsters);
+        hero.loseHitPointsOutsideOfFight(healthCostsBludtupowa(hero), allMonsters);
         hero.recoverManaPoints(uncoveredTiles);
       }
       break;

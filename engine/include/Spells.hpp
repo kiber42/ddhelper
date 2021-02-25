@@ -87,4 +87,6 @@ namespace Magic
   }
 
   int spellCosts(Spell spell, const Hero& hero);
+
+  int healthCostsBludtupowa(const Hero& hero);
 } // namespace Magic
