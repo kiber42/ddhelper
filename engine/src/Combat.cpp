@@ -62,7 +62,11 @@ namespace Combat
       if (hero.hasStatus(HeroStatus::CrushingBlow))
         monster.receiveCrushingBlow();
       else if (hero.hasStatus(HeroStatus::BurningStrike))
+      {
         monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.doesMagicalDamage());
+        if (hero.hasStatus(HeroStatus::HeavyFireball))
+          monster.burnMax(2 * hero.getLevel());
+      }
       else
         monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
       applyLifeSteal(hero, monster, monsterHPBefore);
@@ -111,7 +115,7 @@ namespace Combat
       if (!monster.isDefeated())
       {
         // If the monster is defeated beyond this point (Reflexes or Mana Shield),
-        // it was not slowed nor burning before the final blow.
+        // it was not slowed nor burning (except if attacked with Burning Strike) before the final blow.
         monsterWasSlowed = false;
         monsterWasBurning = hero.hasStatus(HeroStatus::BurningStrike);
         monsterAttacks();
