@@ -398,7 +398,7 @@ void Hero::loseHitPoints(int amountPointsLost, Monsters& allMonsters)
   }
 }
 
-void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters)
+bool Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters)
 {
   const int damagePoints = predictDamageTaken(attackerDamageOutput, isMagicalDamage);
   loseHitPoints(damagePoints, allMonsters);
@@ -408,6 +408,7 @@ void Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& 
     resetStatus(HeroStatus::Schadenfreude);
   }
   resetStatus(HeroStatus::StoneSkin);
+  return damagePoints > 0;
 }
 
 void Hero::recover(int nSquares)

@@ -63,7 +63,8 @@ public:
 
   bool hasInitiativeVersus(const Monster& monster) const;
   int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
-  void takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters);
+  // Returns false if damage was fully absorbed by damage reduction / resistances
+  bool takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters);
   void recover(int nSquares);
   int recoveryMultiplier() const;
   int numSquaresForFullRecovery() const;

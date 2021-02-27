@@ -9,20 +9,6 @@ namespace Combat
 {
   namespace
   {
-    void inflictDebuffs(Hero& hero, const Monster& monster, bool includeCurse, Monsters& allMonsters)
-    {
-      if (monster.isPoisonous())
-        hero.addStatus(HeroDebuff::Poisoned, allMonsters);
-      if (monster.hasManaBurn())
-        hero.addStatus(HeroDebuff::ManaBurned, allMonsters);
-      if (monster.isCorrosive())
-        hero.addStatus(HeroDebuff::Corroded, allMonsters);
-      if (monster.isWeakening())
-        hero.addStatus(HeroDebuff::Weakened, allMonsters);
-      if (includeCurse && monster.bearsCurse())
-        hero.addStatus(HeroDebuff::Cursed, allMonsters);
-    }
-
     void applyLifeSteal(Hero& hero, const Monster& monster, int monsterHitPointsBefore)
     {
       if (hero.hasStatus(HeroStatus::LifeSteal) && !monster.isBloodless())
@@ -102,11 +88,13 @@ namespace Combat
         {
           // Hero either dies or death protection is triggered
           hero.loseHitPointsOutsideOfFight(hero.getHitPoints(), allMonsters);
+          heroReceivedHit = true;
         }
         else
-          hero.takeDamage(monsterDamageInitial, monster.doesMagicalDamage(), allMonsters);
-        heroReceivedHit = true;
-        if (!hero.isDefeated() && hero.hasTrait(HeroTrait::ManaShield))
+        {
+          heroReceivedHit = hero.takeDamage(monsterDamageInitial, monster.doesMagicalDamage(), allMonsters);
+        }
+        if (hero.hasTrait(HeroTrait::ManaShield) && heroReceivedHit && !hero.isDefeated())
           monster.takeManaShieldDamage(hero.getLevel());
       }
     };
@@ -140,7 +128,14 @@ namespace Combat
 
     if (heroReceivedHit)
     {
-      inflictDebuffs(hero, monster, false, allMonsters);
+      if (monster.isPoisonous())
+        hero.addStatus(HeroDebuff::Poisoned, allMonsters);
+      if (monster.hasManaBurn())
+        hero.addStatus(HeroDebuff::ManaBurned, allMonsters);
+      if (monster.isCorrosive())
+        hero.addStatus(HeroDebuff::Corroded, allMonsters);
+      if (monster.isWeakening())
+        hero.addStatus(HeroDebuff::Weakened, allMonsters);
       hero.collect(hero.getFaith().receivedHit(monster));
     }
 
