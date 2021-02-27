@@ -7,65 +7,31 @@ class MonsterTraitsBuilder;
 
 struct MonsterTraits
 {
-  bool doesMagicalDamage() const
-  {
-    return magicalDamage;
-  }
-  bool doesRetaliate() const
-  {
-    return retaliate;
-  }
+  bool doesMagicalDamage() const { return magicalDamage; }
+  bool doesRetaliate() const { return retaliate; }
 
-  bool isPoisonous() const
-  {
-    return poisonous;
-  }
-  bool hasManaBurn() const
-  {
-    return manaBurn;
-  }
-  bool bearsCurse() const
-  {
-    return curse;
-  }
-  bool isCorrosive() const
-  {
-    return corrosive;
-  }
-  bool isWeakening() const
-  {
-    return weakening;
-  }
+  bool isPoisonous() const { return poisonous; }
+  bool hasManaBurn() const { return manaBurn; }
+  bool bearsCurse() const { return curse; }
+  bool isCorrosive() const { return corrosive; }
+  bool isWeakening() const { return weakening; }
 
-  bool hasFirstStrike() const
-  {
-    return firstStrike;
-  }
-  int getDeathGazePercent() const
-  {
-    return deathGazePercent;
-  }
-  int getLifeStealPercent() const
-  {
-    return lifeStealPercent;
-  }
-  int getBerserkPercent() const
-  {
-    return berserkPercent;
-  }
-  bool isUndead() const
-  {
-    return undead;
-  }
-  bool isBloodless() const
-  {
-    return bloodless;
-  }
-  bool hasFastRegen() const
-  {
-    return fastRegen;
-  }
+  bool hasFirstStrike() const { return firstStrike; }
+  int getDeathGazePercent() const { return deathGazePercent; }
+  int getLifeStealPercent() const { return lifeStealPercent; }
+  int getBerserkPercent() const { return berserkPercent; }
+  bool isUndead() const { return undead; }
+  bool isBloodless() const { return bloodless; }
+  bool hasFastRegen() const { return fastRegen; }
 
+  void makeFast() { firstStrike = true; }
+  void makeWeakening() { weakening = true; }
+
+  MonsterTraits() = default;
+  MonsterTraits(MonsterType type);
+  MonsterTraits(MonsterTraitsBuilder& builder);
+
+private:
   bool magicalDamage{false};
   bool retaliate{false};
   bool poisonous{false};
@@ -81,9 +47,8 @@ struct MonsterTraits
   bool bloodless{false};
   bool fastRegen{false};
 
-  MonsterTraits() = default;
-  MonsterTraits(MonsterType type);
-  MonsterTraits(MonsterTraitsBuilder& builder);
+  friend class MonsterTraitsBuilder;
+  friend class CustomMonsterBuilder;
 };
 
 class MonsterTraitsBuilder
@@ -107,7 +72,7 @@ public:
   MonsterTraitsBuilder& addFirstStrike();
   MonsterTraitsBuilder& setDeathGazePercent(int deathGazePercent);
   MonsterTraitsBuilder& setLifeStealPercent(int lifeStealPercent);
-  MonsterTraitsBuilder& setBerserkPercent(int newBerserkPercent);
+  MonsterTraitsBuilder& setBerserkPercent(int berserkPercent);
   MonsterTraitsBuilder& addUndead();
   MonsterTraitsBuilder& addBloodless();
   MonsterTraitsBuilder& addFastRegen();

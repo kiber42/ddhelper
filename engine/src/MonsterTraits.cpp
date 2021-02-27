@@ -67,21 +67,21 @@ MonsterTraitsBuilder& MonsterTraitsBuilder::addFirstStrike()
   return *this;
 }
 
-MonsterTraitsBuilder& MonsterTraitsBuilder::setDeathGazePercent(int newDeathGazePercent)
+MonsterTraitsBuilder& MonsterTraitsBuilder::setDeathGazePercent(int deathGazePercent)
 {
-  traits.deathGazePercent = newDeathGazePercent;
+  traits.deathGazePercent = deathGazePercent;
   return *this;
 }
 
-MonsterTraitsBuilder& MonsterTraitsBuilder::setLifeStealPercent(int newLifeStealPercent)
+MonsterTraitsBuilder& MonsterTraitsBuilder::setLifeStealPercent(int lifeStealPercent)
 {
-  traits.lifeStealPercent = newLifeStealPercent;
+  traits.lifeStealPercent = lifeStealPercent;
   return *this;
 }
 
-MonsterTraitsBuilder& MonsterTraitsBuilder::setBerserkPercent(int newBerserkPercent)
+MonsterTraitsBuilder& MonsterTraitsBuilder::setBerserkPercent(int berserkPercent)
 {
-  traits.berserkPercent = newBerserkPercent;
+  traits.berserkPercent = berserkPercent;
   return *this;
 }
 

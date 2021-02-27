@@ -10,7 +10,7 @@ BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
 ConstructorInitializerIndentWidth: 2
 
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: InlineOnly
 PointerAlignment: Left
 
 ColumnLimit: 120

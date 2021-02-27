@@ -356,12 +356,12 @@ void Monster::addMagicResist(int additionalResistPercent)
 
 void Monster::makeFast()
 {
-  traits.firstStrike = true;
+  traits.makeFast();
 }
 
 void Monster::makeWeakening()
 {
-  traits.weakening = true;
+  traits.makeWeakening();
 }
 
 using namespace std::string_literals;
