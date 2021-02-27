@@ -226,9 +226,11 @@ namespace Magic
       break;
     case Spell::Lemmisi:
     {
-      // reveals 3 tiles, recovery of hero (and monster)
-      const int uncoveredTiles = 3;
+      const int uncoveredTiles = std::min(3, resources.numBlackTiles);
+      resources.numBlackTiles -= uncoveredTiles;
       hero.recover(uncoveredTiles);
+      for (auto& monster : allMonsters)
+        monster.recover(uncoveredTiles);
       break;
     }
     default:
