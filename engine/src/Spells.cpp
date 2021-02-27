@@ -194,7 +194,7 @@ namespace Magic
     {
       // uncover up to 3 tiles, monsters do not recover, hero converts health to mana
       const int uncoveredTiles = std::min(3, resources.numBlackTiles);
-      resources.numBlackTiles -= 3;
+      resources.numBlackTiles -= uncoveredTiles;
       if (hero.getFollowedDeity() != God::GlowingGuardian)
       {
         hero.loseHitPointsOutsideOfFight(healthCostsBludtupowa(hero), allMonsters);
