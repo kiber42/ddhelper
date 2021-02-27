@@ -14,6 +14,7 @@ using namespace snowhouse;
 namespace
 {
   Monsters noOtherMonsters;
+  Resources resources;
 }
 
 void testFaith()
@@ -73,6 +74,36 @@ void testFaith()
         AssertThat(hero.getPiety(), Equals(0));
         AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5));
+      });
+      it("shall accept tribute", [] {
+        Hero hero;
+        hero.followDeity(God::TikkiTooki);
+        hero.addGold(150 - hero.gold());
+        AssertThat(hero.getPiety(), Equals(0));
+        AssertThat(hero.gold(), Equals(150));
+        for (int i = 1; i <= 10; ++i)
+        {
+          hero.request(Boon::Tribute, noOtherMonsters, resources);
+          AssertThat(hero.getPiety(), Equals(i * 10));
+          AssertThat(hero.gold(), Equals(150 - i * 15));
+        }
+      });
+      it("shall ignore hits that do not cause damage", [] {
+        Hero hero;
+        hero.followDeity(God::TikkiTooki);
+        hero.request(Boon::Tribute, noOtherMonsters, resources);
+        AssertThat(hero.getPiety(), Equals(10));
+        Monster meatMan(1, 100, 3);
+        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(10));
+        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(7));
+        hero.addStatus(HeroStatus::DamageReduction, 2);
+        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(4));
+        hero.addStatus(HeroStatus::DamageReduction, 1);
+        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(4));
       });
     });
   });
