@@ -28,16 +28,16 @@ target_include_directories(ddhelperengine PUBLIC include)
 add_executable(
   testengine
   test/main.cpp
-  test/testExperience.cpp
-  test/testMonsters.cpp
-  test/testDefence.cpp
   test/testCombat.cpp
-  test/testStatusEffects.cpp
-  test/testTraits.cpp
-  test/testInventory.cpp
-  test/testPotions.cpp
-  test/testFaith.cpp
+  test/testDefence.cpp
   test/testDungeon.cpp
-  )
+  test/testExperience.cpp
+  test/testFaith.cpp
+  test/testInventory.cpp
+  test/testMonsters.cpp
+  test/testPotions.cpp
+  test/testSpells.cpp
+  test/testStatusEffects.cpp
+  test/testTraits.cpp)
 target_include_directories(testengine PRIVATE bandit)
 target_link_libraries(testengine ddhelperengine)

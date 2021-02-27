@@ -4,6 +4,7 @@ void testHeroExperience();
 void testMonsterBasics();
 void testDefenceBasics();
 void testCombat();
+void testSpells();
 void testStatusEffects();
 void testHeroTraits();
 void testInventory();
@@ -16,6 +17,7 @@ go_bandit([] {
   testMonsterBasics();
   testDefenceBasics();
   testCombat();
+  testSpells();
   testStatusEffects();
   testHeroTraits();
   testInventory();
