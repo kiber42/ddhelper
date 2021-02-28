@@ -40,18 +40,13 @@ namespace Combat
       return Summary::NotPossible;
     }
 
-    // TODO Better handling of dodge and dodge prediction -- manual selection?
-
-    // TODO Handle knockback?
-    // TODO Handle burn stack pop on other monsters?
-
     // Bonus experience is added if the monster was slowed before the final attack
     bool monsterWasSlowed = monster.isSlowed();
     bool monsterWasBurning = monster.isBurning();
-    const int monsterDamageInitial = monster.getDamage();
     bool heroReceivedHit = false;
     bool appliedPoison = false;
 
+    const int monsterDamageInitial = monster.getDamage();
     const bool reflexes = hero.hasStatus(HeroStatus::Reflexes);
     const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
     const bool willPetrify = !hero.hasStatus(HeroStatus::DeathGazeImmune) &&
@@ -63,12 +58,12 @@ namespace Combat
         monster.receiveCrushingBlow();
       else if (hero.hasStatus(HeroStatus::BurningStrike))
       {
-        monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.doesMagicalDamage());
+        monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.damageType());
         if (hero.hasStatus(HeroStatus::HeavyFireball))
           monster.burnMax(2 * hero.getLevel());
       }
       else
-        monster.takeDamage(hero.getDamageOutputVersus(monster), hero.doesMagicalDamage());
+        monster.takeDamage(hero.getDamageOutputVersus(monster), hero.damageType());
       applyLifeSteal(hero, monster, monsterHPBefore);
       if (!monster.isDefeated() && hero.hasStatus(HeroStatus::Poisonous))
       {
@@ -96,7 +91,7 @@ namespace Combat
         }
         else
         {
-          heroReceivedHit = hero.takeDamage(monsterDamageInitial, monster.doesMagicalDamage(), allMonsters);
+          heroReceivedHit = hero.takeDamage(monsterDamageInitial, monster.damageType(), allMonsters);
         }
         if (hero.hasTrait(HeroTrait::ManaShield) && heroReceivedHit && !hero.isDefeated())
           monster.takeManaShieldDamage(hero.getLevel());

@@ -42,7 +42,7 @@ namespace Magic
       // Retaliation
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
       {
-        hero.takeDamage(monster.getDamage() / 2, monster.doesMagicalDamage(), allMonsters);
+        hero.takeDamage(monster.getDamage() / 2, monster.damageType(), allMonsters);
         if (hero.hasTrait(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
       }
@@ -292,7 +292,7 @@ namespace Magic
       // drop below 1 HP.
       if (hero.destroyWall(resources))
       {
-        monster.takeDamage(hero.getBaseDamage() * 6 / 10, false);
+        monster.takeDamage(hero.getBaseDamage() * 6 / 10, DamageType::Physical);
         hero.resetStatus(HeroStatus::SpiritStrength);
       }
       break;

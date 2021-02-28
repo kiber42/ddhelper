@@ -14,7 +14,7 @@ namespace
 {
   Monsters noOtherMonsters;
   Resources resources;
-}
+} // namespace
 
 void testStatusEffects()
 {
@@ -75,7 +75,7 @@ void testStatusEffects()
       });
       it("should not affect monsters below 75% health", [&] {
         Monster monster(MonsterType::MeatMan, 1);
-        monster.takeDamage(monster.getHitPoints() - 1, false);
+        monster.takeDamage(monster.getHitPoints() - 1, DamageType::Physical);
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getHitPoints(), Equals(1));
       });
@@ -89,10 +89,10 @@ void testStatusEffects()
       it("should negate resistances", [] {
         Hero hero;
         hero.setPhysicalResistPercent(50);
-        hero.takeDamage(4, false, noOtherMonsters);
+        hero.takeDamage(4, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2));
         hero.addStatus(HeroDebuff::Cursed, noOtherMonsters);
-        hero.takeDamage(4, false, noOtherMonsters);
+        hero.takeDamage(4, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(10 - 4 / 2 - 4));
       });
       it("should be added/removed when cursed/not-cursed monster is defeated", [] {
@@ -134,7 +134,7 @@ void testStatusEffects()
     describe("Death Gaze Immune", [] {
       it("should prevent petrification", [] {
         Hero hero;
-        hero.takeDamage(6, false, noOtherMonsters);
+        hero.takeDamage(6, DamageType::Physical, noOtherMonsters);
         hero.addStatus(HeroStatus::DeathGazeImmune);
         Monster gorgon(MonsterType::Gorgon, 1);
         AssertThat(Combat::attack(hero, gorgon, noOtherMonsters), Equals(Summary::Win));

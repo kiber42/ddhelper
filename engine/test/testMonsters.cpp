@@ -14,7 +14,7 @@ void testMonsterBasics()
       AssertThat(monster.getHitPoints(), Equals(10));
     });
     it("with 10 HP should survive a hit with 9 damage points and has 1 HP remaining", [&] {
-      monster.takeDamage(9, false);
+      monster.takeDamage(9, DamageType::Physical);
       AssertThat(monster.isDefeated(), IsFalse());
       AssertThat(monster.getHitPoints(), Equals(1));
     });
@@ -27,7 +27,7 @@ void testMonsterBasics()
       AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax()));
     });
     it("should not recover HP while poisoned", [&] {
-      monster.takeDamage(1, false);
+      monster.takeDamage(1, DamageType::Physical);
       monster.poison(3);
       monster.recover(1);
       AssertThat(monster.getHitPoints(), Equals(9));
@@ -69,14 +69,14 @@ void testMonsterBasics()
        [&] { AssertThat(monster.getBurnStackSize(), Equals(2)); });
     it("should stop burning upon any physical damage, and take damage equal to burn stack size", [&] {
       AssertThat(monster.getHitPoints() - monster.getBurnStackSize(), Equals(2));
-      monster.takeDamage(0, false);
+      monster.takeDamage(0, DamageType::Physical);
       AssertThat(monster.isBurning(), IsFalse());
       AssertThat(monster.getHitPoints(), Equals(2));
     });
     it("should recover from being slowed when taking damage", [&] {
       monster.slow();
       AssertThat(monster.isSlowed(), IsTrue());
-      monster.takeDamage(1, false);
+      monster.takeDamage(1, DamageType::Physical);
       AssertThat(monster.isSlowed(), IsFalse());
     });
   });

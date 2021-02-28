@@ -75,10 +75,7 @@ namespace Magic
   }
 
   // Spells that behave differently when targeted at a monster
-  constexpr bool monsterIsOptional(Spell spell)
-  {
-    return spell == Spell::Imawal || spell == Spell::Lemmisi;
-  }
+  constexpr bool monsterIsOptional(Spell spell) { return spell == Spell::Imawal || spell == Spell::Lemmisi; }
 
   // Spells that might not succeed (chance depends on monster's magic resistance)
   constexpr bool canBeResisted(Spell spell)

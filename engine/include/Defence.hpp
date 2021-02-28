@@ -2,6 +2,13 @@
 
 enum class MonsterType;
 
+enum class DamageType
+{
+  Physical,
+  Magical,
+  Typeless
+};
+
 class Defence
 {
 public:
@@ -21,7 +28,7 @@ public:
   void setPhysicalResistPercentMax(int newMax);
   void setMagicalResistPercentMax(int newMax);
 
-  int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage, int burnStackSize) const;
+  int predictDamageTaken(int attackerDamageOutput, DamageType damageType, int burnStackSize) const;
 
   void setCorrosion(int numCorrosionLayers);
   void setStoneSkin(int stoneSkinLayers);

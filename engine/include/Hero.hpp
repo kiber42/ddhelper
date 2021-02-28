@@ -60,11 +60,12 @@ public:
   void changeMagicalResistPercent(int deltaPercent);
 
   bool doesMagicalDamage() const;
+  DamageType damageType() const;
 
   bool hasInitiativeVersus(const Monster& monster) const;
-  int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
+  int predictDamageTaken(int attackerDamageOutput, DamageType damageType) const;
   // Returns false if damage was fully absorbed by damage reduction / resistances
-  bool takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters);
+  bool takeDamage(int attackerDamageOutput, DamageType damageType, Monsters& allMonsters);
   void recover(int nSquares);
   int recoveryMultiplier() const;
   int numSquaresForFullRecovery() const;

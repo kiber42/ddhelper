@@ -14,7 +14,7 @@ namespace
     using namespace std::string_literals;
     return toString(type) + " level "s + std::to_string(level);
   }
-}
+} // namespace
 
 Monster::Monster(MonsterType type, int level, int dungeonMultiplier)
   : name(makeMonsterName(type, level))
@@ -89,14 +89,14 @@ int Monster::getMagicalResistPercent() const
   return defence.getMagicalResistPercent();
 }
 
-int Monster::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
+int Monster::predictDamageTaken(int attackerDamageOutput, DamageType damageType) const
 {
-  return defence.predictDamageTaken(attackerDamageOutput, isMagicalDamage, status.getBurnStackSize());
+  return defence.predictDamageTaken(attackerDamageOutput, damageType, status.getBurnStackSize());
 }
 
-void Monster::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
+void Monster::takeDamage(int attackerDamageOutput, DamageType damageType)
 {
-  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
+  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, damageType));
   status.setSlowed(false);
   status.setBurn(0);
 }
@@ -104,14 +104,14 @@ void Monster::takeDamage(int attackerDamageOutput, bool isMagicalDamage)
 void Monster::takeFireballDamage(int casterLevel, int damageMultiplier)
 {
   const int damagePoints = casterLevel * damageMultiplier;
-  stats.loseHitPoints(predictDamageTaken(damagePoints, true));
+  stats.loseHitPoints(predictDamageTaken(damagePoints, DamageType::Magical));
   status.setSlowed(false);
   burn(casterLevel * 2);
 }
 
-void Monster::takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, bool isMagicalDamage)
+void Monster::takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, DamageType damageType)
 {
-  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, isMagicalDamage));
+  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, damageType));
   status.setSlowed(false);
   burn(casterLevel * 2);
 }
@@ -287,6 +287,11 @@ int Monster::getCorroded() const
 bool Monster::doesMagicalDamage() const
 {
   return traits.doesMagicalDamage();
+}
+
+DamageType Monster::damageType() const
+{
+  return doesMagicalDamage() ? DamageType::Magical : DamageType::Physical;
 }
 
 bool Monster::doesRetaliate() const

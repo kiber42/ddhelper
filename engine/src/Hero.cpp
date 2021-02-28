@@ -362,6 +362,11 @@ bool Hero::doesMagicalDamage() const
   return hasStatus(HeroStatus::ConsecratedStrike) || hasStatus(HeroStatus::MagicalAttack);
 }
 
+DamageType Hero::damageType() const
+{
+  return doesMagicalDamage() ? DamageType::Magical : DamageType::Physical;
+}
+
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
   if (hasStatus(HeroStatus::Reflexes))
@@ -381,10 +386,10 @@ bool Hero::hasInitiativeVersus(const Monster& monster) const
   return getLevel() > monster.getLevel();
 }
 
-int Hero::predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const
+int Hero::predictDamageTaken(int attackerDamageOutput, DamageType damageType) const
 {
   return defence.predictDamageTaken(std::max(0, attackerDamageOutput - getStatusIntensity(HeroStatus::DamageReduction)),
-                                    isMagicalDamage, 0);
+                                    damageType, 0);
 }
 
 void Hero::loseHitPoints(int amountPointsLost, Monsters& allMonsters)
@@ -398,9 +403,9 @@ void Hero::loseHitPoints(int amountPointsLost, Monsters& allMonsters)
   }
 }
 
-bool Hero::takeDamage(int attackerDamageOutput, bool isMagicalDamage, Monsters& allMonsters)
+bool Hero::takeDamage(int attackerDamageOutput, DamageType damageType, Monsters& allMonsters)
 {
-  const int damagePoints = predictDamageTaken(attackerDamageOutput, isMagicalDamage);
+  const int damagePoints = predictDamageTaken(attackerDamageOutput, damageType);
   loseHitPoints(damagePoints, allMonsters);
   if (damagePoints > 0 && hasStatus(HeroStatus::Schadenfreude))
   {

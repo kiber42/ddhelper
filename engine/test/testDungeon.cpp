@@ -27,7 +27,7 @@ void testDungeonBasics()
     });
     it("should not be revealed initially", [&] { AssertThat(dungeon.isRevealed({1, 1}), IsFalse()); });
     it("should consider a square with a defeated monster as free", [&] {
-      monster->takeDamage(100, false);
+      monster->takeDamage(100, DamageType::Physical);
       AssertThat(monster->isDefeated(), IsTrue());
       dungeon.update();
       AssertThat(dungeon.randomFreePosition().has_value(), IsTrue());

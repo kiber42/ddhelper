@@ -27,9 +27,9 @@ public:
   int getPhysicalResistPercent() const;
   int getMagicalResistPercent() const;
 
-  void takeDamage(int attackerDamageOutput, bool isMagicalDamage);
+  void takeDamage(int attackerDamageOutput, DamageType damageType);
   void takeFireballDamage(int casterLevel, int damageMultiplier = 4);
-  void takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, bool isMagicalDamage);
+  void takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, DamageType damageType);
   void takeManaShieldDamage(int casterLevel);
   void receiveCrushingBlow();
   void recover(int nSquares);
@@ -58,6 +58,7 @@ public:
   int getCorroded() const;
 
   bool doesMagicalDamage() const;
+  DamageType damageType() const;
   bool doesRetaliate() const;
 
   bool isPoisonous() const;
@@ -82,7 +83,7 @@ public:
   bool grantsXP() const { return true; }
 
 private:
-  int predictDamageTaken(int attackerDamageOutput, bool isMagicalDamage) const;
+  int predictDamageTaken(int attackerDamageOutput, DamageType damageType) const;
 
   std::string name;
   int id;
