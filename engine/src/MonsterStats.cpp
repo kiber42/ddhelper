@@ -6,17 +6,17 @@
 
 namespace
 {
-constexpr int hpInitial(int level, int multiplier1, int multiplier2)
-{
-  // TODO: Result sometimes appears to be 1 too high (at least for "Shifting Passages")
-  return (level * (level + 6) - 1) * multiplier1 / 100 * multiplier2 / 100;
-}
+  constexpr int hpInitial(int level, int multiplier1, int multiplier2)
+  {
+    // TODO: Result sometimes appears to be 1 too high (at least for "Shifting Passages")
+    return (level * (level + 6) - 1) * multiplier1 / 100 * multiplier2 / 100;
+  }
 
-constexpr int damageInitial(int level, int multiplier1, int multiplier2)
-{
-  return (level * (level + 5) / 2) * multiplier1 / 100 * multiplier2 / 100;
-}
-}
+  constexpr int damageInitial(int level, int multiplier1, int multiplier2)
+  {
+    return (level * (level + 5) / 2) * multiplier1 / 100 * multiplier2 / 100;
+  }
+} // namespace
 
 MonsterStats::MonsterStats(MonsterType type, int level, int dungeonMultiplier)
   : type(type)

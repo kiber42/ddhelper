@@ -13,17 +13,20 @@ public:
   int getY() const;
   bool operator==(const Position& other) const;
   bool operator!=(const Position& other) const;
+
 private:
   int x, y;
 };
 
 inline Position::Position()
-  : x(0), y(0)
+  : x(0)
+  , y(0)
 {
 }
 
 inline Position::Position(int x, int y)
-  : x(x), y(y)
+  : x(x)
+  , y(y)
 {
 }
 
@@ -46,7 +49,7 @@ inline bool Position::operator!=(const Position& other) const
   return x != other.x || y != other.y;
 }
 
-template<class Object>
+template <class Object>
 class Positioned : public Object
 {
 public:
@@ -61,17 +64,18 @@ public:
   Position getPosition() const { return _the_position; }
   void setPosition(Position position) { _the_position = position; }
   Object& get() { return *this; }
+
 private:
   Position _the_position;
 };
 
-template<class Object>
+template <class Object>
 Positioned<Object> make_positioned(Object object, Position position)
 {
   return Positioned<Object>(std::move(object), std::move(position));
 }
 
-template<class Item>
+template <class Item>
 class PositionedVector : public std::vector<Positioned<Item>>
 {
 public:
@@ -81,13 +85,13 @@ public:
   std::vector<Item> getAll();
 };
 
-template<class Item>
+template <class Item>
 void PositionedVector<Item>::add(Item item, Position position)
 {
   std::vector<Positioned<Item>>::emplace_back(make_positioned(std::move(item), std::move(position)));
 }
 
-template<class Item>
+template <class Item>
 bool PositionedVector<Item>::anyAt(Position position) const
 {
   for (auto& item : *this)
@@ -96,7 +100,7 @@ bool PositionedVector<Item>::anyAt(Position position) const
   return false;
 }
 
-template<class Item>
+template <class Item>
 std::vector<Item> PositionedVector<Item>::getAt(Position position)
 {
   std::vector<Item> itemsAtPosition;
@@ -106,7 +110,7 @@ std::vector<Item> PositionedVector<Item>::getAt(Position position)
   return itemsAtPosition;
 }
 
-template<class Item>
+template <class Item>
 std::vector<Item> PositionedVector<Item>::getAll()
 {
   std::vector<Item> allItems;

@@ -14,7 +14,7 @@ Hero getHeroForScenario(Scenario scenario)
   case Scenario::AgbaarsAcademySlowingPart2:
   {
     Hero hero;
-    Monsters ignore;    
+    Monsters ignore;
     hero.gainLevel(ignore);
     hero.gainExperienceNoBonuses(4, ignore);
     hero.loseHitPointsOutsideOfFight(3, ignore);

@@ -15,7 +15,7 @@ namespace
 {
   Monsters noOtherMonsters;
   Resources resources;
-}
+} // namespace
 
 void testFaith()
 {

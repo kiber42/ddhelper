@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
 #include "imgui.h"
 #include <SDL.h>
@@ -19,8 +19,8 @@ public:
 protected:
   ImVec4 background_color;
 
-  virtual void processEvent(SDL_Event&) {};
-  virtual void populateFrame() {};
+  virtual void processEvent(SDL_Event&) {}
+  virtual void populateFrame() {}
 
 private:
   class Data;

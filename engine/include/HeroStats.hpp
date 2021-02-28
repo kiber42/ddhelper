@@ -3,8 +3,12 @@
 class HeroStats
 {
 public:
-  struct IsDangerous {};
-  struct RegalSize {};
+  struct IsDangerous
+  {
+  };
+  struct RegalSize
+  {
+  };
 
   HeroStats();
   HeroStats(IsDangerous);

@@ -10,7 +10,6 @@ class Monster;
 #include <optional>
 #include <vector>
 
-
 class Dungeon
 {
 public:

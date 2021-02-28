@@ -5,6 +5,9 @@
 
 #include <optional>
 
-enum class Solver { GeneticAlgorithm };
+enum class Solver
+{
+  GeneticAlgorithm
+};
 
 std::optional<Solution> run(Solver solver, GameState initialState);

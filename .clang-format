@@ -3,6 +3,7 @@ BasedOnStyle: LLVM
 IndentWidth: 2
 ---
 Language: Cpp
+Standard: c++17
 AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBraces: Allman
 
@@ -10,7 +11,7 @@ BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
 ConstructorInitializerIndentWidth: 2
 
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortFunctionsOnASingleLine: Inline
 PointerAlignment: Left
 
 ColumnLimit: 120

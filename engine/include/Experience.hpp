@@ -3,9 +3,11 @@
 class Experience
 {
 public:
-  struct IsVeteran {};
+  struct IsVeteran
+  {
+  };
 
-  explicit Experience(int initialLevel=1);
+  explicit Experience(int initialLevel = 1);
   Experience(IsVeteran);
 
   int getXP() const { return xp; }

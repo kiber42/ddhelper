@@ -8,7 +8,7 @@ template <class DataType>
 class Grid
 {
 public:
-  Grid(int sizeX, int sizeY, const DataType &init = DataType());
+  Grid(int sizeX, int sizeY, const DataType& init = DataType());
   const int sizeX;
   const int sizeY;
 
@@ -23,7 +23,10 @@ private:
 };
 
 template <class DataType>
-Grid<DataType>::Grid(int sizeX, int sizeY, const DataType &init) : sizeX(sizeX), sizeY(sizeY), data(sizeX * sizeY)
+Grid<DataType>::Grid(int sizeX, int sizeY, const DataType& init)
+  : sizeX(sizeX)
+  , sizeY(sizeY)
+  , data(sizeX * sizeY)
 {
   std::fill(begin(data), end(data), init);
 }

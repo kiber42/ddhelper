@@ -201,7 +201,7 @@ namespace solver
     const auto& hero = state.hero;
     return std::visit(
         overloaded{[&](Attack) { return !state.monsters.empty(); },
-                   [&, &monsters=state.monsters, &resources=state.resources](Cast cast) {
+                   [&, &monsters = state.monsters, &resources = state.resources](Cast cast) {
                      return hero.has(cast.spell) &&
                             (Magic::isPossible(hero, cast.spell, resources) ||
                              (!monsters.empty() && Magic::isPossible(hero, monsters.front(), cast.spell, resources)));

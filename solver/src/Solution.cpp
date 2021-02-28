@@ -13,6 +13,7 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
+// clang-format off
 std::string toString(const Step& step)
 {
   return std::visit(overloaded{
@@ -37,6 +38,7 @@ std::string toString(const Step& step)
       [](Desecrate desecrate) { return "Desecrate "s + toString(desecrate.altar); }
   }, step);
 }
+// clang-format on
 
 std::string toString(const Solution& solution)
 {

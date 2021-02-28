@@ -36,8 +36,8 @@ std::vector<std::shared_ptr<Monster>> Dungeon::getMonsters()
 
 namespace
 {
-std::random_device rd;
-std::mt19937 g(rd());
+  std::random_device rd;
+  std::mt19937 g(rd());
 } // namespace
 
 std::optional<Position> Dungeon::randomFreePosition() const
@@ -99,7 +99,7 @@ void Dungeon::revealOne(Position position)
 
 void Dungeon::update()
 {
-  monsters.erase(std::remove_if(begin(monsters), end(monsters), [](auto &monster) { return monster->isDefeated(); }));
+  monsters.erase(std::remove_if(begin(monsters), end(monsters), [](auto& monster) { return monster->isDefeated(); }));
 }
 
 bool Dungeon::isAccessible(Position position) const
