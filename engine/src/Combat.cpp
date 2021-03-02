@@ -9,6 +9,39 @@ namespace Combat
 {
   namespace
   {
+    // Determines outcome summary and awards experience if applicable.
+    // Helper used by Combat::attack and Magic::cast, do not call directly.
+    Summary summaryAndExperience(
+        Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
+    {
+      if (hero.isDefeated())
+      {
+        if (monster.getDeathGazePercent() == 0)
+          return Summary::Death;
+        return Summary::Petrified;
+      }
+
+      if (!monster.isDefeated())
+        return Summary::Safe;
+
+      const int levelBefore = hero.getLevel() + hero.getPrestige();
+      hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning, allMonsters);
+      if (hero.getLevel() + hero.getPrestige() > levelBefore)
+        return Summary::LevelUp;
+      return Summary::Win;
+    }
+
+    // Evaluate effect of burn down after another monster has been attacked
+    void attackedOther(Hero& hero, Monster& monster, Monsters& allMonsters)
+    {
+      if (!monster.isBurning())
+        return;
+      const bool monsterWasSlowed = monster.isSlowed();
+      monster.burnDown();
+      if (monster.isDefeated())
+        hero.monsterKilled(monster, monsterWasSlowed, true, allMonsters);
+    }
+
     void applyLifeSteal(Hero& hero, const Monster& monster, int monsterHitPointsBefore)
     {
       if (hero.hasStatus(HeroStatus::LifeSteal) && !monster.isBloodless())
@@ -25,6 +58,35 @@ namespace Combat
       }
     }
   } // namespace
+
+  namespace detail
+  {
+    Summary finalizeAttack(Hero& hero,
+                           const Monster& monster,
+                           bool monsterWasSlowed,
+                           bool monsterWasBurning,
+                           bool triggerBurndown,
+                           Monsters& allMonsters)
+    {
+      auto summary = summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters);
+
+      if (!hero.isDefeated() && triggerBurndown)
+      {
+        const int levelBefore = hero.getLevel() + hero.getPrestige();
+        for (auto& otherMonster : allMonsters)
+        {
+          if (otherMonster != monster)
+            attackedOther(hero, otherMonster, allMonsters);
+        }
+        if (hero.getLevel() + hero.getPrestige() > levelBefore)
+          summary = Summary::LevelUp;
+      }
+
+      hero.applyCollectedPiety(allMonsters);
+
+      return summary;
+    }
+  } // namespace detail
 
   // Perform melee attack on monster, evaluate effects on all monsters
   Summary attack(Hero& hero, Monster& monster, Monsters& allMonsters)
@@ -148,67 +210,5 @@ namespace Combat
 
     return detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, true, allMonsters);
   }
-
-  namespace detail
-  {
-    // Evaluate effect of burn down after another monster has been attacked
-    void attackedOther(Hero& hero, Monster& monster, Monsters& allMonsters)
-    {
-      if (!monster.isBurning())
-        return;
-      const bool monsterWasSlowed = monster.isSlowed();
-      monster.burnDown();
-      if (monster.isDefeated())
-        hero.monsterKilled(monster, monsterWasSlowed, true, allMonsters);
-    }
-
-    // Determines outcome summary and awards experience if applicable.
-    // Helper used by Combat::attack and Magic::cast, do not call directly.
-    Summary summaryAndExperience(
-        Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
-    {
-      if (hero.isDefeated())
-      {
-        if (monster.getDeathGazePercent() == 0)
-          return Summary::Death;
-        return Summary::Petrified;
-      }
-
-      if (!monster.isDefeated())
-        return Summary::Safe;
-
-      const int levelBefore = hero.getLevel() + hero.getPrestige();
-      hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning, allMonsters);
-      if (hero.getLevel() + hero.getPrestige() > levelBefore)
-        return Summary::LevelUp;
-      return Summary::Win;
-    }
-
-    Summary finalizeAttack(Hero& hero,
-                           const Monster& monster,
-                           bool monsterWasSlowed,
-                           bool monsterWasBurning,
-                           bool triggerBurndown,
-                           Monsters& allMonsters)
-    {
-      auto summary = detail::summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters);
-
-      if (!hero.isDefeated() && triggerBurndown)
-      {
-        const int levelBefore = hero.getLevel() + hero.getPrestige();
-        for (auto& otherMonster : allMonsters)
-        {
-          if (otherMonster != monster)
-            detail::attackedOther(hero, otherMonster, allMonsters);
-        }
-        if (hero.getLevel() + hero.getPrestige() > levelBefore)
-          summary = Summary::LevelUp;
-      }
-
-      hero.applyCollectedPiety(allMonsters);
-
-      return summary;
-    }
-  } // namespace detail
 
 } // namespace Combat
