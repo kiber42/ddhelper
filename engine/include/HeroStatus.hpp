@@ -19,7 +19,7 @@ enum class HeroStatus
   FirstStrikePermanent,
   FirstStrikeTemporary,
   HeavyFireball,
-  Knockback, // TODO
+  Knockback,
   Learning,
   LifeSteal,
   MagicalAttack,

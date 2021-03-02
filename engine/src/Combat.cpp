@@ -57,6 +57,27 @@ namespace Combat
         }
       }
     }
+
+    Summary knockBackMonster(Hero& hero, Monster& monster, Monsters& allMonsters, Monster* intoMonster)
+    {
+      const int knockback = hero.getStatusIntensity(HeroStatus::Knockback);
+      if (knockback == 0)
+        return Summary::Safe;
+      const bool monsterWasSlowed = monster.isSlowed();
+      const bool monsterWasBurning = monster.isBurning();
+      if (intoMonster == nullptr)
+        monster.takeDamage(hero.getBaseDamage() * knockback, DamageType::Physical);
+      else
+      {
+        const int damageOutput = hero.getBaseDamage() * knockback * 8 / 10;
+        const int effectiveDamage = monster.predictDamageTaken(damageOutput, DamageType::Physical);
+        monster.takeDamage(effectiveDamage, DamageType::Typeless);
+        const int maxSecondaryDamage = intoMonster->getHitPoints() - 1;
+        if (maxSecondaryDamage > 0)
+          intoMonster->takeDamage(std::min(effectiveDamage, maxSecondaryDamage), DamageType::Typeless);
+      }
+      return summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters);
+    }
   } // namespace
 
   namespace detail
@@ -211,4 +232,38 @@ namespace Combat
     return detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, true, allMonsters);
   }
 
+  Summary
+  attackWithKnockback(Hero& hero, Monster& primary, Monsters& allMonsters, Knockback knockback, Resources& resources)
+  {
+    const bool reflexes = hero.hasStatus(HeroStatus::Reflexes);
+    auto summary = attack(hero, primary, allMonsters);
+    if (summary == Summary::Safe && hero.hasStatus(HeroStatus::Knockback))
+    {
+      switch (knockback.targetType)
+      {
+      case Knockback::TargetType::Empty:
+      case Knockback::TargetType::Indestructible:
+        break;
+      case Knockback::TargetType::Monster:
+        summary = knockBackMonster(hero, primary, allMonsters, knockback.monster);
+        if (reflexes && summary == Summary::Safe)
+          summary = knockBackMonster(hero, primary, allMonsters, knockback.monster);
+        break;
+      case Knockback::TargetType::Wall:
+        if (!primary.isCowardly())
+        {
+          assert(resources.numWalls > 0);
+          summary = knockBackMonster(hero, primary, allMonsters, nullptr);
+          --resources.numWalls;
+          if (reflexes && summary == Summary::Safe && resources.numWalls > 0)
+          {
+            summary = knockBackMonster(hero, primary, allMonsters, nullptr);
+            --resources.numWalls;
+          }
+        }
+        break;
+      }
+    }
+    return summary;
+  }
 } // namespace Combat

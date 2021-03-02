@@ -74,19 +74,11 @@ void Defence::setMagicalResistPercentMax(int newMax)
 int Defence::predictDamageTaken(int attackerDamageOutput, DamageType damageType, int burnStackSize) const
 {
   int damage = attackerDamageOutput + burnStackSize;
+  if (damageType == DamageType::Typeless)
+    return damage;
   if (!isCursed)
   {
-    const int resist = [&, damageType] {
-      switch (damageType)
-      {
-      case DamageType::Physical:
-        return getPhysicalResistPercent();
-      case DamageType::Magical:
-        return getMagicalResistPercent();
-      case DamageType::Typeless:
-        return 0;
-      }
-    }();
+    const int resist = damageType == DamageType::Physical ? getPhysicalResistPercent() : getMagicalResistPercent();
     const int resistedPoints = (attackerDamageOutput * resist + burnStackSize * magicalResistPercent) / 100;
     damage -= resistedPoints;
   }
