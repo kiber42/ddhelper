@@ -24,6 +24,7 @@ struct MonsterTraits
   bool isBloodless() const { return bloodless; }
   bool isCowardly() const { return cowardly; }
   bool hasFastRegen() const { return fastRegen; }
+  int getKnockbackPercent() const { return knockbackPercent; }
 
   void makeFast() { firstStrike = true; }
   void makeWeakening() { weakening = true; }
@@ -48,6 +49,7 @@ private:
   bool bloodless{false};
   bool cowardly{false};
   bool fastRegen{false};
+  int knockbackPercent{0};
 
   friend class MonsterTraitsBuilder;
   friend class CustomMonsterBuilder;
@@ -57,12 +59,6 @@ class MonsterTraitsBuilder
 {
 public:
   MonsterTraits&& get();
-
-  MonsterTraitsBuilder& addTODO()
-  {
-    std::cerr << "Important monster trait not implemented." << std::endl;
-    return *this;
-  }
 
   MonsterTraitsBuilder& addMagicalDamage();
   MonsterTraitsBuilder& addRetaliate();
@@ -79,6 +75,10 @@ public:
   MonsterTraitsBuilder& addBloodless();
   MonsterTraitsBuilder& addCowardly();
   MonsterTraitsBuilder& addFastRegen();
+  MonsterTraitsBuilder& addBlinks();
+  MonsterTraitsBuilder& addRevives();
+  MonsterTraitsBuilder& addSpawns();
+  MonsterTraitsBuilder& setKnockbackPercent(int knockbackPercent);
 
 private:
   MonsterTraits traits;

@@ -37,20 +37,16 @@ MonsterTraits getTraits(MonsterType type)
   case MonsterType::Berserker:
     return MonsterTraitsBuilder().setBerserkPercent(50);
   case MonsterType::BurnViper:
-    return MonsterTraitsBuilder().addManaBurn();
-    // .addBlinks();
+    return MonsterTraitsBuilder().addManaBurn().addBlinks();
   case MonsterType::BloodSnake:
-    // return .addSpawns();
-    return MonsterTraitsBuilder().addTODO();
+    return MonsterTraitsBuilder().addSpawns();
   case MonsterType::CaveSnake:
-    return MonsterTraitsBuilder().addPoisonous().addTODO();
-    // return .addSpawns();
+    return MonsterTraitsBuilder().addPoisonous().addSpawns();
   case MonsterType::Changeling:
     // TODO
-    return MonsterTraitsBuilder().addTODO();
+    return {};
   case MonsterType::Cultist:
-    // return .addRevives();
-    return MonsterTraitsBuilder().addCowardly().addTODO();
+    return MonsterTraitsBuilder().addCowardly().addRevives();
   case MonsterType::DesertTroll:
     return MonsterTraitsBuilder().addCowardly().addFastRegen();
   case MonsterType::Djinn:
@@ -66,27 +62,23 @@ MonsterTraits getTraits(MonsterType type)
   case MonsterType::GelatinousThing:
     return MonsterTraitsBuilder().addRetaliate();
   case MonsterType::Imp:
-    // return MonsterTraitsBuilder().addBlinks();
-    return {};
+    return MonsterTraitsBuilder().addBlinks();
   case MonsterType::Illusion:
     return MonsterTraitsBuilder().addRetaliate().addWeakening();
   case MonsterType::Minotaur:
-    // return .setKnockbackPercent(50);
-    return MonsterTraitsBuilder().setBerserkPercent(50);
+    return MonsterTraitsBuilder().setBerserkPercent(50).setKnockbackPercent(50);
   case MonsterType::MuckWalker:
     return MonsterTraitsBuilder().addUndead().addWeakening();
   case MonsterType::Naga:
     return MonsterTraitsBuilder().addWeakening();
   case MonsterType::RockTroll:
-    // return .setKnockbackPercent(50);
-    return MonsterTraitsBuilder().addCowardly().addFastRegen();
+    return MonsterTraitsBuilder().addCowardly().addFastRegen().setKnockbackPercent(50);
   case MonsterType::Rusalka:
     return MonsterTraitsBuilder().addCorrosive();
   case MonsterType::SteelGolem:
     return MonsterTraitsBuilder().addCurse();
   case MonsterType::Shade:
-    // return .addBlinks();
-    return MonsterTraitsBuilder().addUndead().setLifeStealPercent(40); // TODO: monster life steal not implemented
+    return MonsterTraitsBuilder().addUndead().setLifeStealPercent(40).addBlinks();
   case MonsterType::SlimeBlob:
     return MonsterTraitsBuilder().addCurse().addMagicalDamage();
   case MonsterType::Thrall:

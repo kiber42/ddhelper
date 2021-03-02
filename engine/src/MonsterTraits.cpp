@@ -75,6 +75,7 @@ MonsterTraitsBuilder& MonsterTraitsBuilder::setDeathGazePercent(int deathGazePer
 
 MonsterTraitsBuilder& MonsterTraitsBuilder::setLifeStealPercent(int lifeStealPercent)
 {
+  // TODO: trait not considered by engine
   traits.lifeStealPercent = lifeStealPercent;
   return *this;
 }
@@ -106,5 +107,30 @@ MonsterTraitsBuilder& MonsterTraitsBuilder::addCowardly()
 MonsterTraitsBuilder& MonsterTraitsBuilder::addFastRegen()
 {
   traits.fastRegen = true;
+  return *this;
+}
+
+MonsterTraitsBuilder& MonsterTraitsBuilder::addBlinks()
+{
+  // TODO
+  return *this;
+}
+
+MonsterTraitsBuilder& MonsterTraitsBuilder::addRevives()
+{
+  // TODO
+  return *this;
+}
+
+MonsterTraitsBuilder& MonsterTraitsBuilder::addSpawns()
+{
+  // TODO
+  return *this;
+}
+
+MonsterTraitsBuilder& MonsterTraitsBuilder::setKnockbackPercent(int knockbackPercent)
+{
+  // TODO: trait not considered by engine
+  traits.knockbackPercent = knockbackPercent;
   return *this;
 }
