@@ -4,141 +4,99 @@ MonsterTraits getTraits(MonsterType type)
 {
   // Death protection is added in MonsterStats constructor
   // Physical and magical resistances are set in Defence constructor
-  MonsterTraitsBuilder traits;
   switch (type)
   {
   case MonsterType::Bandit:
-    traits.addCurse();
-    break;
+    return MonsterTraitsBuilder().addCurse();
   case MonsterType::DragonSpawn:
-    traits.addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addMagicalDamage();
   case MonsterType::Goat:
-    break;
+    return {};
   case MonsterType::Goblin:
-    traits.addFirstStrike();
-    break;
+    return MonsterTraitsBuilder().addFirstStrike();
   case MonsterType::Golem:
-    break;
+    return {};
   case MonsterType::GooBlob:
-    break;
+    return {};
   case MonsterType::Gorgon:
-    traits.addFirstStrike().setDeathGazePercent(50);
-    break;
+    return MonsterTraitsBuilder().addFirstStrike().setDeathGazePercent(50);
   case MonsterType::MeatMan:
-    break;
+    return {};
   case MonsterType::Serpent:
-    traits.addPoisonous();
-    break;
+    return MonsterTraitsBuilder().addPoisonous();
   case MonsterType::Warlock:
-    traits.addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addMagicalDamage();
   case MonsterType::Wraith:
-    traits.addUndead().addManaBurn().addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addUndead().addManaBurn().addMagicalDamage();
   case MonsterType::Zombie:
-    traits.addUndead();
-    break;
+    return MonsterTraitsBuilder().addUndead();
   case MonsterType::AcidBlob:
-    traits.addCorrosive().addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addCorrosive().addMagicalDamage();
   case MonsterType::AnimatedArmour:
-    traits.addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addMagicalDamage();
   case MonsterType::Berserker:
-    traits.setBerserkPercent(50);
-    break;
+    return MonsterTraitsBuilder().setBerserkPercent(50);
   case MonsterType::BurnViper:
-    traits.addManaBurn();
-    // traits.addBlinks();
-    break;
+    return MonsterTraitsBuilder().addManaBurn();
+    // .addBlinks();
   case MonsterType::BloodSnake:
-    // traits.addSpawns();
-    traits.addTODO();
-    break;
+    // return .addSpawns();
+    return MonsterTraitsBuilder().addTODO();
   case MonsterType::CaveSnake:
-    traits.addPoisonous().addTODO();
-    // traits.addSpawns();
-    break;
+    return MonsterTraitsBuilder().addPoisonous().addTODO();
+    // return .addSpawns();
   case MonsterType::Changeling:
     // TODO
-    traits.addTODO();
-    break;
+    return MonsterTraitsBuilder().addTODO();
   case MonsterType::Cultist:
-    traits.addCowardly();
-    // traits.addRevives();
-    traits.addTODO();
-    break;
+    // return .addRevives();
+    return MonsterTraitsBuilder().addCowardly().addTODO();
   case MonsterType::DesertTroll:
-    traits.addCowardly();
-    traits.addFastRegen();
-    break;
+    return MonsterTraitsBuilder().addCowardly().addFastRegen();
   case MonsterType::Djinn:
-    traits.addMagicalDamage().addRetaliate();
-    break;
+    return MonsterTraitsBuilder().addMagicalDamage().addRetaliate();
   case MonsterType::DoomArmour:
-    traits.setBerserkPercent(50);
-    break;
+    return MonsterTraitsBuilder().setBerserkPercent(50);
   case MonsterType::Druid:
-    traits.addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addMagicalDamage();
   case MonsterType::ForestTroll:
-    traits.addCowardly();
-    traits.addFastRegen();
-    break;
+    return MonsterTraitsBuilder().addCowardly().addFastRegen();
   case MonsterType::FrozenTroll:
-    traits.addCowardly();
-    traits.addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addCowardly().addMagicalDamage();
   case MonsterType::GelatinousThing:
-    traits.addRetaliate();
-    break;
+    return MonsterTraitsBuilder().addRetaliate();
   case MonsterType::Imp:
-    // traits.addBlinks();
-    break;
+    // return MonsterTraitsBuilder().addBlinks();
+    return {};
   case MonsterType::Illusion:
-    traits.addRetaliate().addWeakening();
-    break;
+    return MonsterTraitsBuilder().addRetaliate().addWeakening();
   case MonsterType::Minotaur:
-    // traits.setKnockbackPercent(50);
-    traits.setBerserkPercent(50);
-    break;
+    // return .setKnockbackPercent(50);
+    return MonsterTraitsBuilder().setBerserkPercent(50);
   case MonsterType::MuckWalker:
-    traits.addUndead().addWeakening();
-    break;
+    return MonsterTraitsBuilder().addUndead().addWeakening();
   case MonsterType::Naga:
-    traits.addWeakening();
-    break;
+    return MonsterTraitsBuilder().addWeakening();
   case MonsterType::RockTroll:
-    traits.addCowardly();
-    // traits.setKnockbackPercent(50);
-    traits.addFastRegen();
-    break;
+    // return .setKnockbackPercent(50);
+    return MonsterTraitsBuilder().addCowardly().addFastRegen();
   case MonsterType::Rusalka:
-    traits.addCorrosive();
-    break;
+    return MonsterTraitsBuilder().addCorrosive();
   case MonsterType::SteelGolem:
-    traits.addCurse();
-    break;
+    return MonsterTraitsBuilder().addCurse();
   case MonsterType::Shade:
-    // traits.addBlinks();
-    traits.addUndead().setLifeStealPercent(40); // TODO: monster life steal not implemented
-    break;
+    // return .addBlinks();
+    return MonsterTraitsBuilder().addUndead().setLifeStealPercent(40); // TODO: monster life steal not implemented
   case MonsterType::SlimeBlob:
-    traits.addCurse().addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().addCurse().addMagicalDamage();
   case MonsterType::Thrall:
-    traits.addManaBurn().addPoisonous().addUndead();
-    break;
+    return MonsterTraitsBuilder().addManaBurn().addPoisonous().addUndead();
   case MonsterType::Tokoloshe:
-    traits.addCowardly();
     // TODO: Drops Tokoloshe Charm
-    break;
+    return MonsterTraitsBuilder().addCowardly();
   case MonsterType::Vampire:
-    traits.setLifeStealPercent(40).addMagicalDamage();
-    break;
+    return MonsterTraitsBuilder().setLifeStealPercent(40).addMagicalDamage();
   case MonsterType::Generic:
-    break;
+    return {};
   }
-  return traits.get();
 }
