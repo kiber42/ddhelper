@@ -1004,6 +1004,8 @@ PietyChange Faith::deathProtectionTriggered()
 
 void Faith::convertedTaurogItem(Hero& hero, Monsters& allMonsters)
 {
+  if (hero.hasTrait(HeroTrait::HolyWork))
+    return;
   hero.changeDamageBonusPercent(-10);
   for (auto& monster : allMonsters)
     monster.addMagicResist(10);
