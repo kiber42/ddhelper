@@ -27,6 +27,7 @@ public:
   int getPhysicalResistPercent() const;
   int getMagicalResistPercent() const;
 
+  int predictDamageTaken(int attackerDamageOutput, DamageType damageType) const;
   void takeDamage(int attackerDamageOutput, DamageType damageType);
   void takeFireballDamage(int casterLevel, int damageMultiplier = 4);
   void takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, DamageType damageType);
@@ -72,6 +73,7 @@ public:
   int getLifeStealPercent() const;
   bool isUndead() const;
   bool isBloodless() const;
+  bool isCowardly() const;
 
   // Boosts from punishments
   void addPhysicalResist(int additionalResistPercent);
@@ -83,8 +85,6 @@ public:
   bool grantsXP() const { return true; }
 
 private:
-  int predictDamageTaken(int attackerDamageOutput, DamageType damageType) const;
-
   std::string name;
   int id;
 

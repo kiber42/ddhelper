@@ -97,6 +97,12 @@ MonsterTraitsBuilder& MonsterTraitsBuilder::addBloodless()
   return *this;
 }
 
+MonsterTraitsBuilder& MonsterTraitsBuilder::addCowardly()
+{
+  traits.cowardly = true;
+  return *this;
+}
+
 MonsterTraitsBuilder& MonsterTraitsBuilder::addFastRegen()
 {
   traits.fastRegen = true;

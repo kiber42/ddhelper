@@ -349,6 +349,11 @@ bool Monster::isBloodless() const
   return traits.isBloodless();
 }
 
+bool Monster::isCowardly() const
+{
+  return traits.isCowardly();
+}
+
 void Monster::addPhysicalResist(int additionalResistPercent)
 {
   defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() + additionalResistPercent);

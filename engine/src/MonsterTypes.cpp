@@ -65,12 +65,12 @@ MonsterTraits getTraits(MonsterType type)
     traits.addTODO();
     break;
   case MonsterType::Cultist:
-    // traits.addCowardly();
+    traits.addCowardly();
     // traits.addRevives();
     traits.addTODO();
     break;
   case MonsterType::DesertTroll:
-    // traits.addCowardly();
+    traits.addCowardly();
     traits.addFastRegen();
     break;
   case MonsterType::Djinn:
@@ -83,11 +83,11 @@ MonsterTraits getTraits(MonsterType type)
     traits.addMagicalDamage();
     break;
   case MonsterType::ForestTroll:
-    // traits.addCowardly();
+    traits.addCowardly();
     traits.addFastRegen();
     break;
   case MonsterType::FrozenTroll:
-    // traits.addCowardly();
+    traits.addCowardly();
     traits.addMagicalDamage();
     break;
   case MonsterType::GelatinousThing:
@@ -110,7 +110,8 @@ MonsterTraits getTraits(MonsterType type)
     traits.addWeakening();
     break;
   case MonsterType::RockTroll:
-    // traits.addCowardly().setKnockbackPercent(50);
+    traits.addCowardly();
+    // traits.setKnockbackPercent(50);
     traits.addFastRegen();
     break;
   case MonsterType::Rusalka:
@@ -130,7 +131,7 @@ MonsterTraits getTraits(MonsterType type)
     traits.addManaBurn().addPoisonous().addUndead();
     break;
   case MonsterType::Tokoloshe:
-    // traits.addCowardly();
+    traits.addCowardly();
     // TODO: Drops Tokoloshe Charm
     break;
   case MonsterType::Vampire:

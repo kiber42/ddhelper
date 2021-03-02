@@ -22,6 +22,7 @@ struct MonsterTraits
   int getBerserkPercent() const { return berserkPercent; }
   bool isUndead() const { return undead; }
   bool isBloodless() const { return bloodless; }
+  bool isCowardly() const { return cowardly; }
   bool hasFastRegen() const { return fastRegen; }
 
   void makeFast() { firstStrike = true; }
@@ -45,6 +46,7 @@ private:
   int berserkPercent{0};
   bool undead{false};
   bool bloodless{false};
+  bool cowardly{false};
   bool fastRegen{false};
 
   friend class MonsterTraitsBuilder;
@@ -75,6 +77,7 @@ public:
   MonsterTraitsBuilder& setBerserkPercent(int berserkPercent);
   MonsterTraitsBuilder& addUndead();
   MonsterTraitsBuilder& addBloodless();
+  MonsterTraitsBuilder& addCowardly();
   MonsterTraitsBuilder& addFastRegen();
 
 private:
