@@ -38,9 +38,9 @@ void testBludtupowa()
     it("should uncover tiles", [] {
       Hero hero;
       Resources resources;
-      resources.numBlackTiles = 4;
+      resources.numHiddenTiles = 4;
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
-      AssertThat(resources.numBlackTiles, Equals(1));
+      AssertThat(resources.numHiddenTiles, Equals(1));
       hero.loseManaPoints(10);
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
       AssertThat(hero.getHitPoints(), Equals(4));

@@ -110,7 +110,7 @@ namespace solver
         }
         break;
       case 2:
-        if (state.resources.numBlackTiles > 0)
+        if (state.resources.numHiddenTiles > 0)
           return Uncover{1};
         break;
       case 3:
@@ -206,7 +206,7 @@ namespace solver
                             (Magic::isPossible(hero, cast.spell, resources) ||
                              (!monsters.empty() && Magic::isPossible(hero, monsters.front(), cast.spell, resources)));
                    },
-                   [&](Uncover uncover) { return state.resources.numBlackTiles >= uncover.numTiles; },
+                   [&](Uncover uncover) { return state.resources.numHiddenTiles >= uncover.numTiles; },
                    [&, &shops = state.resources.shops](Buy buy) {
                      return hero.hasRoomFor(buy.item) && hero.gold() >= price(buy.item) &&
                             std::find(begin(shops), end(shops), buy.item) != end(shops);
@@ -248,7 +248,7 @@ namespace solver
                           [&](Uncover uncover) {
                             hero.recover(uncover.numTiles);
                             monster.recover(uncover.numTiles);
-                            state.resources.numBlackTiles -= uncover.numTiles;
+                            state.resources.numHiddenTiles -= uncover.numTiles;
                           },
                           [&hero, &shops = state.resources.shops](Buy buy) {
                             shops.erase(std::find(begin(shops), end(shops), buy.item));

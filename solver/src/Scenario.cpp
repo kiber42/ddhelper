@@ -84,6 +84,6 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
 Resources getResourcesForScenario(Scenario scenario)
 {
   if (scenario == Scenario::TheThirdAct)
-    return {{Item::HealthPotion, Item::VenomDagger, Item::BadgeOfHonour}, {}, {God::TikkiTooki}, 3, 0, 0, false};
+    return ResourceSet{{Item::HealthPotion, Item::VenomDagger, Item::BadgeOfHonour}, {}, {God::TikkiTooki}, 3, 0, 0, 0, false};
   return {};
 }
