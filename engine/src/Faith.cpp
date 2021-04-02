@@ -220,6 +220,9 @@ int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters,
     return false;
   if (!allowRepeatedUse(boon) && boonCount(boon) > 0)
     return false;
+  const int costs = getCosts(boon, hero);
+  if (costs > piety)
+    return false;
   switch (boon)
   {
   case Boon::Absolution:
@@ -257,8 +260,6 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   if (!isAvailable(boon, hero, allMonstersOnFloor, resources))
     return false;
   const int costs = getCosts(boon, hero);
-  if (costs > piety)
-    return false;
   piety -= costs;
   boons.push_back(boon);
   // Apply immediate effects.
