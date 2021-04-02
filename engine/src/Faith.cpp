@@ -235,13 +235,13 @@ int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters,
   case Boon::Reflexes:
     return hero.has(Item::HealthPotion);
   case Boon::StoneFist:
-    return resources.numWalls >= 20;
+    return resources().numWalls >= 20;
   case Boon::StoneForm:
-    return resources.numWalls >= 10;
+    return resources().numWalls >= 10;
   case Boon::StoneHeart:
-    return resources.numWalls >= 15;
+    return resources().numWalls >= 15;
   case Boon::StoneSkin:
-    return resources.numWalls >= 3;
+    return resources().numWalls >= 3;
   case Boon::Tribute:
     return hero.gold() >= 15;
   case Boon::UnstoppableFury:
@@ -268,26 +268,26 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.receiveFreeSpell(Spell::Endiswal);
     break;
   case Boon::StoneSkin:
-    resources.numWalls -= 3;
+    resources().numWalls -= 3;
     if (hero.getFaith().has(Boon::StoneForm))
       hero.addStatus(HeroStatus::Might);
     hero.addStatus(HeroStatus::StoneSkin, 3);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
     break;
   case Boon::StoneForm:
-    resources.numWalls -= 10;
+    resources().numWalls -= 10;
     hero.addStatus(HeroStatus::Might);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 5);
     break;
   case Boon::StoneFist:
-    resources.numWalls -= 20;
+    resources().numWalls -= 20;
     if (hero.getFaith().has(Boon::StoneForm))
       hero.addStatus(HeroStatus::Might);
     hero.addStatus(HeroStatus::Knockback, 50);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 5);
     break;
   case Boon::StoneHeart:
-    resources.numWalls -= 15;
+    resources().numWalls -= 15;
     if (hero.getFaith().has(Boon::StoneForm))
       hero.addStatus(HeroStatus::Might);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
@@ -318,30 +318,34 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
 
   case Boon::Plantation:
-    gainPiety(5 * resources.numBloodPools);
-    resources.numPlants += resources.numBloodPools;
-    resources.numBloodPools = 0;
+  {
+    auto& resourceSet = resources();
+    gainPiety(5 * resourceSet.numBloodPools);
+    resourceSet.numPlants += resourceSet.numBloodPools;
+    resourceSet.numBloodPools = 0;
     break;
+  }
   case Boon::Clearance:
   {
-    const int cleared = std::min(10, resources.numPlants);
+    auto& resourceSet = resources();
+    const int cleared = std::min(10, resourceSet.numPlants);
     hero.recoverManaPoints(cleared);
-    resources.numPlants -= cleared;
+    resourceSet.numPlants -= cleared;
     break;
   }
   case Boon::Greenblood:
-    resources.numPlants += 3;
+    resources().numPlants += 3;
     hero.reduceStatus(HeroDebuff::Cursed);
     for (auto& monster : allMonstersOnFloor)
       monster.corrode();
     break;
   case Boon::Entanglement:
-    resources.numPlants += 5;
+    resources().numPlants += 5;
     for (auto& monster : allMonstersOnFloor)
       monster.slow();
     break;
   case Boon::VineForm:
-    resources.numPlants += 2;
+    resources().numPlants += 2;
     hero.changeHitPointsMax(+4);
     hero.addStatus(HeroStatus::DamageReduction);
     break;

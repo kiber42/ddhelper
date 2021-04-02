@@ -252,13 +252,14 @@ namespace Combat
       case Knockback::TargetType::Wall:
         if (!primary.isCowardly())
         {
-          assert(resources.numWalls > 0);
+          auto& resourceSet = resources();
+          assert(resourceSet.numWalls > 0);
           summary = knockBackMonster(hero, primary, allMonsters, nullptr);
-          --resources.numWalls;
-          if (reflexes && summary == Summary::Safe && resources.numWalls > 0)
+          --resourceSet.numWalls;
+          if (reflexes && summary == Summary::Safe && resourceSet.numWalls > 0)
           {
             summary = knockBackMonster(hero, primary, allMonsters, nullptr);
-            --resources.numWalls;
+            --resourceSet.numWalls;
           }
         }
         break;

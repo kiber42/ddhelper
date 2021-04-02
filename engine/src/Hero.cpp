@@ -820,12 +820,13 @@ bool Hero::tryDodge(Monsters& allMonsters)
 
 bool Hero::destroyWall(Resources& resources)
 {
-  if (resources.numWalls < 1)
+  auto& resourceSet = resources();
+  if (resourceSet.numWalls < 1)
   {
-    assert(resources.numWalls == 0);
+    assert(resourceSet.numWalls == 0);
     return false;
   }
-  --resources.numWalls;
+  --resourceSet.numWalls;
   if (has(Boon::StoneForm))
     addStatus(HeroStatus::Might);
   if (has(Item::RockHeart))

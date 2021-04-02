@@ -17,4 +17,4 @@ enum class Scenario
 Hero getHeroForScenario(Scenario scenario);
 std::vector<Monster> getMonstersForScenario(Scenario scenario);
 
-Resources getResourcesForScenario(Scenario scenario);
+SimpleResources getResourcesForScenario(Scenario scenario);

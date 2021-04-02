@@ -22,6 +22,7 @@ private:
   CustomHeroBuilder heroBuilder;
   CustomMonsterBuilder monsterBuilder;
   State state;
+  ResourcesUI resourcesUI;
   History history;
   Arena arena;
 };
@@ -51,7 +52,8 @@ std::optional<Scenario> runScenarioSelection()
 // Return initial state for a specific challenge
 State prepareScenario(Scenario scenario)
 {
-  return {getHeroForScenario(scenario), getMonstersForScenario(scenario), -1, getResourcesForScenario(scenario)};
+  return {getHeroForScenario(scenario), getMonstersForScenario(scenario), -1,
+          MapResources{getResourcesForScenario(scenario)}};
 }
 
 void DDHelperApp::populateFrame()
@@ -119,6 +121,8 @@ void DDHelperApp::populateFrame()
       return Summary::None;
     });
   }
+
+  resourcesUI.run(state.resources);
 
   auto result = arena.run(state);
   if (result)

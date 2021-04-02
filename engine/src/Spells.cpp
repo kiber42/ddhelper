@@ -148,14 +148,14 @@ namespace Magic
       return !hero.hasStatus(HeroStatus::DeathProtection) &&
              (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant));
     case Spell::Endiswal:
-      return resources.numWalls > 0;
+      return resources().numWalls > 0;
     case Spell::Getindare:
       return !hero.hasStatus(HeroStatus::FirstStrikeTemporary);
     case Spell::Halpmeh:
       return hero.getHitPoints() < hero.getHitPointsMax() || hero.hasStatus(HeroDebuff::Poisoned);
     case Spell::Pisorf:
-      // TODO: Currently Pisorf is assumed to always push a monster into a wall
-      return resources.numWalls > 0;
+      // TODO: Currently Pisorf is assumed to always push a monster into a (visible) wall
+      return resources().numWalls > 0;
     default:
       return true;
     }

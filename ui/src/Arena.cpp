@@ -310,7 +310,8 @@ void Arena::runConvertItemPopup(const State& state)
 
 void Arena::runShopPopup(const State& state)
 {
-  if (state.resources.shops.empty())
+  const auto shops = state.resources().shops;
+  if (shops.empty())
   {
     disabledButton("Buy", "No shops");
     return;
@@ -329,9 +330,9 @@ void Arena::runShopPopup(const State& state)
       ImGui::Checkbox("Use Translocation Seal", &useTranslocationSeal);
     else
       useTranslocationSeal = false;
-    for (size_t itemIndex = 0u; itemIndex < state.resources.shops.size(); ++itemIndex)
+    for (size_t itemIndex = 0u; itemIndex < shops.size(); ++itemIndex)
     {
-      const auto item = state.resources.shops[itemIndex];
+      const auto item = shops[itemIndex];
       if (item == Item::AnyPotion)
       {
         havePotionShop = true;
@@ -347,7 +348,7 @@ void Arena::runShopPopup(const State& state)
                 [item, itemIndex](State& state) {
                   if (state.hero.useTranslocationSealOn(item))
                   {
-                    auto& shops = state.resources.shops;
+                    auto& shops = state.resources().shops;
                     shops.erase(begin(shops) + itemIndex);
                   }
                   return Summary::None;
@@ -367,7 +368,7 @@ void Arena::runShopPopup(const State& state)
                   [item, itemIndex](State& state) {
                     if (state.hero.buy(item))
                     {
-                      auto& shops = state.resources.shops;
+                      auto& shops = state.resources().shops;
                       shops.erase(begin(shops) + itemIndex);
                     }
                     return Summary::None;
@@ -396,7 +397,7 @@ void Arena::runShopPopup(const State& state)
                   [potion](State& state) {
                     if (state.hero.buy(potion))
                     {
-                      auto& shops = state.resources.shops;
+                      auto& shops = state.resources().shops;
                       shops.erase(std::find(begin(shops), end(shops), Item::AnyPotion));
                     }
                     return Summary::None;
@@ -417,8 +418,8 @@ void Arena::runShopPopup(const State& state)
 
 void Arena::runFaithPopup(const State& state)
 {
-  const auto& altars = state.resources.altars;
-  if (altars.empty() && (!state.resources.pactMakerAvailable || state.hero.getFaith().getPact().has_value()))
+  const auto& altars = state.resources().altars;
+  if (altars.empty() && (!state.resources().pactMakerAvailable || state.hero.getFaith().getPact().has_value()))
   {
     disabledButton("Faith", "No altars");
     return;
@@ -492,7 +493,7 @@ void Arena::runFaithPopup(const State& state)
       }
     }
 
-    if (state.resources.pactMakerAvailable && !state.hero.getFaith().getPact())
+    if (state.resources().pactMakerAvailable && !state.hero.getFaith().getPact())
     {
       if (following || haveAvailableAltars)
         ImGui::Separator();
@@ -532,7 +533,7 @@ void Arena::runFaithPopup(const State& state)
                 state, toString(god), "Desecrate "s + toString(god) + "'s altar",
                 [god, altarIndex](State& state) {
                   state.hero.desecrate(god, state.monsterPool);
-                  auto& altars = state.resources.altars;
+                  auto& altars = state.resources().altars;
                   altars.erase(begin(altars) + altarIndex);
                   return Summary::Safe;
                 },
@@ -604,19 +605,19 @@ void Arena::runFindPopup(const State& state)
         if (addPopupAction(
                 state, toString(god), "Find "s + toString(god) + "'s altar",
                 [god](State& state) {
-                  state.resources.altars.emplace_back(god);
+                  state.resources().altars.emplace_back(god);
                   return Summary::None;
                 },
                 isSelected))
           selectedPopupItem = index;
       }
-      if (!state.resources.pactMakerAvailable)
+      if (!state.resources().pactMakerAvailable)
       {
         const bool isSelected = ++index == selectedPopupItem;
         if (addPopupAction(
                 state, "The Pactmaker", "Find The Pactmaker's altar",
                 [](State& state) {
-                  state.resources.pactMakerAvailable = true;
+                  state.resources().pactMakerAvailable = true;
                   return Summary::None;
                 },
                 isSelected))
@@ -629,7 +630,7 @@ void Arena::runFindPopup(const State& state)
     if (addPopupAction(
             state, "Add potion shop", "Add potion shop",
             [](State& state) {
-              state.resources.shops.emplace_back(Item::AnyPotion);
+              state.resources().shops.emplace_back(Item::AnyPotion);
               return Summary::None;
             },
             isSelected))
@@ -657,7 +658,7 @@ void Arena::runFindPopup(const State& state)
           if (addPopupAction(
                   state, toString(item), "Add shop: "s + toString(item),
                   [item](State& state) {
-                    state.resources.shops.emplace_back(item);
+                    state.resources().shops.emplace_back(item);
                     return Summary::None;
                   },
                   isSelected))

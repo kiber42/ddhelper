@@ -14,7 +14,7 @@ using namespace snowhouse;
 namespace
 {
   Monsters noOtherMonsters;
-  Resources resources;
+  SimpleResources resources;
 } // namespace
 
 void testFaith()
