@@ -557,14 +557,24 @@ void Arena::runUncoverTiles(const State& state)
     return Summary::None;
   };
 
-  addActionButton(state, "Uncover Tile", [&](State& state) { return uncoverForAll(state, 1); });
-
-  const int numSquares = state.hero.numSquaresForFullRecovery();
-  if (numSquares > 1)
+  const auto numHidden = state.resources.numHiddenTiles;
+  if (numHidden > 0)
   {
-    ImGui::SameLine();
-    const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-    addActionButton(state, label, [&](State& state) { return uncoverForAll(state, numSquares); });
+    addActionButton(state, "Uncover Tile", [&](State& state) {
+      state.resources.revealTile();
+      return uncoverForAll(state, 1);
+    });
+
+    const int numSquares = std::min(numHidden, state.hero.numSquaresForFullRecovery());
+    if (numSquares > 1)
+    {
+      ImGui::SameLine();
+      const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
+      addActionButton(state, label, [&](State& state) {
+        state.resources.revealTiles(numSquares);
+        return uncoverForAll(state, numSquares);
+      });
+    }
   }
 }
 

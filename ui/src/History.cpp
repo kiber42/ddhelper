@@ -56,6 +56,12 @@ State History::undo()
   return previousState;
 }
 
+const HistoryEntry& History::peek_back()
+{
+  assert(!history.empty());
+  return std::get<HistoryEntry>(history.back());
+}
+
 bool History::empty() const
 {
   return history.empty();

@@ -21,6 +21,9 @@ public:
   // Returns the previous state
   [[nodiscard]] State undo();
 
+  // Returns the last history entry
+  [[nodiscard]] const HistoryEntry& peek_back();
+
   [[nodiscard]] bool empty() const;
 
   void reset();

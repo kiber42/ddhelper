@@ -2,14 +2,17 @@
 
 #include "Resources.hpp"
 
+#include <optional>
+
 class ResourcesUI
 {
 public:
   ResourcesUI(int mapSize = 20);
 
-  void run(MapResources& resources);
+  std::optional<MapResources> run(const MapResources& resources);
 
 private:
-  [[maybe_unused]] int mapSize;
+  int mapSize;
+  [[maybe_unused]] int numShops;
   ResourceSet initial;
 };
