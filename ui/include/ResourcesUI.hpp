@@ -9,7 +9,15 @@ class ResourcesUI
 public:
   ResourcesUI(int mapSize = 20);
 
-  std::optional<MapResources> run(const MapResources& resources);
+  enum class ModificationType
+  {
+    ResourceAdded,
+    RandomReveal,
+    TargetedReveal
+  };
+
+  using Result = std::optional<std::pair<MapResources, ModificationType>>;
+  Result run(const MapResources& resources);
 
 private:
   int mapSize;
