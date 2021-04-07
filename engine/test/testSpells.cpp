@@ -11,7 +11,7 @@ using namespace snowhouse;
 namespace
 {
   Monsters noOtherMonsters;
-  SimpleResources resources;
+  SimpleResources resources{EmptyResources{}};
 } // namespace
 
 void testBludtupowa()
@@ -37,7 +37,7 @@ void testBludtupowa()
     });
     it("should uncover tiles", [] {
       Hero hero;
-      SimpleResources resources;
+      SimpleResources resources{EmptyResources{}};
       resources.numHiddenTiles = 4;
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
       AssertThat(resources.numHiddenTiles, Equals(1));

@@ -15,7 +15,7 @@ struct State
   Hero hero{};
   Monsters monsterPool{};
   int activeMonster = -1;
-  MapResources resources{};
+  MapResources resources{20};
 
   Monster* monster()
   {

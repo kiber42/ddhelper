@@ -13,7 +13,8 @@ public:
   {
     ResourceAdded,
     RandomReveal,
-    TargetedReveal
+    TargetedReveal,
+    Reset,
   };
 
   using Result = std::optional<std::pair<MapResources, ModificationType>>;
@@ -21,6 +22,20 @@ public:
 
 private:
   int mapSize;
-  [[maybe_unused]] int numShops;
   ResourceSet initial;
 };
+
+constexpr const char* toString(ResourcesUI::ModificationType modificationType)
+{
+  switch (modificationType)
+  {
+  case ResourcesUI::ModificationType::ResourceAdded:
+    return "Add Resource";
+  case ResourcesUI::ModificationType::RandomReveal:
+    return "Reveal Tile";
+  case ResourcesUI::ModificationType::TargetedReveal:
+    return "Reveal Resource";
+  case ResourcesUI::ModificationType::Reset:
+    return "Reset & Randomize Resources";
+  }
+}

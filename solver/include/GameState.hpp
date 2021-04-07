@@ -10,5 +10,5 @@ struct GameState
 {
   Hero hero{};
   Monsters monsters{};
-  SimpleResources resources{};
+  SimpleResources resources{20};
 };

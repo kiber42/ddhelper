@@ -122,15 +122,12 @@ void DDHelperApp::populateFrame()
     });
   }
 
-  auto newResources = resourcesUI.run(state.resources);
-  if (newResources)
+  auto resourceResult = resourcesUI.run(state.resources);
+  if (resourceResult)
   {
-    const std::string title = "Resources modified";
-    // Merge consecutive resources modifications
-    if (!history.empty() && std::get<std::string>(history.peek_back()) == title)
-      state = history.undo();
-    applyUndoable(title, [newResources = std::move(*newResources)](State& state) {
-      state.resources = newResources;
+    const std::string title = toString(resourceResult->second);
+    applyUndoable(title, [resources = std::move(resourceResult->first)](State& state) {
+      state.resources = resources;
       return Summary::None;
     });
   }

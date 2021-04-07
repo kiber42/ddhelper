@@ -83,8 +83,12 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
 
 SimpleResources getResourcesForScenario(Scenario scenario)
 {
+  ResourceSet resources{EmptyResources{}};
   if (scenario == Scenario::TheThirdAct)
-    return SimpleResources{ResourceSet{
-        {Item::HealthPotion, Item::VenomDagger, Item::BadgeOfHonour}, {}, {God::TikkiTooki}, 3, 0, 0, 0, false}};
-  return {};
+  {
+    resources.shops = {Item::HealthPotion, Item::VenomDagger, Item::BadgeOfHonour};
+    resources.altars = {God::TikkiTooki};
+    resources.numWalls = 3;
+  }
+  return SimpleResources{std::move(resources)};
 }
