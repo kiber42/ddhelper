@@ -899,7 +899,7 @@ PietyChange Faith::lifeStolen(const Monster& monster)
 
 PietyChange Faith::bloodPoolConsumed(int numBloodTithe)
 {
-  if (followedDeity == God::Dracul)
+  if (followedDeity == God::Dracul && numBloodTithe > 0)
     return numBloodTithe;
   else if (followedDeity == God::GlowingGuardian)
     return -10;
