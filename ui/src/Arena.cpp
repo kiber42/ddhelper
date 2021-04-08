@@ -560,7 +560,7 @@ void Arena::runUncoverTiles(const State& state)
   const auto numHidden = state.resources.numHiddenTiles;
   if (numHidden > 0)
   {
-    addActionButton(state, "Uncover Tile", [&](State& state) {
+    addActionButton(state, "Uncover Tile", [uncoverForAll](State& state) {
       state.resources.revealTile();
       return uncoverForAll(state, 1);
     });
@@ -570,7 +570,7 @@ void Arena::runUncoverTiles(const State& state)
     {
       ImGui::SameLine();
       const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
-      addActionButton(state, label, [&](State& state) {
+      addActionButton(state, label, [uncoverForAll, numSquares](State& state) {
         state.resources.revealTiles(numSquares);
         return uncoverForAll(state, numSquares);
       });
