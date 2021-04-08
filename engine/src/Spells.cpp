@@ -332,6 +332,9 @@ namespace Magic
       return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
     }
 
+    if (monster.isDefeated() && !monster.isBloodless())
+      ++(resources().numBloodPools);
+
     const bool triggerBurnDown = spell == Spell::Burndayraz || spell == Spell::Pisorf;
     return Combat::detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, triggerBurnDown,
                                           allMonsters);

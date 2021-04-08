@@ -59,8 +59,13 @@ void Arena::runAttack(const State& state)
   const Monster* activeMonster = state.activeMonster >= 0 ? (&state.monsterPool[state.activeMonster]) : nullptr;
   if (activeMonster && !activeMonster->isDefeated())
   {
-    addActionButton(state, "Attack",
-                    [](State& state) { return Combat::attack(state.hero, *state.monster(), state.monsterPool); });
+    addActionButton(state, "Attack", [](State& state) {
+      const auto summary = Combat::attack(state.hero, *state.monster(), state.monsterPool);
+      // TODO: Could move this into attack for consistency with Magic::cast ?
+      if ((summary == Summary::Win || summary == Summary::LevelUp) && !state.monster()->isBloodless())
+        ++state.resources.visible.numBloodPools;
+      return summary;
+    });
   }
   else
     disabledButton("Attack", "No target");
@@ -560,7 +565,7 @@ void Arena::runUncoverTiles(const State& state)
   const auto numHidden = state.resources.numHiddenTiles;
   if (numHidden > 0)
   {
-    addActionButton(state, "Uncover Tile", [uncoverForAll](State& state) {
+    addActionButton(state, "Reveal Tile", [uncoverForAll](State& state) {
       state.resources.revealTile();
       return uncoverForAll(state, 1);
     });
@@ -569,7 +574,7 @@ void Arena::runUncoverTiles(const State& state)
     if (numSquares > 1)
     {
       ImGui::SameLine();
-      const std::string label = "Uncover " + std::to_string(numSquares) + " Tiles";
+      const std::string label = "Reveal " + std::to_string(numSquares) + " Tiles";
       addActionButton(state, label, [uncoverForAll, numSquares](State& state) {
         state.resources.revealTiles(numSquares);
         return uncoverForAll(state, numSquares);
