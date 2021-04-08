@@ -194,7 +194,7 @@ namespace Magic
     {
       // uncover up to 3 tiles, monsters do not recover, hero converts health to mana
       const int uncoveredTiles = std::min(3, resources.numHiddenTiles);
-      resources.numHiddenTiles -= uncoveredTiles;
+      resources.revealTiles(uncoveredTiles);
       if (hero.getFollowedDeity() != God::GlowingGuardian)
       {
         hero.loseHitPointsOutsideOfFight(healthCostsBludtupowa(hero), allMonsters);
@@ -281,7 +281,8 @@ namespace Magic
       break;
     case Spell::Lemmisi:
     {
-      const int uncoveredTiles = 3;
+      const int uncoveredTiles = std::min(resources.numHiddenTiles, 3);
+      resources.revealTiles(uncoveredTiles);
       hero.recover(uncoveredTiles);
       monster.recover(uncoveredTiles);
       break;
