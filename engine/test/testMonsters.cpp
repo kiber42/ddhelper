@@ -44,7 +44,6 @@ void testMonsterBasics()
     });
     it("should be burning after hit by a fireball", [&] {
       AssertThat(monster.isBurning(), IsTrue());
-      // TODO: Special case: Wizard caster, burn stack size grows by 2 per fireball
       AssertThat(monster.getBurnStackSize(), Equals(1));
     });
     it("should recover HP at a rate reduced by 1 when burning", [&] {

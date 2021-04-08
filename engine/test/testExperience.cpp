@@ -121,7 +121,7 @@ void testHeroExperience()
       AssertThat(hero.getXP(), Equals(5));
     });
 
-    // TO DO: Further traits that affect XP
+    // TODO: Further traits that affect XP
     // - Alchemist's Pact (gain 3 XP on consuming potion)
     // - Veteran (Fighter trait, 1 bonus XP per kill, different level thresholds)
   });

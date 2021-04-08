@@ -1449,9 +1449,6 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
       stats.reduceHealthBonus();
     }
     break;
-  case Item::RockHeart:
-    // TODO: Recover 1 HP and 1 MP when a wall is destroyed by knockback
-    break;
   case Item::HerosHelm:
     changeHitPointsMax(5 * sign);
     changeManaPointsMax(sign);
