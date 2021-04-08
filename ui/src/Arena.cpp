@@ -583,6 +583,96 @@ void Arena::runUncoverTiles(const State& state)
   }
 }
 
+void Arena::runPickupResource(const State& state)
+{
+  const auto& visible = state.resources.visible;
+  if (visible.numHealthPotions > 0 || visible.numManaPotions > 0 || visible.numAttackBoosters > 0 ||
+      visible.numManaBoosters > 0 || visible.numHealthBoosters > 0 || visible.numGoldPiles > 0 ||
+      !visible.spells.empty())
+  {
+    ImGui::Button("Pick Up");
+    if (ImGui::IsItemActive())
+    {
+      ImGui::OpenPopup("PickupPopup");
+      selectedPopupItem = -1;
+    }
+    if (ImGui::BeginPopup("PickupPopup"))
+    {
+      int index = 0;
+      auto addPotionPickupAction = [&, this](auto number, ItemOrSpell item) {
+        if (visible.*number > 0)
+        {
+          std::string label = toString(item) + " (x"s + std::to_string(visible.*number) + ")";
+          std::string historyTitle = "Pick up "s + toString(item);
+          auto action = [number, item](State& state) {
+            state.hero.receive(item);
+            --(state.resources.visible.*number);
+            return Summary::None;
+          };
+          if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
+                             ++index == selectedPopupItem))
+            selectedPopupItem = index;
+        }
+      };
+      auto addGenericPickupAction = [&, this](auto name, auto number, auto heroAction) {
+        if (visible.*number > 0)
+        {
+          std::string label = name + " (x"s + std::to_string(visible.*number) + ")";
+          std::string historyTitle = "Pick up "s + name;
+          auto action = [number, heroAction](State& state) {
+            (state.hero.*heroAction)();
+            --(state.resources.visible.*number);
+            return Summary::Safe;
+          };
+          if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
+                             ++index == selectedPopupItem))
+            selectedPopupItem = index;
+        }
+      };
+      addPotionPickupAction(&ResourceSet::numHealthPotions, Item::HealthPotion);
+      addPotionPickupAction(&ResourceSet::numManaPotions, Item::ManaPotion);
+      addGenericPickupAction("Attack Booster", &ResourceSet::numAttackBoosters, &Hero::addAttackBonus);
+      addGenericPickupAction("Health Booster", &ResourceSet::numHealthBoosters, &Hero::addHealthBonus);
+      addGenericPickupAction("Mana Booster", &ResourceSet::numManaBoosters, &Hero::addManaBonus);
+      addGenericPickupAction("Gold Pile", &ResourceSet::numGoldPiles, &Hero::collectGoldPile);
+      if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+        ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    }
+  }
+  else
+    disabledButton("Pick Up", "Nothing here!");
+
+  if (visible.numPlants > 0)
+  {
+    ImGui::SameLine();
+    addActionButton(state, "Destroy plant", [](State& state) {
+      state.hero.plantDestroyed(true);
+      --state.resources.visible.numPlants;
+      return Summary::None;
+    });
+
+    if (state.hero.has(Spell::Imawal) && Magic::isPossible(state.hero, Spell::Imawal, state.resources))
+    {
+      ImGui::SameLine();
+      addActionButton(state, "Petrify plant", [](State& state) {
+        state.hero.petrifyPlant(state.monsterPool);
+        --state.resources.visible.numPlants;
+        ++state.resources.visible.numWalls;
+        return Summary::None;
+      });
+    }
+  }
+
+  if (visible.numBloodPools > 0 && state.hero.hasStatus(HeroStatus::Sanguine))
+    ImGui::SameLine();
+    addActionButton(state, "Consume blood pool", [](State& state) {
+      if (state.hero.bloodPoolConsumed())
+        --state.resources.visible.numBloodPools;
+      return Summary::None;
+    });
+}
+
 void Arena::runFindPopup(const State& state)
 {
   ImGui::Button("Find");
@@ -729,6 +819,8 @@ Arena::ArenaResult Arena::run(const State& state)
     runFaithPopup(state);
     ImGui::SameLine();
     runUncoverTiles(state);
+    ImGui::SameLine();
+    runPickupResource(state);
 
     runFindPopup(state);
   }

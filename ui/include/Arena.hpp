@@ -30,5 +30,6 @@ private:
   void runBoonSelection(const State& state, God deity);
   void runWorship(const State& state);
   void runUncoverTiles(const State&);
+  void runPickupResource(const State&);
   void runFindPopup(const State&);
 };
