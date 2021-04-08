@@ -328,6 +328,7 @@ namespace Magic
       // Remove one curse stack, even for cursed monsters
       hero.reduceStatus(HeroDebuff::Cursed);
       hero.applyCollectedPiety(allMonsters);
+      ++(resources().numGoldPiles);
       return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
     }
 
