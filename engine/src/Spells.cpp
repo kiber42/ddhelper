@@ -209,7 +209,8 @@ namespace Magic
       hero.addStatus(HeroStatus::DeathProtection);
       break;
     case Spell::Endiswal:
-      hero.destroyWall(resources);
+      --(resources().numWalls);
+      hero.wallDestroyed();
       hero.addStatus(HeroStatus::StoneSkin);
       break;
     case Spell::Getindare:
@@ -286,16 +287,21 @@ namespace Magic
       break;
     }
     case Spell::Pisorf:
+    {
       // 60% of base damage as physical damage if against wall
       // (TODO?) slightly less than 50% of base damage as physical damage if against enemy + corrosion of first enemy as
       // typeless damage. Net damage to first enemy is applied as typeless damage to second enemy; second enemy cannot
       // drop below 1 HP.
-      if (hero.destroyWall(resources))
+      int& numWalls = resources().numWalls;
+      if (numWalls > 0)
       {
+        --numWalls;
+        hero.wallDestroyed();
         monster.takeDamage(hero.getBaseDamage() * 6 / 10, DamageType::Physical);
         hero.resetStatus(HeroStatus::SpiritStrength);
       }
       break;
+    }
     case Spell::Weytwut:
       // adds Slowed to monster (no blink, retreat, retaliation, +1 bonus XP)
       monster.slow();

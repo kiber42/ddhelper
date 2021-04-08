@@ -48,9 +48,9 @@ public:
   int getDamageVersusStandard() const;
   int getDamageOutputVersus(const Monster& monster) const;
 
+  void addAttackBonus();
   void addHealthBonus();
   void addManaBonus();
-  void addDamageBonus();
 
   int getPhysicalResistPercent() const;
   int getMagicalResistPercent() const;
@@ -102,8 +102,15 @@ public:
   bool predictDodgeNext() const;
   bool tryDodge(Monsters& allMonsters);
 
-  // Destroys one wall if possible, and trigger related effects (Binlor)
-  bool destroyWall(Resources& resources);
+  // Trigger effects related to a wall being destroyed
+  void wallDestroyed();
+  // Trigger effects related to a plant being destroyed
+  void plantDestroyed(bool wasPhysicalAttack);
+  // Trigger effects related to consuming a blood pool; returns false if hero does not have Sanguine
+  bool bloodPoolConsumed();
+  // Trigger effects related to casting it on a plant; returns false if the hero cannot cast Imawal.
+  // Might trigger Taurog punishment, which gives +10% Magic resistance to enemies.
+  bool petrifyPlant(Monsters& allMonsters);
 
   // Special functions for items. They don't check if the item is actually in the inventory.
   void applyDragonSoul(int manaCosts); // 15% chance to refund mana
@@ -113,6 +120,7 @@ public:
   int gold() const;
   void addGold(int amountAdded);
   bool spendGold(int amountSpent);
+  void collectGoldPile();
   int buyingPrice(Item item) const;
   int sellingPrice(Item item) const;
   bool buy(Item item);

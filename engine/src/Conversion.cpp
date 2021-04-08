@@ -46,7 +46,7 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
   {
   case HeroRace::Human:
     threshold = 100;
-    bonus = [](Hero& hero, Monsters&) { hero.addDamageBonus(); };
+    bonus = [](Hero& hero, Monsters&) { hero.addAttackBonus(); };
     break;
   case HeroRace::Elf:
     threshold = 70;

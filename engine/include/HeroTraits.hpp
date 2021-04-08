@@ -7,6 +7,7 @@ enum class HeroTrait
   AmethystStare,
   ArcaneKnowledge,
   AzureBody,
+  BlackMarket, // Dungeon modifier, not really a trait
   Bloodlust,
   Colourants,
   Courageous,
@@ -80,6 +81,8 @@ constexpr const char* toString(HeroTrait trait)
     return "Arcane Knowledge";
   case HeroTrait::AzureBody:
     return "Azure Body";
+  case HeroTrait::BlackMarket:
+    return "Black Market";
   case HeroTrait::Bloodlust:
     return "Bloodlust";
   case HeroTrait::Colourants:

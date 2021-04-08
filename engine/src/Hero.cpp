@@ -312,6 +312,11 @@ int Hero::getDamageOutputVersus(const Monster& monster) const
   return damage;
 }
 
+void Hero::addAttackBonus()
+{
+  changeDamageBonusPercent(+10);
+}
+
 void Hero::addHealthBonus()
 {
   stats.addHealthBonus(experience.getUnmodifiedLevel());
@@ -320,11 +325,6 @@ void Hero::addHealthBonus()
 void Hero::addManaBonus()
 {
   stats.setManaPointsMax(stats.getManaPointsMax() + 1);
-}
-
-void Hero::addDamageBonus()
-{
-  changeDamageBonusPercent(+10);
 }
 
 int Hero::getPhysicalResistPercent() const
@@ -818,15 +818,8 @@ bool Hero::tryDodge(Monsters& allMonsters)
   return success;
 }
 
-bool Hero::destroyWall(Resources& resources)
+void Hero::wallDestroyed()
 {
-  auto& resourceSet = resources();
-  if (resourceSet.numWalls < 1)
-  {
-    assert(resourceSet.numWalls == 0);
-    return false;
-  }
-  --resourceSet.numWalls;
   if (has(Boon::StoneForm))
     addStatus(HeroStatus::Might);
   if (has(Item::RockHeart))
@@ -836,6 +829,36 @@ bool Hero::destroyWall(Resources& resources)
   }
   if (getFollowedDeity() == God::BinlorIronshield)
     applyOrCollectPietyGain(5);
+}
+
+void Hero::plantDestroyed(bool wasPhysicalAttack)
+{
+  if (wasPhysicalAttack)
+    removeOneTimeAttackEffects();
+  Monsters ignore;
+  applyOrCollect(faith.plantDestroyed(), ignore);
+}
+
+bool Hero::bloodPoolConsumed()
+{
+  const int sanguine = getStatusIntensity(HeroStatus::Sanguine);
+  if (sanguine == 0)
+    return false;
+  healHitPoints(getHitPointsMax() * sanguine / 100, false);
+  Monsters ignore;
+  applyOrCollect(faith.bloodPoolConsumed(receivedBoonCount(Boon::BloodTithe)), ignore);
+  return true;
+}
+
+bool Hero::petrifyPlant(Monsters& allMonsters)
+{
+  if (!has(Spell::Imawal))
+    return false;
+  const int manaCosts = Magic::spellCosts(Spell::Imawal, *this);
+  if (getManaPoints() < manaCosts)
+    return false;
+  loseManaPoints(manaCosts);
+  applyOrCollect(faith.imawalPetrifyPlant(manaCosts), allMonsters);
   return true;
 }
 
@@ -882,6 +905,14 @@ bool Hero::spendGold(int amountSpent)
     return false;
   inventory.gold -= amountSpent;
   return true;
+}
+
+void Hero::collectGoldPile()
+{
+  int amount = std::uniform_int_distribution<>(1, 3)(generator);
+  if (hasTrait(HeroTrait::BlackMarket))
+    ++amount;
+  inventory.gold += amount;
 }
 
 int Hero::buyingPrice(Item item) const
@@ -1349,7 +1380,7 @@ bool Hero::useTransmutationSealOnPetrifiedEnemy()
   // Since we don't model gold piles yet, just add the gold directly.
   if (useTransmutationSealOnWallOrPetrifiedPlant())
   {
-    addGold(1); // TODO: +1 with black market
+    collectGoldPile();
     return true;
   }
   return false;
@@ -1360,7 +1391,7 @@ bool Hero::useTransmutationSealOnWallOrPetrifiedPlant()
   if (has(Item::TransmutationSeal))
   {
     lose(Item::TransmutationSeal);
-    addGold(10); // TODO: +1 with black market
+    addGold(hasTrait(HeroTrait::BlackMarket) ? 11 : 10);
     return true;
   }
   return false;
