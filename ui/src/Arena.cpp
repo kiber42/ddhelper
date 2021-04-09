@@ -665,12 +665,14 @@ void Arena::runPickupResource(const State& state)
   }
 
   if (visible.numBloodPools > 0 && state.hero.hasStatus(HeroStatus::Sanguine))
+  {
     ImGui::SameLine();
     addActionButton(state, "Consume blood pool", [](State& state) {
       if (state.hero.bloodPoolConsumed())
         --state.resources.visible.numBloodPools;
       return Summary::None;
     });
+  }
 }
 
 void Arena::runFindPopup(const State& state)
