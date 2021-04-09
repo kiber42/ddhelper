@@ -133,6 +133,14 @@ std::string Hero::getName() const
   return name;
 }
 
+MapResources Hero::createResources(int mapSize) const
+{
+  return MapResources{
+      EmptyResources{},
+      {hasTrait(HeroTrait::Hoarder), hasTrait(HeroTrait::Martyr), hasTrait(HeroTrait::Merchant), mapSize},
+      mapSize};
+}
+
 int Hero::getXP() const
 {
   return experience.getXP();

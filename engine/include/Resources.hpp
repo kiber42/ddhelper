@@ -23,7 +23,8 @@ struct ResourceSet
 {
   ResourceSet(EmptyResources);
   ResourceSet(DefaultResources, int mapSize = 20);
-  ResourceSet(ThiefResources, int mapSize = 20);
+  // TODO: Consider dungeon preparations
+  ResourceSet(bool isHoarder, bool isMartyr, bool isMerchant, int mapSize = 20);
 
   void addRandomShop();
   void addRandomSpell();

@@ -26,6 +26,9 @@ public:
 
   std::string getName() const;
 
+  // Prepare a set of resources according to the hero's traits
+  MapResources createResources(int mapSize = 20) const;
+
   int getXP() const;
   int getLevel() const;
   int getPrestige() const;

@@ -30,7 +30,7 @@ enum class HeroTrait
   GoodHealth,
   HandToHand,
   Herbivore,
-  Hoarder, // not implemented: +33% more items on dungeon map
+  Hoarder,
   HolyHands,
   HolyShield,
   HolyWork,
@@ -44,8 +44,8 @@ enum class HeroTrait
   MagicAttunement,
   MagicSense, // partially implemented, missing: can see locations of all glyphs from level start
   ManaShield,
-  Martyr,   // not implemented: +1 altar in dungeon
-  Merchant, // not implemented: +2 shops in dungeon
+  Martyr,
+  Merchant,
   Momentum,
   Negotiator,
   PitDog,

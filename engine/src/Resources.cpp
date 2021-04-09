@@ -27,23 +27,45 @@ ResourceSet::ResourceSet(DefaultResources, int mapSize)
     addRandomAltar();
 }
 
-ResourceSet::ResourceSet(ThiefResources, int mapSize)
+ResourceSet::ResourceSet(bool isHoarder, bool isMartyr, bool isMerchant, int mapSize)
+  // TODO: Consider Binlor preparation (30% of walls are eroded)
   : numWalls{mapSize * mapSize * 4 / 10}
-  , numHealthPotions{4}
-  , numManaPotions{4}
+  , numHealthPotions{3}
+  , numManaPotions{3}
+  // TODO: Consider Apothecary preparation (4 instead of 1)
   , numPotionShops{1}
-  , numAttackBoosters{4}
-  , numManaBoosters{4}
-  , numHealthBoosters{4}
-  , numGoldPiles{13}
+  // TODO: Consider extra booster preparations (2 extra boosters of selected type)
+  , numAttackBoosters{3}
+  , numManaBoosters{3}
+  , numHealthBoosters{3}
+  , numGoldPiles{10}
 {
-  for (int i = 0; i < 10; ++i)
+  int numShops = isMerchant ? 10 : 8;
+  int numSpells = 5;
+  int numAltars = isMartyr ? 4 : 3;
+  if (isHoarder)
+  {
+    numHealthPotions += numHealthPotions / 3;
+    numManaPotions += numManaPotions / 3;
+    numAttackBoosters += numAttackBoosters / 3;
+    numManaBoosters += numManaBoosters / 3;
+    numHealthBoosters += numHealthBoosters / 3;
+    numGoldPiles += numGoldPiles / 3;
+    numShops += numShops / 3;
+    numSpells += numSpells / 3;
+  }
+
+  for (int i = 0; i < numShops; ++i)
     addRandomShop();
-  for (int i = 0; i < 5; ++i)
+  // TODO: Consider Fireball magnet (do not add Burndayraz to map), 'more glyphs' (+1; +2 for Hoarder), 'fewer glyphs' (-1);
+  //       Edge case: If both are selected, 'more glyphs' wins over 'fewer glyphs' (and spell conversion points are set to 130)
+  for (int i = 0; i < numSpells; ++i)
     addRandomSpell();
-  for (int i = 0; i < 3; ++i)
+  // TODO: Consider Extra Altar preparation (+1)
+  for (int i = 0; i < numAltars; ++i)
     addRandomAltar();
 }
+
 
 void ResourceSet::addRandomShop()
 {
