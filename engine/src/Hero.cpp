@@ -847,6 +847,8 @@ bool Hero::bloodPoolConsumed()
   healHitPoints(getHitPointsMax() * sanguine / 100, false);
   Monsters ignore;
   applyOrCollect(faith.bloodPoolConsumed(receivedBoonCount(Boon::BloodTithe)), ignore);
+  if (hasTrait(HeroTrait::Insane))
+    recoverManaPoints(1);
   return true;
 }
 

@@ -7,7 +7,7 @@ enum class HeroTrait
   AmethystStare,
   ArcaneKnowledge,
   AzureBody,
-  BlackMarket, // Dungeon modifier, not really a trait
+  BlackMarket, // Preparation, not really a trait
   Bloodlust,
   Colourants,
   Courageous,
@@ -35,7 +35,7 @@ enum class HeroTrait
   HolyShield,
   HolyWork,
   InnerFocus,
-  Insane,    // partially implemented, missing: drinking blood restores 1 mana
+  Insane,
   Instincts, // not implemented: monsters of equal or lower level always have their location revealed
   LightFoot, // not implemented: exploring the area around a monster grants first strike
   Macguyver, // partially implemented, missing: can sense dungeon stairs
