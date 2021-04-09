@@ -10,7 +10,7 @@ ResourcesUI::ResourcesUI(int mapSize)
 {
 }
 
-auto ResourcesUI::run(const MapResources& resources) -> Result
+auto ResourcesUI::run(const MapResources& resources, const Hero& hero) -> Result
 {
   Result result;
 
@@ -121,7 +121,7 @@ auto ResourcesUI::run(const MapResources& resources) -> Result
   ImGui::Separator();
   ImGui::InputInt("Map Size", &mapSize);
   if (ImGui::Button("Reset / Randomize"))
-    result.emplace(MapResources{mapSize}, ModificationType::Reset);
+    result.emplace(hero.createResources(mapSize), ModificationType::Reset);
   ImGui::End();
 
   return result;

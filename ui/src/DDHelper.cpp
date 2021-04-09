@@ -72,8 +72,9 @@ void DDHelperApp::populateFrame()
   if (hero)
   {
     std::string title = hero->getName() + " enters"s;
-    applyUndoable(std::move(title), [newHero = Hero(*hero)](State& state) {
+    applyUndoable(std::move(title), [newHero = Hero(*hero), newResources = hero->createResources()](State& state) {
       state.hero = newHero;
+      state.resources = newResources;
       return Summary::None;
     });
   }
@@ -122,7 +123,7 @@ void DDHelperApp::populateFrame()
     });
   }
 
-  auto resourceResult = resourcesUI.run(state.resources);
+  auto resourceResult = resourcesUI.run(state.resources, state.hero);
   if (resourceResult)
   {
     const std::string title = toString(resourceResult->second);

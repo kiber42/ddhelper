@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Hero.hpp"
 #include "Resources.hpp"
 
 #include <optional>
@@ -18,7 +19,7 @@ public:
   };
 
   using Result = std::optional<std::pair<MapResources, ModificationType>>;
-  Result run(const MapResources& resources);
+  Result run(const MapResources& resources, const Hero& hero);
 
 private:
   int mapSize;
