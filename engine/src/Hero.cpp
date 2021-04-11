@@ -133,11 +133,17 @@ std::string Hero::getName() const
   return name;
 }
 
-MapResources Hero::createResources(int mapSize) const
+MapResources Hero::createResources(std::set<ResourceModifier> preparations, int mapSize) const
 {
+  if (hasTrait(HeroTrait::Hoarder))
+    preparations.insert(ResourceModifier::Hoarder);
+  if (hasTrait(HeroTrait::Martyr))
+    preparations.insert(ResourceModifier::Martyr);
+  if (hasTrait(HeroTrait::Merchant))
+    preparations.insert(ResourceModifier::Merchant);
   return MapResources{
       EmptyResources{},
-      {hasTrait(HeroTrait::Hoarder), hasTrait(HeroTrait::Martyr), hasTrait(HeroTrait::Merchant), mapSize},
+      {preparations, mapSize},
       mapSize};
 }
 

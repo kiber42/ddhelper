@@ -8,7 +8,7 @@
 class ResourcesUI
 {
 public:
-  ResourcesUI(int mapSize = 20);
+  ResourcesUI(int mapSize = DefaultMapSize);
 
   enum class ModificationType
   {
@@ -23,7 +23,6 @@ public:
 
 private:
   int mapSize;
-  ResourceSet initial;
 };
 
 constexpr const char* toString(ResourcesUI::ModificationType modificationType)

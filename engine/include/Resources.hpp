@@ -5,6 +5,7 @@ enum class God;
 enum class Spell;
 
 #include <random>
+#include <set>
 #include <vector>
 
 struct EmptyResources
@@ -19,12 +20,33 @@ struct ThiefResources
 {
 };
 
+enum class ResourceModifier
+{
+  // Preparations
+  ExtraAttackBoosters,
+  ExtraManaBoosters,
+  ExtraHealthBoosters,
+  FlameMagnet,
+  FewerGlyphs,
+  ExtraGlyph,
+  QuestItems, // TODO
+  EliteItems, // TODO
+  Apothecary,
+  Binlor,
+  ExtraAltar,
+  // Hero traits
+  Hoarder,
+  Martyr,
+  Merchant,
+};
+
+static const int DefaultMapSize = 20;
+
 struct ResourceSet
 {
   ResourceSet(EmptyResources);
-  ResourceSet(DefaultResources, int mapSize = 20);
-  // TODO: Consider dungeon preparations
-  ResourceSet(bool isHoarder, bool isMartyr, bool isMerchant, int mapSize = 20);
+  ResourceSet(DefaultResources, int mapSize = DefaultMapSize);
+  ResourceSet(const std::set<ResourceModifier>& modifiers, int mapSize = DefaultMapSize);
 
   void addRandomShop();
   void addRandomSpell();
@@ -45,6 +67,9 @@ struct ResourceSet
   int numHealthBoosters{0};
   int numGoldPiles{0};
   std::mt19937 generator{std::random_device{}()};
+
+private:
+  void addRandomResources(int numShops, int numSpells, int numAltars);
 };
 
 struct Resources
@@ -67,7 +92,7 @@ struct SimpleResources
   , public ResourceSet
 {
   explicit SimpleResources(int mapSize);
-  explicit SimpleResources(ResourceSet visible, int mapSize = 20);
+  explicit SimpleResources(ResourceSet visible, int mapSize = DefaultMapSize);
 
   ResourceSet& operator()() override { return *this; }
   const ResourceSet& operator()() const override { return *this; }
@@ -81,7 +106,7 @@ struct SimpleResources
 struct MapResources : public Resources
 {
   explicit MapResources(int mapSize);
-  MapResources(ResourceSet visible, ResourceSet hidden, int mapSize = 20);
+  MapResources(ResourceSet visible, ResourceSet hidden, int mapSize = DefaultMapSize);
   explicit MapResources(SimpleResources resources);
 
   ResourceSet& operator()() override { return visible; }

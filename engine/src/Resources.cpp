@@ -19,31 +19,23 @@ ResourceSet::ResourceSet(DefaultResources, int mapSize)
   , numHealthBoosters{3}
   , numGoldPiles{10}
 {
-  for (int i = 0; i < 8; ++i)
-    addRandomShop();
-  for (int i = 0; i < 5; ++i)
-    addRandomSpell();
-  for (int i = 0; i < 3; ++i)
-    addRandomAltar();
+  addRandomResources(8, 5, 3);
 }
 
-ResourceSet::ResourceSet(bool isHoarder, bool isMartyr, bool isMerchant, int mapSize)
-  // TODO: Consider Binlor preparation (30% of walls are eroded)
-  : numWalls{mapSize * mapSize * 4 / 10}
+ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, int mapSize)
+  : numWalls{mapSize * mapSize * 4 / 10 * (modifiers.count(ResourceModifier::Binlor) ? 7 : 10) / 10}
   , numHealthPotions{3}
   , numManaPotions{3}
-  // TODO: Consider Apothecary preparation (4 instead of 1)
-  , numPotionShops{1}
-  // TODO: Consider extra booster preparations (2 extra boosters of selected type)
-  , numAttackBoosters{3}
-  , numManaBoosters{3}
-  , numHealthBoosters{3}
+  , numPotionShops{modifiers.count(ResourceModifier::Apothecary) ? 3 : 2}
+  , numAttackBoosters{modifiers.count(ResourceModifier::ExtraAttackBoosters) ? 5 : 3}
+  , numManaBoosters{modifiers.count(ResourceModifier::ExtraManaBoosters) ? 5 : 3}
+  , numHealthBoosters{modifiers.count(ResourceModifier::ExtraHealthBoosters) ? 5 : 3}
   , numGoldPiles{10}
 {
-  int numShops = isMerchant ? 10 : 8;
-  int numSpells = 5;
-  int numAltars = isMartyr ? 4 : 3;
-  if (isHoarder)
+  int numShops = modifiers.count(ResourceModifier::Merchant) ? 10 : 8;
+  int numSpells = modifiers.count(ResourceModifier::ExtraGlyph) ? 6 : modifiers.count(ResourceModifier::FewerGlyphs) ? 4 : 5;
+  const int numAltars = 3 + modifiers.count(ResourceModifier::Martyr) + modifiers.count(ResourceModifier::ExtraAltar);
+  if (modifiers.count(ResourceModifier::Hoarder))
   {
     numHealthPotions += numHealthPotions / 3;
     numManaPotions += numManaPotions / 3;
@@ -54,18 +46,10 @@ ResourceSet::ResourceSet(bool isHoarder, bool isMartyr, bool isMerchant, int map
     numShops += numShops / 3;
     numSpells += numSpells / 3;
   }
-
-  for (int i = 0; i < numShops; ++i)
-    addRandomShop();
-  // TODO: Consider Fireball magnet (do not add Burndayraz to map), 'more glyphs' (+1; +2 for Hoarder), 'fewer glyphs' (-1);
-  //       Edge case: If both are selected, 'more glyphs' wins over 'fewer glyphs' (and spell conversion points are set to 130)
-  for (int i = 0; i < numSpells; ++i)
-    addRandomSpell();
-  // TODO: Consider Extra Altar preparation (+1)
-  for (int i = 0; i < numAltars; ++i)
-    addRandomAltar();
+  addRandomResources(numShops, numSpells, numAltars);
+  if (modifiers.count(ResourceModifier::FlameMagnet))
+    spells.erase(std::find(begin(spells), end(spells), Spell::Burndayraz));
 }
-
 
 void ResourceSet::addRandomShop()
 {
@@ -104,6 +88,23 @@ void ResourceSet::addRandomAltar()
     god = static_cast<God>(value);
   } while (std::find(begin(altars), end(altars), god) != end(altars) && altars.size() < n);
   altars.emplace_back(god);
+}
+
+void ResourceSet::addRandomResources(int numShops, int numSpells, int numAltars)
+{
+  for (int i = 0; i < numShops; ++i)
+    addRandomShop();
+  for (int i = 0; i < numSpells; ++i)
+    addRandomSpell();
+  for (int i = 0; i < numAltars; ++i)
+    addRandomAltar();
+  // Burndayraz is guaranteed to appear
+  if (std::find(begin(spells), end(spells), Spell::Burndayraz) == end(spells))
+  {
+    spells.pop_back();
+    spells.push_back(Spell::Burndayraz);
+    std::shuffle(begin(spells), end(spells), generator);
+  }
 }
 
 Resources::Resources(int mapSize)
