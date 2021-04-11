@@ -97,7 +97,7 @@ struct SimpleResources
   ResourceSet& operator()() override { return *this; }
   const ResourceSet& operator()() const override { return *this; }
 
-  void revealTile() override {}
+  void revealTile() override { --numHiddenTiles; }
 
   int mapSize;
 };
