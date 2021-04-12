@@ -72,11 +72,12 @@ void DDHelperApp::populateFrame()
   if (hero)
   {
     std::string title = hero->getName() + " enters"s;
-    applyUndoable(std::move(title), [newHero = Hero(*hero), newResources = hero->createResources({}, DefaultMapSize)](State& state) {
-      state.hero = newHero;
-      state.resources = newResources;
-      return Summary::None;
-    });
+    applyUndoable(std::move(title),
+                  [newHero = Hero(*hero), newResources = hero->createResources({}, {}, DefaultMapSize)](State& state) {
+                    state.hero = newHero;
+                    state.resources = newResources;
+                    return Summary::None;
+                  });
   }
 
   monsterSelection.run();

@@ -133,7 +133,8 @@ std::string Hero::getName() const
   return name;
 }
 
-MapResources Hero::createResources(std::set<ResourceModifier> preparations, int mapSize) const
+MapResources
+Hero::createResources(std::set<ResourceModifier> preparations, std::optional<God> preparedDeity, int mapSize) const
 {
   if (hasTrait(HeroTrait::Hoarder))
     preparations.insert(ResourceModifier::Hoarder);
@@ -141,10 +142,7 @@ MapResources Hero::createResources(std::set<ResourceModifier> preparations, int 
     preparations.insert(ResourceModifier::Martyr);
   if (hasTrait(HeroTrait::Merchant))
     preparations.insert(ResourceModifier::Merchant);
-  return MapResources{
-      EmptyResources{},
-      {preparations, mapSize},
-      mapSize};
+  return MapResources{EmptyResources{}, {preparations, preparedDeity, mapSize}, mapSize};
 }
 
 int Hero::getXP() const

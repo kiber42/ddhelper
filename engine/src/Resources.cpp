@@ -22,8 +22,8 @@ ResourceSet::ResourceSet(DefaultResources, int mapSize)
   addRandomResources(8, 5, 3);
 }
 
-ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, int mapSize)
-  : numWalls{mapSize * mapSize * 4 / 10 * (modifiers.count(ResourceModifier::Binlor) ? 7 : 10) / 10}
+ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optional<God> preparedDeity, int mapSize)
+  : numWalls{mapSize * mapSize * 4 / 10 * (preparedDeity == God::BinlorIronshield ? 7 : 10) / 10}
   , numHealthPotions{3}
   , numManaPotions{3}
   , numPotionShops{modifiers.count(ResourceModifier::Apothecary) ? 3 : 2}
@@ -47,6 +47,12 @@ ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, int mapSiz
     numSpells += numSpells / 3;
   }
   addRandomResources(numShops, numSpells, numAltars);
+  if (preparedDeity && std::find(begin(altars), end(altars), *preparedDeity) == end(altars))
+  {
+    if (!altars.empty())
+      altars.pop_back();
+    altars.push_back(*preparedDeity);
+  }
   if (modifiers.count(ResourceModifier::FlameMagnet))
     spells.erase(std::find(begin(spells), end(spells), Spell::Burndayraz));
 }
@@ -101,7 +107,8 @@ void ResourceSet::addRandomResources(int numShops, int numSpells, int numAltars)
   // Burndayraz is guaranteed to appear
   if (std::find(begin(spells), end(spells), Spell::Burndayraz) == end(spells))
   {
-    spells.pop_back();
+    if (!spells.empty())
+      spells.pop_back();
     spells.push_back(Spell::Burndayraz);
     std::shuffle(begin(spells), end(spells), generator);
   }

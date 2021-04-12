@@ -27,7 +27,9 @@ public:
   std::string getName() const;
 
   // Prepare a set of resources according to the hero's traits, optionally accounting for dungeon preparations
-  MapResources createResources(std::set<ResourceModifier> preparations = {}, int mapSize = DefaultMapSize) const;
+  MapResources createResources(std::set<ResourceModifier> preparations = {},
+                               std::optional<God> preparedDeity = {},
+                               int mapSize = DefaultMapSize) const;
 
   int getXP() const;
   int getLevel() const;

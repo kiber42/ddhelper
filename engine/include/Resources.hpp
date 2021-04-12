@@ -4,6 +4,7 @@ enum class Item;
 enum class God;
 enum class Spell;
 
+#include <optional>
 #include <random>
 #include <set>
 #include <vector>
@@ -32,7 +33,6 @@ enum class ResourceModifier
   QuestItems, // TODO
   EliteItems, // TODO
   Apothecary,
-  Binlor,
   ExtraAltar,
   // Hero traits
   Hoarder,
@@ -46,7 +46,7 @@ struct ResourceSet
 {
   ResourceSet(EmptyResources);
   ResourceSet(DefaultResources, int mapSize = DefaultMapSize);
-  ResourceSet(const std::set<ResourceModifier>& modifiers, int mapSize = DefaultMapSize);
+  ResourceSet(const std::set<ResourceModifier>& modifiers, std::optional<God> preparedDeity, int mapSize = DefaultMapSize);
 
   void addRandomShop();
   void addRandomSpell();
