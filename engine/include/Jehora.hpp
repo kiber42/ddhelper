@@ -15,7 +15,7 @@ public:
   void applyRandomPunishment(Hero& hero);
 
 private:
-  std::mt19937 generator;
+  std::mt19937 generator{std::random_device{}()};
   int happiness;
   int thresholdPoison;
   int thresholdManaBurn;

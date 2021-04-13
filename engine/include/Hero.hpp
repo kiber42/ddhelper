@@ -201,7 +201,7 @@ private:
   std::map<HeroStatus, int> statuses;
   std::map<HeroDebuff, int> debuffs;
   std::optional<PietyChange> collectedPiety;
-  std::mt19937 generator;
+  std::mt19937 generator{std::random_device{}()};
   bool dodgeNext;
   bool alchemistScrollUsedThisLevel;
   bool namtarsWardUsedThisLevel;

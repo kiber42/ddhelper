@@ -12,5 +12,5 @@ public:
   Monsters::iterator pickMonsterForAbsolution(int heroLevel, Monsters& monsters);
 
 private:
-  std::mt19937 generator;
+  std::mt19937 generator{std::random_device{}()};
 };
