@@ -60,7 +60,7 @@ namespace solver
 
   Step generateRandomValidStep(const GameState& state)
   {
-    // TODO: Migrate to C++20 and replace std::transform and std::shuffle with equivalent std::ranges functions
+    // TODO: Replace std::transform and std::shuffle with equivalent std::ranges functions
 
     // Rely on at least one monster being present
     assert(!state.monsters.empty());
@@ -285,7 +285,7 @@ namespace solver
     void print_description(const std::vector<std::string>& description)
     {
       std::string s = std::accumulate(begin(description), end(description), std::string{},
-                                      [](auto& a, auto& b) { return a + ", " + b; });
+                                      [](std::string a, std::string b) { return a + ", " + b; });
       if (!s.empty())
         std::cout << s.substr(2) << '\n';
     }

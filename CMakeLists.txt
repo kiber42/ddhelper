@@ -4,8 +4,10 @@ cmake_minimum_required(VERSION 3.10)
 project(ddhelper VERSION 0.3.5)
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+add_compile_options(-Wno-c++20-extensions)
 
 # compile with warnings
 if ( MSVC )

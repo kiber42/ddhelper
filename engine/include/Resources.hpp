@@ -68,6 +68,8 @@ struct ResourceSet
   int numGoldPiles{0};
   std::mt19937 generator{std::random_device{}()};
 
+  bool operator==(const ResourceSet&) const = default;
+
 private:
   void addRandomResources(int numShops, int numSpells, int numAltars);
 };
@@ -91,7 +93,7 @@ struct SimpleResources
   : public Resources
   , public ResourceSet
 {
-  explicit SimpleResources(int mapSize);
+  explicit SimpleResources(int mapSize = DefaultMapSize);
   explicit SimpleResources(ResourceSet visible, int mapSize = DefaultMapSize);
 
   ResourceSet& operator()() override { return *this; }
@@ -105,7 +107,7 @@ struct SimpleResources
 // simple emulation of a map that can be revealed tile by tile
 struct MapResources : public Resources
 {
-  explicit MapResources(int mapSize);
+  explicit MapResources(int mapSize = DefaultMapSize);
   MapResources(ResourceSet visible, ResourceSet hidden, int mapSize = DefaultMapSize);
   explicit MapResources(SimpleResources resources);
 
