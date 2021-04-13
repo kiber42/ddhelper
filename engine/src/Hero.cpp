@@ -2,8 +2,8 @@
 
 #include "Experience.hpp"
 #include "Items.hpp"
+#include "Magic.hpp"
 #include "Monster.hpp"
-#include "Spells.hpp"
 
 #include <algorithm>
 #include <cassert>

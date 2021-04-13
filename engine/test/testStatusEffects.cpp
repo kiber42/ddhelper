@@ -5,7 +5,7 @@
 #include "Items.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
-#include "Spells.hpp"
+#include "Magic.hpp"
 
 using namespace bandit;
 using namespace snowhouse;

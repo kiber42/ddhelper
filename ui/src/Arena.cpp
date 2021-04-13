@@ -5,9 +5,9 @@
 #include "Combat.hpp"
 #include "Hero.hpp"
 #include "Items.hpp"
+#include "Magic.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
-#include "Spells.hpp"
 
 #include "imgui.h"
 

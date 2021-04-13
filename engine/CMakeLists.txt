@@ -16,14 +16,14 @@ add_library(
   src/HeroStats.cpp
   src/Inventory.cpp
   src/Jehora.cpp
+  src/Magic.cpp
   src/Monster.cpp
   src/MonsterStats.cpp
   src/MonsterStatus.cpp
   src/MonsterTraits.cpp
   src/MonsterTypes.cpp
   src/Outcome.cpp
-  src/Resources.cpp
-  src/Spells.cpp)
+  src/Resources.cpp)
 target_include_directories(ddhelperengine PUBLIC include)
 
 add_executable(

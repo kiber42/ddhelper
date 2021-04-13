@@ -2,9 +2,9 @@
 
 #include "Combat.hpp"
 #include "Hero.hpp"
+#include "Magic.hpp"
 #include "Monster.hpp"
 #include "MonsterTypes.hpp"
-#include "Spells.hpp"
 
 using namespace bandit;
 using namespace snowhouse;

@@ -1,7 +1,7 @@
 #include "SolverTools.hpp"
 
 #include "Combat.hpp"
-#include "Spells.hpp"
+#include "Magic.hpp"
 
 #include <cassert>
 #include <random>

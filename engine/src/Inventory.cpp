@@ -1,7 +1,7 @@
 #include "Inventory.hpp"
 
 #include "Items.hpp"
-#include "Spells.hpp"
+#include "Magic.hpp"
 
 #include <algorithm>
 #include <cassert>

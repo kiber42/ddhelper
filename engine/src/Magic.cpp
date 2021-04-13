@@ -1,4 +1,4 @@
-#include "Spells.hpp"
+#include "Magic.hpp"
 
 #include "Combat.hpp"
 #include "Items.hpp"
