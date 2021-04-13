@@ -8,6 +8,7 @@ void testSpells();
 void testStatusEffects();
 void testHeroTraits();
 void testInventory();
+void testResources();
 void testPotions();
 void testFaith();
 void testDungeon();
@@ -21,6 +22,7 @@ go_bandit([] {
   testStatusEffects();
   testHeroTraits();
   testInventory();
+  testResources();
   testPotions();
   testFaith();
   testDungeon();

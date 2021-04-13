@@ -37,6 +37,7 @@ add_executable(
   test/testInventory.cpp
   test/testMonsters.cpp
   test/testPotions.cpp
+  test/testResources.cpp
   test/testSpells.cpp
   test/testStatusEffects.cpp
   test/testTraits.cpp)
