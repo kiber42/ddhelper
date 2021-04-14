@@ -57,7 +57,7 @@ ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optio
     spells.erase(std::find(begin(spells), end(spells), Spell::Burndayraz));
 }
 
-void ResourceSet::addRandomShop()
+void ResourceSet::addRandomShop(std::mt19937 generator)
 {
   Item item;
   const int n = static_cast<int>(Item::LastShopItem);
@@ -68,7 +68,7 @@ void ResourceSet::addRandomShop()
   shops.emplace_back(item);
 }
 
-void ResourceSet::addRandomSpell()
+void ResourceSet::addRandomSpell(std::mt19937 generator)
 {
   Spell spell;
   const int n = static_cast<int>(Spell::Last);
@@ -79,7 +79,7 @@ void ResourceSet::addRandomSpell()
   spells.emplace_back(spell);
 }
 
-void ResourceSet::addRandomAltar()
+void ResourceSet::addRandomAltar(std::mt19937 generator)
 {
   God god;
   const int n = static_cast<int>(God::Last) + 1;
@@ -98,12 +98,13 @@ void ResourceSet::addRandomAltar()
 
 void ResourceSet::addRandomResources(int numShops, int numSpells, int numAltars)
 {
+  std::mt19937 generator{std::random_device{}()};
   for (int i = 0; i < numShops; ++i)
-    addRandomShop();
+    addRandomShop(generator);
   for (int i = 0; i < numSpells; ++i)
-    addRandomSpell();
+    addRandomSpell(generator);
   for (int i = 0; i < numAltars; ++i)
-    addRandomAltar();
+    addRandomAltar(generator);
   // Burndayraz is guaranteed to appear
   if (std::find(begin(spells), end(spells), Spell::Burndayraz) == end(spells))
   {

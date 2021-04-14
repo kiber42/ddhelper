@@ -48,9 +48,9 @@ struct ResourceSet
   ResourceSet(DefaultResources, int mapSize = DefaultMapSize);
   ResourceSet(const std::set<ResourceModifier>& modifiers, std::optional<God> preparedDeity, int mapSize = DefaultMapSize);
 
-  void addRandomShop();
-  void addRandomSpell();
-  void addRandomAltar();
+  void addRandomShop(std::mt19937 generator);
+  void addRandomSpell(std::mt19937 generator);
+  void addRandomAltar(std::mt19937 generator);
 
   std::vector<Item> shops;
   std::vector<Spell> spells;
@@ -66,7 +66,6 @@ struct ResourceSet
   int numManaBoosters{0};
   int numHealthBoosters{0};
   int numGoldPiles{0};
-  std::mt19937 generator{std::random_device{}()};
 
   bool operator==(const ResourceSet&) const = default;
 
