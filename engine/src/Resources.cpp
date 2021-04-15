@@ -82,10 +82,10 @@ void ResourceSet::addRandomSpell(std::mt19937 generator)
 void ResourceSet::addRandomAltar(std::mt19937 generator)
 {
   God god;
-  const int n = static_cast<int>(God::Last) + 1;
+  const unsigned n = static_cast<int>(God::Last) + (pactMakerAvailable ? 0u : 1u);
   do
   {
-    const int value = std::uniform_int_distribution<>(0, n)(generator);
+    const unsigned value = std::uniform_int_distribution<>(0, n)(generator);
     if (value == n && !pactMakerAvailable)
     {
       pactMakerAvailable = true;
