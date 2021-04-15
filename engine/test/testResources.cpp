@@ -1,5 +1,6 @@
 #include "bandit/bandit.h"
 
+#include "Faith.hpp"
 #include "Resources.hpp"
 #include "Spells.hpp"
 
@@ -25,8 +26,44 @@ void testResources()
       AssertThat(spells.size(), Equals(5u));
       AssertThat(std::set(begin(spells), end(spells)).size(), Equals(5u));
     });
+    it("shall have 8 different shops",  [&shops = resourceSet.shops] {
+      AssertThat(shops.size(), Equals(8u));
+      AssertThat(std::set(begin(shops), end(shops)).size(), Equals(8u));
+    });
     it("shall have Burndayraz", [&spells = resourceSet.spells] {
-      AssertThat(std::find(begin(spells), end(spells), Spell::Burndayraz) != end(spells), IsTrue());
+      AssertThat(spells, Contains(Spell::Burndayraz));
+    });
+  });
+
+  describe("Custom resources", [] {
+    it("shall accept modifiers for hero traits", [] {
+      ResourceSet hoarderMartyr{{ResourceModifier::Hoarder, ResourceModifier::Martyr}, {}};
+      AssertThat(hoarderMartyr.numGoldPiles, Equals(13));
+      AssertThat(hoarderMartyr.shops.size(), Equals(10u));
+      AssertThat(hoarderMartyr.altars.size() + (unsigned)hoarderMartyr.pactMakerAvailable, Equals(4u));
+      ResourceSet merchant{{ResourceModifier::Merchant}, {God::TikkiTooki}};
+      AssertThat(merchant.numGoldPiles, Equals(10));
+      AssertThat(merchant.shops.size(), Equals(10u));
+      AssertThat(merchant.altars, Contains(God::TikkiTooki));
+    });
+    it("shall accept modifiers for dungeon preparations", [] {
+      ResourceSet prepared{{ResourceModifier::ExtraManaBoosters, ResourceModifier::FlameMagnet,
+                            ResourceModifier::ExtraGlyph, ResourceModifier::Apothecary},
+                           {}};
+      AssertThat(prepared.numAttackBoosters, Equals(3));
+      AssertThat(prepared.numManaBoosters, Equals(5));
+      AssertThat(prepared.numHealthBoosters, Equals(3));
+      AssertThat(prepared.spells, !Contains(Spell::Burndayraz));
+      AssertThat(prepared.spells.size(), Equals(5u));
+      AssertThat(prepared.numPotionShops, Equals(3));
+      ResourceSet prepared2{
+          {ResourceModifier::ExtraHealthBoosters, ResourceModifier::FewerGlyphs, ResourceModifier::ExtraAltar}, {}};
+      AssertThat(prepared2.numManaBoosters, Equals(3));
+      AssertThat(prepared2.numHealthBoosters, Equals(5));
+      AssertThat(prepared2.spells, Contains(Spell::Burndayraz));
+      AssertThat(prepared2.spells.size(), Equals(4u));
+      AssertThat(prepared2.numPotionShops, Equals(1));
+      AssertThat(prepared2.altars.size() + (unsigned)prepared2.pactMakerAvailable, Equals(4u));
     });
   });
 

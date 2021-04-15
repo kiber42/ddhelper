@@ -26,7 +26,7 @@ ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optio
   : numWalls{mapSize * mapSize * 4 / 10 * (preparedDeity == God::BinlorIronshield ? 7 : 10) / 10}
   , numHealthPotions{3}
   , numManaPotions{3}
-  , numPotionShops{modifiers.count(ResourceModifier::Apothecary) ? 3 : 2}
+  , numPotionShops{modifiers.count(ResourceModifier::Apothecary) ? 3 : 1}
   , numAttackBoosters{modifiers.count(ResourceModifier::ExtraAttackBoosters) ? 5 : 3}
   , numManaBoosters{modifiers.count(ResourceModifier::ExtraManaBoosters) ? 5 : 3}
   , numHealthBoosters{modifiers.count(ResourceModifier::ExtraHealthBoosters) ? 5 : 3}
@@ -178,14 +178,14 @@ void MapResources::revealTile()
   // Except for plants and blood pools, at most own resource is spawned.
   // This ignores some situations, e.g. petrified enemies which are both a wall and a gold pile.
   // The helper functions return the available amount of a hidden resources of a given type and a method to reveal it.
-  auto wrap = [&](auto what) {
+  auto countAndReveal = [&](auto what) {
     return std::pair{hidden.*what, [&from = hidden.*what, &to = visible.*what](size_t) {
                        assert(from > 0);
                        ++to;
                        --from;
                      }};
   };
-  auto wrapVector = [&](auto group) {
+  auto countAndRevealVector = [&](auto group) {
     return std::pair{(hidden.*group).size(), [&from = hidden.*group, &to = visible.*group](size_t index) {
                        assert(index < from.size());
                        auto resource = begin(from) + index;
@@ -194,17 +194,17 @@ void MapResources::revealTile()
                      }};
   };
   std::array<std::pair<int, std::function<void(size_t)>>, 12> resourceCountsAndReveals{
-      wrap(&ResourceSet::numWalls),
-      wrap(&ResourceSet::numGoldPiles),
-      wrapVector(&ResourceSet::shops),
-      wrapVector(&ResourceSet::spells),
-      wrapVector(&ResourceSet::altars),
-      wrap(&ResourceSet::numAttackBoosters),
-      wrap(&ResourceSet::numManaBoosters),
-      wrap(&ResourceSet::numHealthBoosters),
-      wrap(&ResourceSet::numHealthPotions),
-      wrap(&ResourceSet::numManaPotions),
-      wrap(&ResourceSet::numPotionShops),
+      countAndReveal(&ResourceSet::numWalls),
+      countAndReveal(&ResourceSet::numGoldPiles),
+      countAndRevealVector(&ResourceSet::shops),
+      countAndRevealVector(&ResourceSet::spells),
+      countAndRevealVector(&ResourceSet::altars),
+      countAndReveal(&ResourceSet::numAttackBoosters),
+      countAndReveal(&ResourceSet::numManaBoosters),
+      countAndReveal(&ResourceSet::numHealthBoosters),
+      countAndReveal(&ResourceSet::numHealthPotions),
+      countAndReveal(&ResourceSet::numManaPotions),
+      countAndReveal(&ResourceSet::numPotionShops),
       std::pair{hidden.pactMakerAvailable,
                 [&](size_t) {
                   visible.pactMakerAvailable = true;
