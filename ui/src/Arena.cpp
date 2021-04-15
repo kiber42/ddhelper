@@ -423,8 +423,19 @@ void Arena::runShopPopup(const State& state)
 
 void Arena::runFaithPopup(const State& state)
 {
-  const auto& altars = state.resources().altars;
-  if (altars.empty() && (!state.resources().pactMakerAvailable || state.hero.getFaith().getPact().has_value()))
+  const auto [altars, canMakePact] = [&state]{
+    std::vector<God> altars;
+    bool canMakePact = false;
+    for (auto godOrPactmaker : state.resources().altars)
+    {
+      if (auto god = std::get_if<God>(&godOrPactmaker))
+        altars.push_back(*god);
+      else
+        canMakePact = !state.hero.getFaith().getPact();
+    }
+    return std::tuple{std::move(altars), canMakePact};
+  }();
+  if (altars.empty() && !canMakePact)
   {
     disabledButton("Faith", "No altars");
     return;
@@ -498,7 +509,7 @@ void Arena::runFaithPopup(const State& state)
       }
     }
 
-    if (state.resources().pactMakerAvailable && !state.hero.getFaith().getPact())
+    if (canMakePact)
     {
       if (following || haveAvailableAltars)
         ImGui::Separator();
@@ -718,13 +729,13 @@ void Arena::runFindPopup(const State& state)
                 isSelected))
           selectedPopupItem = index;
       }
-      if (!state.resources().pactMakerAvailable)
+      if (!state.resources().pactmakerAvailable())
       {
         const bool isSelected = ++index == selectedPopupItem;
         if (addPopupAction(
                 state, "The Pactmaker", "Find The Pactmaker's altar",
                 [](State& state) {
-                  state.resources().pactMakerAvailable = true;
+                  state.resources().altars.push_back(Pactmaker::ThePactmaker);
                   return Summary::None;
                 },
                 isSelected))

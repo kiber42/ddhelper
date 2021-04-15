@@ -18,9 +18,9 @@ void testResources()
       AssertThat(resourceSet, !Equals(resourceSet2));
     });
     it("shall have 3 different altars",
-       [pactMaker = (unsigned)resourceSet.pactMakerAvailable, &altars = resourceSet.altars] {
-         AssertThat(altars.size() + pactMaker, Equals(3u));
-         AssertThat(std::set(begin(altars), end(altars)).size() + pactMaker, Equals(3u));
+       [&altars = resourceSet.altars] {
+         AssertThat(altars.size(), Equals(3u));
+         AssertThat(std::set(begin(altars), end(altars)).size(), Equals(3u));
        });
     it("shall have 5 different spells", [&spells = resourceSet.spells] {
       AssertThat(spells.size(), Equals(5u));
@@ -40,11 +40,11 @@ void testResources()
       ResourceSet hoarderMartyr{{ResourceModifier::Hoarder, ResourceModifier::Martyr}, {}};
       AssertThat(hoarderMartyr.numGoldPiles, Equals(13));
       AssertThat(hoarderMartyr.shops.size(), Equals(10u));
-      AssertThat(hoarderMartyr.altars.size() + (unsigned)hoarderMartyr.pactMakerAvailable, Equals(4u));
+      AssertThat(hoarderMartyr.altars.size(), Equals(4u));
       ResourceSet merchant{{ResourceModifier::Merchant}, {God::TikkiTooki}};
       AssertThat(merchant.numGoldPiles, Equals(10));
       AssertThat(merchant.shops.size(), Equals(10u));
-      AssertThat(merchant.altars, Contains(God::TikkiTooki));
+      AssertThat(merchant.altars, Contains(GodOrPactmaker{God::TikkiTooki}));
     });
     it("shall accept modifiers for dungeon preparations", [] {
       ResourceSet prepared{{ResourceModifier::ExtraManaBoosters, ResourceModifier::FlameMagnet,
@@ -63,7 +63,7 @@ void testResources()
       AssertThat(prepared2.spells, Contains(Spell::Burndayraz));
       AssertThat(prepared2.spells.size(), Equals(4u));
       AssertThat(prepared2.numPotionShops, Equals(1));
-      AssertThat(prepared2.altars.size() + (unsigned)prepared2.pactMakerAvailable, Equals(4u));
+      AssertThat(prepared2.altars.size(), Equals(4u));
     });
   });
 

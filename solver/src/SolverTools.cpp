@@ -70,16 +70,18 @@ namespace solver
     std::optional<std::vector<Item>> items;
 
     auto otherAltar = [&hero = state.hero, altars = state.resources.altars]() mutable -> std::optional<God> {
+      altars.erase(std::remove(begin(altars), end(altars), GodOrPactmaker{Pactmaker::ThePactmaker}), end(altars));
       if (altars.empty())
         return {};
       std::shuffle(begin(altars), end(altars), generator);
       if (!hero.getFollowedDeity())
-        return altars.front();
+        return std::get<God>(altars.front());
       auto altarIt =
-          std::find_if(begin(altars), end(altars),
-                       [followedDeity = *hero.getFollowedDeity()](const auto altar) { return altar != followedDeity; });
+          std::find_if(begin(altars), end(altars), [followedDeity = *hero.getFollowedDeity()](const auto altar) {
+            return altar != GodOrPactmaker{followedDeity};
+          });
       if (altarIt != end(altars))
-        return *altarIt;
+        return std::get<God>(*altarIt);
       return {};
     };
 
@@ -178,7 +180,7 @@ namespace solver
         }
         break;
       case 9:
-        if (state.resources.pactMakerAvailable && !state.hero.getFaith().getPact())
+        if (state.resources.pactmakerAvailable() && !state.hero.getFaith().getPact())
         {
           const auto last = state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus;
           return Request{static_cast<Pact>(std::uniform_int_distribution<>(0, static_cast<int>(last) - 1)(generator))};
@@ -220,19 +222,19 @@ namespace solver
                    [piety = hero.getPiety(), current = hero.getFollowedDeity(),
                     &altars = state.resources.altars](Follow follow) {
                      return (!current || (current != follow.deity && piety >= 50)) &&
-                            std::find(begin(altars), end(altars), follow.deity) != end(altars);
+                            std::find(begin(altars), end(altars), GodOrPactmaker{follow.deity}) != end(altars);
                    },
                    [&faith = hero.getFaith(), &hero, &resources = state.resources,
                     &monsters = state.monsters](Request request) {
                      if (const auto boon = std::get_if<Boon>(&request.boonOrPact))
                        return faith.isAvailable(*boon, hero, monsters, resources) &&
                               hero.getPiety() >= faith.getCosts(*boon, hero);
-                     return resources.pactMakerAvailable && !faith.getPact() &&
+                     return resources.pactmakerAvailable() && !faith.getPact() &&
                             (!faith.enteredConsensus() || std::get<Pact>(request.boonOrPact) != Pact::Consensus);
                    },
                    [current = hero.getFollowedDeity(), &altars = state.resources.altars](Desecrate desecrate) {
                      return current != desecrate.altar &&
-                            std::find(begin(altars), end(altars), desecrate.altar) != end(altars);
+                            std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}) != end(altars);
                    }},
         step);
   }
@@ -263,7 +265,7 @@ namespace solver
                           [&](Follow follow) { hero.followDeity(follow.deity); },
                           [&](Request request) { hero.request(request.boonOrPact, state.monsters, state.resources); },
                           [&hero, &monsters = state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
-                            altars.erase(std::find(begin(altars), end(altars), desecrate.altar));
+                            altars.erase(std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}));
                             hero.desecrate(desecrate.altar, monsters);
                           }},
                step);

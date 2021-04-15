@@ -33,7 +33,8 @@ ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optio
   , numGoldPiles{10}
 {
   int numShops = modifiers.count(ResourceModifier::Merchant) ? 10 : 8;
-  int numSpells = modifiers.count(ResourceModifier::ExtraGlyph) ? 6 : modifiers.count(ResourceModifier::FewerGlyphs) ? 4 : 5;
+  int numSpells =
+      modifiers.count(ResourceModifier::ExtraGlyph) ? 6 : modifiers.count(ResourceModifier::FewerGlyphs) ? 4 : 5;
   const int numAltars = 3 + modifiers.count(ResourceModifier::Martyr) + modifiers.count(ResourceModifier::ExtraAltar);
   if (modifiers.count(ResourceModifier::Hoarder))
   {
@@ -47,7 +48,7 @@ ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optio
     numSpells += numSpells / 3;
   }
   addRandomResources(numShops, numSpells, numAltars);
-  if (preparedDeity && std::find(begin(altars), end(altars), *preparedDeity) == end(altars))
+  if (preparedDeity && std::find(begin(altars), end(altars), GodOrPactmaker{*preparedDeity}) == end(altars))
   {
     if (!altars.empty())
       altars.pop_back();
@@ -55,6 +56,11 @@ ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optio
   }
   if (modifiers.count(ResourceModifier::FlameMagnet))
     spells.erase(std::find(begin(spells), end(spells), Spell::Burndayraz));
+}
+
+bool ResourceSet::pactmakerAvailable() const
+{
+  return std::find(begin(altars), end(altars), GodOrPactmaker{Pactmaker::ThePactmaker}) != end(altars);
 }
 
 void ResourceSet::addRandomShop(std::mt19937 generator)
@@ -81,18 +87,16 @@ void ResourceSet::addRandomSpell(std::mt19937 generator)
 
 void ResourceSet::addRandomAltar(std::mt19937 generator)
 {
-  God god;
-  const unsigned n = static_cast<int>(God::Last) + (pactMakerAvailable ? 0u : 1u);
+  GodOrPactmaker god;
+  const unsigned n = static_cast<int>(God::Last) + 1;
   do
   {
     const unsigned value = std::uniform_int_distribution<>(0, n)(generator);
-    if (value == n && !pactMakerAvailable)
-    {
-      pactMakerAvailable = true;
-      return;
-    }
-    god = static_cast<God>(value);
-  } while (std::find(begin(altars), end(altars), god) != end(altars) && altars.size() < n);
+    if (value < n)
+      god = static_cast<God>(value);
+    else
+      god = Pactmaker::ThePactmaker;
+  } while (std::find(begin(altars), end(altars), god) != end(altars) && altars.size() <= n);
   altars.emplace_back(god);
 }
 
@@ -194,22 +198,12 @@ void MapResources::revealTile()
                      }};
   };
   std::array<std::pair<int, std::function<void(size_t)>>, 12> resourceCountsAndReveals{
-      countAndReveal(&ResourceSet::numWalls),
-      countAndReveal(&ResourceSet::numGoldPiles),
-      countAndRevealVector(&ResourceSet::shops),
-      countAndRevealVector(&ResourceSet::spells),
-      countAndRevealVector(&ResourceSet::altars),
-      countAndReveal(&ResourceSet::numAttackBoosters),
-      countAndReveal(&ResourceSet::numManaBoosters),
-      countAndReveal(&ResourceSet::numHealthBoosters),
-      countAndReveal(&ResourceSet::numHealthPotions),
-      countAndReveal(&ResourceSet::numManaPotions),
-      countAndReveal(&ResourceSet::numPotionShops),
-      std::pair{hidden.pactMakerAvailable,
-                [&](size_t) {
-                  visible.pactMakerAvailable = true;
-                  hidden.pactMakerAvailable = false;
-                }},
+      countAndReveal(&ResourceSet::numWalls),         countAndReveal(&ResourceSet::numGoldPiles),
+      countAndRevealVector(&ResourceSet::shops),      countAndRevealVector(&ResourceSet::spells),
+      countAndRevealVector(&ResourceSet::altars),     countAndReveal(&ResourceSet::numAttackBoosters),
+      countAndReveal(&ResourceSet::numManaBoosters),  countAndReveal(&ResourceSet::numHealthBoosters),
+      countAndReveal(&ResourceSet::numHealthPotions), countAndReveal(&ResourceSet::numManaPotions),
+      countAndReveal(&ResourceSet::numPotionShops)
   };
   auto rand = std::uniform_int_distribution<>(0, numHiddenTiles);
   auto n = rand(generator);

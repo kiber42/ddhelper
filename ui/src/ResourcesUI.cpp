@@ -63,27 +63,21 @@ auto ResourcesUI::run(const MapResources& resources, const Hero& hero) -> Result
   ImGui::TextUnformatted("Visible");
   ImGui::Separator();
   makeEntries(makeAddEntry);
-  auto makeStrings = [](const auto& v) {
-    std::vector<std::string> strings(v.size());
-    std::transform(begin(v), end(v), begin(strings), [](auto item) { return toString(item); });
-    return strings;
-  };
-  auto showStrings = [](const auto& strings, std::string prefix) {
-    if (strings.empty())
+  auto showStrings = [](const auto& v, std::string prefix) {
+    if (v.empty())
     {
       ImGui::TextUnformatted((prefix + " None").c_str());
       return;
     }
+    std::vector<std::string> strings(v.size());
+    std::transform(begin(v), end(v), begin(strings), [](auto item) { return toString(item); });
     ImGui::TextWrapped("%s", std::accumulate(begin(strings), end(strings), prefix, [](const auto& a, const auto& b) {
                                return a + " " + b;
                              }).c_str());
   };
-  showStrings(makeStrings(resources.visible.shops), "Shops:");
-  showStrings(makeStrings(resources.visible.spells), "Spells:");
-  auto altars = makeStrings(resources.visible.altars);
-  if (resources.visible.pactMakerAvailable)
-    altars.push_back("The Pactmaker");
-  showStrings(altars, "Altars:");
+  showStrings(resources.visible.shops, "Shops:");
+  showStrings(resources.visible.spells, "Spells:");
+  showStrings(resources.visible.altars, "Altars:");
 
   ImGui::Separator();
   const std::string title = "Hidden (" + std::to_string(resources.numHiddenTiles) + " Tiles)";
@@ -111,30 +105,7 @@ auto ResourcesUI::run(const MapResources& resources, const Hero& hero) -> Result
   };
   reveal(&ResourceSet::shops, "Shop");
   reveal(&ResourceSet::spells, "Spell");
-
-  const size_t numAltars = resources.hidden.altars.size() + (resources.hidden.pactMakerAvailable ? 1u : 0u);
-  ImGui::Text("%2zu Altars", numAltars);
-  if (resources.numHiddenTiles > 0 && numAltars > 0)
-  {
-    ImGui::SameLine();
-    if (ImGui::SmallButton("Reveal##Altar"))
-    {
-      auto updated = resources;
-      --updated.numHiddenTiles;
-      if (resources.hidden.pactMakerAvailable &&
-          std::uniform_int_distribution<>(0, numAltars - 1)(updated.generator) == 0)
-      {
-        updated.visible.pactMakerAvailable = true;
-        updated.hidden.pactMakerAvailable = false;
-      }
-      else
-      {
-        updated.visible.altars.emplace_back(updated.hidden.altars.back());
-        updated.hidden.altars.pop_back();
-      }
-      result.emplace(std::move(updated), ModificationType::TargetedReveal);
-    }
-  }
+  reveal(&ResourceSet::altars, "Altar");
 
   ImGui::Separator();
   ImGui::PushItemWidth(150);

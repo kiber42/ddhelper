@@ -16,6 +16,11 @@ enum class God
   Last = TikkiTooki
 };
 
+enum class Pactmaker
+{
+  ThePactmaker
+};
+
 enum class Boon
 {
   // Binlor Ironshield
@@ -90,6 +95,7 @@ enum class Pact
   LastWithConsensus = Consensus
 };
 
+using GodOrPactmaker = std::variant<God, Pactmaker>;
 using BoonOrPact = std::variant<Boon, Pact>;
 
 constexpr const char* toString(God god)
@@ -113,6 +119,18 @@ constexpr const char* toString(God god)
   case God::TikkiTooki:
     return "Tikki Tooki";
   }
+}
+
+constexpr const char* toString(Pactmaker)
+{
+  return "The Pactmaker";
+}
+
+constexpr const char* toString(GodOrPactmaker godOrPactmaker)
+{
+  if (auto god = std::get_if<God>(&godOrPactmaker))
+    return toString(*god);
+  return toString(std::get<Pactmaker>(godOrPactmaker));
 }
 
 constexpr const char* toString(Boon boon)

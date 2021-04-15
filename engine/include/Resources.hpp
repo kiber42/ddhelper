@@ -1,8 +1,8 @@
 #pragma once
 
-enum class Item;
-enum class God;
-enum class Spell;
+#include "Items.hpp"
+#include "GodsAndBoons.hpp"
+#include "Spells.hpp"
 
 #include <optional>
 #include <random>
@@ -48,14 +48,15 @@ struct ResourceSet
   ResourceSet(DefaultResources, int mapSize = DefaultMapSize);
   ResourceSet(const std::set<ResourceModifier>& modifiers, std::optional<God> preparedDeity, int mapSize = DefaultMapSize);
 
+  bool pactmakerAvailable() const;
+
   void addRandomShop(std::mt19937 generator);
   void addRandomSpell(std::mt19937 generator);
   void addRandomAltar(std::mt19937 generator);
 
   std::vector<Item> shops;
   std::vector<Spell> spells;
-  std::vector<God> altars;
-  bool pactMakerAvailable{false};
+  std::vector<GodOrPactmaker> altars;
   int numWalls{0};
   int numPlants{0};
   int numBloodPools{0};
