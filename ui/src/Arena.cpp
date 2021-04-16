@@ -316,7 +316,8 @@ void Arena::runConvertItemPopup(const State& state)
 void Arena::runShopPopup(const State& state)
 {
   const auto shops = state.resources().shops;
-  if (shops.empty())
+  const int numPotionShops = state.resources().numPotionShops;
+  if (shops.empty() && numPotionShops == 0)
   {
     disabledButton("Buy", "No shops");
     return;
@@ -330,19 +331,13 @@ void Arena::runShopPopup(const State& state)
   if (ImGui::BeginPopup("ShopPopup"))
   {
     int index = 0;
-    bool havePotionShop = false;
-    if (state.hero.has(Item::TranslocationSeal))
+    if (!shops.empty() && state.hero.has(Item::TranslocationSeal))
       ImGui::Checkbox("Use Translocation Seal", &useTranslocationSeal);
     else
       useTranslocationSeal = false;
     for (size_t itemIndex = 0u; itemIndex < shops.size(); ++itemIndex)
     {
       const auto item = shops[itemIndex];
-      if (item == Item::AnyPotion)
-      {
-        havePotionShop = true;
-        continue;
-      }
       const bool isSelected = ++index == selectedPopupItem;
       if (useTranslocationSeal)
       {
@@ -385,7 +380,8 @@ void Arena::runShopPopup(const State& state)
           ImGui::TextColored(colorUnavailable, "%s", label.c_str());
       }
     }
-    if (havePotionShop && ImGui::BeginMenu("Potion Shop"))
+    const std::string title = "Potion Shop (x"s + std::to_string(numPotionShops) + ")";
+    if (numPotionShops > 0 && ImGui::BeginMenu(title.c_str()))
     {
       for (int potionIndex = static_cast<int>(Item::HealthPotion); potionIndex <= static_cast<int>(Item::CanOfWhupaz);
            ++potionIndex)
@@ -401,10 +397,7 @@ void Arena::runShopPopup(const State& state)
                   state, label, historyTitle,
                   [potion](State& state) {
                     if (state.hero.buy(potion))
-                    {
-                      auto& shops = state.resources().shops;
-                      shops.erase(std::find(begin(shops), end(shops), Item::AnyPotion));
-                    }
+                      --state.resources().numPotionShops;
                     return Summary::None;
                   },
                   isSelected))
@@ -648,6 +641,26 @@ void Arena::runPickupResource(const State& state)
       addGenericPickupAction("Health Booster", &ResourceSet::numHealthBoosters, &Hero::addHealthBonus);
       addGenericPickupAction("Mana Booster", &ResourceSet::numManaBoosters, &Hero::addManaBonus);
       addGenericPickupAction("Gold Pile", &ResourceSet::numGoldPiles, &Hero::collectGoldPile);
+      if (!visible.spells.empty() && ImGui::BeginMenu("Spells"))
+      {
+        auto spells = visible.spells;
+        std::sort(begin(spells), end(spells));
+        for (Spell spell : spells)
+        {
+          const bool isSelected = ++index == selectedPopupItem;
+          if (addPopupAction(
+                  state, toString(spell), "Pick Up "s + toString(spell),
+                  [spell](State& state) {
+                    state.hero.receive(spell);
+                    auto& spells = state.resources().spells;
+                    spells.erase(std::remove(begin(spells), end(spells), spell), end(spells));
+                    return Summary::None;
+                  },
+                  isSelected, result))
+            selectedPopupItem = index;
+        }
+        ImGui::EndMenu();
+      }
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
       ImGui::EndPopup();
@@ -740,21 +753,11 @@ void Arena::runFindPopup(const State& state)
                   state.resources().altars.push_back(Pactmaker::ThePactmaker);
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
       ImGui::EndMenu();
     }
-
-    const int isSelected = ++index == selectedPopupItem;
-    if (addPopupAction(
-            state, "Add potion shop", "Add potion shop",
-            [](State& state) {
-              state.resources().shops.emplace_back(Item::AnyPotion);
-              return Summary::None;
-            },
-            isSelected))
-      selectedPopupItem = index;
 
     struct SubMenu
     {

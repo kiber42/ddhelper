@@ -87,8 +87,6 @@ enum class Item
   // Puzzle Items
   TikkisCharm,
   Last = TikkisCharm,
-  // Internal use
-  AnyPotion
 };
 
 constexpr const char* toString(Item item)
@@ -249,9 +247,6 @@ constexpr const char* toString(Item item)
 
   case Item::TikkisCharm:
     return "Tikki's Charm";
-
-  case Item::AnyPotion:
-    return "";
   }
 }
 
@@ -409,8 +404,6 @@ constexpr int price(Item item)
 
   case Item::TikkisCharm:
     return 1;
-  case Item::AnyPotion:
-    return 0;
   }
 }
 
@@ -560,9 +553,6 @@ constexpr int conversionPointsInitial(Item item)
 
   case Item::TikkisCharm:
     return 5;
-
-  case Item::AnyPotion:
-    return 0;
   }
 }
 
