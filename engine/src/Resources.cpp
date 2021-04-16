@@ -65,30 +65,36 @@ bool ResourceSet::pactmakerAvailable() const
 
 void ResourceSet::addRandomShop(std::mt19937 generator)
 {
-  Item item;
   const int n = static_cast<int>(Item::LastShopItem);
+  if (shops.size() > n)
+    return;
+  Item item;
   do
   {
     item = static_cast<Item>(std::uniform_int_distribution<>(0, n)(generator));
-  } while (std::find(begin(shops), end(shops), item) != end(shops) && shops.size() <= n);
+  } while (std::find(begin(shops), end(shops), item) != end(shops));
   shops.emplace_back(item);
 }
 
 void ResourceSet::addRandomSpell(std::mt19937 generator)
 {
-  Spell spell;
   const int n = static_cast<int>(Spell::Last);
+  if (spells.size() > n)
+    return;
+  Spell spell;
   do
   {
     spell = static_cast<Spell>(std::uniform_int_distribution<>(0, n)(generator));
-  } while (std::find(begin(spells), end(spells), spell) != end(spells) && spells.size() <= n);
+  } while (std::find(begin(spells), end(spells), spell) != end(spells));
   spells.emplace_back(spell);
 }
 
 void ResourceSet::addRandomAltar(std::mt19937 generator)
 {
-  GodOrPactmaker god;
   const unsigned n = static_cast<int>(God::Last) + 1;
+  if (altars.size() > n)
+    return;
+  GodOrPactmaker god;
   do
   {
     const unsigned value = std::uniform_int_distribution<>(0, n)(generator);
@@ -96,7 +102,7 @@ void ResourceSet::addRandomAltar(std::mt19937 generator)
       god = static_cast<God>(value);
     else
       god = Pactmaker::ThePactmaker;
-  } while (std::find(begin(altars), end(altars), god) != end(altars) && altars.size() <= n);
+  } while (std::find(begin(altars), end(altars), god) != end(altars));
   altars.emplace_back(god);
 }
 
@@ -178,6 +184,7 @@ void MapResources::revealTile()
   if (numHiddenTiles <= 0)
     return;
   --numHiddenTiles;
+  ++numRevealedTiles;
 
   // Except for plants and blood pools, at most own resource is spawned.
   // This ignores some situations, e.g. petrified enemies which are both a wall and a gold pile.
@@ -203,8 +210,7 @@ void MapResources::revealTile()
       countAndRevealVector(&ResourceSet::altars),     countAndReveal(&ResourceSet::numAttackBoosters),
       countAndReveal(&ResourceSet::numManaBoosters),  countAndReveal(&ResourceSet::numHealthBoosters),
       countAndReveal(&ResourceSet::numHealthPotions), countAndReveal(&ResourceSet::numManaPotions),
-      countAndReveal(&ResourceSet::numPotionShops)
-  };
+      countAndReveal(&ResourceSet::numPotionShops)};
   auto rand = std::uniform_int_distribution<>(0, numHiddenTiles);
   auto n = rand(generator);
   bool revealedWall = true;
