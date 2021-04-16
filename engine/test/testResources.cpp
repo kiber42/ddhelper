@@ -4,6 +4,7 @@
 #include "Resources.hpp"
 #include "Spells.hpp"
 
+#include <random>
 #include <set>
 
 using namespace bandit;
@@ -32,6 +33,19 @@ void testResources()
     });
     it("shall have Burndayraz", [&spells = resourceSet.spells] {
       AssertThat(spells, Contains(Spell::Burndayraz));
+    });
+    it("shall avoid duplicate resources", [] {
+      std::mt19937 generator{std::random_device{}()};
+      ResourceSet lotsOf{EmptyResources{}};
+      for (int i = 0; i < 100; ++i)
+      {
+        lotsOf.addRandomAltar(generator);
+        lotsOf.addRandomSpell(generator);
+        lotsOf.addRandomShop(generator);
+      }
+      AssertThat(lotsOf.altars.size(), Equals((unsigned)God::Last + 2));
+      AssertThat(lotsOf.spells.size(), Equals((unsigned)Spell::Last + 1));
+      AssertThat(lotsOf.shops.size(), Equals((unsigned)Item::LastShopItem + 1));
     });
   });
 
