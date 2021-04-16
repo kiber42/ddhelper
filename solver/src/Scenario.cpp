@@ -39,7 +39,7 @@ Hero getHeroForScenario(Scenario scenario)
   case Scenario::TheThirdAct:
   {
     Hero hero;
-    hero.followDeity(God::TikkiTooki);
+    hero.followDeity(God::TikkiTooki, 0);
     hero.getFaith().gainPiety(22);
     hero.addGold(100 - hero.gold());
     hero.clearInventory();

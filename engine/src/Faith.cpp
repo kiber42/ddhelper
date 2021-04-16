@@ -59,7 +59,7 @@ PietyChange& PietyChange::operator+=(int deltaPoints)
   return *this;
 }
 
-bool Faith::followDeity(God god, Hero& hero)
+bool Faith::followDeity(God god, Hero& hero, int numRevealedTiles)
 {
   if (!canFollow(god, hero))
     return false;
@@ -69,7 +69,7 @@ bool Faith::followDeity(God god, Hero& hero)
     numConsecutiveLevelUpsWithGlowingGuardian = 0;
   }
   else
-    initialBoon(god, hero);
+    initialBoon(god, hero, numRevealedTiles);
   followedDeity = god;
   return true;
 }
@@ -604,13 +604,13 @@ bool Faith::enteredConsensus() const
   return consensus;
 }
 
-void Faith::initialBoon(God god, Hero& hero)
+void Faith::initialBoon(God god, Hero& hero, int numRevealedTiles)
 {
   switch (god)
   {
   case God::BinlorIronshield:
     hero.receiveFreeSpell(Spell::Pisorf);
-    // TODO: gainPiety(numRevealedTiles / 10);
+    gainPiety(numRevealedTiles / 10);
     break;
   case God::Dracul:
     gainPiety(2 * numMonstersKilled);

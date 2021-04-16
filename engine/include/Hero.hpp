@@ -139,7 +139,7 @@ public:
   int receivedBoonCount(Boon boon) const;
   int getBoonCosts(Boon boon) const;
 
-  bool followDeity(God god);
+  bool followDeity(God god, int numRevealedTiles);
   bool request(BoonOrPact boon, Monsters& allMonsters, Resources& resources);
   void desecrate(God altar, Monsters& allMonsters);
 

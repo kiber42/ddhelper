@@ -60,7 +60,7 @@ auto ResourcesUI::run(const MapResources& resources, const Hero& hero) -> Result
 
   ImGui::Begin("Resources");
 
-  ImGui::TextUnformatted("Visible");
+  ImGui::TextUnformatted(("Visible (" + std::to_string(resources.numRevealedTiles) + " Tiles)").c_str());
   ImGui::Separator();
   makeEntries(makeAddEntry);
   auto showStrings = [](const auto& v, std::string prefix) {
@@ -80,8 +80,7 @@ auto ResourcesUI::run(const MapResources& resources, const Hero& hero) -> Result
   showStrings(resources.visible.altars, "Altars:");
 
   ImGui::Separator();
-  const std::string title = "Hidden (" + std::to_string(resources.numHiddenTiles) + " Tiles)";
-  ImGui::TextUnformatted(title.c_str());
+  ImGui::TextUnformatted(("Hidden (" + std::to_string(resources.numHiddenTiles) + " Tiles)").c_str());
   ImGui::Separator();
 
   makeEntries(makeRevealEntry);

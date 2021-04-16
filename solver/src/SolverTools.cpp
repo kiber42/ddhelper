@@ -262,7 +262,7 @@ namespace solver
                             spells.erase(std::find(begin(spells), end(spells), find.spell));
                             hero.receive(find.spell);
                           },
-                          [&](Follow follow) { hero.followDeity(follow.deity); },
+                          [&](Follow follow) { hero.followDeity(follow.deity, state.resources.numRevealedTiles); },
                           [&](Request request) { hero.request(request.boonOrPact, state.monsters, state.resources); },
                           [&hero, &monsters = state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
                             altars.erase(std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}));

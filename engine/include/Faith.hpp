@@ -43,7 +43,7 @@ using ItemOrSpell = std::variant<Item, Spell>;
 class Faith
 {
 public:
-  bool followDeity(God god, Hero& hero);
+  bool followDeity(God god, Hero& hero, int numRevealedTiles);
   std::optional<God> getFollowedDeity() const;
   bool canFollow(God god, const Hero& hero) const;
 
@@ -106,7 +106,7 @@ public:
   void convertedTaurogItem(Hero& hero, Monsters& allMonsters);
 
 private:
-  void initialBoon(God god, Hero& hero);
+  void initialBoon(God god, Hero& hero, int numRevealedTiles);
   void punish(God god, Hero& hero, Monsters& allMonsters);
 
   std::optional<God> followedDeity;

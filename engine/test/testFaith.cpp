@@ -23,7 +23,7 @@ void testFaith()
     describe("Likes", [] {
       it("shall award 2 piety for suffering poisoned or mana burned", [] {
         Hero hero;
-        hero.followDeity(God::GlowingGuardian);
+        hero.followDeity(God::GlowingGuardian, 0);
         const int initialPiety = hero.getPiety();
         Monster manaBurnMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addManaBurn());
         AssertThat(Combat::attack(hero, manaBurnMonster, noOtherMonsters), Equals(Summary::Safe));
@@ -43,7 +43,7 @@ void testFaith()
       it("shall award 5 piety for killing an XP-valuable enemy of lower level", [] {
         Hero hero;
         hero.gainLevel(noOtherMonsters);
-        hero.followDeity(God::TikkiTooki);
+        hero.followDeity(God::TikkiTooki, 0);
         Monster monster(MonsterType::MeatMan, 1);
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Win));
@@ -60,7 +60,7 @@ void testFaith()
         Hero hero;
         hero.addStatus(HeroStatus::Learning, 4);
         hero.getFaith().gainPiety(5);
-        hero.followDeity(God::TikkiTooki);
+        hero.followDeity(God::TikkiTooki, 0);
         Monsters meatMen{{MonsterType::MeatMan, 1}, {MonsterType::MeatMan, 1}};
         AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::Safe));
         AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::Safe));
@@ -77,7 +77,7 @@ void testFaith()
       });
       it("shall accept tribute", [] {
         Hero hero;
-        hero.followDeity(God::TikkiTooki);
+        hero.followDeity(God::TikkiTooki, 0);
         hero.addGold(150 - hero.gold());
         AssertThat(hero.getPiety(), Equals(0));
         AssertThat(hero.gold(), Equals(150));
@@ -90,7 +90,7 @@ void testFaith()
       });
       it("shall ignore hits that do not cause damage", [] {
         Hero hero;
-        hero.followDeity(God::TikkiTooki);
+        hero.followDeity(God::TikkiTooki, 0);
         hero.request(Boon::Tribute, noOtherMonsters, resources);
         AssertThat(hero.getPiety(), Equals(10));
         Monster meatMan(1, 100, 3);

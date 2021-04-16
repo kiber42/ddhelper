@@ -423,7 +423,7 @@ void Arena::runShopPopup(const State& state)
 
 void Arena::runFaithPopup(const State& state)
 {
-  const auto [altars, canMakePact] = [&state]{
+  const auto [altars, canMakePact] = [&state] {
     std::vector<God> altars;
     bool canMakePact = false;
     for (auto godOrPactmaker : state.resources().altars)
@@ -499,7 +499,9 @@ void Arena::runFaithPopup(const State& state)
           if (addPopupAction(
                   state, toString(deity), label,
                   [deity](State& state) {
-                    return state.hero.getFaith().followDeity(deity, state.hero) ? Summary::None : Summary::NotPossible;
+                    return state.hero.getFaith().followDeity(deity, state.hero, state.resources.numRevealedTiles)
+                               ? Summary::None
+                               : Summary::NotPossible;
                   },
                   isSelected))
             selectedPopupItem = index;

@@ -85,7 +85,8 @@ struct Resources
   virtual void revealTile() = 0;
   void revealTiles(int n);
 
-  int numHiddenTiles;
+  int numHiddenTiles{0};
+  int numRevealedTiles{0};
 };
 
 // simplified Resources management, everything is considered visible
@@ -99,7 +100,7 @@ struct SimpleResources
   ResourceSet& operator()() override { return *this; }
   const ResourceSet& operator()() const override { return *this; }
 
-  void revealTile() override { --numHiddenTiles; }
+  void revealTile() override { --numHiddenTiles; ++numRevealedTiles; }
 
   int mapSize;
 };

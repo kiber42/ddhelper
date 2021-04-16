@@ -984,9 +984,9 @@ int Hero::getBoonCosts(Boon boon) const
   return faith.getCosts(boon, *this);
 }
 
-bool Hero::followDeity(God god)
+bool Hero::followDeity(God god, int numRevealedTiles)
 {
-  return faith.followDeity(god, *this);
+  return faith.followDeity(god, *this, numRevealedTiles);
 }
 
 bool Hero::request(BoonOrPact boonOrPact, Monsters& allMonsters, Resources& resources)
