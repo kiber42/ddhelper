@@ -19,5 +19,8 @@ private:
   int selectedPopupItem;
   int mapSize;
 
-  void runSpawnPopup(const State& state);
+  void runSpawnShop(const State& state);
+  void runSpawnSpell(const State& state);
+  void runSpawnAltar(const State& state);
+  void runCheat(const State& state);
 };

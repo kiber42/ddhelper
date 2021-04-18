@@ -101,10 +101,13 @@ ActionResultUI ResourcesUI::run(const State& state)
   ImGui::Separator();
   makeEntries(makeAddEntry);
   showStrings("Shops:", resources.visible.shops);
+  runSpawnShop(state);
   showStrings("Spells:", resources.visible.spells);
+  runSpawnSpell(state);
   showStrings("Altars:", resources.visible.altars);
+  runSpawnAltar(state);
 
-  runSpawnPopup(state);
+  runCheat(state);
 
   ImGui::Separator();
   ImGui::TextUnformatted(("Hidden (" + std::to_string(resources.numHiddenTiles) + " Tiles)").c_str());
@@ -143,75 +146,31 @@ ActionResultUI ResourcesUI::run(const State& state)
   return result;
 }
 
-void ResourcesUI::runSpawnPopup(const State& state)
+void ResourcesUI::runSpawnShop(const State& state)
 {
-  ImGui::Button("Find");
+  ImGui::SameLine();
+  ImGui::SmallButton("Add##Shop");
   if (ImGui::IsItemActive())
   {
-    ImGui::OpenPopup("FindPopup");
+    ImGui::OpenPopup("SpawnShopPopup");
     selectedPopupItem = -1;
   }
-  if (ImGui::BeginPopup("FindPopup"))
+  if (ImGui::BeginPopup("SpawnShopPopup"))
   {
     int index = 0;
-    if (ImGui::BeginMenu("Spells"))
-    {
-      for (int spellIndex = 0; spellIndex <= static_cast<int>(Spell::Last); ++spellIndex)
-      {
-        const Spell spell = static_cast<Spell>(spellIndex);
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                state, toString(spell), "Find "s + toString(spell),
-                [spell](State& state) {
-                  state.hero.receive(spell);
-                  return Summary::None;
-                },
-                isSelected, result))
-          selectedPopupItem = index;
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Altars"))
-    {
-      for (int altarIndex = 0; altarIndex <= static_cast<int>(God::Last); ++altarIndex)
-      {
-        const God god = static_cast<God>(altarIndex);
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                state, toString(god), "Find "s + toString(god) + "'s altar",
-                [god](State& state) {
-                  state.resources().altars.emplace_back(god);
-                  return Summary::None;
-                },
-                isSelected, result))
-          selectedPopupItem = index;
-      }
-      if (!state.resources().pactmakerAvailable())
-      {
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                state, "The Pactmaker", "Find The Pactmaker's altar",
-                [](State& state) {
-                  state.resources().altars.push_back(Pactmaker::ThePactmaker);
-                  return Summary::None;
-                },
-                isSelected, result))
-          selectedPopupItem = index;
-      }
-      ImGui::EndMenu();
-    }
-
     struct SubMenu
     {
       std::string title;
       Item first;
       Item last;
     };
-    const std::vector<SubMenu> submenus = {{"Blacksmith Items", Item::BearMace, Item::Sword},
-                                           {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
-                                           {"Quest Items", Item::PiercingWand, Item::SoulOrb},
-                                           {"Elite Items", Item::KegOfHealth, Item::WickedGuitar},
-                                           {"Boss Rewards", Item::FabulousTreasure, Item::SensationStone}};
+    const std::vector<SubMenu> submenus = {
+        {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
+        {"Quest Items", Item::PiercingWand, Item::SoulOrb},
+        {"Elite Items", Item::KegOfHealth, Item::WickedGuitar},
+        {"Boss Rewards", Item::FabulousTreasure, Item::SensationStone},
+        {"Blacksmith Items", Item::BearMace, Item::Sword},
+    };
     for (auto submenu : submenus)
     {
       if (ImGui::BeginMenu(submenu.title.c_str()))
@@ -221,7 +180,7 @@ void ResourcesUI::runSpawnPopup(const State& state)
           const bool isSelected = ++index == selectedPopupItem;
           const auto item = static_cast<Item>(itemIndex);
           if (addPopupAction(
-                  state, toString(item), "Add shop: "s + toString(item),
+                  state, toString(item), "Spawn "s + toString(item) + " shop",
                   [item](State& state) {
                     state.resources().shops.emplace_back(item);
                     return Summary::None;
@@ -232,26 +191,102 @@ void ResourcesUI::runSpawnPopup(const State& state)
         ImGui::EndMenu();
       }
     }
-    if (ImGui::BeginMenu("Cheat"))
+    if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+  }
+}
+
+void ResourcesUI::runSpawnSpell(const State& state)
+{
+  ImGui::SameLine();
+  ImGui::SmallButton("Add##Spell");
+  if (ImGui::IsItemActive())
+  {
+    ImGui::OpenPopup("SpawnSpellPopup");
+    selectedPopupItem = -1;
+  }
+  if (ImGui::BeginPopup("SpawnSpellPopup"))
+  {
+    for (int index = 0; index <= static_cast<int>(Spell::Last); ++index)
     {
+      const Spell spell = static_cast<Spell>(index);
+      const bool isSelected = index == selectedPopupItem;
       if (addPopupAction(
-              state, "+50 piety", "Cheat: +50 piety",
-              [](State& state) {
-                state.hero.getFaith().gainPiety(50);
+              state, toString(spell), "Spawn "s + toString(spell),
+              [spell](State& state) {
+                state.resources().spells.emplace_back(spell);
                 return Summary::None;
               },
-              ++index == selectedPopupItem, result))
+              isSelected, result))
         selectedPopupItem = index;
-      if (addPopupAction(
-              state, "+20 gold", "Cheat: +20 gold",
-              [](State& state) {
-                state.hero.addGold(20);
-                return Summary::None;
-              },
-              ++index == selectedPopupItem, result))
-        selectedPopupItem = index;
-      ImGui::EndMenu();
     }
+    if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+  }
+}
+
+void ResourcesUI::runSpawnAltar(const State& state)
+{
+  ImGui::SameLine();
+  ImGui::SmallButton("Add##Altar");
+  if (ImGui::IsItemActive())
+  {
+    ImGui::OpenPopup("SpawnAltarPopup");
+    selectedPopupItem = -1;
+  }
+  if (ImGui::BeginPopup("SpawnAltarPopup"))
+  {
+    for (int index = 0; index <= static_cast<int>(God::Last) + 1; ++index)
+    {
+      const auto god = [index]() -> GodOrPactmaker {
+        if (index <= static_cast<int>(God::Last))
+          return static_cast<God>(index);
+        return Pactmaker::ThePactmaker;
+      }();
+      const bool isSelected = index == selectedPopupItem;
+      if (addPopupAction(
+              state, toString(god), "Spawn "s + toString(god) + "'s altar",
+              [god](State& state) {
+                state.resources().altars.emplace_back(god);
+                return Summary::None;
+              },
+              isSelected, result))
+        selectedPopupItem = index;
+    }
+    if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+  }
+}
+
+void ResourcesUI::runCheat(const State& state)
+{
+  ImGui::Button("Cheat");
+  if (ImGui::IsItemActive())
+  {
+    ImGui::OpenPopup("CheatPopup");
+    selectedPopupItem = -1;
+  }
+  if (ImGui::BeginPopup("CheatPopup"))
+  {
+    if (addPopupAction(
+            state, "+50 piety", "Cheat: +50 piety",
+            [](State& state) {
+              state.hero.getFaith().gainPiety(50);
+              return Summary::None;
+            },
+            0 == selectedPopupItem, result))
+      selectedPopupItem = 0;
+    if (addPopupAction(
+            state, "+20 gold", "Cheat: +20 gold",
+            [](State& state) {
+              state.hero.addGold(20);
+              return Summary::None;
+            },
+            1 == selectedPopupItem, result))
+      selectedPopupItem = 1;
     if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
       ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
