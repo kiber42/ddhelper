@@ -1,25 +1,19 @@
 #pragma once
 
-#include "History.hpp"
+#include "GodsAndBoons.hpp"
 #include "State.hpp"
-
-#include <optional>
-#include <utility>
+#include "Utils.hpp"
 
 class Arena
 {
 public:
-  using ArenaResult = std::optional<std::pair<std::string, GameAction>>;
-  ArenaResult run(const State&);
+  ActionResultUI run(const State&);
 
 private:
-  ArenaResult result;
+  ActionResultUI result;
+
   int selectedPopupItem;
   bool useTranslocationSeal;
-
-  void addAction(const State&, std::string title, const GameAction&, bool activated);
-  void addActionButton(const State&, std::string title, const GameAction&);
-  bool addPopupAction(const State&, std::string label, std::string historyTitle, const GameAction&, bool wasSelected);
 
   void runAttack(const State&);
   void runCastPopup(const State&);

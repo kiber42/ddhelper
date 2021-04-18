@@ -8,6 +8,9 @@
 
 #include "imgui.h"
 
+#include <optional>
+#include <utility>
+
 extern ImVec4 colorSafe;
 extern ImVec4 colorWin;
 extern ImVec4 colorDeath;
@@ -29,3 +32,13 @@ void disabledButton(const char* label, const char* tooltip = "");
 void showStatus(const Hero&);
 void showStatus(const Monster&);
 void showStatus(const State&);
+
+using ActionResultUI = std::optional<std::pair<std::string, GameAction>>;
+
+void addActionButton(const State& state, std::string title, const GameAction& action, ActionResultUI& result);
+bool addPopupAction(const State& state,
+                    std::string itemLabel,
+                    std::string historyTitle,
+                    const GameAction& action,
+                    bool wasSelected,
+                    ActionResultUI& result);

@@ -94,3 +94,45 @@ void showStatus(const State& state)
   if (state.activeMonster >= 0)
     showStatus(state.monsterPool[state.activeMonster]);
 }
+
+void showPredictedOutcomeTooltip(const State& initialState, const GameAction& stateUpdate)
+{
+  const auto result = applyAction(initialState, stateUpdate, true);
+  const auto& newState = result.first;
+  const auto& outcome = result.second;
+  if (outcome.summary == Summary::None)
+    return;
+  createToolTip([&] {
+    const auto outcomeStr = toString(outcome);
+    if (!outcomeStr.empty())
+      ImGui::TextColored(outcomeColor(outcome), "%s", outcomeStr.c_str());
+    showStatus(newState);
+  });
+}
+
+void addAction(const State& state, std::string title, const GameAction& action, bool activated, ActionResultUI& result)
+{
+  if (activated)
+    result.emplace(std::pair{std::move(title), std::move(action)});
+  else if (ImGui::IsItemHovered())
+    showPredictedOutcomeTooltip(state, action);
+}
+
+void addActionButton(const State& state, std::string title, const GameAction& action, ActionResultUI& result)
+{
+  const bool buttonPressed = ImGui::Button(title.c_str());
+  addAction(state, std::move(title), action, buttonPressed, result);
+}
+
+bool addPopupAction(const State& state,
+                    std::string itemLabel,
+                    std::string historyTitle,
+                    const GameAction& action,
+                    bool wasSelected,
+                    ActionResultUI& result)
+{
+  const bool mouseDown = ImGui::IsAnyMouseDown();
+  const bool becameSelected = (ImGui::Selectable(itemLabel.c_str()) || (ImGui::IsItemHovered() && mouseDown));
+  addAction(state, std::move(historyTitle), action, wasSelected && !mouseDown, result);
+  return becameSelected;
+}

@@ -1,9 +1,8 @@
 #include "Arena.hpp"
 
-#include "Utils.hpp"
-
 #include "Combat.hpp"
 #include "Hero.hpp"
+#include "History.hpp"
 #include "Items.hpp"
 #include "Magic.hpp"
 #include "Monster.hpp"
@@ -13,59 +12,21 @@
 
 using namespace std::string_literals;
 
-namespace
-{
-  void showPredictedOutcomeTooltip(const State& initialState, const GameAction& stateUpdate)
-  {
-    const auto result = applyAction(initialState, stateUpdate, true);
-    const auto& newState = result.first;
-    const auto& outcome = result.second;
-    if (outcome.summary == Summary::None)
-      return;
-    createToolTip([&] {
-      const auto outcomeStr = toString(outcome);
-      if (!outcomeStr.empty())
-        ImGui::TextColored(outcomeColor(outcome), "%s", outcomeStr.c_str());
-      showStatus(newState);
-    });
-  }
-} // namespace
-
-void Arena::addAction(const State& state, std::string title, const GameAction& action, bool activated)
-{
-  if (activated)
-    result.emplace(std::pair{std::move(title), std::move(action)});
-  else if (ImGui::IsItemHovered())
-    showPredictedOutcomeTooltip(state, action);
-}
-
-void Arena::addActionButton(const State& state, std::string title, const GameAction& action)
-{
-  const bool buttonPressed = ImGui::Button(title.c_str());
-  addAction(state, std::move(title), action, buttonPressed);
-}
-
-bool Arena::addPopupAction(
-    const State& state, std::string itemLabel, std::string historyTitle, const GameAction& action, bool wasSelected)
-{
-  const bool mouseDown = ImGui::IsAnyMouseDown();
-  const bool becameSelected = (ImGui::Selectable(itemLabel.c_str()) || (ImGui::IsItemHovered() && mouseDown));
-  addAction(state, std::move(historyTitle), action, wasSelected && !mouseDown);
-  return becameSelected;
-}
-
 void Arena::runAttack(const State& state)
 {
   const Monster* activeMonster = state.activeMonster >= 0 ? (&state.monsterPool[state.activeMonster]) : nullptr;
   if (activeMonster && !activeMonster->isDefeated())
   {
-    addActionButton(state, "Attack", [](State& state) {
-      const auto summary = Combat::attack(state.hero, *state.monster(), state.monsterPool);
-      // TODO: Could move this into attack for consistency with Magic::cast ?
-      if ((summary == Summary::Win || summary == Summary::LevelUp) && !state.monster()->isBloodless())
-        ++state.resources.visible.numBloodPools;
-      return summary;
-    });
+    addActionButton(
+        state, "Attack",
+        [](State& state) {
+          const auto summary = Combat::attack(state.hero, *state.monster(), state.monsterPool);
+          // TODO: Could move this into attack for consistency with Magic::cast ?
+          if ((summary == Summary::Win || summary == Summary::LevelUp) && !state.monster()->isBloodless())
+            ++state.resources.visible.numBloodPools;
+          return summary;
+        },
+        result);
   }
   else
     disabledButton("Attack", "No target");
@@ -110,7 +71,7 @@ void Arena::runCastPopup(const State& state)
         Magic::cast(state.hero, spell, state.monsterPool, state.resources);
         return Summary::None;
       };
-      if (addPopupAction(state, label, historyTitle, cast, isSelected))
+      if (addPopupAction(state, label, historyTitle, cast, isSelected, result))
         selectedPopupItem = index;
     }
     if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
@@ -151,7 +112,7 @@ void Arena::runUseItemPopup(const State& state)
                   state.hero.use(item, state.monsterPool);
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
       else if (auto monster = state.monster(); monster && !monster->isDefeated() && state.hero.canUse(item, *monster))
@@ -162,7 +123,7 @@ void Arena::runUseItemPopup(const State& state)
                   state.hero.use(item, *state.monster(), state.monsterPool);
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
       else
@@ -194,7 +155,7 @@ void Arena::runUseItemPopup(const State& state)
                   state.hero.useCompressionSealOn(itemOrSpell);
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
     }
@@ -226,7 +187,7 @@ void Arena::runUseItemPopup(const State& state)
                   state.hero.useTransmutationSealOn(item, state.monsterPool);
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
     }
@@ -273,7 +234,7 @@ void Arena::runConvertItemPopup(const State& state)
                     state.hero.convert(item, state.monsterPool);
                     return Summary::None;
                   },
-                  isSelected))
+                  isSelected, result))
             selectedPopupItem = index;
         }
         else
@@ -300,7 +261,7 @@ void Arena::runConvertItemPopup(const State& state)
                     state.hero.convert(spell, state.monsterPool);
                     return Summary::None;
                   },
-                  isSelected))
+                  isSelected, result))
             selectedPopupItem = index;
         }
         else
@@ -353,7 +314,7 @@ void Arena::runShopPopup(const State& state)
                   }
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
       else
@@ -373,7 +334,7 @@ void Arena::runShopPopup(const State& state)
                     }
                     return Summary::None;
                   },
-                  isSelected))
+                  isSelected, result))
             selectedPopupItem = index;
         }
         else
@@ -400,7 +361,7 @@ void Arena::runShopPopup(const State& state)
                       --state.resources().numPotionShops;
                     return Summary::None;
                   },
-                  isSelected))
+                  isSelected, result))
             selectedPopupItem = index;
         }
         else
@@ -461,7 +422,7 @@ void Arena::runFaithPopup(const State& state)
                     state.hero.getFaith().request(boon, state.hero, state.monsterPool, state.resources);
                     return Summary::None;
                   },
-                  isSelected))
+                  isSelected, result))
             selectedPopupItem = index;
         }
         else
@@ -496,7 +457,7 @@ void Arena::runFaithPopup(const State& state)
                                ? Summary::None
                                : Summary::NotPossible;
                   },
-                  isSelected))
+                  isSelected, result))
             selectedPopupItem = index;
         }
         else
@@ -524,7 +485,7 @@ void Arena::runFaithPopup(const State& state)
                   state.hero.request(pact, state.monsterPool, state.resources);
                   return Summary::Safe;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
     }
@@ -548,7 +509,7 @@ void Arena::runFaithPopup(const State& state)
                   altars.erase(begin(altars) + altarIndex);
                   return Summary::Safe;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
     }
@@ -571,20 +532,26 @@ void Arena::runUncoverTiles(const State& state)
   const auto numHidden = state.resources.numHiddenTiles;
   if (numHidden > 0)
   {
-    addActionButton(state, "Reveal Tile", [uncoverForAll](State& state) {
-      state.resources.revealTile();
-      return uncoverForAll(state, 1);
-    });
+    addActionButton(
+        state, "Reveal Tile",
+        [uncoverForAll](State& state) {
+          state.resources.revealTile();
+          return uncoverForAll(state, 1);
+        },
+        result);
 
     const int numSquares = std::min(numHidden, state.hero.numSquaresForFullRecovery());
     if (numSquares > 1)
     {
       ImGui::SameLine();
       const std::string label = "Reveal " + std::to_string(numSquares) + " Tiles";
-      addActionButton(state, label, [uncoverForAll, numSquares](State& state) {
-        state.resources.revealTiles(numSquares);
-        return uncoverForAll(state, numSquares);
-      });
+      addActionButton(
+          state, label,
+          [uncoverForAll, numSquares](State& state) {
+            state.resources.revealTiles(numSquares);
+            return uncoverForAll(state, numSquares);
+          },
+          result);
     }
   }
 }
@@ -616,7 +583,7 @@ void Arena::runPickupResource(const State& state)
             return Summary::None;
           };
           if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
-                             ++index == selectedPopupItem))
+                             ++index == selectedPopupItem, result))
             selectedPopupItem = index;
         }
       };
@@ -631,7 +598,7 @@ void Arena::runPickupResource(const State& state)
             return Summary::Safe;
           };
           if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
-                             ++index == selectedPopupItem))
+                             ++index == selectedPopupItem, result))
             selectedPopupItem = index;
         }
       };
@@ -672,32 +639,41 @@ void Arena::runPickupResource(const State& state)
   if (visible.numPlants > 0)
   {
     ImGui::SameLine();
-    addActionButton(state, "Destroy plant", [](State& state) {
-      state.hero.plantDestroyed(true);
-      --state.resources.visible.numPlants;
-      return Summary::None;
-    });
+    addActionButton(
+        state, "Destroy plant",
+        [](State& state) {
+          state.hero.plantDestroyed(true);
+          --state.resources.visible.numPlants;
+          return Summary::None;
+        },
+        result);
 
     if (state.hero.has(Spell::Imawal) && Magic::isPossible(state.hero, Spell::Imawal, state.resources))
     {
       ImGui::SameLine();
-      addActionButton(state, "Petrify plant", [](State& state) {
-        state.hero.petrifyPlant(state.monsterPool);
-        --state.resources.visible.numPlants;
-        ++state.resources.visible.numWalls;
-        return Summary::None;
-      });
+      addActionButton(
+          state, "Petrify plant",
+          [](State& state) {
+            state.hero.petrifyPlant(state.monsterPool);
+            --state.resources.visible.numPlants;
+            ++state.resources.visible.numWalls;
+            return Summary::None;
+          },
+          result);
     }
   }
 
   if (visible.numBloodPools > 0 && state.hero.hasStatus(HeroStatus::Sanguine))
   {
     ImGui::SameLine();
-    addActionButton(state, "Consume blood pool", [](State& state) {
-      if (state.hero.bloodPoolConsumed())
-        --state.resources.visible.numBloodPools;
-      return Summary::None;
-    });
+    addActionButton(
+        state, "Consume blood pool",
+        [](State& state) {
+          if (state.hero.bloodPoolConsumed())
+            --state.resources.visible.numBloodPools;
+          return Summary::None;
+        },
+        result);
   }
 }
 
@@ -724,7 +700,7 @@ void Arena::runFindPopup(const State& state)
                   state.hero.receive(spell);
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
       ImGui::EndMenu();
@@ -741,7 +717,7 @@ void Arena::runFindPopup(const State& state)
                   state.resources().altars.emplace_back(god);
                   return Summary::None;
                 },
-                isSelected))
+                isSelected, result))
           selectedPopupItem = index;
       }
       if (!state.resources().pactmakerAvailable())
@@ -784,7 +760,7 @@ void Arena::runFindPopup(const State& state)
                     state.resources().shops.emplace_back(item);
                     return Summary::None;
                   },
-                  isSelected))
+                  isSelected, result))
             selectedPopupItem = index;
         }
         ImGui::EndMenu();
@@ -798,7 +774,7 @@ void Arena::runFindPopup(const State& state)
                 state.hero.getFaith().gainPiety(50);
                 return Summary::None;
               },
-              ++index == selectedPopupItem))
+              ++index == selectedPopupItem, result))
         selectedPopupItem = index;
       if (addPopupAction(
               state, "+20 gold", "Cheat: +20 gold",
@@ -806,7 +782,7 @@ void Arena::runFindPopup(const State& state)
                 state.hero.addGold(20);
                 return Summary::None;
               },
-              ++index == selectedPopupItem))
+              ++index == selectedPopupItem, result))
         selectedPopupItem = index;
       ImGui::EndMenu();
     }
@@ -816,7 +792,7 @@ void Arena::runFindPopup(const State& state)
   }
 }
 
-Arena::ArenaResult Arena::run(const State& state)
+ActionResultUI Arena::run(const State& state)
 {
   result.reset();
 
