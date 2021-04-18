@@ -35,7 +35,18 @@ void showStatus(const State&);
 
 using ActionResultUI = std::optional<std::pair<std::string, GameAction>>;
 
-void addActionButton(const State& state, std::string title, const GameAction& action, ActionResultUI& result);
+void addActionButton(const State& state,
+                     std::string buttonAndHistoryText,
+                     const GameAction& action,
+                     ActionResultUI& result);
+
+void addActionButton(const State& state,
+                     std::string buttonText,
+                     bool smallButton,
+                     std::string historyTitle,
+                     const GameAction& action,
+                     ActionResultUI& result);
+
 bool addPopupAction(const State& state,
                     std::string itemLabel,
                     std::string historyTitle,

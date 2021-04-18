@@ -6,6 +6,7 @@
 #include "History.hpp"
 #include "MonsterPool.hpp"
 #include "MonsterSelection.hpp"
+#include "ResourcesUI.hpp"
 #include "Scenario.hpp"
 #include "State.hpp"
 
@@ -66,6 +67,11 @@ void DDHelperApp::populateFrame()
     state = std::move(newState);
   };
 
+  auto applyResultUndoable = [&](ActionResultUI result) {
+    if (result)
+      applyUndoable(std::move(result->first), std::move(result->second));
+  };
+
   auto hero = heroSelection.run();
   if (!hero)
     hero = heroBuilder.run();
@@ -124,19 +130,8 @@ void DDHelperApp::populateFrame()
     });
   }
 
-  auto resourceResult = resourcesUI.run(state.resources, state.hero);
-  if (resourceResult)
-  {
-    const std::string title = toString(resourceResult->second);
-    applyUndoable(title, [resources = std::move(resourceResult->first)](State& state) {
-      state.resources = resources;
-      return Summary::None;
-    });
-  }
-
-  auto result = arena.run(state);
-  if (result)
-    applyUndoable(std::move(result->first), std::move(result->second));
+  applyResultUndoable(resourcesUI.run(state));
+  applyResultUndoable(arena.run(state));
 
   if (history.run())
     state = history.undo();

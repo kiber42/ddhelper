@@ -2,6 +2,7 @@
 
 #include "Hero.hpp"
 #include "Resources.hpp"
+#include "Utils.hpp"
 
 #include <optional>
 
@@ -10,32 +11,13 @@ class ResourcesUI
 public:
   ResourcesUI(int mapSize = DefaultMapSize);
 
-  enum class ModificationType
-  {
-    ResourceAdded,
-    RandomReveal,
-    TargetedReveal,
-    Reset,
-  };
-
-  using Result = std::optional<std::pair<MapResources, ModificationType>>;
-  Result run(const MapResources& resources, const Hero& hero);
+  ActionResultUI run(const State& state);
 
 private:
-  int mapSize;
-};
+  ActionResultUI result;
 
-constexpr const char* toString(ResourcesUI::ModificationType modificationType)
-{
-  switch (modificationType)
-  {
-  case ResourcesUI::ModificationType::ResourceAdded:
-    return "Add Resource";
-  case ResourcesUI::ModificationType::RandomReveal:
-    return "Reveal Tile";
-  case ResourcesUI::ModificationType::TargetedReveal:
-    return "Reveal Resource";
-  case ResourcesUI::ModificationType::Reset:
-    return "Reset & Randomize Resources";
-  }
-}
+  int selectedPopupItem;
+  int mapSize;
+
+  void runSpawnPopup(const State& state);
+};

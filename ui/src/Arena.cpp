@@ -18,7 +18,7 @@ void Arena::runAttack(const State& state)
   if (activeMonster && !activeMonster->isDefeated())
   {
     addActionButton(
-        state, "Attack",
+        state, "Attack", false, "Attack "s + state.monster()->getName(),
         [](State& state) {
           const auto summary = Combat::attack(state.hero, *state.monster(), state.monsterPool);
           // TODO: Could move this into attack for consistency with Magic::cast ?
@@ -677,121 +677,6 @@ void Arena::runPickupResource(const State& state)
   }
 }
 
-void Arena::runFindPopup(const State& state)
-{
-  ImGui::Button("Find");
-  if (ImGui::IsItemActive())
-  {
-    ImGui::OpenPopup("FindPopup");
-    selectedPopupItem = -1;
-  }
-  if (ImGui::BeginPopup("FindPopup"))
-  {
-    int index = 0;
-    if (ImGui::BeginMenu("Spells"))
-    {
-      for (int spellIndex = 0; spellIndex <= static_cast<int>(Spell::Last); ++spellIndex)
-      {
-        const Spell spell = static_cast<Spell>(spellIndex);
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                state, toString(spell), "Find "s + toString(spell),
-                [spell](State& state) {
-                  state.hero.receive(spell);
-                  return Summary::None;
-                },
-                isSelected, result))
-          selectedPopupItem = index;
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Altars"))
-    {
-      for (int altarIndex = 0; altarIndex <= static_cast<int>(God::Last); ++altarIndex)
-      {
-        const God god = static_cast<God>(altarIndex);
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                state, toString(god), "Find "s + toString(god) + "'s altar",
-                [god](State& state) {
-                  state.resources().altars.emplace_back(god);
-                  return Summary::None;
-                },
-                isSelected, result))
-          selectedPopupItem = index;
-      }
-      if (!state.resources().pactmakerAvailable())
-      {
-        const bool isSelected = ++index == selectedPopupItem;
-        if (addPopupAction(
-                state, "The Pactmaker", "Find The Pactmaker's altar",
-                [](State& state) {
-                  state.resources().altars.push_back(Pactmaker::ThePactmaker);
-                  return Summary::None;
-                },
-                isSelected, result))
-          selectedPopupItem = index;
-      }
-      ImGui::EndMenu();
-    }
-
-    struct SubMenu
-    {
-      std::string title;
-      Item first;
-      Item last;
-    };
-    const std::vector<SubMenu> submenus = {{"Blacksmith Items", Item::BearMace, Item::Sword},
-                                           {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
-                                           {"Quest Items", Item::PiercingWand, Item::SoulOrb},
-                                           {"Elite Items", Item::KegOfHealth, Item::WickedGuitar},
-                                           {"Boss Rewards", Item::FabulousTreasure, Item::SensationStone}};
-    for (auto submenu : submenus)
-    {
-      if (ImGui::BeginMenu(submenu.title.c_str()))
-      {
-        for (int itemIndex = static_cast<int>(submenu.first); itemIndex <= static_cast<int>(submenu.last); ++itemIndex)
-        {
-          const bool isSelected = ++index == selectedPopupItem;
-          const auto item = static_cast<Item>(itemIndex);
-          if (addPopupAction(
-                  state, toString(item), "Add shop: "s + toString(item),
-                  [item](State& state) {
-                    state.resources().shops.emplace_back(item);
-                    return Summary::None;
-                  },
-                  isSelected, result))
-            selectedPopupItem = index;
-        }
-        ImGui::EndMenu();
-      }
-    }
-    if (ImGui::BeginMenu("Cheat"))
-    {
-      if (addPopupAction(
-              state, "+50 piety", "Cheat: +50 piety",
-              [](State& state) {
-                state.hero.getFaith().gainPiety(50);
-                return Summary::None;
-              },
-              ++index == selectedPopupItem, result))
-        selectedPopupItem = index;
-      if (addPopupAction(
-              state, "+20 gold", "Cheat: +20 gold",
-              [](State& state) {
-                state.hero.addGold(20);
-                return Summary::None;
-              },
-              ++index == selectedPopupItem, result))
-        selectedPopupItem = index;
-      ImGui::EndMenu();
-    }
-    if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
-      ImGui::CloseCurrentPopup();
-    ImGui::EndPopup();
-  }
-}
-
 ActionResultUI Arena::run(const State& state)
 {
   result.reset();
@@ -815,8 +700,6 @@ ActionResultUI Arena::run(const State& state)
     runUncoverTiles(state);
     ImGui::SameLine();
     runPickupResource(state);
-
-    runFindPopup(state);
   }
   ImGui::End();
 

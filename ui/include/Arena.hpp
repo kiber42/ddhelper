@@ -25,5 +25,4 @@ private:
   void runWorship(const State& state);
   void runUncoverTiles(const State&);
   void runPickupResource(const State&);
-  void runFindPopup(const State&);
 };

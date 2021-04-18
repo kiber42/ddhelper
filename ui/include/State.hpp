@@ -3,8 +3,7 @@
 #include "Hero.hpp"
 #include "Monster.hpp"
 #include "Outcome.hpp"
-
-#include "ResourcesUI.hpp"
+#include "Resources.hpp"
 
 #include <cassert>
 #include <functional>

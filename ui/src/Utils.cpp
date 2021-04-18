@@ -118,10 +118,25 @@ void addAction(const State& state, std::string title, const GameAction& action, 
     showPredictedOutcomeTooltip(state, action);
 }
 
-void addActionButton(const State& state, std::string title, const GameAction& action, ActionResultUI& result)
+void addActionButton(const State& state,
+                     std::string buttonAndHistoryText,
+                     const GameAction& action,
+                     ActionResultUI& result)
 {
-  const bool buttonPressed = ImGui::Button(title.c_str());
-  addAction(state, std::move(title), action, buttonPressed, result);
+  addActionButton(state, buttonAndHistoryText, false, buttonAndHistoryText, action, result);
+}
+
+void addActionButton(const State& state,
+                     std::string buttonText,
+                     bool smallButton,
+                     std::string historyTitle,
+                     const GameAction& action,
+                     ActionResultUI& result)
+{
+  ImGui::PushID(historyTitle.c_str());
+  const bool buttonPressed = smallButton ? ImGui::SmallButton(buttonText.c_str()) : ImGui::Button(buttonText.c_str());
+  ImGui::PopID();
+  addAction(state, std::move(historyTitle), action, buttonPressed, result);
 }
 
 bool addPopupAction(const State& state,
