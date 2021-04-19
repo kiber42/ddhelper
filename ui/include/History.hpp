@@ -8,27 +8,30 @@
 #include <tuple>
 #include <vector>
 
-using HistoryEntry = std::tuple<std::string, GameAction, Outcome>;
-
-class History
+namespace ui
 {
-public:
-  // Produce imgui history frame. Returns true if an undo was requested
-  bool run();
+  using HistoryEntry = std::tuple<std::string, GameAction, Outcome>;
 
-  void add(State previous, HistoryEntry entry);
+  class History
+  {
+  public:
+    // Produce imgui history frame. Returns true if an undo was requested
+    bool run();
 
-  // Returns the previous state
-  [[nodiscard]] State undo();
+    void add(State previous, HistoryEntry entry);
 
-  // Returns the last history entry
-  [[nodiscard]] const HistoryEntry& peek_back();
+    // Returns the previous state
+    [[nodiscard]] State undo();
 
-  [[nodiscard]] bool empty() const;
+    // Returns the last history entry
+    [[nodiscard]] const HistoryEntry& peek_back();
 
-  void reset();
+    [[nodiscard]] bool empty() const;
 
-private:
-  // Each element contains the original state and the action that was then performed on it
-  std::vector<std::tuple<State, HistoryEntry>> history;
-};
+    void reset();
+
+  private:
+    // Each element contains the original state and the action that was then performed on it
+    std::vector<std::tuple<State, HistoryEntry>> history;
+  };
+} // namespace ui

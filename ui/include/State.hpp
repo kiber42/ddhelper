@@ -9,26 +9,29 @@
 #include <functional>
 #include <utility>
 
-struct State
+namespace ui
 {
-  Hero hero{};
-  Monsters monsterPool{};
-  int activeMonster = -1;
-  MapResources resources{20};
-
-  Monster* monster()
+  struct State
   {
-    assert(activeMonster < static_cast<int>(monsterPool.size()));
-    return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
-  }
+    Hero hero{};
+    Monsters monsterPool{};
+    int activeMonster = -1;
+    MapResources resources{20};
 
-  const Monster* monster() const
-  {
-    assert(activeMonster < static_cast<int>(monsterPool.size()));
-    return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
-  }
-};
+    Monster* monster()
+    {
+      assert(activeMonster < static_cast<int>(monsterPool.size()));
+      return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
+    }
 
-using GameAction = std::function<Summary(State&)>;
+    const Monster* monster() const
+    {
+      assert(activeMonster < static_cast<int>(monsterPool.size()));
+      return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
+    }
+  };
 
-std::pair<State, Outcome> applyAction(const State& initialState, const GameAction& stateUpdate, bool pessimistMode);
+  using GameAction = std::function<Summary(State&)>;
+
+  std::pair<State, Outcome> applyAction(const State& initialState, const GameAction& stateUpdate, bool pessimistMode);
+} // namespace ui

@@ -2,4 +2,7 @@
 
 #include "Monster.hpp"
 
-Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex);
+namespace ui
+{
+  Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex);
+}

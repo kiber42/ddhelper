@@ -4,6 +4,10 @@
 
 enum class MonsterType;
 class MonsterTraitsBuilder;
+namespace ui
+{
+  class CustomMonsterBuilder;
+}
 
 struct MonsterTraits
 {
@@ -52,7 +56,7 @@ private:
   int knockbackPercent{0};
 
   friend class MonsterTraitsBuilder;
-  friend class CustomMonsterBuilder;
+  friend class ui::CustomMonsterBuilder;
 };
 
 class MonsterTraitsBuilder
