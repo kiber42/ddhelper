@@ -1,9 +1,10 @@
-#include "SolverTools.hpp"
+#include "solver/SolverTools.hpp"
 
-#include "Combat.hpp"
-#include "Magic.hpp"
+#include "engine/Combat.hpp"
+#include "engine/Magic.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <random>
 
 template <class... Ts>

@@ -1,6 +1,6 @@
-#include "Outcome.hpp"
+#include "engine/Outcome.hpp"
 
-#include "Hero.hpp"
+#include "engine/Hero.hpp"
 
 std::string toString(const Outcome& outcome)
 {

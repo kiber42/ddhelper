@@ -1,4 +1,4 @@
-#include "HeroStats.hpp"
+#include "engine/HeroStats.hpp"
 
 #include <algorithm>
 #include <cassert>

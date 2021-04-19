@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Hero.hpp"
-#include "Resources.hpp"
-#include "Utils.hpp"
+#include "ui/Utils.hpp"
+
+#include "engine/Hero.hpp"
+#include "engine/Resources.hpp"
 
 #include <optional>
 

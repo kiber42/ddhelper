@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Monster.hpp"
-#include "MonsterTraits.hpp"
+#include "engine/Monster.hpp"
+#include "engine/MonsterTraits.hpp"
 
 #include <array>
 #include <optional>

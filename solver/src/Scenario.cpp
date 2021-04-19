@@ -1,11 +1,11 @@
-#include "Scenario.hpp"
+#include "solver/Scenario.hpp"
 
-#include "Hero.hpp"
-#include "Items.hpp"
-#include "Monster.hpp"
-#include "MonsterStats.hpp"
-#include "MonsterTypes.hpp"
-#include "Spells.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Items.hpp"
+#include "engine/Monster.hpp"
+#include "engine/MonsterStats.hpp"
+#include "engine/MonsterTypes.hpp"
+#include "engine/Spells.hpp"
 
 Hero getHeroForScenario(Scenario scenario)
 {

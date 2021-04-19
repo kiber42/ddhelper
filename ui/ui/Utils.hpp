@@ -1,10 +1,10 @@
 #pragma once
 
-#include "State.hpp"
+#include "ui/State.hpp"
 
-#include "Hero.hpp"
-#include "Monster.hpp"
-#include "Outcome.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Monster.hpp"
+#include "engine/Outcome.hpp"
 
 #include "imgui.h"
 

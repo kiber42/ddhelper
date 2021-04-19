@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Faith.hpp"
-#include "Items.hpp"
-#include "Spells.hpp"
+#include "engine/Faith.hpp"
+#include "engine/Items.hpp"
+#include "engine/Spells.hpp"
 
 #include <string>
 #include <variant>

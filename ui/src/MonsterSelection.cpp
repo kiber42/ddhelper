@@ -1,6 +1,6 @@
-#include "MonsterSelection.hpp"
+#include "ui/MonsterSelection.hpp"
 
-#include "MonsterTypes.hpp"
+#include "engine/MonsterTypes.hpp"
 
 #include "imgui.h"
 

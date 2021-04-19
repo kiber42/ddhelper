@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MonsterTraits.hpp"
+#include "engine/MonsterTraits.hpp"
 
 enum class MonsterType
 {

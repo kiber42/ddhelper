@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Hero.hpp"
-#include "Monster.hpp"
-#include "Outcome.hpp"
-#include "Resources.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Monster.hpp"
+#include "engine/Outcome.hpp"
+#include "engine/Resources.hpp"
 
 #include <cassert>
 #include <functional>

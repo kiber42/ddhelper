@@ -10,7 +10,7 @@ add_library(
   src/Solver.cpp
   src/SolverTools.cpp
 )
-target_include_directories(ddsolver PUBLIC include)
+target_include_directories(ddsolver PUBLIC .)
 target_link_libraries(ddsolver ddhelperengine)
 if(NOT WIN32)
   target_link_options(ddsolver PUBLIC "-ltbb")

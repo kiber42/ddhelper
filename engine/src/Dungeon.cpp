@@ -1,7 +1,7 @@
-#include "Dungeon.hpp"
+#include "engine/Dungeon.hpp"
 
-#include "Hero.hpp"
-#include "Monster.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Monster.hpp"
 
 #include <algorithm>
 #include <numeric>

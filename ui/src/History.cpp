@@ -1,6 +1,6 @@
-#include "History.hpp"
+#include "ui/History.hpp"
 
-#include "Utils.hpp"
+#include "ui/Utils.hpp"
 
 #include "imgui.h"
 

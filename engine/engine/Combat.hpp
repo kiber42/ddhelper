@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Faith.hpp"
-#include "Hero.hpp"
-#include "Monster.hpp"
-#include "Outcome.hpp"
+#include "engine/Faith.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Monster.hpp"
+#include "engine/Outcome.hpp"
 
 namespace Combat
 {

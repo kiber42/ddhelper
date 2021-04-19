@@ -1,9 +1,9 @@
-#include "Monster.hpp"
+#include "engine/Monster.hpp"
+
+#include "engine/MonsterTypes.hpp"
 
 #include <algorithm>
 #include <utility>
-
-#include "MonsterTypes.hpp"
 
 int Monster::lastId = 0;
 

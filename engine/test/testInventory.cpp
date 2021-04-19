@@ -1,9 +1,9 @@
 #include "bandit/bandit.h"
 
-#include "Hero.hpp"
-#include "Inventory.hpp"
-#include "Items.hpp"
-#include "Spells.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Inventory.hpp"
+#include "engine/Items.hpp"
+#include "engine/Spells.hpp"
 
 using namespace bandit;
 using namespace snowhouse;

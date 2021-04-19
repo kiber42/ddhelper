@@ -1,6 +1,6 @@
-#include "MonsterStats.hpp"
+#include "engine/MonsterStats.hpp"
 
-#include "MonsterTypes.hpp"
+#include "engine/MonsterTypes.hpp"
 
 #include <algorithm>
 

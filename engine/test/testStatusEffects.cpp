@@ -1,11 +1,11 @@
 #include "bandit/bandit.h"
 
-#include "Combat.hpp"
-#include "Hero.hpp"
-#include "Items.hpp"
-#include "Monster.hpp"
-#include "MonsterTypes.hpp"
-#include "Magic.hpp"
+#include "engine/Combat.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Items.hpp"
+#include "engine/Monster.hpp"
+#include "engine/MonsterTypes.hpp"
+#include "engine/Magic.hpp"
 
 using namespace bandit;
 using namespace snowhouse;

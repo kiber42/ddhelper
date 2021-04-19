@@ -1,6 +1,6 @@
-#include "MonsterTraits.hpp"
+#include "engine/MonsterTraits.hpp"
 
-#include "MonsterTypes.hpp"
+#include "engine/MonsterTypes.hpp"
 
 #include <utility>
 

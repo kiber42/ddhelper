@@ -1,7 +1,7 @@
-#include "Magic.hpp"
+#include "engine/Magic.hpp"
 
-#include "Combat.hpp"
-#include "Items.hpp"
+#include "engine/Combat.hpp"
+#include "engine/Items.hpp"
 
 #include <cassert>
 

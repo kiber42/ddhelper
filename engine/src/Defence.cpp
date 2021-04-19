@@ -1,6 +1,6 @@
-#include "Defence.hpp"
+#include "engine/Defence.hpp"
 
-#include "MonsterTypes.hpp"
+#include "engine/MonsterTypes.hpp"
 
 #include <algorithm>
 

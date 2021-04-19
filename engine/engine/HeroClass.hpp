@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HeroTraits.hpp"
+#include "engine/HeroTraits.hpp"
 
 #include <stdexcept>
 #include <vector>

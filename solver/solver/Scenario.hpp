@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Hero.hpp"
-#include "Monster.hpp"
-#include "Resources.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Monster.hpp"
+#include "engine/Resources.hpp"
 
 #include <optional>
 #include <vector>

@@ -1,8 +1,8 @@
-#include "Faith.hpp"
+#include "engine/Faith.hpp"
 
-#include "Hero.hpp"
-#include "Items.hpp"
-#include "Spells.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Items.hpp"
+#include "engine/Spells.hpp"
 
 #include <algorithm>
 #include <cassert>

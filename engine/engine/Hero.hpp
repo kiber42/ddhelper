@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Conversion.hpp"
-#include "Defence.hpp"
-#include "Experience.hpp"
-#include "Faith.hpp"
-#include "HeroClass.hpp"
-#include "HeroStats.hpp"
-#include "HeroStatus.hpp"
-#include "HeroTraits.hpp"
-#include "Inventory.hpp"
-#include "Resources.hpp"
+#include "engine/Conversion.hpp"
+#include "engine/Defence.hpp"
+#include "engine/Experience.hpp"
+#include "engine/Faith.hpp"
+#include "engine/HeroClass.hpp"
+#include "engine/HeroStats.hpp"
+#include "engine/HeroStatus.hpp"
+#include "engine/HeroTraits.hpp"
+#include "engine/Inventory.hpp"
+#include "engine/Resources.hpp"
 
 #include <map>
 #include <random>

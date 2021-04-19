@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Defence.hpp"
-#include "MonsterStats.hpp"
-#include "MonsterStatus.hpp"
-#include "MonsterTraits.hpp"
+#include "engine/Defence.hpp"
+#include "engine/MonsterStats.hpp"
+#include "engine/MonsterStatus.hpp"
+#include "engine/MonsterTraits.hpp"
 
 #include <string>
 #include <vector>

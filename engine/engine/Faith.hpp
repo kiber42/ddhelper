@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GodsAndBoons.hpp"
-#include "GlowingGuardian.hpp"
-#include "Jehora.hpp"
-#include "Monster.hpp"
-#include "Resources.hpp"
+#include "engine/GodsAndBoons.hpp"
+#include "engine/GlowingGuardian.hpp"
+#include "engine/Jehora.hpp"
+#include "engine/Monster.hpp"
+#include "engine/Resources.hpp"
 
 #include <map>
 #include <optional>

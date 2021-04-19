@@ -1,6 +1,6 @@
-#include "Combat.hpp"
+#include "engine/Combat.hpp"
 
-#include "Items.hpp"
+#include "engine/Items.hpp"
 
 #include <cassert>
 #include <iostream>

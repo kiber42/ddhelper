@@ -1,8 +1,8 @@
 #pragma once
 
-#include "State.hpp"
+#include "ui/State.hpp"
 
-#include "Outcome.hpp"
+#include "engine/Outcome.hpp"
 
 #include <string>
 #include <tuple>

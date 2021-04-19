@@ -1,14 +1,15 @@
 #define SDL_MAIN_HANDLED
-#include "ImguiApp.hpp"
+#include "ui/ImguiApp.hpp"
 
-#include "Arena.hpp"
-#include "HeroSelection.hpp"
-#include "History.hpp"
-#include "MonsterPool.hpp"
-#include "MonsterSelection.hpp"
-#include "ResourcesUI.hpp"
-#include "Scenario.hpp"
-#include "State.hpp"
+#include "ui/Arena.hpp"
+#include "ui/HeroSelection.hpp"
+#include "ui/History.hpp"
+#include "ui/MonsterPool.hpp"
+#include "ui/MonsterSelection.hpp"
+#include "ui/Resources.hpp"
+#include "ui/State.hpp"
+
+#include "solver/Scenario.hpp"
 
 namespace ui
 {

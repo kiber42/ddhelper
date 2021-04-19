@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 enum class MonsterType;
 class MonsterTraitsBuilder;
 namespace ui

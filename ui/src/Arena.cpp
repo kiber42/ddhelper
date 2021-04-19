@@ -1,12 +1,13 @@
-#include "Arena.hpp"
+#include "ui/Arena.hpp"
 
-#include "Combat.hpp"
-#include "Hero.hpp"
-#include "History.hpp"
-#include "Items.hpp"
-#include "Magic.hpp"
-#include "Monster.hpp"
-#include "MonsterTypes.hpp"
+#include "ui/History.hpp"
+
+#include "engine/Combat.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Items.hpp"
+#include "engine/Magic.hpp"
+#include "engine/Monster.hpp"
+#include "engine/MonsterTypes.hpp"
 
 #include "imgui.h"
 

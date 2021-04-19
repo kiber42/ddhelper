@@ -1,10 +1,11 @@
-#include "Solver.hpp"
+#include "solver/Solver.hpp"
 
-#include "Combat.hpp"
+#include "engine/Combat.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <execution>
+#include <iostream>
 #include <random>
 
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());

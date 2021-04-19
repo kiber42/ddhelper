@@ -1,4 +1,4 @@
-#include "ImguiApp.hpp"
+#include "ui/ImguiApp.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"

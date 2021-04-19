@@ -1,7 +1,7 @@
-#include "Inventory.hpp"
+#include "engine/Inventory.hpp"
 
-#include "Items.hpp"
-#include "Magic.hpp"
+#include "engine/Items.hpp"
+#include "engine/Magic.hpp"
 
 #include <algorithm>
 #include <cassert>

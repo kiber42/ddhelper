@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Items.hpp"
-#include "GodsAndBoons.hpp"
-#include "Spells.hpp"
+#include "engine/Items.hpp"
+#include "engine/GodsAndBoons.hpp"
+#include "engine/Spells.hpp"
 
 #include <optional>
 #include <random>

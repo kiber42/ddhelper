@@ -1,8 +1,8 @@
 #include "bandit/bandit.h"
 
-#include "Faith.hpp"
-#include "Resources.hpp"
-#include "Spells.hpp"
+#include "engine/GodsAndBoons.hpp"
+#include "engine/Resources.hpp"
+#include "engine/Spells.hpp"
 
 #include <random>
 #include <set>

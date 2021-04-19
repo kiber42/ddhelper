@@ -1,7 +1,7 @@
-#include "Conversion.hpp"
+#include "engine/Conversion.hpp"
 
-#include "Hero.hpp"
-#include "Items.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Items.hpp"
 
 #include <cassert>
 

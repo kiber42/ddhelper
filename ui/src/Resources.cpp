@@ -1,6 +1,6 @@
-#include "ResourcesUI.hpp"
+#include "ui/Resources.hpp"
 
-#include "Utils.hpp"
+#include "ui/Utils.hpp"
 
 #include "imgui.h"
 

@@ -1,6 +1,6 @@
 #include "bandit/bandit.h"
 
-#include "Monster.hpp"
+#include "engine/Monster.hpp"
 
 using namespace bandit;
 using namespace snowhouse;

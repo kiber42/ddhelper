@@ -1,8 +1,8 @@
 #include "bandit/bandit.h"
 
-#include "Combat.hpp"
-#include "Hero.hpp"
-#include "Monster.hpp"
+#include "engine/Combat.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Monster.hpp"
 
 using namespace bandit;
 using namespace snowhouse;

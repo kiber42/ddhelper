@@ -1,4 +1,4 @@
-#include "MonsterTypes.hpp"
+#include "engine/MonsterTypes.hpp"
 
 MonsterTraits getTraits(MonsterType type)
 {

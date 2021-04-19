@@ -1,4 +1,4 @@
-#include "Solution.hpp"
+#include "solver/Solution.hpp"
 
 #include <numeric>
 

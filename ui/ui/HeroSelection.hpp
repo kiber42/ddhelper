@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Hero.hpp"
-#include "HeroClass.hpp"
+#include "engine/Hero.hpp"
+#include "engine/HeroClass.hpp"
 
 #include <array>
 #include <map>

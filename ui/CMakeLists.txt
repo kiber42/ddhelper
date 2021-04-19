@@ -19,7 +19,7 @@ else()
 
 endif()
 
-target_include_directories(imguiapp PUBLIC include ../imgui/backends)
+target_include_directories(imguiapp PUBLIC . ../imgui/backends)
 target_link_libraries(imguiapp dearimgui)
 
 add_executable(
@@ -30,7 +30,7 @@ add_executable(
   src/History.cpp
   src/MonsterPool.cpp
   src/MonsterSelection.cpp
-  src/ResourcesUI.cpp
+  src/Resources.cpp
   src/State.cpp
   src/Utils.cpp)
 target_link_libraries(ddhelper ddhelperengine ddsolver imguiapp)

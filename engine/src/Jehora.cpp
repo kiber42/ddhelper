@@ -1,6 +1,6 @@
-#include "Jehora.hpp"
+#include "engine/Jehora.hpp"
 
-#include "Hero.hpp"
+#include "engine/Hero.hpp"
 
 Jehora::Jehora()
   : generator(std::random_device{}())

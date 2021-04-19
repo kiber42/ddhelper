@@ -1,9 +1,9 @@
-#include "Hero.hpp"
+#include "engine/Hero.hpp"
 
-#include "Experience.hpp"
-#include "Items.hpp"
-#include "Magic.hpp"
-#include "Monster.hpp"
+#include "engine/Experience.hpp"
+#include "engine/Items.hpp"
+#include "engine/Magic.hpp"
+#include "engine/Monster.hpp"
 
 #include <algorithm>
 #include <cassert>

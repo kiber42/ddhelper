@@ -1,9 +1,9 @@
-#include "Solution.hpp"
+#include "solver/Solution.hpp"
 
-#include "Scenario.hpp"
-#include "Solver.hpp"
+#include "solver/Scenario.hpp"
+#include "solver/Solver.hpp"
 
-#include "MonsterTypes.hpp"
+#include "engine/MonsterTypes.hpp"
 
 #include <iostream>
 

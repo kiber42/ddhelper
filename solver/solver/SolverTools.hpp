@@ -1,5 +1,5 @@
-#include "GameState.hpp"
-#include "Solution.hpp"
+#include "solver/GameState.hpp"
+#include "solver/Solution.hpp"
 
 namespace solver
 {

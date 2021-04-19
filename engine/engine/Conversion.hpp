@@ -1,8 +1,8 @@
 #pragma once
 
 class Hero;
-#include "HeroClass.hpp"
-#include "Monster.hpp"
+#include "engine/HeroClass.hpp"
+#include "engine/Monster.hpp"
 
 #include <functional>
 

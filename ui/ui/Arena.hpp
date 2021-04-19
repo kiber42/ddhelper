@@ -1,8 +1,9 @@
 #pragma once
 
-#include "GodsAndBoons.hpp"
-#include "State.hpp"
-#include "Utils.hpp"
+#include "ui/State.hpp"
+#include "ui/Utils.hpp"
+
+#include "engine/GodsAndBoons.hpp"
 
 namespace ui
 {

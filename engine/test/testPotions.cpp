@@ -1,7 +1,7 @@
 #include "bandit/bandit.h"
 
-#include "Hero.hpp"
-#include "Items.hpp"
+#include "engine/Hero.hpp"
+#include "engine/Items.hpp"
 
 using namespace bandit;
 using namespace snowhouse;

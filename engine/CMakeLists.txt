@@ -24,7 +24,7 @@ add_library(
   src/MonsterTypes.cpp
   src/Outcome.cpp
   src/Resources.cpp)
-target_include_directories(ddhelperengine PUBLIC include)
+target_include_directories(ddhelperengine PUBLIC .)
 
 add_executable(
   testengine

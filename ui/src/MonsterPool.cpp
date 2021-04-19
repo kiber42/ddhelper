@@ -1,6 +1,6 @@
-#include "MonsterPool.hpp"
+#include "ui/MonsterPool.hpp"
 
-#include "Utils.hpp"
+#include "ui/Utils.hpp"
 
 #include "imgui.h"
 
