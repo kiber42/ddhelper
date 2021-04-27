@@ -1415,6 +1415,8 @@ bool Hero::useTranslocationSealOn(Item shopItem)
 {
   if (has(Item::TranslocationSeal))
   {
+    if (!isSmall(shopItem) && inventory.numFreeSmallSlots() < 4 && !hasTrait(HeroTrait::RegalSize))
+      return false;
     lose(Item::TranslocationSeal);
     return inventory.translocate(shopItem);
   }
