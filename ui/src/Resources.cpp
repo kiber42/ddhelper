@@ -150,6 +150,7 @@ namespace ui
 
   void Resources::runSpawnShop(const State& state)
   {
+    // TODO: Change layout so that button is always visible even when text expands
     ImGui::SameLine();
     ImGui::SmallButton("Add##Shop");
     if (ImGui::IsItemActive())
@@ -159,6 +160,7 @@ namespace ui
     }
     if (ImGui::BeginPopup("SpawnShopPopup"))
     {
+      // TODO: Add alchemist seals here? Or as cheat?
       int index = 0;
       struct SubMenu
       {
@@ -283,9 +285,9 @@ namespace ui
               0 == selectedPopupItem, result))
         selectedPopupItem = 0;
       if (addPopupAction(
-              state, "+20 gold", "Cheat: +20 gold",
+              state, "+50 gold", "Cheat: +50 gold",
               [](State& state) {
-                state.hero.addGold(20);
+                state.hero.addGold(50);
                 return Summary::None;
               },
               1 == selectedPopupItem, result))
