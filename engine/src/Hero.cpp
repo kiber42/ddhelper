@@ -9,13 +9,17 @@
 #include <cassert>
 #include <utility>
 
-Hero::Hero(HeroClass theClass, HeroRace race)
+Hero::Hero(HeroClass theClass, HeroRace race, Preparations preparations)
   : name(isMonsterClass(theClass) ? toString(theClass) : (toString(race) + std::string(" ") + toString(theClass)))
   , traits(startingTraits(theClass))
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
-  , inventory(6, 100, hasTrait(HeroTrait::MagicSense), hasTrait(HeroTrait::RegalSize), hasTrait(HeroTrait::Negotiator))
+  , inventory(preparations.numberOfLargeInventorySlots(),
+              preparations.initialSpellConversionPoints(),
+              hasTrait(HeroTrait::MagicSense),
+              hasTrait(HeroTrait::RegalSize),
+              hasTrait(HeroTrait::Negotiator))
   , conversion(theClass, race)
   , faith()
   , statuses()
@@ -108,6 +112,12 @@ Hero::Hero(HeroClass theClass, HeroRace race)
     inventory.add(Spell::Halpmeh);
   if (hasTrait(HeroTrait::DungeonLore))
     inventory.add(Spell::Lemmisi);
+
+  // TODO: This doesn't feel right yet, this probably shouldn't be a trait after all.
+  if (preparations.modifiers.count(ResourceModifier::BlackMarket))
+    addTrait(HeroTrait::BlackMarket);
+  // TODO: Store prepared altar, if any
+  // TODO: Add prepared items. Take care to handle free health and mana potion correctly.
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)

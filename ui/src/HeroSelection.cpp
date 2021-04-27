@@ -40,6 +40,27 @@ namespace ui
     if (ImGui::InputInt("Level", &level, 1, 1))
       level = std::min(std::max(level, 1), 10);
 
+    const std::string preview = preparations.altar ? toString(*preparations.altar) : "None";
+    if (ImGui::BeginCombo("Altar", preview.c_str()))
+    {
+      if (ImGui::Selectable("None", !preparations.altar))
+        preparations.altar.reset();
+      for (int index = 0; index <= static_cast<int>(God::Last) + 1; ++index)
+      {
+        const auto altar = [index]() -> GodOrPactmaker {
+          if (index <= static_cast<int>(God::Last))
+            return static_cast<God>(index);
+          return Pactmaker::ThePactmaker;
+        }();
+        const bool isSelected = altar == preparations.altar;
+        if (ImGui::Selectable(toString(altar), isSelected))
+          preparations.altar = altar;
+        if (isSelected)
+          ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+    }
+
     std::optional<Hero> newHero;
     if (ImGui::Button("Send to Arena"))
       newHero.emplace(get());

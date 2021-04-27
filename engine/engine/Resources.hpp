@@ -34,6 +34,8 @@ enum class ResourceModifier
   EliteItems, // TODO
   Apothecary,
   ExtraAltar,
+  BlackMarket,
+  PatchesTheTeddy,
   // Hero traits
   Hoarder,
   Martyr,

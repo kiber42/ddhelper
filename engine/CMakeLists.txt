@@ -23,6 +23,7 @@ add_library(
   src/MonsterTraits.cpp
   src/MonsterTypes.cpp
   src/Outcome.cpp
+  src/Preparations.cpp
   src/Resources.cpp)
 target_include_directories(ddhelperengine PUBLIC .)
 

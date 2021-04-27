@@ -10,6 +10,7 @@
 #include "engine/HeroTraits.hpp"
 #include "engine/Inventory.hpp"
 #include "engine/Items.hpp"
+#include "engine/Preparations.hpp"
 #include "engine/Resources.hpp"
 
 #include <map>
@@ -22,7 +23,7 @@ class Monster;
 class Hero
 {
 public:
-  explicit Hero(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human);
+  explicit Hero(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human, Preparations preparations = {});
   Hero(HeroStats, Defence, Experience);
 
   std::string getName() const;

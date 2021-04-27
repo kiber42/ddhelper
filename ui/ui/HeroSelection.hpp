@@ -2,6 +2,7 @@
 
 #include "engine/Hero.hpp"
 #include "engine/HeroClass.hpp"
+#include "engine/Preparations.hpp"
 
 #include <array>
 #include <map>
@@ -19,6 +20,7 @@ namespace ui
   private:
     HeroClass selectedClass;
     HeroRace selectedRace;
+    Preparations preparations;
     int level;
   };
 
