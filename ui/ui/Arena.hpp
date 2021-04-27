@@ -28,5 +28,6 @@ namespace ui
     void runWorship(const State& state);
     void runUncoverTiles(const State&);
     void runPickupResource(const State&);
+    void runMiscActions(const State& state);
   };
 } // namespace ui

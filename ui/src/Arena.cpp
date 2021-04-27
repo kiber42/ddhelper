@@ -649,7 +649,11 @@ namespace ui
     }
     else
       disabledButton("Pick Up", "Nothing here!");
+  }
 
+  void Arena::runMiscActions(const State& state)
+  {
+    const auto& visible = state.resources.visible;
     if (visible.numPlants > 0)
     {
       ImGui::SameLine();
@@ -714,6 +718,7 @@ namespace ui
       runUncoverTiles(state);
       ImGui::SameLine();
       runPickupResource(state);
+      runMiscActions(state);
     }
     ImGui::End();
 
