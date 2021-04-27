@@ -366,7 +366,7 @@ namespace ui
           const int price = state.hero.buyingPrice(potion);
           const std::string label = toString(potion) + " ("s + std::to_string(price) + " gold)";
           const std::string historyTitle = "Buy " + label;
-          if (state.hero.gold() >= price)
+          if (state.hero.canBuy(potion))
           {
             if (addPopupAction(
                     state, label, historyTitle,
@@ -590,15 +590,20 @@ namespace ui
           if (visible.*number > 0)
           {
             std::string label = toString(item) + " (x"s + std::to_string(visible.*number) + ")";
-            std::string historyTitle = "Pick up "s + toString(item);
-            auto action = [number, item](State& state) {
-              state.hero.receive(item);
-              --(state.resources.visible.*number);
-              return Summary::None;
-            };
-            if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
-                               ++index == selectedPopupItem, result))
-              selectedPopupItem = index;
+            if (state.hero.hasRoomFor(item))
+            {
+              std::string historyTitle = "Pick up "s + toString(item);
+              auto action = [number, item](State& state) {
+                state.hero.receive(item);
+                --(state.resources.visible.*number);
+                return Summary::None;
+              };
+              if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
+                                 ++index == selectedPopupItem, result))
+                selectedPopupItem = index;
+            }
+            else
+              ImGui::TextColored(colorUnavailable, "%s", label.c_str());
           }
         };
         auto addGenericPickupAction = [&, this](auto name, auto number, auto heroAction) {
@@ -616,13 +621,26 @@ namespace ui
               selectedPopupItem = index;
           }
         };
-        addPotionPickupAction(&ResourceSet::numHealthPotions, Item::HealthPotion);
-        addPotionPickupAction(&ResourceSet::numManaPotions, Item::ManaPotion);
+
         addGenericPickupAction("Attack Booster", &ResourceSet::numAttackBoosters, &Hero::addAttackBonus);
         addGenericPickupAction("Health Booster", &ResourceSet::numHealthBoosters, &Hero::addHealthBonus);
         addGenericPickupAction("Mana Booster", &ResourceSet::numManaBoosters, &Hero::addManaBonus);
         addGenericPickupAction("Gold Pile", &ResourceSet::numGoldPiles, &Hero::collectGoldPile);
-        if (!visible.spells.empty() && ImGui::BeginMenu("Spells"))
+
+        const bool cannotTakePotion = (!state.hero.hasRoomFor(Item::HealthPotion) && visible.numHealthPotions > 0) ||
+                                      (!state.hero.hasRoomFor(Item::ManaPotion) && visible.numManaPotions > 0);
+        if (cannotTakePotion)
+          ImGui::TextColored(colorUnavailable, "No room in inventory");
+        addPotionPickupAction(&ResourceSet::numHealthPotions, Item::HealthPotion);
+        addPotionPickupAction(&ResourceSet::numManaPotions, Item::ManaPotion);
+
+        const bool cannotTakeSpell = !state.hero.hasRoomFor(Spell::Burndayraz) && !visible.spells.empty();
+        if (cannotTakeSpell)
+        {
+          if (!cannotTakePotion)
+            ImGui::TextColored(colorUnavailable, "No room for spells");
+        }
+        else if (!visible.spells.empty() && ImGui::BeginMenu("Spells"))
         {
           auto spells = visible.spells;
           std::sort(begin(spells), end(spells));
