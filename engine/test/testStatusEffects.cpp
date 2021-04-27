@@ -387,7 +387,7 @@ void testStatusEffects()
         Monster monster(MonsterType::MeatMan, 1);
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(monster.getDamage()));
-        hero.use(Item::HealthPotion, noOtherMonsters);
+        hero.use(Potion::HealthPotion, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(monster.getDamage() + 2));
       });
     });
@@ -528,7 +528,7 @@ void testStatusEffects()
         AssertThat(hero.getBaseDamage(), Equals(16));
         hero.changeBaseDamage(34);
         AssertThat(hero.getBaseDamage(), Equals(50));
-        hero.use(Item::ManaPotion, noOtherMonsters);
+        hero.use(Potion::ManaPotion, noOtherMonsters);
         resources.numWalls += 1;
         AssertThat(Magic::cast(hero, monster, Spell::Pisorf, noOtherMonsters, resources), Equals(Summary::Safe));
         AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsFalse());
@@ -541,9 +541,9 @@ void testStatusEffects()
         hero.addConversionPoints(100, noOtherMonsters);
         AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
         hero.recover(10);
-        hero.use(Item::StrengthPotion, noOtherMonsters);
+        hero.use(Potion::StrengthPotion, noOtherMonsters);
         AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
-        hero.use(Item::StrengthPotion, noOtherMonsters);
+        hero.use(Potion::StrengthPotion, noOtherMonsters);
         AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11));
       });
     });

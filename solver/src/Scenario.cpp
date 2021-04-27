@@ -20,7 +20,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.loseHitPointsOutsideOfFight(3, ignore);
     hero.clearInventory();
     for (int i = 0; i < 8; ++i)
-      hero.receive(Item::ManaPotion);
+      hero.receive(Potion::ManaPotion);
     hero.receiveFreeSpell(Spell::Burndayraz);
     hero.receiveFreeSpell(Spell::Weytwut);
     return hero;
@@ -32,7 +32,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.receive(Spell::Getindare);
     hero.receive(Spell::Burndayraz);
     hero.receive(Spell::Bysseps);
-    hero.receive(Item::Shield);
+    hero.receive(BlacksmithItem::Shield);
     hero.addStatus(HeroStatus::Pessimist);
     return hero;
   }
@@ -43,7 +43,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.getFaith().gainPiety(22);
     hero.addGold(100 - hero.gold());
     hero.clearInventory();
-    hero.receive(Item::TikkisCharm);
+    hero.receive(MiscItem::TikkisCharm);
     return hero;
   }
   }
@@ -86,7 +86,7 @@ SimpleResources getResourcesForScenario(Scenario scenario)
   ResourceSet resources{EmptyResources{}};
   if (scenario == Scenario::TheThirdAct)
   {
-    resources.shops = {Item::HealthPotion, Item::VenomDagger, Item::BadgeOfHonour};
+    resources.shops = {Item{Potion::HealthPotion}, ShopItem::VenomDagger, ShopItem::BadgeOfHonour};
     resources.altars = {God::TikkiTooki};
     resources.numWalls = 3;
   }

@@ -7,8 +7,6 @@ project(ddhelper VERSION 0.3.5)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_compile_options(-Wno-c++20-extensions)
-
 # compile with warnings
 if ( MSVC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")

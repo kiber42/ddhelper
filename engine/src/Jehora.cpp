@@ -94,6 +94,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
           return;
         }
       }
+      break;
     }
     case 1:
       if (rerolls >= thresholdWeakened)

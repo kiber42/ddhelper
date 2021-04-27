@@ -135,7 +135,7 @@ namespace ui
 
       const auto& inventory = state.hero.getItemsAndSpells();
       const bool canCompress =
-          state.hero.has(Item::CompressionSeal) &&
+          state.hero.has(AlchemistSeal::CompressionSeal) &&
           std::find_if(begin(inventory), end(inventory), [](auto& entry) { return !entry.isSmall; }) != end(inventory);
       if (canCompress)
       {
@@ -163,7 +163,7 @@ namespace ui
         }
       }
 
-      const bool canTransmute = state.hero.has(Item::TransmutationSeal) &&
+      const bool canTransmute = state.hero.has(AlchemistSeal::TransmutationSeal) &&
                                 std::find_if(begin(inventory), end(inventory), [hero = state.hero](auto& entry) {
                                   const auto item = std::get_if<Item>(&entry.itemOrSpell);
                                   return !item || hero.sellingPrice(*item) >= 0;
@@ -176,7 +176,7 @@ namespace ui
         for (const auto& [item, count] : state.hero.getItemCounts())
         {
           // If there's only one transmuation seal, cannot transmute the seal itself
-          if (item == Item::TransmutationSeal && count == 1)
+          if (item == Item{AlchemistSeal::TransmutationSeal} && count == 1)
             continue;
           const auto price = state.hero.sellingPrice(item);
           if (price < 0)
@@ -297,7 +297,7 @@ namespace ui
       int index = 0;
       if (!shops.empty())
       {
-        if (state.hero.has(Item::TranslocationSeal))
+        if (state.hero.has(AlchemistSeal::TranslocationSeal))
           ImGui::Checkbox("Use Translocation Seal", &useTranslocationSeal);
         else
           useTranslocationSeal = false;
@@ -358,11 +358,11 @@ namespace ui
       const std::string title = "Potion Shop (x"s + std::to_string(numPotionShops) + ")";
       if (numPotionShops > 0 && ImGui::BeginMenu(title.c_str()))
       {
-        for (int potionIndex = static_cast<int>(Item::HealthPotion); potionIndex <= static_cast<int>(Item::CanOfWhupaz);
+        for (int potionIndex = static_cast<int>(0); potionIndex <= static_cast<int>(Potion::Last);
              ++potionIndex)
         {
           const bool isSelected = ++index == selectedPopupItem;
-          const auto potion = static_cast<Item>(potionIndex);
+          const auto potion = static_cast<Potion>(potionIndex);
           const int price = state.hero.buyingPrice(potion);
           const std::string label = toString(potion) + " ("s + std::to_string(price) + " gold)";
           const std::string historyTitle = "Buy " + label;
@@ -621,18 +621,17 @@ namespace ui
               selectedPopupItem = index;
           }
         };
-
         addGenericPickupAction("Attack Booster", &ResourceSet::numAttackBoosters, &Hero::addAttackBonus);
         addGenericPickupAction("Health Booster", &ResourceSet::numHealthBoosters, &Hero::addHealthBonus);
         addGenericPickupAction("Mana Booster", &ResourceSet::numManaBoosters, &Hero::addManaBonus);
         addGenericPickupAction("Gold Pile", &ResourceSet::numGoldPiles, &Hero::collectGoldPile);
 
-        const bool cannotTakePotion = (!state.hero.hasRoomFor(Item::HealthPotion) && visible.numHealthPotions > 0) ||
-                                      (!state.hero.hasRoomFor(Item::ManaPotion) && visible.numManaPotions > 0);
+        const bool cannotTakePotion = (!state.hero.hasRoomFor(Potion::HealthPotion) && visible.numHealthPotions > 0) ||
+                                      (!state.hero.hasRoomFor(Potion::ManaPotion) && visible.numManaPotions > 0);
         if (cannotTakePotion)
           ImGui::TextColored(colorUnavailable, "No room in inventory");
-        addPotionPickupAction(&ResourceSet::numHealthPotions, Item::HealthPotion);
-        addPotionPickupAction(&ResourceSet::numManaPotions, Item::ManaPotion);
+        addPotionPickupAction(&ResourceSet::numHealthPotions, Potion::HealthPotion);
+        addPotionPickupAction(&ResourceSet::numManaPotions, Potion::ManaPotion);
 
         const bool cannotTakeSpell = !state.hero.hasRoomFor(Spell::Burndayraz) && !visible.spells.empty();
         if (cannotTakeSpell)

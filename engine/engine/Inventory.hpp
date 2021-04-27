@@ -1,16 +1,14 @@
 #pragma once
 
+#include "engine/Items.hpp"
+#include "engine/Spells.hpp"
+
 #include <optional>
 #include <string>
 #include <variant>
 #include <vector>
 
-enum class Item;
-enum class Spell;
-
 using ItemOrSpell = std::variant<Item, Spell>;
-
-std::string toString(ItemOrSpell itemOrSpell);
 
 class Inventory
 {
@@ -63,7 +61,7 @@ public:
   bool transmute(ItemOrSpell itemOrSpell);
 
   // Add item obtained using a Translocation Seal, i.e. with half its usual conversion points (rounded down)
-  bool translocate(Item itemOrSpell);
+  bool translocate(Item item);
 
   // Remove all items and spells from inventory
   void clear();
@@ -122,3 +120,19 @@ private:
   int crystalBallCosts;
   int triswordDamage;
 };
+
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+constexpr const char* toString(ItemOrSpell itemOrSpell)
+{
+  return std::visit(
+      overloaded{[](const Item& item) { return toString(item); }, [](const Spell& spell) { return toString(spell); }},
+      itemOrSpell);
+}

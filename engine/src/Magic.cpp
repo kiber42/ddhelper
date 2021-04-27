@@ -27,11 +27,11 @@ namespace Magic
     {
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
-      const int multiplier = 4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(Item::BattlemageRing) ? 1 : 0);
+      const int multiplier = 4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(ShopItem::BattlemageRing) ? 1 : 0);
 
       // Damage and burning
       monster.takeFireballDamage(hero.getLevel(), multiplier);
-      if (hero.has(Item::PiercingWand))
+      if (hero.has(ShopItem::PiercingWand))
         monster.erodeResitances();
       const int maxBurnStackSize = 2 * hero.getLevel();
       if (heavy)
@@ -48,7 +48,7 @@ namespace Magic
       }
 
       // Side effects
-      if (hero.has(Item::WitchalokPendant))
+      if (hero.has(ShopItem::WitchalokPendant))
         hero.addStatus(HeroStatus::StoneSkin);
 
       hero.adjustMomentum(monster.isDefeated());
@@ -62,13 +62,13 @@ namespace Magic
         hero.healHitPoints(2 * manaCosts);
       if (hero.hasTrait(HeroTrait::InnerFocus))
         hero.addConversionPoints(3, allMonsters);
-      if (hero.has(Item::DragonSoul))
+      if (hero.has(ShopItem::DragonSoul))
         hero.applyDragonSoul(manaCosts);
       if (manaCosts >= 3)
       {
-        if (hero.has(Item::FireHeart))
+        if (hero.has(ShopItem::FireHeart))
           hero.chargeFireHeart();
-        if (hero.has(Item::CrystalBall))
+        if (hero.has(ShopItem::CrystalBall))
           hero.chargeCrystalBall();
       }
     }

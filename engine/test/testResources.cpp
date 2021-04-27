@@ -45,7 +45,7 @@ void testResources()
       }
       AssertThat(lotsOf.altars.size(), Equals((unsigned)God::Last + 2));
       AssertThat(lotsOf.spells.size(), Equals((unsigned)Spell::Last + 1));
-      AssertThat(lotsOf.shops.size(), Equals((unsigned)Item::LastShopItem + 1));
+      AssertThat(lotsOf.shops.size(), IsLessThanOrEqualTo(100u));
     });
   });
 

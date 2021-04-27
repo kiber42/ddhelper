@@ -65,13 +65,13 @@ bool ResourceSet::pactmakerAvailable() const
 
 void ResourceSet::addRandomShop(std::mt19937 generator)
 {
-  const int n = static_cast<int>(Item::LastShopItem);
+  const int n = static_cast<int>(ShopItem::Last);
   if (shops.size() > n)
     return;
   Item item;
   do
   {
-    item = static_cast<Item>(std::uniform_int_distribution<>(0, n)(generator));
+    item = Item{static_cast<ShopItem>(std::uniform_int_distribution<>(0, n)(generator))};
   } while (std::find(begin(shops), end(shops), item) != end(shops));
   shops.emplace_back(item);
 }

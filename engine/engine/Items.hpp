@@ -1,6 +1,52 @@
 #pragma once
 
-enum class Item
+#include <algorithm>
+#include <array>
+#include <string_view>
+#include <variant>
+
+struct ItemProperties
+{
+  std::string_view name;
+  int price;
+  int conversionPoints;
+  bool isSmall;
+};
+
+enum class BlacksmithItem
+{
+  PerseveranceBadge,
+  SlayerWand,
+  ReallyBigSword,
+  BearMace,
+  Sword,
+  Shield,
+  Last = Shield
+};
+
+enum class Potion
+{
+  HealthPotion,
+  ManaPotion,
+  FortitudeTonic,
+  BurnSalve,
+  StrengthPotion,
+  Schadenfreude,
+  QuicksilverPotion,
+  ReflexPotion,
+  CanOfWhupaz,
+  Last = CanOfWhupaz
+};
+
+enum class AlchemistSeal
+{
+  CompressionSeal,
+  TransmutationSeal,
+  TranslocationSeal,
+  Last = TranslocationSeal
+};
+
+enum class ShopItem
 {
   // Basic Items
   BadgeOfHonour,
@@ -43,537 +89,158 @@ enum class Item
   OrbOfZot,
   AlchemistScroll,
   WickedGuitar,
-  LastShopItem = WickedGuitar,
-  // Blacksmith Items
-  BearMace,
-  PerseveranceBadge,
-  ReallyBigSword,
-  Shield,
-  SlayerWand,
-  Sword,
-  // Potions
-  HealthPotion,
-  ManaPotion,
-  FortitudeTonic,
-  BurnSalve,
-  StrengthPotion,
-  Schadenfreude,
-  QuicksilverPotion,
-  ReflexPotion,
-  CanOfWhupaz,
-  // Alchemist Seals
-  CompressionSeal,
-  TransmutationSeal,
-  TranslocationSeal,
-  // Misc Items
-  ShopScroll,
-  PatchesTheTeddy,
-  // Subdungeon Items, Lockerable
-  Gorgward,
-  // Boss Rewards
+  Last = WickedGuitar
+};
+
+enum class BossReward
+{
   FabulousTreasure,
   DragonShield,
   NamtarsWard,
   AvatarsCodex,
   NagaCauldron,
   SensationStone,
+  Last = SensationStone,
+};
+
+enum class MiscItem
+{
+  // Misc Items
+  ShopScroll,
+  PatchesTheTeddy,
+  // Subdungeon Items, Lockerable
+  Gorgward,
   // God Items
   PrayerBead,
   EnchantedPrayerBead,
+  // Puzzle Items
+  TikkisCharm,
+  Last = TikkisCharm
+};
+
+enum class TaurogItem
+{
   Skullpicker,
   Wereward,
   Gloat,
-  Will,
-  // Puzzle Items
-  TikkisCharm,
-  Last = TikkisCharm,
+  Will
+};
+
+template <typename Key, typename Value, std::size_t Size>
+struct Map
+{
+  std::array<std::pair<Key, Value>, Size> data;
+
+  [[nodiscard]] constexpr Value at(const Key& key) const
+  {
+    const auto itr = std::find_if(begin(data), end(data), [&key](const auto& v) { return v.first == key; });
+    if (itr != end(data))
+      return itr->second;
+    else
+      throw std::range_error("Not found");
+  }
+};
+
+using namespace std::string_view_literals;
+using Item = std::variant<BlacksmithItem, Potion, AlchemistSeal, ShopItem, BossReward, MiscItem, TaurogItem>;
+
+static constexpr Map<Item, ItemProperties, 72> items{
+    std::make_pair(BlacksmithItem::PerseveranceBadge, ItemProperties{"Perseverance Badge"sv, 15, 20, true}),
+    {BlacksmithItem::SlayerWand, {"Slayer Wand"sv, 5, 10, false}},
+    {BlacksmithItem::ReallyBigSword, {"Really Big Sword"sv, 12, 35, false}},
+    {BlacksmithItem::BearMace, {"Bear Mace"sv, 12, 35, false}},
+    {BlacksmithItem::Sword, {"Sword"sv, 25, 35, false}},
+    {BlacksmithItem::Shield, {"Shield"sv, 15, 35, false}},
+    {Potion::HealthPotion, {"Health Potion"sv, 10, 10, true}},
+    {Potion::ManaPotion, {"Mana Potion"sv, 10, 10, true}},
+    {Potion::FortitudeTonic, {"Fortitude Tonic"sv, 8, 10, true}},
+    {Potion::BurnSalve, {"Burn Salve"sv, 8, 10, true}},
+    {Potion::StrengthPotion, {"Strength Potion"sv, 15, 10, true}},
+    {Potion::Schadenfreude, {"Schadenfreude"sv, 15, 10, true}},
+    {Potion::QuicksilverPotion, {"Quicksilver Potion"sv, 15, 10, true}},
+    {Potion::ReflexPotion, {"Reflex Potion"sv, 15, 10, true}},
+    {Potion::CanOfWhupaz, {"Can of Whupaz"sv, 20, 10, true}},
+    {AlchemistSeal::CompressionSeal, {"Compression Seal"sv, 16, 5, true}},
+    {AlchemistSeal::TransmutationSeal, {"Transmutation Seal"sv, 36, 5, true}},
+    {AlchemistSeal::TranslocationSeal, {"Translocation Seal"sv, 43, 5, true}},
+    {ShopItem::BadgeOfHonour, {"Badge of Honour"sv, 18, 40, false}},
+    {ShopItem::BloodySigil, {"Bloody Sigil"sv, 8, 45, false}},
+    {ShopItem::FineSword, {"Fine Sword"sv, 15, 35, false}},
+    {ShopItem::PendantOfHealth, {"Pendant of Health"sv, 15, 35, false}},
+    {ShopItem::PendantOfMana, {"Pendant of Mana"sv, 12, 35, false}},
+    {ShopItem::Spoon, {"Spoon"sv, 1, 1, true}},
+    {ShopItem::TowerShield, {"Tower Shield"sv, 14, 35, false}},
+    {ShopItem::TrollHeart, {"Troll Heart"sv, 16, 55, false}},
+    {ShopItem::PiercingWand, {"Piercing Wand"sv, 13, 30, false}},
+    {ShopItem::RockHeart, {"Rock Heart"sv, 14, 60, false}},
+    {ShopItem::DragonSoul, {"Dragon Soul"sv, 23, 50, true}},
+    {ShopItem::FireHeart, {"Fire Heart"sv, 20, 12, false}},
+    {ShopItem::CrystalBall, {"Crystal Ball"sv, 15, 50, false}},
+    {ShopItem::WitchalokPendant, {"Witchalok Pendant"sv, 19, 30, true}},
+    {ShopItem::BattlemageRing, {"Battlemage Ring"sv, 25, 20, false}},
+    {ShopItem::HerosHelm, {"Hero's Helm"sv, 18, 50, false}},
+    {ShopItem::Platemail, {"Platemail"sv, 23, 40, false}},
+    {ShopItem::Whurrgarbl, {"Whurrgarbl"sv, 15, 45, false}},
+    {ShopItem::Trisword, {"Trisword"sv, 12, 35, false}},
+    {ShopItem::BalancedDagger, {"Balanced Dagger"sv, 12, 44, true}},
+    {ShopItem::GlovesOfMidas, {"Gloves Of Midas"sv, 10, 45, false}},
+    {ShopItem::VenomDagger, {"Venom Dagger"sv, 16, 50, true}},
+    {ShopItem::StoneSigil, {"Stone Sigil"sv, 14, 30, true}},
+    {ShopItem::MartyrWraps, {"Martyr Wraps"sv, 15, 45, false}},
+    {ShopItem::AgnosticCollar, {"Agnostic Collar"sv, 25, 50, false}},
+    {ShopItem::MagePlate, {"Mage Plate"sv, 20, 40, false}},
+    {ShopItem::BlueBead, {"Blue Bead"sv, 5, 10, true}},
+    {ShopItem::VampiricBlade, {"Vampiric Blade"sv, 25, 50, false}},
+    {ShopItem::ViperWard, {"Viper Ward"sv, 16, 65, true}},
+    {ShopItem::SoulOrb, {"Soul Orb"sv, 16, 65, true}},
+    {ShopItem::KegOfHealth, {"Keg Of Health"sv, 25, 70, false}},
+    {ShopItem::KegOfMana, {"Keg Of Mana"sv, 25, 70, false}},
+    {ShopItem::ElvenBoots, {"Elven Boots"sv, 35, 50, false}},
+    {ShopItem::DwarvenGauntlets, {"Dwarven Gauntlets"sv, 35, 50, false}},
+    {ShopItem::AmuletOfYendor, {"Amulet of Yendor"sv, 45, 100, false}},
+    {ShopItem::OrbOfZot, {"Orb of Zot"sv, 45, 100, false}},
+    {ShopItem::AlchemistScroll, {"Alchemist Scroll"sv, 13, 40, false}},
+    {ShopItem::WickedGuitar, {"Wicked Guitar"sv, 11, 11, false}},
+    {BossReward::FabulousTreasure, {"Fabulous Treasure"sv, 95, 1, false}},
+    {BossReward::DragonShield, {"Dragon Shield"sv, 23, 100, false}},
+    {BossReward::NamtarsWard, {"Namtar's Ward"sv, 50, 100, false}},
+    {BossReward::AvatarsCodex, {"Avatar's Codex"sv, 35, 50, false}},
+    {BossReward::NagaCauldron, {"Naga Cauldron"sv, 12, 35, false}},
+    {BossReward::SensationStone, {"Sensation Stone"sv, 25, 150, false}},
+    {MiscItem::ShopScroll, {"Shop Scroll"sv, 10, 20, false}},
+    {MiscItem::PatchesTheTeddy, {"Patches the Teddy"sv, 0, 10, false}},
+    {MiscItem::Gorgward, {"Gorgward"sv, 18, 50, true}},
+    {MiscItem::PrayerBead, {"Prayer Bead"sv, -1, -1, true}},
+    {MiscItem::EnchantedPrayerBead, {"Enchanted Prayer Bead"sv, -1, -1, true}},
+    {MiscItem::TikkisCharm, {"Tikki's Charm"sv, 1, 5, true}},
+    {TaurogItem::Skullpicker, {"Skullpicker"sv, 0, 60, false}},
+    {TaurogItem::Wereward, {"Wereward"sv, 0, 60, false}},
+    {TaurogItem::Gloat, {"Gloat"sv, 0, 60, false}},
+    {TaurogItem::Will, {"Will"sv, 0, 60, false}},
 };
 
 constexpr const char* toString(Item item)
 {
-  switch (item)
-  {
-  case Item::BadgeOfHonour:
-    return "Badge of Honour";
-  case Item::BloodySigil:
-    return "Bloody Sigil";
-  case Item::FineSword:
-    return "Fine Sword";
-  case Item::PendantOfHealth:
-    return "Pendant of Health";
-  case Item::PendantOfMana:
-    return "Pendant of Mana";
-  case Item::Spoon:
-    return "Spoon";
-  case Item::TowerShield:
-    return "Tower Shield";
-  case Item::TrollHeart:
-    return "Troll Heart";
+  return items.at(item).name.data();
+}
 
-  case Item::PiercingWand:
-    return "Piercing Wand";
-  case Item::RockHeart:
-    return "Rock Heart";
-  case Item::DragonSoul:
-    return "Dragon Soul";
-  case Item::FireHeart:
-    return "Fire Heart";
-  case Item::CrystalBall:
-    return "Crystal Ball";
-  case Item::WitchalokPendant:
-    return "Witchalok Pendant";
-  case Item::BattlemageRing:
-    return "Battlemage Ring";
-  case Item::HerosHelm:
-    return "Hero's Helm";
-  case Item::Platemail:
-    return "Platemail";
-  case Item::Whurrgarbl:
-    return "Whurrgarbl";
-  case Item::Trisword:
-    return "Trisword";
-  case Item::BalancedDagger:
-    return "Balanced Dagger";
-  case Item::GlovesOfMidas:
-    return "Gloves Of Midas";
-  case Item::VenomDagger:
-    return "Venom Dagger";
-  case Item::StoneSigil:
-    return "Stone Sigil";
-  case Item::MartyrWraps:
-    return "Martyr Wraps";
-  case Item::AgnosticCollar:
-    return "Agnostic Collar";
-  case Item::MagePlate:
-    return "Mage Plate";
-  case Item::BlueBead:
-    return "Blue Bead";
-  case Item::VampiricBlade:
-    return "Vampiric Blade";
-  case Item::ViperWard:
-    return "Viper Ward";
-  case Item::SoulOrb:
-    return "Soul Orb";
-
-  case Item::KegOfHealth:
-    return "Keg Of Health";
-  case Item::KegOfMana:
-    return "Keg Of Mana";
-  case Item::ElvenBoots:
-    return "Elven Boots";
-  case Item::DwarvenGauntlets:
-    return "Dwarven Gauntlets";
-  case Item::AmuletOfYendor:
-    return "Amulet of Yendor";
-  case Item::OrbOfZot:
-    return "Orb of Zot";
-  case Item::AlchemistScroll:
-    return "Alchemist Scroll";
-  case Item::WickedGuitar:
-    return "Wicked Guitar";
-
-  case Item::BearMace:
-    return "Bear Mace";
-  case Item::PerseveranceBadge:
-    return "Perseverance Badge";
-  case Item::ReallyBigSword:
-    return "Really Big Sword";
-  case Item::Shield:
-    return "Shield";
-  case Item::SlayerWand:
-    return "Slayer Wand";
-  case Item::Sword:
-    return "Sword";
-
-  case Item::HealthPotion:
-    return "Health Potion";
-  case Item::ManaPotion:
-    return "Mana Potion";
-  case Item::FortitudeTonic:
-    return "Fortitude Tonic";
-  case Item::BurnSalve:
-    return "Burn Salve";
-  case Item::StrengthPotion:
-    return "Strength Potion";
-  case Item::Schadenfreude:
-    return "Schadenfreude";
-  case Item::QuicksilverPotion:
-    return "Quicksilver Potion";
-  case Item::ReflexPotion:
-    return "Reflex Potion";
-  case Item::CanOfWhupaz:
-    return "Can of Whupaz";
-
-  case Item::CompressionSeal:
-    return "Compression Seal";
-  case Item::TransmutationSeal:
-    return "Transmutation Seal";
-  case Item::TranslocationSeal:
-    return "Translocation Seal";
-  case Item::ShopScroll:
-    return "Shop Scroll";
-  case Item::PatchesTheTeddy:
-    return "Patches the Teddy";
-
-  case Item::Gorgward:
-    return "Gorgward";
-
-  case Item::FabulousTreasure:
-    return "Fabulous Treasure";
-  case Item::DragonShield:
-    return "Dragon Shield";
-  case Item::NamtarsWard:
-    return "Namtar's Ward";
-  case Item::AvatarsCodex:
-    return "Avatar's Codex";
-  case Item::NagaCauldron:
-    return "Naga Cauldron";
-  case Item::SensationStone:
-    return "Sensation Stone";
-
-  case Item::PrayerBead:
-    return "Prayer Bead";
-  case Item::EnchantedPrayerBead:
-    return "Enchanted Prayer Bead";
-
-  case Item::Skullpicker:
-    return "Skullpicker";
-  case Item::Wereward:
-    return "Wereward";
-  case Item::Gloat:
-    return "Gloat";
-  case Item::Will:
-    return "Will";
-
-  case Item::TikkisCharm:
-    return "Tikki's Charm";
-  }
+template<class ItemSubtype>
+constexpr const char* toString(ItemSubtype item)
+{
+  return toString(Item{item});
 }
 
 constexpr int price(Item item)
 {
-  switch (item)
-  {
-  case Item::BadgeOfHonour:
-    return 18;
-  case Item::BloodySigil:
-    return 8;
-  case Item::FineSword:
-    return 15;
-  case Item::PendantOfHealth:
-    return 15;
-  case Item::PendantOfMana:
-    return 12;
-  case Item::Spoon:
-    return 1;
-  case Item::TowerShield:
-    return 14;
-  case Item::TrollHeart:
-    return 16;
-
-  case Item::PiercingWand:
-    return 13;
-  case Item::RockHeart:
-    return 14;
-  case Item::DragonSoul:
-    return 23;
-  case Item::FireHeart:
-    return 20;
-  case Item::CrystalBall:
-    return 15;
-  case Item::WitchalokPendant:
-    return 19;
-  case Item::BattlemageRing:
-    return 25;
-  case Item::HerosHelm:
-    return 18;
-  case Item::Platemail:
-    return 23;
-  case Item::Whurrgarbl:
-    return 15;
-  case Item::Trisword:
-    return 12;
-  case Item::BalancedDagger:
-    return 12;
-  case Item::GlovesOfMidas:
-    return 10;
-  case Item::VenomDagger:
-    return 16;
-  case Item::StoneSigil:
-    return 14;
-  case Item::MartyrWraps:
-    return 15;
-  case Item::AgnosticCollar:
-    return 25;
-  case Item::MagePlate:
-    return 20;
-  case Item::BlueBead:
-    return 5;
-  case Item::VampiricBlade:
-    return 25;
-  case Item::ViperWard:
-    return 16;
-  case Item::SoulOrb:
-    return 16;
-
-  case Item::KegOfHealth:
-    return 25;
-  case Item::KegOfMana:
-    return 25;
-  case Item::ElvenBoots:
-    return 35;
-  case Item::DwarvenGauntlets:
-    return 35;
-  case Item::AmuletOfYendor:
-    return 45;
-  case Item::OrbOfZot:
-    return 45;
-  case Item::AlchemistScroll:
-    return 13;
-  case Item::WickedGuitar:
-    return 11;
-
-  case Item::BearMace:
-    return 12;
-  case Item::PerseveranceBadge:
-    return 15;
-  case Item::ReallyBigSword:
-    return 12;
-  case Item::Shield:
-    return 15;
-  case Item::SlayerWand:
-    return 5;
-  case Item::Sword:
-    return 25;
-
-  case Item::HealthPotion:
-    return 10;
-  case Item::ManaPotion:
-    return 10;
-  case Item::FortitudeTonic:
-    return 8;
-  case Item::BurnSalve:
-    return 8;
-  case Item::StrengthPotion:
-    return 15;
-  case Item::Schadenfreude:
-    return 15;
-  case Item::QuicksilverPotion:
-    return 15;
-  case Item::ReflexPotion:
-    return 15;
-  case Item::CanOfWhupaz:
-    return 20;
-
-  case Item::CompressionSeal:
-    return 16;
-  case Item::TransmutationSeal:
-    return 36;
-  case Item::TranslocationSeal:
-    return 43;
-  case Item::ShopScroll:
-    return 10;
-  case Item::PatchesTheTeddy:
-    return 0;
-
-  case Item::Gorgward:
-    return 18;
-
-  case Item::FabulousTreasure:
-    return 95;
-  case Item::DragonShield:
-    return 23;
-  case Item::NamtarsWard:
-    return 50;
-  case Item::AvatarsCodex:
-    return 35;
-  case Item::NagaCauldron:
-    return 12;
-  case Item::SensationStone:
-    return 25;
-
-  case Item::PrayerBead:
-  case Item::EnchantedPrayerBead:
-    return -1; // cannot be transmuted
-
-  case Item::Skullpicker:
-  case Item::Wereward:
-  case Item::Gloat:
-  case Item::Will:
-    return 0;
-
-  case Item::TikkisCharm:
-    return 1;
-  }
+  return items.at(item).price;
 }
 
-constexpr int conversionPointsInitial(Item item)
+constexpr int initialConversionPoints(Item item)
 {
-  switch (item)
-  {
-  case Item::BadgeOfHonour:
-    return 40;
-  case Item::BloodySigil:
-    return 45;
-  case Item::FineSword:
-    return 35;
-  case Item::PendantOfHealth:
-    return 35;
-  case Item::PendantOfMana:
-    return 35;
-  case Item::Spoon:
-    return 1;
-  case Item::TowerShield:
-    return 35;
-  case Item::TrollHeart:
-    return 55;
-
-  case Item::PiercingWand:
-    return 30;
-  case Item::RockHeart:
-    return 60;
-  case Item::DragonSoul:
-    return 50;
-  case Item::FireHeart:
-    return 12;
-  case Item::CrystalBall:
-    return 50;
-  case Item::WitchalokPendant:
-    return 30;
-  case Item::BattlemageRing:
-    return 20;
-  case Item::HerosHelm:
-    return 50;
-  case Item::Platemail:
-    return 40;
-  case Item::Whurrgarbl:
-    return 45;
-  case Item::Trisword:
-    return 35;
-  case Item::BalancedDagger:
-    return 44;
-  case Item::GlovesOfMidas:
-    return 45;
-  case Item::VenomDagger:
-    return 50;
-  case Item::StoneSigil:
-    return 30;
-  case Item::MartyrWraps:
-    return 45;
-  case Item::AgnosticCollar:
-    return 50;
-  case Item::MagePlate:
-    return 40;
-  case Item::BlueBead:
-    return 10;
-  case Item::VampiricBlade:
-    return 50;
-  case Item::ViperWard:
-    return 65;
-  case Item::SoulOrb:
-    return 65;
-
-  case Item::KegOfHealth:
-    return 70;
-  case Item::KegOfMana:
-    return 70;
-  case Item::ElvenBoots:
-    return 50;
-  case Item::DwarvenGauntlets:
-    return 50;
-  case Item::AmuletOfYendor:
-    return 100;
-  case Item::OrbOfZot:
-    return 100;
-  case Item::AlchemistScroll:
-    return 40;
-  case Item::WickedGuitar:
-    return 11;
-
-  case Item::BearMace:
-    return 35;
-  case Item::PerseveranceBadge:
-    return 20;
-  case Item::ReallyBigSword:
-    return 35;
-  case Item::Shield:
-    return 35;
-  case Item::SlayerWand:
-    return 10;
-  case Item::Sword:
-    return 35;
-
-  case Item::HealthPotion:
-  case Item::ManaPotion:
-  case Item::FortitudeTonic:
-  case Item::BurnSalve:
-  case Item::StrengthPotion:
-  case Item::Schadenfreude:
-  case Item::QuicksilverPotion:
-  case Item::ReflexPotion:
-  case Item::CanOfWhupaz:
-    return 10;
-
-  case Item::CompressionSeal:
-  case Item::TransmutationSeal:
-  case Item::TranslocationSeal:
-    return 5;
-
-  case Item::ShopScroll:
-    return 20;
-  case Item::PatchesTheTeddy:
-    return 10;
-
-  case Item::Gorgward:
-    return 50;
-
-  case Item::FabulousTreasure:
-    return 1;
-  case Item::DragonShield:
-    return 100;
-  case Item::NamtarsWard:
-    return 100;
-  case Item::AvatarsCodex:
-    return 50;
-  case Item::NagaCauldron:
-    return 35;
-  case Item::SensationStone:
-    return 150;
-
-  case Item::PrayerBead:
-    return -1;
-  case Item::EnchantedPrayerBead:
-    return -1;
-
-  case Item::Skullpicker:
-  case Item::Wereward:
-  case Item::Gloat:
-  case Item::Will:
-    return 60;
-
-  case Item::TikkisCharm:
-    return 5;
-  }
+  return items.at(item).conversionPoints;
 }
 
-constexpr bool isPotion(Item item)
+constexpr int isSmall(Item item)
 {
-  return item == Item::HealthPotion || item == Item::ManaPotion || item == Item::FortitudeTonic ||
-         item == Item::BurnSalve || item == Item::StrengthPotion || item == Item::Schadenfreude ||
-         item == Item::QuicksilverPotion || item == Item::ReflexPotion || item == Item::CanOfWhupaz;
-}
-
-constexpr bool isSmall(Item item)
-{
-  return isPotion(item) || item == Item::Spoon || item == Item::DragonSoul || item == Item::WitchalokPendant ||
-         item == Item::BalancedDagger || item == Item::VenomDagger || item == Item::StoneSigil ||
-         item == Item::BlueBead || item == Item::ViperWard || item == Item::SoulOrb || item == Item::CompressionSeal ||
-         item == Item::TransmutationSeal || item == Item::TranslocationSeal || item == Item::PerseveranceBadge ||
-         item == Item::Gorgward || item == Item::PrayerBead || item == Item::EnchantedPrayerBead ||
-         item == Item::TikkisCharm;
-}
-
-constexpr bool canGroup(Item item)
-{
-  return isPotion(item);
+  return items.at(item).isSmall;
 }

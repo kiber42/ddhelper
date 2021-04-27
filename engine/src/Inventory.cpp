@@ -20,15 +20,15 @@ Inventory::Inventory(
   , crystalBallCosts(4)
   , triswordDamage(2)
 {
-  addFree(Item::HealthPotion);
-  addFree(Item::ManaPotion);
+  addFree(Potion::HealthPotion);
+  addFree(Potion::ManaPotion);
 }
 
 void Inventory::add(ItemOrSpell itemOrSpell)
 {
   const auto [smallItem, price, conversionPoints] = [&, item = std::get_if<Item>(&itemOrSpell)] {
     if (item)
-      return std::tuple{isSmall(*item) && !allItemsLarge, buyingPrice(*item), conversionPointsInitial(*item)};
+      return std::tuple{isSmall(*item) && !allItemsLarge, buyingPrice(*item), initialConversionPoints(*item)};
     else
       return std::tuple{spellsSmall && !allItemsLarge, 0, spellConversionPoints};
   }();
@@ -37,7 +37,7 @@ void Inventory::add(ItemOrSpell itemOrSpell)
 
 void Inventory::addFree(Item item)
 {
-  entries.emplace_back(Entry{ItemOrSpell{item}, isSmall(item) && !allItemsLarge, 0, conversionPointsInitial(item)});
+  entries.emplace_back(Entry{ItemOrSpell{item}, isSmall(item) && !allItemsLarge, 0, initialConversionPoints(item)});
 }
 
 void Inventory::addFree(Spell spell)
@@ -158,7 +158,7 @@ bool Inventory::hasRoomFor(ItemOrSpell itemOrSpell) const
   bool smallItem;
   if (const auto item = std::get_if<Item>(&itemOrSpell))
   {
-    if (canGroup(*item) && has(itemOrSpell))
+    if (auto potion = std::get_if<Potion>(&*item); potion && has(*potion))
       return true;
     smallItem = isSmall(*item) && !allItemsLarge;
   }
@@ -192,9 +192,9 @@ bool Inventory::transmute(ItemOrSpell itemOrSpell)
 
 bool Inventory::translocate(Item shopItem)
 {
-  assert(!isPotion(shopItem));
+  // Do not limit shopItem to actual ShopItems, as there are puzzle levels where other items are for sale
   entries.emplace_back(Entry{ItemOrSpell{shopItem}, isSmall(shopItem) && !allItemsLarge, price(shopItem),
-                             conversionPointsInitial(shopItem) / 2});
+                             initialConversionPoints(shopItem) / 2});
   return true;
 }
 
@@ -266,9 +266,9 @@ int Inventory::enchantPrayerBeads()
   int count = 0;
   for (auto& entry : entries)
   {
-    if (entry.itemOrSpell == ItemOrSpell{Item::PrayerBead})
+    if (entry.itemOrSpell == ItemOrSpell{MiscItem::PrayerBead})
     {
-      entry.itemOrSpell = Item::EnchantedPrayerBead;
+      entry.itemOrSpell = MiscItem::EnchantedPrayerBead;
       ++count;
     }
   }
@@ -288,7 +288,8 @@ auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, int>>
     const auto item = std::get_if<Item>(&entry.itemOrSpell);
     if (!item)
       continue;
-    if (!canGroup(*item))
+    // Only potions can be grouped (TODO: Food for Goatsperson not implemented yet)
+    if (std::get_if<Potion>(&*item) == nullptr)
     {
       itemsGrouped.emplace_back(entry, 1);
       continue;
@@ -357,19 +358,4 @@ std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
 std::vector<std::pair<Spell, int>> Inventory::getSpellCounts() const
 {
   return getEntryCountsOrdered<Spell>(entries);
-}
-
-template <class... Ts>
-struct overloaded : Ts...
-{
-  using Ts::operator()...;
-};
-
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
-std::string toString(ItemOrSpell itemOrSpell)
-{
-  return std::visit(overloaded{[](Item item) { return toString(item); }, [](Spell spell) { return toString(spell); }},
-                    itemOrSpell);
 }

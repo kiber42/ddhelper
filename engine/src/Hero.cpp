@@ -77,11 +77,11 @@ Hero::Hero(HeroClass theClass, HeroRace race)
   }
   if (hasTrait(HeroTrait::Macguyver))
   {
-    inventory.addFree(Item::CompressionSeal);
-    inventory.addFree(Item::CompressionSeal);
-    inventory.addFree(Item::TransmutationSeal);
-    inventory.addFree(Item::TransmutationSeal);
-    inventory.addFree(Item::TranslocationSeal);
+    inventory.addFree(AlchemistSeal::CompressionSeal);
+    inventory.addFree(AlchemistSeal::CompressionSeal);
+    inventory.addFree(AlchemistSeal::TransmutationSeal);
+    inventory.addFree(AlchemistSeal::TransmutationSeal);
+    inventory.addFree(AlchemistSeal::TranslocationSeal);
   }
   if (hasTrait(HeroTrait::Undead))
   {
@@ -173,7 +173,7 @@ void Hero::gainExperienceForKill(int monsterLevel, bool monsterWasSlowed, Monste
     ++xpBonuses;
   if (hasTrait(HeroTrait::Veteran))
     ++xpBonuses;
-  if (has(Item::BalancedDagger) && getLevel() == monsterLevel)
+  if (has(ShopItem::BalancedDagger) && getLevel() == monsterLevel)
     xpBonuses += 2;
   gainExperience(xpBase, xpBonuses, allMonsters);
 }
@@ -242,7 +242,7 @@ int Hero::getManaPointsMax() const
 
 void Hero::drinkHealthPotion()
 {
-  const bool hasNagaCauldron = has(Item::NagaCauldron);
+  const bool hasNagaCauldron = has(BossReward::NagaCauldron);
   int percentHealed = hasTrait(HeroTrait::GoodDrink) ? 100 : 40;
   if (hasNagaCauldron)
     percentHealed += nagaCauldronBonus();
@@ -254,7 +254,7 @@ void Hero::drinkHealthPotion()
 
 void Hero::drinkManaPotion()
 {
-  const bool hasNagaCauldron = has(Item::NagaCauldron);
+  const bool hasNagaCauldron = has(BossReward::NagaCauldron);
   int percentRestored = 40;
   if (hasTrait(HeroTrait::PowerHungry))
   {
@@ -442,7 +442,7 @@ int Hero::recoveryMultiplier() const
   int multiplier = getLevel();
   if (hasTrait(HeroTrait::Discipline))
     multiplier *= 2;
-  if (has(Item::BloodySigil))
+  if (has(ShopItem::BloodySigil))
     multiplier += 1;
   if (hasTrait(HeroTrait::Damned))
     multiplier = 1;
@@ -676,11 +676,11 @@ void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool mon
   addStatus(HeroDebuff::Cursed, allMonsters, monster.bearsCurse() ? 1 : -1);
   applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning), allMonsters);
   gainExperienceForKill(monster.getLevel(), monsterWasSlowed, allMonsters);
-  if (has(Item::GlovesOfMidas))
+  if (has(ShopItem::GlovesOfMidas))
     ++inventory.gold;
-  if (has(Item::StoneSigil))
+  if (has(ShopItem::StoneSigil))
     faith.gainPiety(1);
-  if (has(Item::BlueBead) && !hasStatus(HeroDebuff::ManaBurned))
+  if (has(ShopItem::BlueBead) && !hasStatus(HeroDebuff::ManaBurned))
     recoverManaPoints(1);
 }
 
@@ -725,15 +725,15 @@ void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
   changeBaseDamage(addedBaseDamage);
   if (hasTrait(HeroTrait::RegalHygiene))
     addStatus(HeroStatus::CorrosiveStrike);
-  if (has(Item::Platemail))
+  if (has(ShopItem::Platemail))
     addStatus(HeroStatus::DamageReduction, 2);
-  if (has(Item::MartyrWraps))
+  if (has(ShopItem::MartyrWraps))
   {
     addStatus(HeroDebuff::Corroded, allMonsters);
     for (auto& monster : allMonsters)
       monster.corrode();
   }
-  if (has(Item::MagePlate) && newLevel % 2 == 1)
+  if (has(ShopItem::MagePlate) && newLevel % 2 == 1)
   {
     changeManaPointsMax(1);
     changeDamageBonusPercent(-5);
@@ -749,7 +749,7 @@ void Hero::levelUpRefresh(Monsters& allMonsters)
   resetStatus(HeroDebuff::Poisoned);
   resetStatus(HeroDebuff::ManaBurned);
 
-  if (has(Item::PatchesTheTeddy) && !hasStatus(HeroStatus::Pessimist))
+  if (has(MiscItem::PatchesTheTeddy) && !hasStatus(HeroStatus::Pessimist))
   {
     // Random positive effect
     switch (std::uniform_int_distribution<>(0, 4)(generator))
@@ -834,7 +834,7 @@ void Hero::wallDestroyed()
 {
   if (has(Boon::StoneForm))
     addStatus(HeroStatus::Might);
-  if (has(Item::RockHeart))
+  if (has(ShopItem::RockHeart))
   {
     healHitPoints(1);
     recoverManaPoints(1);
@@ -1003,7 +1003,7 @@ bool Hero::request(BoonOrPact boonOrPact, Monsters& allMonsters, Resources& reso
 
 void Hero::desecrate(God altar, Monsters& allMonsters)
 {
-  faith.desecrate(altar, *this, allMonsters, has(Item::AgnosticCollar));
+  faith.desecrate(altar, *this, allMonsters, has(ShopItem::AgnosticCollar));
 }
 
 void Hero::startPietyCollection()
@@ -1186,7 +1186,7 @@ void Hero::convert(ItemOrSpell itemOrSpell, Monsters& allMonsters)
       conversion.applyBonus(*this, allMonsters);
 
     applyOrCollect(faith.converted(itemOrSpell, wasSmall), allMonsters);
-    if (item && (*item == Item::Skullpicker || *item == Item::Wereward || *item == Item::Gloat || *item == Item::Will))
+    if (std::get_if<TaurogItem>(&*item))
       faith.convertedTaurogItem(*this, allMonsters);
   }
 }
@@ -1196,159 +1196,156 @@ bool Hero::canConvert(ItemOrSpell itemOrSpell) const
   return inventory.canConvert(itemOrSpell);
 }
 
-bool Hero::canUse(Item item) const
+bool Hero::canUse(ShopItem item) const
 {
   switch (item)
   {
   // Basic Items
-  case Item::BadgeOfHonour:
+  case ShopItem::BadgeOfHonour:
     return !hasStatus(HeroStatus::DeathProtection);
 
   // Quest Items
-  case Item::FireHeart:
+  case ShopItem::FireHeart:
     return inventory.getFireHeartCharge() > 0;
-  case Item::CrystalBall:
+  case ShopItem::CrystalBall:
     return inventory.getCrystalBallCharge() > 0 && gold() >= inventory.getCrystalBallUseCosts();
 
   // Elite Items
-  case Item::KegOfHealth:
-  case Item::KegOfMana:
-  case Item::AmuletOfYendor:
+  case ShopItem::KegOfHealth:
+  case ShopItem::KegOfMana:
+  case ShopItem::AmuletOfYendor:
     return true;
 
-  case Item::OrbOfZot:
-  case Item::WickedGuitar:
+  case ShopItem::OrbOfZot:
+  case ShopItem::WickedGuitar:
     return true;
-
-  // Potions
-  case Item::HealthPotion:
-  case Item::ManaPotion:
-  case Item::FortitudeTonic:
-  case Item::BurnSalve:
-  case Item::StrengthPotion:
-  case Item::Schadenfreude:
-  case Item::QuicksilverPotion:
-  case Item::ReflexPotion:
-  case Item::CanOfWhupaz:
-    return true;
-
-  // Boss Rewards
-  case Item::NamtarsWard:
-    return !hasStatus(HeroStatus::DeathProtection) && !namtarsWardUsedThisLevel;
 
   default:
     return false;
   }
 }
 
+bool Hero::canUse(BossReward item) const
+{
+  return item != BossReward::NamtarsWard || (!hasStatus(HeroStatus::DeathProtection) && !namtarsWardUsedThisLevel);
+}
+
 void Hero::use(Item item, Monsters& allMonsters)
 {
-  bool consumed = isPotion(item);
+  /* TODO: Add this check?
+  if (!has(item) || !canUse(item))
+    return;
+  */
+  bool consumed = false;
+  std::visit(overloaded{[&](Potion potion) {
+                          consumed = true;
+                          switch (potion)
+                          {
+                          case Potion::HealthPotion:
+                            drinkHealthPotion();
+                            break;
+                          case Potion::ManaPotion:
+                            drinkManaPotion();
+                            break;
+                          case Potion::FortitudeTonic:
+                            resetStatus(HeroDebuff::Poisoned);
+                            resetStatus(HeroDebuff::Weakened);
+                            break;
+                          case Potion::BurnSalve:
+                            resetStatus(HeroDebuff::ManaBurned);
+                            resetStatus(HeroDebuff::Corroded);
+                            break;
+                          case Potion::StrengthPotion:
+                            addSpiritStrength();
+                            break;
+                          case Potion::Schadenfreude:
+                            addStatus(HeroStatus::Schadenfreude);
+                            break;
+                          case Potion::QuicksilverPotion:
+                            addStatus(HeroStatus::DodgePrediction);
+                            addStatus(HeroStatus::DodgeTemporary, 50);
+                            break;
+                          case Potion::ReflexPotion:
+                            addStatus(HeroStatus::Reflexes);
+                            break;
+                          case Potion::CanOfWhupaz:
+                            addStatus(HeroStatus::CrushingBlow);
+                            break;
+                          }
+                          if (has(ShopItem::Trisword))
+                            changeBaseDamage(inventory.chargeTrisword());
+                          if (has(ShopItem::AlchemistScroll) && !alchemistScrollUsedThisLevel && spendGold(3))
+                          {
+                            changeHitPointsMax(8);
+                            alchemistScrollUsedThisLevel = true;
+                          }
+                        },
+                        [&](ShopItem item) {
+                          switch (item)
+                          {
+                          // Basic Items
+                          case ShopItem::BadgeOfHonour:
+                            if (!hasStatus(HeroStatus::DeathProtection))
+                            {
+                              addStatus(HeroStatus::DeathProtection);
+                              consumed = true;
+                            }
+                            break;
 
-  switch (item)
-  {
-  // Basic Items
-  case Item::BadgeOfHonour:
-    if (!hasStatus(HeroStatus::DeathProtection))
-    {
-      addStatus(HeroStatus::DeathProtection);
-      consumed = true;
-    }
-    break;
+                          // Quest Items
+                          case ShopItem::FireHeart:
+                            healHitPoints(getHitPointsMax() * inventory.fireHeartUsed() / 100);
+                            break;
+                          case ShopItem::CrystalBall:
+                            if (spendGold(inventory.getCrystalBallUseCosts()))
+                              recoverManaPoints(inventory.crystalBallUsed());
+                            break;
 
-  // Quest Items
-  case Item::FireHeart:
-    healHitPoints(getHitPointsMax() * inventory.fireHeartUsed() / 100);
-    break;
-  case Item::CrystalBall:
-    if (spendGold(inventory.getCrystalBallUseCosts()))
-      recoverManaPoints(inventory.crystalBallUsed());
-    break;
+                          // Elite Items
+                          case ShopItem::KegOfHealth:
+                            inventory.add(Potion::HealthPotion);
+                            inventory.add(Potion::HealthPotion);
+                            inventory.add(Potion::HealthPotion);
+                            consumed = true;
+                            break;
+                          case ShopItem::KegOfMana:
+                            inventory.add(Potion::ManaPotion);
+                            inventory.add(Potion::ManaPotion);
+                            inventory.add(Potion::ManaPotion);
+                            consumed = true;
+                            break;
+                          case ShopItem::AmuletOfYendor:
+                            gainExperienceNoBonuses(50, allMonsters);
+                            consumed = true;
+                            break;
 
-  // Elite Items
-  case Item::KegOfHealth:
-    inventory.add(Item::HealthPotion);
-    inventory.add(Item::HealthPotion);
-    inventory.add(Item::HealthPotion);
-    consumed = true;
-    break;
-  case Item::KegOfMana:
-    inventory.add(Item::ManaPotion);
-    inventory.add(Item::ManaPotion);
-    inventory.add(Item::ManaPotion);
-    consumed = true;
-    break;
-  case Item::AmuletOfYendor:
-    gainExperienceNoBonuses(50, allMonsters);
-    consumed = true;
-    break;
+                          case ShopItem::OrbOfZot:
+                            // TODO: Only apply to visible monsters
+                            for (auto& monster : allMonsters)
+                              monster.zot();
+                            consumed = true;
+                            break;
+                          case ShopItem::WickedGuitar:
+                            // TODO: Only apply to visible monsters
+                            for (auto& monster : allMonsters)
+                              monster.makeWickedSick();
+                            break;
 
-  case Item::OrbOfZot:
-    // TODO: Only apply to visible monsters
-    for (auto& monster : allMonsters)
-      monster.zot();
-    consumed = true;
-    break;
-  case Item::WickedGuitar:
-    // TODO: Only apply to visible monsters
-    for (auto& monster : allMonsters)
-      monster.makeWickedSick();
-    break;
-
-  // Potions
-  case Item::HealthPotion:
-    drinkHealthPotion();
-    break;
-  case Item::ManaPotion:
-    drinkManaPotion();
-    break;
-  case Item::FortitudeTonic:
-    resetStatus(HeroDebuff::Poisoned);
-    resetStatus(HeroDebuff::Weakened);
-    break;
-  case Item::BurnSalve:
-    resetStatus(HeroDebuff::ManaBurned);
-    resetStatus(HeroDebuff::Corroded);
-    break;
-  case Item::StrengthPotion:
-    addSpiritStrength();
-    break;
-  case Item::Schadenfreude:
-    addStatus(HeroStatus::Schadenfreude);
-    break;
-  case Item::QuicksilverPotion:
-    addStatus(HeroStatus::DodgePrediction);
-    addStatus(HeroStatus::DodgeTemporary, 50);
-    break;
-  case Item::ReflexPotion:
-    addStatus(HeroStatus::Reflexes);
-    break;
-  case Item::CanOfWhupaz:
-    addStatus(HeroStatus::CrushingBlow);
-    break;
-
-  // Boss Rewards
-  case Item::NamtarsWard:
-    addStatus(HeroStatus::DeathProtection);
-    namtarsWardUsedThisLevel = true;
-    break;
-
-  default:
-    break;
-  }
+                          default:
+                            break;
+                          }
+                        },
+                        [&](BossReward item) {
+                          if (item == BossReward::NamtarsWard)
+                          {
+                            addStatus(HeroStatus::DeathProtection);
+                            namtarsWardUsedThisLevel = true;
+                          }
+                        },
+                        [](const auto&) {}},
+             item);
 
   applyOrCollect(faith.itemUsed(item), allMonsters);
-
-  if (isPotion(item))
-  {
-    if (has(Item::Trisword))
-      changeBaseDamage(inventory.chargeTrisword());
-    if (has(Item::AlchemistScroll) && !alchemistScrollUsedThisLevel && spendGold(3))
-    {
-      changeHitPointsMax(8);
-      alchemistScrollUsedThisLevel = true;
-    }
-  }
 
   if (consumed && inventory.remove(item))
     changeStatsFromItem(item, false);
@@ -1356,14 +1353,14 @@ void Hero::use(Item item, Monsters& allMonsters)
 
 bool Hero::canUse(Item item, const Monster& monster) const
 {
-  if (item == Item::SlayerWand)
+  if (item == Item{BlacksmithItem::SlayerWand})
     return !monster.isDefeated() && monster.getLevel() < 10;
   return canUse(item);
 }
 
 void Hero::use(Item item, Monster& monster, Monsters& allMonsters)
 {
-  if (item == Item::SlayerWand)
+  if (item == Item{BlacksmithItem::SlayerWand})
   {
     gainExperienceForKill(std::min(getLevel(), monster.getLevel()), monster.isSlowed(), allMonsters);
     monster.die();
@@ -1373,9 +1370,9 @@ void Hero::use(Item item, Monster& monster, Monsters& allMonsters)
 
 bool Hero::useCompressionSealOn(ItemOrSpell itemOrSpell)
 {
-  if (has(Item::CompressionSeal) && inventory.compress(itemOrSpell))
+  if (has(AlchemistSeal::CompressionSeal) && inventory.compress(itemOrSpell))
   {
-    lose(Item::CompressionSeal);
+    lose(AlchemistSeal::CompressionSeal);
     return true;
   }
   return false;
@@ -1383,14 +1380,14 @@ bool Hero::useCompressionSealOn(ItemOrSpell itemOrSpell)
 
 bool Hero::useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters)
 {
-  if (has(Item::TransmutationSeal) && inventory.transmute(itemOrSpell))
+  if (has(AlchemistSeal::TransmutationSeal) && inventory.transmute(itemOrSpell))
   {
-    inventory.remove(Item::TransmutationSeal);
+    inventory.remove(AlchemistSeal::TransmutationSeal);
     if (const auto item = std::get_if<Item>(&itemOrSpell))
     {
       changeStatsFromItem(*item, false);
       // Taurog doesn't tolerate transmuting one of his boons
-      if (*item == Item::Skullpicker || *item == Item::Wereward || *item == Item::Gloat || *item == Item::Will)
+      if (std::get_if<TaurogItem>(&*item) != nullptr)
         faith.convertedTaurogItem(*this, allMonsters);
     }
     return true;
@@ -1412,9 +1409,9 @@ bool Hero::useTransmutationSealOnPetrifiedEnemy()
 
 bool Hero::useTransmutationSealOnWallOrPetrifiedPlant()
 {
-  if (has(Item::TransmutationSeal))
+  if (has(AlchemistSeal::TransmutationSeal))
   {
-    lose(Item::TransmutationSeal);
+    lose(AlchemistSeal::TransmutationSeal);
     addGold(hasTrait(HeroTrait::BlackMarket) ? 11 : 10);
     return true;
   }
@@ -1423,11 +1420,11 @@ bool Hero::useTransmutationSealOnWallOrPetrifiedPlant()
 
 bool Hero::useTranslocationSealOn(Item shopItem)
 {
-  if (has(Item::TranslocationSeal))
+  if (has(AlchemistSeal::TranslocationSeal))
   {
     if (!isSmall(shopItem) && inventory.numFreeSmallSlots() < 4 && !hasTrait(HeroTrait::RegalSize))
       return false;
-    lose(Item::TranslocationSeal);
+    lose(AlchemistSeal::TranslocationSeal);
     return inventory.translocate(shopItem);
   }
   return false;
@@ -1437,153 +1434,173 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
 {
   // Apply passive item effects on hero status
   const int sign = itemReceived ? +1 : -1;
-  switch (item)
-  {
-  case Item::BadgeOfHonour:
-    changeDamageBonusPercent(10 * sign);
-    break;
-  case Item::BloodySigil:
-    changeHitPointsMax(5 * sign);
-    changeDamageBonusPercent(-10 * sign);
-    break;
-  case Item::FineSword:
-    changeBaseDamage(4 * sign);
-    break;
-  case Item::PendantOfHealth:
-    changeHitPointsMax(10 * sign);
-    break;
-  case Item::PendantOfMana:
-    changeManaPointsMax(2 * sign);
-    break;
-  case Item::Spoon:
-    changeBaseDamage(sign);
-    break;
-  case Item::TowerShield:
-    changePhysicalResistPercent(10 * sign);
-    break;
-  case Item::TrollHeart:
-    // Add 2 additional max HP on future level ups.
-    // Was not removed when coverting item in early versions of the game.
-    if (itemReceived)
-    {
-      stats.addHealthBonus(0);
-      stats.addHealthBonus(0);
-    }
-    else
-    {
-      stats.reduceHealthBonus();
-      stats.reduceHealthBonus();
-    }
-    break;
-  case Item::HerosHelm:
-    changeHitPointsMax(5 * sign);
-    changeManaPointsMax(sign);
-    changeBaseDamage(2 * sign);
-    break;
-  case Item::Platemail:
-    addStatus(HeroStatus::DamageReduction, 2 * sign * getLevel());
-    addStatus(HeroStatus::SlowStrike, sign);
-    break;
-  case Item::Whurrgarbl:
-    addStatus(HeroStatus::BurningStrike, sign);
-    break;
-  case Item::Trisword:
-    changeBaseDamage(sign * inventory.getTriswordDamage());
-    break;
-  case Item::VenomDagger:
-    addStatus(HeroStatus::Poisonous, 2 * sign);
-    break;
-  case Item::MartyrWraps:
-    addStatus(HeroStatus::CorrosiveStrike, sign);
-    break;
-  case Item::MagePlate:
-  {
-    const int strength = (getLevel() + 1) / 2;
-    changeManaPointsMax(sign * strength);
-    changeDamageBonusPercent(-5 * sign * strength);
-    break;
-  }
-  case Item::VampiricBlade:
-    addStatus(HeroStatus::LifeSteal, sign);
-    break;
-  case Item::ViperWard:
-    if (itemReceived)
-      addStatus(HeroStatus::PoisonImmune);
-    else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
-      resetStatus(HeroStatus::PoisonImmune);
-    break;
-  case Item::SoulOrb:
-    if (itemReceived)
-      addStatus(HeroStatus::ManaBurnImmune);
-    else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
-      resetStatus(HeroStatus::ManaBurnImmune);
-    break;
-  case Item::ElvenBoots:
-    changeManaPointsMax(3 * sign);
-    changeMagicalResistPercent(15 * sign);
-    break;
-  case Item::DwarvenGauntlets:
-    changeDamageBonusPercent(20 * sign);
-    if (itemReceived)
-    {
-      stats.addHealthBonus(0);
-      stats.addHealthBonus(0);
-    }
-    else
-    {
-      stats.reduceHealthBonus();
-      stats.reduceHealthBonus();
-    }
-    break;
-  case Item::OrbOfZot:
-    changeHitPointsMax(5 * sign);
-    changeManaPointsMax(3 * sign);
-    break;
-  case Item::BearMace:
-    addStatus(HeroStatus::Knockback, 25 * sign);
-    break;
-  case Item::PerseveranceBadge:
-    changeDamageBonusPercent(10 * sign);
-    break;
-  case Item::ReallyBigSword:
-    addStatus(HeroStatus::PiercePhysical, sign);
-    addStatus(HeroStatus::SlowStrike, sign);
-    break;
-  case Item::Shield:
-    addStatus(HeroStatus::DamageReduction, 2 * sign);
-    break;
-  case Item::Sword:
-    changeBaseDamage(2 * sign);
-    break;
-  case Item::Gorgward:
-    if (itemReceived)
-      addStatus(HeroStatus::DeathGazeImmune);
-    else if (!hasTrait(HeroTrait::AzureBody))
-      resetStatus(HeroStatus::DeathGazeImmune);
-    break;
-  case Item::DragonShield:
-    changePhysicalResistPercent(18 * sign);
-    changeMagicalResistPercent(18 * sign);
-    break;
-  case Item::AvatarsCodex:
-    addStatus(HeroStatus::HeavyFireball, sign);
-    break;
-  case Item::Skullpicker:
-    changeBaseDamage(itemReceived ? +5 : -5);
-    break;
-  case Item::Wereward:
-    addStatus(HeroStatus::DamageReduction, itemReceived ? +5 : -5);
-    break;
-  case Item::Gloat:
-    changeMagicalResistPercent(itemReceived ? +15 : -15);
-    break;
-  case Item::Will:
-    changePhysicalResistPercent(itemReceived ? +15 : -15);
-    break;
-
-  default:
-    break;
-  }
+  std::visit(overloaded{[&](BlacksmithItem item) {
+                          switch (item)
+                          {
+                          case BlacksmithItem::PerseveranceBadge:
+                            changeDamageBonusPercent(10 * sign);
+                            break;
+                          case BlacksmithItem::ReallyBigSword:
+                            addStatus(HeroStatus::PiercePhysical, sign);
+                            addStatus(HeroStatus::SlowStrike, sign);
+                            break;
+                          case BlacksmithItem::BearMace:
+                            addStatus(HeroStatus::Knockback, 25 * sign);
+                            break;
+                          case BlacksmithItem::Sword:
+                            changeBaseDamage(2 * sign);
+                            break;
+                          case BlacksmithItem::Shield:
+                            addStatus(HeroStatus::DamageReduction, 2 * sign);
+                            break;
+                          case BlacksmithItem::SlayerWand:
+                            break;
+                          }
+                        },
+                        [&](ShopItem item) {
+                          switch (item)
+                          {
+                          case ShopItem::BadgeOfHonour:
+                            changeDamageBonusPercent(10 * sign);
+                            break;
+                          case ShopItem::BloodySigil:
+                            changeHitPointsMax(5 * sign);
+                            changeDamageBonusPercent(-10 * sign);
+                            break;
+                          case ShopItem::FineSword:
+                            changeBaseDamage(4 * sign);
+                            break;
+                          case ShopItem::PendantOfHealth:
+                            changeHitPointsMax(10 * sign);
+                            break;
+                          case ShopItem::PendantOfMana:
+                            changeManaPointsMax(2 * sign);
+                            break;
+                          case ShopItem::Spoon:
+                            changeBaseDamage(sign);
+                            break;
+                          case ShopItem::TowerShield:
+                            changePhysicalResistPercent(10 * sign);
+                            break;
+                          case ShopItem::TrollHeart:
+                            // Add 2 additional max HP on future level ups.
+                            // Was not removed when coverting item in early versions of the game.
+                            if (itemReceived)
+                            {
+                              stats.addHealthBonus(0);
+                              stats.addHealthBonus(0);
+                            }
+                            else
+                            {
+                              stats.reduceHealthBonus();
+                              stats.reduceHealthBonus();
+                            }
+                            break;
+                          case ShopItem::HerosHelm:
+                            changeHitPointsMax(5 * sign);
+                            changeManaPointsMax(sign);
+                            changeBaseDamage(2 * sign);
+                            break;
+                          case ShopItem::Platemail:
+                            addStatus(HeroStatus::DamageReduction, 2 * sign * getLevel());
+                            addStatus(HeroStatus::SlowStrike, sign);
+                            break;
+                          case ShopItem::Whurrgarbl:
+                            addStatus(HeroStatus::BurningStrike, sign);
+                            break;
+                          case ShopItem::Trisword:
+                            changeBaseDamage(sign * inventory.getTriswordDamage());
+                            break;
+                          case ShopItem::VenomDagger:
+                            addStatus(HeroStatus::Poisonous, 2 * sign);
+                            break;
+                          case ShopItem::MartyrWraps:
+                            addStatus(HeroStatus::CorrosiveStrike, sign);
+                            break;
+                          case ShopItem::MagePlate:
+                          {
+                            const int strength = (getLevel() + 1) / 2;
+                            changeManaPointsMax(sign * strength);
+                            changeDamageBonusPercent(-5 * sign * strength);
+                            break;
+                          }
+                          case ShopItem::VampiricBlade:
+                            addStatus(HeroStatus::LifeSteal, sign);
+                            break;
+                          case ShopItem::ViperWard:
+                            if (itemReceived)
+                              addStatus(HeroStatus::PoisonImmune);
+                            else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
+                              resetStatus(HeroStatus::PoisonImmune);
+                            break;
+                          case ShopItem::SoulOrb:
+                            if (itemReceived)
+                              addStatus(HeroStatus::ManaBurnImmune);
+                            else if (!hasTrait(HeroTrait::Scars) && !hasTrait(HeroTrait::Undead))
+                              resetStatus(HeroStatus::ManaBurnImmune);
+                            break;
+                          case ShopItem::ElvenBoots:
+                            changeManaPointsMax(3 * sign);
+                            changeMagicalResistPercent(15 * sign);
+                            break;
+                          case ShopItem::DwarvenGauntlets:
+                            changeDamageBonusPercent(20 * sign);
+                            if (itemReceived)
+                            {
+                              stats.addHealthBonus(0);
+                              stats.addHealthBonus(0);
+                            }
+                            else
+                            {
+                              stats.reduceHealthBonus();
+                              stats.reduceHealthBonus();
+                            }
+                            break;
+                          case ShopItem::OrbOfZot:
+                            changeHitPointsMax(5 * sign);
+                            changeManaPointsMax(3 * sign);
+                            break;
+                          default:
+                            break;
+                          }
+                        },
+                        [&](MiscItem item) {
+                          if (item == MiscItem::Gorgward)
+                          {
+                            if (itemReceived)
+                              addStatus(HeroStatus::DeathGazeImmune);
+                            else if (!hasTrait(HeroTrait::AzureBody))
+                              resetStatus(HeroStatus::DeathGazeImmune);
+                          }
+                        },
+                        [&](BossReward item) {
+                          if (item == BossReward::DragonShield)
+                          {
+                            changePhysicalResistPercent(18 * sign);
+                            changeMagicalResistPercent(18 * sign);
+                          }
+                          else if (item == BossReward::AvatarsCodex)
+                            addStatus(HeroStatus::HeavyFireball, sign);
+                        },
+                        [&](TaurogItem item) {
+                          switch (item)
+                          {
+                          case TaurogItem::Skullpicker:
+                            changeBaseDamage(itemReceived ? +5 : -5);
+                            break;
+                          case TaurogItem::Wereward:
+                            addStatus(HeroStatus::DamageReduction, itemReceived ? +5 : -5);
+                            break;
+                          case TaurogItem::Gloat:
+                            changeMagicalResistPercent(itemReceived ? +15 : -15);
+                            break;
+                          case TaurogItem::Will:
+                            changePhysicalResistPercent(itemReceived ? +15 : -15);
+                            break;
+                          }
+                        },
+                        [](const auto&) {}},
+             item);
 }
 
 int Hero::getConversionPoints() const

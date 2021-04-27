@@ -9,6 +9,7 @@
 #include "engine/HeroStatus.hpp"
 #include "engine/HeroTraits.hpp"
 #include "engine/Inventory.hpp"
+#include "engine/Items.hpp"
 #include "engine/Resources.hpp"
 
 #include <map>
@@ -177,7 +178,9 @@ public:
   void receive(ItemOrSpell itemOrSpell);
   void convert(ItemOrSpell itemOrSpell, Monsters& allMonsters);
   bool canConvert(ItemOrSpell itemOrSpell) const;
-  bool canUse(Item item) const;
+  bool canUse(ShopItem item) const;
+  bool canUse(BossReward item) const;
+  constexpr bool canUse(Item item) const;
   bool canUse(Item item, const Monster& monster) const;
   void use(Item item, Monsters& allMonsters);
   void use(Item item, Monster& monster, Monsters& allMonsters);
@@ -221,6 +224,17 @@ private:
   void applyOrCollectPietyGain(int pointsGained);
   void changeStatsFromItem(Item item, bool itemReceived);
 };
+
+constexpr bool Hero::canUse(Item item) const
+{
+  return std::visit(overloaded{
+                        [&](const ShopItem& item) { return canUse(item); },
+                        [&](const BossReward& item) { return canUse(item); },
+                        [](Potion) { return true; },
+                        [](const auto&) { return false; },
+                    },
+                    item);
+}
 
 std::vector<std::string> describe(const Hero& hero);
 std::vector<std::string> describe_diff(const Hero& before, const Hero& now);

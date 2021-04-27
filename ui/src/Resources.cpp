@@ -160,30 +160,12 @@ namespace ui
     }
     if (ImGui::BeginPopup("SpawnShopPopup"))
     {
-      // TODO: Add alchemist seals here? Or as cheat?
-      int index = 0;
-      struct SubMenu
-      {
-        std::string title;
-        Item first;
-        Item last;
-      };
-      const std::vector<SubMenu> submenus = {
-          {"Basic Items", Item::BadgeOfHonour, Item::TrollHeart},
-          {"Quest Items", Item::PiercingWand, Item::SoulOrb},
-          {"Elite Items", Item::KegOfHealth, Item::WickedGuitar},
-          {"Boss Rewards", Item::FabulousTreasure, Item::SensationStone},
-          {"Blacksmith Items", Item::BearMace, Item::Sword},
-      };
-      for (auto submenu : submenus)
-      {
-        if (ImGui::BeginMenu(submenu.title.c_str()))
+      auto makeSubmenu = [this, index = 0, &state](const auto title, const auto firstItem, const auto lastItem) mutable {
+                if (ImGui::BeginMenu(title))
         {
-          for (int itemIndex = static_cast<int>(submenu.first); itemIndex <= static_cast<int>(submenu.last);
-               ++itemIndex)
+          for (auto item = firstItem; item != lastItem; item = static_cast<decltype(firstItem)>(static_cast<int>(item) + 1))
           {
             const bool isSelected = ++index == selectedPopupItem;
-            const auto item = static_cast<Item>(itemIndex);
             if (addPopupAction(
                     state, toString(item), "Spawn "s + toString(item) + " shop",
                     [item](State& state) {
@@ -195,7 +177,13 @@ namespace ui
           }
           ImGui::EndMenu();
         }
-      }
+      };
+      // TODO: Add alchemist seals here? Or as cheat?
+      makeSubmenu("Basic Items", ShopItem::BadgeOfHonour, ShopItem::TrollHeart);
+      makeSubmenu("Quest Items", ShopItem::PiercingWand, ShopItem::SoulOrb);
+      makeSubmenu("Elite Items", ShopItem::KegOfHealth, ShopItem::WickedGuitar);
+      makeSubmenu("Boss Rewards", static_cast<BossReward>(0), BossReward::Last);
+      makeSubmenu("Blacksmith Items", static_cast<BlacksmithItem>(0), BlacksmithItem::Last);
       if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
         ImGui::CloseCurrentPopup();
       ImGui::EndPopup();

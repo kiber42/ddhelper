@@ -2,6 +2,7 @@
 
 #include "engine/GodsAndBoons.hpp"
 #include "engine/GlowingGuardian.hpp"
+#include "engine/Items.hpp"
 #include "engine/Jehora.hpp"
 #include "engine/Monster.hpp"
 #include "engine/Resources.hpp"
@@ -13,7 +14,6 @@
 
 class Hero;
 
-enum class Item;
 enum class Spell;
 
 struct JehoraTriggered

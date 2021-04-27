@@ -230,13 +230,13 @@ int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters,
   case Boon::BloodCurse:
     return hero.getLevel() < 10;
   case Boon::BoostHealth:
-    return hero.has(Item::HealthPotion);
+    return hero.has(Potion::HealthPotion);
   case Boon::BoostMana:
-    return hero.has(Item::ManaPotion);
+    return hero.has(Potion::ManaPotion);
   case Boon::Humility:
     return hero.getLevel() > 1;
   case Boon::Reflexes:
-    return hero.has(Item::HealthPotion);
+    return hero.has(Potion::HealthPotion);
   case Boon::StoneFist:
     return resources().numWalls >= 20;
   case Boon::StoneForm:
@@ -248,8 +248,8 @@ int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters,
   case Boon::Tribute:
     return hero.gold() >= 15;
   case Boon::UnstoppableFury:
-    return !hero.hasStatus(HeroStatus::DeathProtection) && hero.has(Item::Skullpicker) && hero.has(Item::Wereward) &&
-           hero.has(Item::Gloat) && hero.has(Item::Will);
+    return !hero.hasStatus(HeroStatus::DeathProtection) && hero.has(TaurogItem::Skullpicker) &&
+           hero.has(TaurogItem::Wereward) && hero.has(TaurogItem::Gloat) && hero.has(TaurogItem::Will);
   default:
     return true;
   }
@@ -362,7 +362,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     {
       allMonstersOnFloor.erase(monsterIt);
       hero.changeHitPointsMax(4);
-      hero.receive(Item::PrayerBead);
+      hero.receive(MiscItem::PrayerBead);
     }
     break;
   }
@@ -372,12 +372,12 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.reduceStatus(HeroDebuff::Weakened);
     hero.reduceStatus(HeroDebuff::Corroded);
     hero.addStatus(HeroStatus::ConsecratedStrike);
-    hero.receive(Item::PrayerBead);
+    hero.receive(MiscItem::PrayerBead);
     break;
   case Boon::Protection:
     hero.healHitPoints(hero.getHitPointsMax() * 35 / 100);
     hero.recoverManaPoints(hero.getManaPointsMax() * 35 / 100);
-    hero.receive(Item::PrayerBead);
+    hero.receive(MiscItem::PrayerBead);
     break;
   case Boon::Enlightenment:
   {
@@ -390,11 +390,11 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
       hero.refillHealthAndMana();
     break;
   case Boon::BoostHealth:
-    hero.lose(Item::HealthPotion);
+    hero.lose(Potion::HealthPotion);
     hero.changeHitPointsMax(+20);
     break;
   case Boon::BoostMana:
-    hero.lose(Item::ManaPotion);
+    hero.lose(Potion::ManaPotion);
     hero.changeManaPointsMax(+3);
     break;
   case Boon::ChaosAvatar:
@@ -423,22 +423,22 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
 
   case Boon::TaurogsBlade:
-    hero.receive(Item::Skullpicker);
+    hero.receive(TaurogItem::Skullpicker);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsShield:
-    hero.receive(Item::Wereward);
+    hero.receive(TaurogItem::Wereward);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsHelm:
-    hero.receive(Item::Gloat);
+    hero.receive(TaurogItem::Gloat);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsArmour:
-    hero.receive(Item::Will);
+    hero.receive(TaurogItem::Will);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
@@ -461,9 +461,9 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.addStatus(HeroStatus::Poisonous, 1);
     break;
   case Boon::Reflexes:
-    hero.lose(Item::HealthPotion);
-    hero.receive(Item::ReflexPotion);
-    hero.receive(Item::QuicksilverPotion);
+    hero.lose(Potion::HealthPotion);
+    hero.receive(Potion::ReflexPotion);
+    hero.receive(Potion::QuicksilverPotion);
     break;
 
   // No immediate effects
@@ -853,21 +853,21 @@ PietyChange Faith::levelGained()
 PietyChange Faith::itemUsed(Item item)
 {
   PietyChange result;
-  if (item == Item::HealthPotion || item == Item::ManaPotion)
+  if (auto potion = std::get_if<Potion>(&item); potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
   {
     if (pact == Pact::AlchemistsPact)
       result += *pact;
     if (followedDeity)
     {
       result += [&, deity = *followedDeity]() -> PietyChange {
-        if (item == Item::HealthPotion)
+        if (*potion == Potion::HealthPotion)
         {
           if (deity == God::Dracul)
             return -5;
           if (deity == God::GlowingGuardian)
             return -10;
         }
-        else if (item == Item::ManaPotion)
+        else if (*potion == Potion::ManaPotion)
         {
           if (deity == God::GlowingGuardian)
             return -10;
@@ -940,7 +940,7 @@ PietyChange Faith::converted(ItemOrSpell itemOrSpell, bool wasSmall)
       switch (deity)
       {
       case God::Dracul:
-        if (itemOrSpell == ItemOrSpell{Item::HealthPotion})
+        if (itemOrSpell == ItemOrSpell{Potion::HealthPotion})
           return 5;
         if (itemOrSpell == ItemOrSpell{Spell::Cydstepp} || itemOrSpell == ItemOrSpell{Spell::Halpmeh})
           return 10;
@@ -950,7 +950,7 @@ PietyChange Faith::converted(ItemOrSpell itemOrSpell, bool wasSmall)
           return 10;
         if (!wasSmall)
           return 5;
-        if (const auto item = std::get_if<Item>(&itemOrSpell); item && isPotion(*item))
+        if (const auto item = std::get_if<Item>(&itemOrSpell); item && std::get_if<Potion>(&*item) != nullptr)
           return 5;
         return 2;
       case God::JehoraJeheyu:

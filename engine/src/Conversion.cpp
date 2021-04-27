@@ -62,11 +62,11 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
     break;
   case HeroRace::Halfling:
     threshold = 80;
-    bonus = [](Hero& hero, Monsters&) { hero.receive(Item::HealthPotion); };
+    bonus = [](Hero& hero, Monsters&) { hero.receive(Potion::HealthPotion); };
     break;
   case HeroRace::Gnome:
     threshold = 90;
-    bonus = [](Hero& hero, Monsters&) { hero.receive(Item::ManaPotion); };
+    bonus = [](Hero& hero, Monsters&) { hero.receive(Potion::ManaPotion); };
     break;
   case HeroRace::Orc:
     threshold = 80;

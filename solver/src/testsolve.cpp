@@ -12,14 +12,14 @@ void testPrinting()
   Solution solution;
   solution.emplace_back(Attack{});
   solution.emplace_back(Uncover{5});
-  solution.emplace_back(Buy{Item::Spoon});
+  solution.emplace_back(Buy{ShopItem::Spoon});
   solution.emplace_back(Find{Spell::Burndayraz});
   solution.emplace_back(Cast{Spell::Getindare});
   solution.emplace_back(Follow{God::Taurog});
   solution.emplace_back(Convert{Spell::Apheelsik});
   solution.emplace_back(Request{Boon::Humility});
   solution.emplace_back(Desecrate{God::BinlorIronshield});
-  solution.emplace_back(Use{Item::BattlemageRing});
+  solution.emplace_back(Use{ShopItem::BattlemageRing});
   std::cout << toString(solution) << '\n';
 }
 
@@ -39,7 +39,6 @@ void testSolve(Solver solver, Scenario scenario)
 
 int main()
 {
-  // testSolve(Solver::SimulatedAnnealing, Scenario::HalflingTrial);
-  testSolve(Solver::GeneticAlgorithm, Scenario::TheThirdAct);
+  testSolve(Solver::GeneticAlgorithm, Scenario::HalflingTrial);
   return 0;
 }

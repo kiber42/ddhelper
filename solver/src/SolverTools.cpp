@@ -7,58 +7,10 @@
 #include <iostream>
 #include <random>
 
-template <class... Ts>
-struct overloaded : Ts...
-{
-  using Ts::operator()...;
-};
-
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());
 
 namespace solver
 {
-  Step generateRandomStep()
-  {
-    std::uniform_int_distribution<> randomAction(0, 11);
-    std::uniform_int_distribution<> randomSpell(0, static_cast<int>(Spell::Last) - 1);
-    std::uniform_int_distribution<> randomShopItem(0, static_cast<int>(Item::LastShopItem) - 1);
-    std::uniform_int_distribution<> randomItem(0, static_cast<int>(Item::Last) - 1);
-    std::uniform_int_distribution<> randomGod(0, static_cast<int>(God::Last) - 1);
-    std::uniform_int_distribution<> randomBoon(0, static_cast<int>(Boon::Last) - 1);
-    std::uniform_int_distribution<> randomPact(0, static_cast<int>(Pact::LastWithConsensus) - 1);
-    switch (randomAction(generator))
-    {
-    default:
-    case 0:
-      return Attack{};
-    case 1:
-      return Cast{static_cast<Spell>(randomSpell(generator))};
-    case 2:
-      return Uncover{1};
-    case 3:
-      return Buy{static_cast<Item>(randomShopItem(generator))};
-    case 4:
-      return Use{static_cast<Item>(randomItem(generator))};
-    case 5:
-      return Convert{static_cast<Item>(randomItem(generator))};
-    case 6:
-      return Convert{static_cast<Spell>(randomSpell(generator))};
-    case 7:
-      return Find{static_cast<Spell>(randomSpell(generator))};
-    case 8:
-      return Follow{static_cast<God>(randomGod(generator))};
-    case 9:
-      return Request{static_cast<Boon>(randomBoon(generator))};
-    case 10:
-      return Request{static_cast<Pact>(randomPact(generator))};
-    case 11:
-      return Desecrate{static_cast<God>(randomGod(generator))};
-    }
-  }
-
   Step generateRandomValidStep(const GameState& state)
   {
     // TODO: Replace std::transform and std::shuffle with equivalent std::ranges functions
@@ -117,7 +69,7 @@ namespace solver
           return Uncover{1};
         break;
       case 3:
-        if (!state.hero.hasRoomFor(Item::HealthPotion) || state.hero.gold() == 0)
+        if (!state.hero.hasRoomFor(Potion::HealthPotion) || state.hero.gold() == 0)
           break;
         if (!shops)
         {
