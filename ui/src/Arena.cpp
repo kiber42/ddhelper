@@ -295,45 +295,56 @@ namespace ui
     if (ImGui::BeginPopup("ShopPopup"))
     {
       int index = 0;
-      if (!shops.empty() && state.hero.has(Item::TranslocationSeal))
-        ImGui::Checkbox("Use Translocation Seal", &useTranslocationSeal);
-      else
-        useTranslocationSeal = false;
-      for (size_t itemIndex = 0u; itemIndex < shops.size(); ++itemIndex)
+      if (!shops.empty())
       {
-        const auto item = shops[itemIndex];
-        const bool isSelected = ++index == selectedPopupItem;
-        if (useTranslocationSeal)
-        {
-          const std::string label = toString(item) + " ("s + std::to_string(price(item)) + " gold)";
-          const std::string historyTitle = "Translocate " + label;
-          if (addPopupAction(
-                  state, label, historyTitle,
-                  [item, itemIndex](State& state) {
-                    if (state.hero.useTranslocationSealOn(item))
-                    {
-                      auto& shops = state.resources().shops;
-                      shops.erase(begin(shops) + itemIndex);
-                    }
-                    return Summary::None;
-                  },
-                  isSelected, result))
-            selectedPopupItem = index;
-        }
+        if (state.hero.has(Item::TranslocationSeal))
+          ImGui::Checkbox("Use Translocation Seal", &useTranslocationSeal);
         else
+          useTranslocationSeal = false;
+        const bool allItemsLarge = state.hero.hasTrait(HeroTrait::RegalSize);
+        const int numFreeSlots =
+            state.hero.numFreeSmallInventorySlots() + (useTranslocationSeal ? (allItemsLarge ? 5 : 1) : 0);
+        if (numFreeSlots < 5)
         {
+          if (numFreeSlots == 0 || allItemsLarge)
+            ImGui::TextColored(colorUnavailable, "No room in inventory");
+          else
+            ImGui::TextColored(colorUnavailable, "No room for large items");
+          ImGui::Separator();
+        }
+        for (size_t shopIndex = 0u; shopIndex < shops.size(); ++shopIndex)
+        {
+          const auto item = shops[shopIndex];
+          const bool isSelected = ++index == selectedPopupItem;
           const int price = state.hero.buyingPrice(item);
           const std::string label = toString(item) + " ("s + std::to_string(price) + " gold)";
-          if (state.hero.gold() >= price)
+          if (useTranslocationSeal && (isSmall(item) || numFreeSlots >= 5))
+          {
+            const std::string historyTitle = "Translocate " + label;
+            if (addPopupAction(
+                    state, label, historyTitle,
+                    [item, shopIndex](State& state) {
+                      if (state.hero.useTranslocationSealOn(item))
+                      {
+                        auto& shops = state.resources().shops;
+                        shops.erase(begin(shops) + shopIndex);
+                        return Summary::None;
+                      }
+                      return Summary::NotPossible;
+                    },
+                    isSelected, result))
+              selectedPopupItem = index;
+          }
+          else if (state.hero.canBuy(item))
           {
             const std::string historyTitle = "Buy " + label;
             if (addPopupAction(
                     state, label, historyTitle,
-                    [item, itemIndex](State& state) {
+                    [item, shopIndex](State& state) {
                       if (state.hero.buy(item))
                       {
                         auto& shops = state.resources().shops;
-                        shops.erase(begin(shops) + itemIndex);
+                        shops.erase(begin(shops) + shopIndex);
                       }
                       return Summary::None;
                     },

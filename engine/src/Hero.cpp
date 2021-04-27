@@ -939,6 +939,11 @@ int Hero::sellingPrice(Item item) const
   return inventory.sellingPrice(item);
 }
 
+bool Hero::canBuy(Item item) const
+{
+  return hasRoomFor(item) && canAfford(item);
+}
+
 bool Hero::buy(Item item)
 {
   if (!hasRoomFor(item) || !spendGold(buyingPrice(item)))
@@ -1146,6 +1151,11 @@ bool Hero::has(ItemOrSpell itemOrSpell) const
 bool Hero::hasRoomFor(ItemOrSpell itemOrSpell) const
 {
   return inventory.hasRoomFor(itemOrSpell);
+}
+
+int Hero::numFreeSmallInventorySlots() const
+{
+  return inventory.numFreeSmallSlots();
 }
 
 bool Hero::canAfford(Item item) const

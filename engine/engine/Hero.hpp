@@ -128,6 +128,7 @@ public:
   void collectGoldPile();
   int buyingPrice(Item item) const;
   int sellingPrice(Item item) const;
+  bool canBuy(Item item) const;
   bool buy(Item item);
 
   Faith& getFaith();
@@ -171,6 +172,7 @@ public:
   std::vector<Inventory::Entry> getSpells() const;
   bool has(ItemOrSpell itemOrSpell) const;
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
+  int numFreeSmallInventorySlots() const;
   bool canAfford(Item item) const;
   void receive(ItemOrSpell itemOrSpell);
   void convert(ItemOrSpell itemOrSpell, Monsters& allMonsters);
