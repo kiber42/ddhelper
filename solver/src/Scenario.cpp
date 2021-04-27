@@ -90,5 +90,5 @@ SimpleResources getResourcesForScenario(Scenario scenario)
     resources.altars = {God::TikkiTooki};
     resources.numWalls = 3;
   }
-  return SimpleResources{std::move(resources)};
+  return SimpleResources{std::move(resources), 0 /* no hidden tiles */};
 }
