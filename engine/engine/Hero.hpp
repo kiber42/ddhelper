@@ -182,7 +182,10 @@ public:
   bool canUse(BossReward item) const;
   constexpr bool canUse(Item item) const;
   bool canUse(Item item, const Monster& monster) const;
-  void use(Item item, Monsters& allMonsters);
+  void use(Potion potion, Monsters& allMonsters);
+  void use(ShopItem item, Monsters& allMonsters);
+  void use(BossReward item);
+  constexpr void use(Item item, Monsters& allMonsters);
   void use(Item item, Monster& monster, Monsters& allMonsters);
 
   bool useCompressionSealOn(ItemOrSpell itemOrSpell);
@@ -214,6 +217,8 @@ private:
   void gainExperience(int xpGained, int xpBonuses, Monsters& allMonsters);
   void drinkHealthPotion();
   void drinkManaPotion();
+  // Change health bonus, but not retroactively
+  void modifyFutureHealthBonus(int amount);
   int nagaCauldronBonus() const;
   void loseHitPoints(int amountPointsLost, Monsters& allMonsters);
   void setStatusIntensity(HeroStatus status, int newIntensity);
@@ -222,6 +227,13 @@ private:
   void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange, Monsters& allMonsters);
   void applyOrCollectPietyGain(int pointsGained);
+
+  // Add or remove item effects
+  void changeStatsImpl(BlacksmithItem item, bool itemReceived);
+  void changeStatsImpl(ShopItem item, bool itemReceived);
+  void changeStatsImpl(MiscItem item, bool itemReceived);
+  void changeStatsImpl(BossReward item, bool itemReceived);
+  void changeStatsImpl(TaurogItem item, bool itemReceived);
   void changeStatsFromItem(Item item, bool itemReceived);
 };
 
@@ -234,6 +246,14 @@ constexpr bool Hero::canUse(Item item) const
                         [](const auto&) { return false; },
                     },
                     item);
+}
+
+constexpr void Hero::use(Item item, Monsters& allMonsters)
+{
+  std::visit(overloaded{[&](Potion potion) { use(potion, allMonsters); },
+                        [&](const ShopItem& shopItem) { use(shopItem, allMonsters); },
+                        [&](BossReward item) { use(item); }, [](const auto&) {}},
+             item);
 }
 
 std::vector<std::string> describe(const Hero& hero);

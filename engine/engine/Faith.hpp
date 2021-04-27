@@ -82,7 +82,7 @@ public:
   PietyChange imawalPetrifyPlant(int manaCost);
   PietyChange levelGained();
 
-  PietyChange itemUsed(Item item);
+  PietyChange drankPotion(Potion potion);
   PietyChange lifeStolen(const Monster& monster);
   PietyChange bloodPoolConsumed(int numBloodTithe);
   PietyChange becamePoisoned();

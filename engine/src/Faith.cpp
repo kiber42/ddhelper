@@ -850,28 +850,20 @@ PietyChange Faith::levelGained()
   return result;
 }
 
-PietyChange Faith::itemUsed(Item item)
+PietyChange Faith::drankPotion(Potion potion)
 {
   PietyChange result;
-  if (auto potion = std::get_if<Potion>(&item); potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
+  if (potion == Potion::HealthPotion || potion == Potion::ManaPotion)
   {
     if (pact == Pact::AlchemistsPact)
       result += *pact;
     if (followedDeity)
     {
       result += [&, deity = *followedDeity]() -> PietyChange {
-        if (*potion == Potion::HealthPotion)
-        {
-          if (deity == God::Dracul)
-            return -5;
-          if (deity == God::GlowingGuardian)
-            return -10;
-        }
-        else if (*potion == Potion::ManaPotion)
-        {
-          if (deity == God::GlowingGuardian)
-            return -10;
-        }
+        if (deity == God::GlowingGuardian)
+          return -10;
+        else if (potion == Potion::HealthPotion && deity == God::Dracul)
+          return -5;
         return {};
       }();
     }
