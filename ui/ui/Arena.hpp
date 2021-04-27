@@ -15,8 +15,8 @@ namespace ui
   private:
     ActionResultUI result;
 
-    int selectedPopupItem;
-    bool useTranslocationSeal;
+    int selectedPopupItem{-1};
+    bool useTranslocationSeal{false};
 
     void runAttack(const State&);
     void runCastPopup(const State&);
