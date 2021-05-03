@@ -1092,7 +1092,7 @@ void Hero::clearInventory()
 {
   for (auto& entry : inventory.getItemsAndSpells())
   {
-    if (auto item = std::get_if<Item>(&entry.itemOrSpell); item)
+    if (auto item = std::get_if<Item>(&entry.itemOrSpell))
       changeStatsFromItem(*item, false);
   }
   inventory.clear();
@@ -1166,7 +1166,7 @@ void Hero::convert(ItemOrSpell itemOrSpell, Monsters& allMonsters)
       conversion.applyBonus(*this, allMonsters);
 
     applyOrCollect(faith.converted(itemOrSpell, wasSmall), allMonsters);
-    if (std::get_if<TaurogItem>(&*item))
+    if (std::holds_alternative<TaurogItem>(*item))
       faith.convertedTaurogItem(*this, allMonsters);
   }
 }
@@ -1361,7 +1361,7 @@ bool Hero::useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters
     {
       changeStatsFromItem(*item, false);
       // Taurog doesn't tolerate transmuting one of his boons
-      if (std::get_if<TaurogItem>(&*item) != nullptr)
+      if (std::holds_alternative<TaurogItem>(*item))
         faith.convertedTaurogItem(*this, allMonsters);
     }
     return true;

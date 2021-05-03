@@ -142,7 +142,7 @@ std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell i
     // All spells donate 10 of their conversion points
     for (auto& entry : entries)
     {
-      if (std::get_if<Spell>(&entry.itemOrSpell) && entry.conversionPoints >= 10)
+      if (std::holds_alternative<Spell>(entry.itemOrSpell) && entry.conversionPoints >= 10)
       {
         entry.conversionPoints -= 10;
         conversionResult->first += 10;
@@ -325,7 +325,7 @@ auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, int>>
     if (!item)
       continue;
     // Only potions can be grouped (TODO: Food for Goatsperson not implemented yet)
-    if (std::get_if<Potion>(&*item) == nullptr)
+    if (!std::holds_alternative<Potion>(*item))
     {
       itemsGrouped.emplace_back(entry, 1);
       continue;

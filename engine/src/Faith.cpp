@@ -942,13 +942,13 @@ PietyChange Faith::converted(ItemOrSpell itemOrSpell, bool wasSmall)
           return 10;
         if (!wasSmall)
           return 5;
-        if (const auto item = std::get_if<Item>(&itemOrSpell); item && std::get_if<Potion>(&*item) != nullptr)
+        if (const auto item = std::get_if<Item>(&itemOrSpell); item && std::holds_alternative<Potion>(*item))
           return 5;
         return 2;
       case God::JehoraJeheyu:
         return JehoraTriggered();
       case God::Taurog:
-        if (std::get_if<Spell>(&itemOrSpell) != nullptr)
+        if (std::holds_alternative<Spell>(itemOrSpell))
           return 10;
         else
           return {};
