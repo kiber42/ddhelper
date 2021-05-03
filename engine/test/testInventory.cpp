@@ -16,13 +16,12 @@ namespace
 void testInventory()
 {
   describe("Inventory", [] {
-    it("shall have free health and mana potion by default", [] {
-      Inventory inv;
+    Inventory inv{DungeonSetup{}};
+    it("shall have free health and mana potion by default", [&] {
       AssertThat(inv.has(Potion::HealthPotion), IsTrue());
       AssertThat(inv.has(Potion::ManaPotion), IsTrue());
     });
-    it("shall have room for 30 small / 6 large items", [] {
-      Inventory inv;
+    it("shall have room for 30 small / 6 large items", [&] {
       AssertThat(inv.numFreeSmallSlots(), Equals(28));
       inv.clear();
       AssertThat(inv.numFreeSmallSlots(), Equals(30));
@@ -45,8 +44,7 @@ void testInventory()
       inv.add(AlchemistSeal::CompressionSeal);
       AssertThat(inv.numFreeSmallSlots(), Equals(0));
     });
-    it("shall account for grouping", [] {
-      Inventory inv;
+    it("shall account for grouping", [&] {
       inv.clear();
       inv.add(Potion::HealthPotion);
       AssertThat(inv.numFreeSmallSlots(), Equals(29));

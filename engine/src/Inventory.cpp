@@ -7,35 +7,56 @@
 #include <cassert>
 #include <numeric>
 
-Inventory::Inventory(
-    int numSlots, int spellConversionPoints, bool spellsSmall, bool allItemsLarge, bool hasNegotiatorTrait)
-  : numSlots(numSlots)
-  , spellConversionPoints(spellConversionPoints)
-  , spellsSmall(spellsSmall)
-  , allItemsLarge(allItemsLarge)
-  , negotiator(hasNegotiatorTrait)
+namespace
 {
-  addFree(Potion::HealthPotion);
-  addFree(Potion::ManaPotion);
-}
-
-constexpr int initialSpellConversionPoints(bool hasExtraGlyph, bool hasFewerGlyphs)
-{
-  int conversionPoints = 100;
-  if (hasExtraGlyph)
-    conversionPoints -= 20;
-  if (hasFewerGlyphs)
-    conversionPoints += 50;
-  return conversionPoints;
-}
+  constexpr int initialSpellConversionPoints(bool hasExtraGlyph, bool hasFewerGlyphs)
+  {
+    int conversionPoints = 100;
+    if (hasExtraGlyph)
+      conversionPoints -= 20;
+    if (hasFewerGlyphs)
+      conversionPoints += 50;
+    return conversionPoints;
+  }
+} // namespace
 
 Inventory::Inventory(const DungeonSetup& setup)
   : numSlots(setup.altar == GodOrPactmaker{God::JehoraJeheyu} ? 5 : 6)
-  , spellConversionPoints(initialSpellConversionPoints(setup.modifiers.count(MageModifier::ExtraGlyph), setup.modifiers.count(MageModifier::FewerGlyphs)))
+  , spellConversionPoints(initialSpellConversionPoints(setup.modifiers.count(MageModifier::ExtraGlyph),
+                                                       setup.modifiers.count(MageModifier::FewerGlyphs)))
   , spellsSmall(hasStartingTrait(setup.heroClass, HeroTrait::MagicSense))
   , allItemsLarge(hasStartingTrait(setup.heroClass, HeroTrait::RegalSize))
   , negotiator(hasStartingTrait(setup.heroClass, HeroTrait::Negotiator))
 {
+  for (const auto& item : setup.startingEquipment)
+  {
+    if (auto potion = std::get_if<Potion>(&item); potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
+      addFree(item);
+    else
+      add(item);
+  }
+
+  if (hasStartingTrait(setup.heroClass, HeroTrait::Macguyver))
+  {
+    addFree(AlchemistSeal::CompressionSeal);
+    addFree(AlchemistSeal::CompressionSeal);
+    addFree(AlchemistSeal::TransmutationSeal);
+    addFree(AlchemistSeal::TransmutationSeal);
+    addFree(AlchemistSeal::TranslocationSeal);
+  }
+
+  if (hasStartingTrait(setup.heroClass, HeroTrait::Defiant))
+    add(Spell::Cydstepp);
+  if (hasStartingTrait(setup.heroClass, HeroTrait::MagicAttunement) || setup.modifiers.count(MageModifier::FlameMagnet))
+    add(Spell::Burndayraz);
+  if (hasStartingTrait(setup.heroClass, HeroTrait::Insane))
+    add(Spell::Bludtupowa);
+  if (hasStartingTrait(setup.heroClass, HeroTrait::PoisonedBlade))
+    add(Spell::Apheelsik);
+  if (hasStartingTrait(setup.heroClass, HeroTrait::HolyHands))
+    add(Spell::Halpmeh);
+  if (hasStartingTrait(setup.heroClass, HeroTrait::DungeonLore))
+    add(Spell::Lemmisi);
 }
 
 void Inventory::add(ItemOrSpell itemOrSpell)

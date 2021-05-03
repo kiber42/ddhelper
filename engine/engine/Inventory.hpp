@@ -14,11 +14,6 @@ using ItemOrSpell = std::variant<Item, Spell>;
 class Inventory
 {
 public:
-  explicit Inventory(int numSlots = 6,
-                     int spellConversionPoints = 100,
-                     bool spellsSmall = false,
-                     bool allItemsLarge = false,
-                     bool hasNegotiatorTrait = false);
   explicit Inventory(const DungeonSetup&);
 
   // Add item or spell to inventory (currently this does not check space requirements)

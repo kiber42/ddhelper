@@ -78,14 +78,6 @@ Hero::Hero(const DungeonSetup& setup)
     addStatus(HeroStatus::ManaBurnImmune);
     addStatus(HeroStatus::CurseImmune);
   }
-  if (hasTrait(HeroTrait::Macguyver))
-  {
-    inventory.addFree(AlchemistSeal::CompressionSeal);
-    inventory.addFree(AlchemistSeal::CompressionSeal);
-    inventory.addFree(AlchemistSeal::TransmutationSeal);
-    inventory.addFree(AlchemistSeal::TransmutationSeal);
-    inventory.addFree(AlchemistSeal::TranslocationSeal);
-  }
   if (hasTrait(HeroTrait::Undead))
   {
     addStatus(HeroStatus::PoisonImmune);
@@ -99,28 +91,9 @@ Hero::Hero(const DungeonSetup& setup)
   if (hasTrait(HeroTrait::RegalHygiene))
     addStatus(HeroStatus::CorrosiveStrike);
 
-  if (hasTrait(HeroTrait::Defiant))
-    inventory.add(Spell::Cydstepp);
-  if (hasTrait(HeroTrait::MagicAttunement) || setup.modifiers.count(MageModifier::FlameMagnet))
-    inventory.add(Spell::Burndayraz);
-  if (hasTrait(HeroTrait::Insane))
-    inventory.add(Spell::Bludtupowa);
-  if (hasTrait(HeroTrait::PoisonedBlade))
-    inventory.add(Spell::Apheelsik);
-  if (hasTrait(HeroTrait::HolyHands))
-    inventory.add(Spell::Halpmeh);
-  if (hasTrait(HeroTrait::DungeonLore))
-    inventory.add(Spell::Lemmisi);
-
+  // TODO: Move gold pile size to MapResources? (+ remove this trait)
   if (setup.modifiers.count(ThievesModifier::BlackMarket))
     addTrait(HeroTrait::BlackMarket);
-  for (const auto& item : setup.startingEquipment)
-  {
-    if (auto potion = std::get_if<Potion>(&item); potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
-      inventory.addFree(item);
-    else
-      inventory.add(item);
-  }
   // TODO: Store prepared altar, if any
 }
 
@@ -130,7 +103,7 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , stats(std::move(stats))
   , defence(std::move(defence))
   , experience(std::move(experience))
-  , inventory()
+  , inventory(DungeonSetup{})
   , conversion(DungeonSetup{})
   , faith()
   , statuses()
