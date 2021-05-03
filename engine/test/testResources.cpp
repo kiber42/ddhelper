@@ -1,5 +1,6 @@
 #include "bandit/bandit.h"
 
+#include "engine/DungeonSetup.hpp"
 #include "engine/GodsAndBoons.hpp"
 #include "engine/Resources.hpp"
 #include "engine/Spells.hpp"
@@ -13,9 +14,9 @@ using namespace snowhouse;
 void testResources()
 {
   describe("Default resources", [] {
-    ResourceSet resourceSet{DefaultResources{}};
+    ResourceSet resourceSet{DungeonSetup{}};
     it("shall be initialized randomly", [&] {
-      ResourceSet resourceSet2{DefaultResources{}};
+      ResourceSet resourceSet2{DungeonSetup{}};
       AssertThat(resourceSet, !Equals(resourceSet2));
     });
     it("shall have 3 different altars", [&altars = resourceSet.altars] {
@@ -46,29 +47,33 @@ void testResources()
     });
   });
 
-  describe("Custom resources", [] {
-    it("shall accept modifiers for hero traits", [] {
-      ResourceSet hoarderMartyr{{ResourceModifier::Hoarder, ResourceModifier::Martyr}, {}};
-      AssertThat(hoarderMartyr.numGoldPiles, Equals(13));
-      AssertThat(hoarderMartyr.shops.size(), Equals(10u));
-      AssertThat(hoarderMartyr.altars.size(), Equals(4u));
-      ResourceSet merchant{{ResourceModifier::Merchant}, {God::TikkiTooki}};
+  describe("Custom dungeon setups", [] {
+    it("shall respect hero class traits", [] {
+      ResourceSet hoarder{DungeonSetup{HeroClass::Thief, HeroRace::Human}};
+      AssertThat(hoarder.numGoldPiles, Equals(13));
+      AssertThat(hoarder.shops.size(), Equals(10u));
+      ResourceSet martyr{DungeonSetup{HeroClass::Crusader, HeroRace::Human}};
+      AssertThat(martyr.altars.size(), Equals(4u));
+      ResourceSet merchant{
+          DungeonSetup{HeroClass::Tinker, HeroRace::Goblin, {}, {}, {}, {}, {God::TikkiTooki}, {}, {}, {}}};
       AssertThat(merchant.numGoldPiles, Equals(10));
       AssertThat(merchant.shops.size(), Equals(10u));
       AssertThat(merchant.altars, Contains(GodOrPactmaker{God::TikkiTooki}));
     });
     it("shall accept modifiers for dungeon preparations", [] {
-      ResourceSet prepared{{ResourceModifier::ExtraManaBoosters, ResourceModifier::FlameMagnet,
-                            ResourceModifier::ExtraGlyph, ResourceModifier::Apothecary},
-                           {}};
+      DungeonSetup setup;
+      setup.modifiers = {MageModifier::ExtraManaBoosters, MageModifier::FlameMagnet, MageModifier::ExtraGlyph,
+                         BazaarModifier::Apothecary};
+      ResourceSet prepared{setup};
       AssertThat(prepared.numAttackBoosters, Equals(3));
       AssertThat(prepared.numManaBoosters, Equals(5));
       AssertThat(prepared.numHealthBoosters, Equals(3));
       AssertThat(prepared.spells, !Contains(Spell::Burndayraz));
       AssertThat(prepared.spells.size(), Equals(5u));
       AssertThat(prepared.numPotionShops, Equals(3));
-      ResourceSet prepared2{
-          {ResourceModifier::ExtraHealthBoosters, ResourceModifier::FewerGlyphs, ResourceModifier::ExtraAltar}, {}};
+      setup.modifiers = {MageModifier::ExtraHealthBoosters, MageModifier::FewerGlyphs};
+      setup.altar = Pactmaker::ThePactmaker;
+      ResourceSet prepared2{setup};
       AssertThat(prepared2.numManaBoosters, Equals(3));
       AssertThat(prepared2.numHealthBoosters, Equals(5));
       AssertThat(prepared2.spells, Contains(Spell::Burndayraz));
@@ -80,7 +85,7 @@ void testResources()
 
   describe("Simple Resources", [] {
     it("shall have a pretend reveal mechanism", [] {
-      SimpleResources resources{DefaultResources{}};
+      SimpleResources resources{ResourceSet{DungeonSetup{}}};
       auto initialResourceSet = resources();
       const int initialTiles = resources.numHiddenTiles;
       AssertThat(initialTiles, IsGreaterThan(100));
@@ -94,7 +99,7 @@ void testResources()
       AssertThat(resources(), Equals(initialResourceSet));
     });
     it("shall have a constructor that allows to define the available resources", [] {
-      ResourceSet resourceSet{DefaultResources{}};
+      ResourceSet resourceSet{DungeonSetup{}};
       SimpleResources resources{resourceSet};
       AssertThat(resources(), Equals(resourceSet));
     });
@@ -112,7 +117,7 @@ void testResources()
     });
     it("shall have a constructor that allows to define the available resources", [] {
       ResourceSet empty;
-      ResourceSet resourceSet{DefaultResources{}};
+      ResourceSet resourceSet{DungeonSetup{}};
       MapResources initiallyVisible{resourceSet, empty};
       AssertThat(initiallyVisible(), Equals(resourceSet));
       initiallyVisible.revealTiles(initiallyVisible.numHiddenTiles);

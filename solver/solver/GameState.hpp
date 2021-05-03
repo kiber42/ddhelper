@@ -10,5 +10,5 @@ struct GameState
 {
   Hero hero{};
   Monsters monsters{};
-  SimpleResources resources{DefaultResources{}, 20};
+  SimpleResources resources{ResourceSet{DungeonSetup{}}, 20};
 };

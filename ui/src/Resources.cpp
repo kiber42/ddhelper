@@ -8,11 +8,6 @@ namespace ui
 {
   using namespace std::string_literals;
 
-  Resources::Resources(int mapSize)
-    : mapSize(mapSize)
-  {
-  }
-
   ActionResultUI Resources::run(const State& state)
   {
     result.reset();
@@ -121,17 +116,6 @@ namespace ui
     revealFromVector("Altar", &ResourceSet::altars);
 
     ImGui::Separator();
-    ImGui::PushItemWidth(150);
-    ImGui::InputInt("Map Size", &mapSize);
-    addActionButton(
-        state, "Reset / Randomize", false, "Reset & Randomize Resources",
-        [mapSize = mapSize](State& state) {
-          state.resources = state.hero.createResources({}, {}, mapSize);
-          return Summary::None;
-        },
-        result);
-
-    ImGui::SameLine();
     if (resources.numHiddenTiles > 0)
     {
       addActionButton(

@@ -12,15 +12,12 @@ namespace ui
   class Resources
   {
   public:
-    Resources(int mapSize = DefaultMapSize);
-
     ActionResultUI run(const State& state);
 
   private:
     ActionResultUI result;
 
     int selectedPopupItem;
-    int mapSize;
 
     void runSpawnShop(const State& state);
     void runSpawnSpell(const State& state);

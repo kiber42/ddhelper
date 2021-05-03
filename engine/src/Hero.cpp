@@ -9,18 +9,24 @@
 #include <cassert>
 #include <utility>
 
-Hero::Hero(HeroClass theClass, HeroRace race, Preparations preparations)
-  : name(isMonsterClass(theClass) ? toString(theClass) : (toString(race) + std::string(" ") + toString(theClass)))
-  , traits(startingTraits(theClass))
+Hero::Hero(HeroClass heroClass, HeroRace heroRace)
+  : Hero(DungeonSetup{heroClass, heroRace})
+{
+}
+
+Hero::Hero(const DungeonSetup& setup)
+  : name(isMonsterClass(setup.heroClass) ? toString(setup.heroRace)
+                                         : (toString(setup.heroRace) + std::string(" ") + toString(setup.heroClass)))
+  , traits(startingTraits(setup.heroClass))
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
-  , inventory(preparations.numberOfLargeInventorySlots(),
-              preparations.initialSpellConversionPoints(),
+  , inventory(setup.altar == GodOrPactmaker{God::JehoraJeheyu} ? 5 : 6,
+              100,
               hasTrait(HeroTrait::MagicSense),
               hasTrait(HeroTrait::RegalSize),
               hasTrait(HeroTrait::Negotiator))
-  , conversion(theClass, race)
+  , conversion(setup.heroClass, setup.heroRace)
   , faith()
   , statuses()
   , collectedPiety()
@@ -102,7 +108,7 @@ Hero::Hero(HeroClass theClass, HeroRace race, Preparations preparations)
 
   if (hasTrait(HeroTrait::Defiant))
     inventory.add(Spell::Cydstepp);
-  if (hasTrait(HeroTrait::MagicAttunement))
+  if (hasTrait(HeroTrait::MagicAttunement) || setup.modifiers.count(MageModifier::FlameMagnet))
     inventory.add(Spell::Burndayraz);
   if (hasTrait(HeroTrait::Insane))
     inventory.add(Spell::Bludtupowa);
@@ -113,11 +119,8 @@ Hero::Hero(HeroClass theClass, HeroRace race, Preparations preparations)
   if (hasTrait(HeroTrait::DungeonLore))
     inventory.add(Spell::Lemmisi);
 
-  // TODO: This doesn't feel right yet, this probably shouldn't be a trait after all.
-  if (preparations.modifiers.count(ResourceModifier::BlackMarket))
+  if (setup.modifiers.count(ThievesModifier::BlackMarket))
     addTrait(HeroTrait::BlackMarket);
-  // TODO: Store prepared altar, if any
-  // TODO: Add prepared items. Take care to handle free health and mana potion correctly.
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -141,18 +144,6 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
 std::string Hero::getName() const
 {
   return name;
-}
-
-MapResources
-Hero::createResources(std::set<ResourceModifier> preparations, std::optional<God> preparedDeity, int mapSize) const
-{
-  if (hasTrait(HeroTrait::Hoarder))
-    preparations.insert(ResourceModifier::Hoarder);
-  if (hasTrait(HeroTrait::Martyr))
-    preparations.insert(ResourceModifier::Martyr);
-  if (hasTrait(HeroTrait::Merchant))
-    preparations.insert(ResourceModifier::Merchant);
-  return MapResources{{}, {preparations, preparedDeity, mapSize}, mapSize};
 }
 
 int Hero::getXP() const

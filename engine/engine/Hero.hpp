@@ -2,6 +2,7 @@
 
 #include "engine/Conversion.hpp"
 #include "engine/Defence.hpp"
+#include "engine/DungeonSetup.hpp"
 #include "engine/Experience.hpp"
 #include "engine/Faith.hpp"
 #include "engine/HeroClass.hpp"
@@ -10,7 +11,6 @@
 #include "engine/HeroTraits.hpp"
 #include "engine/Inventory.hpp"
 #include "engine/Items.hpp"
-#include "engine/Preparations.hpp"
 #include "engine/Resources.hpp"
 
 #include <map>
@@ -23,15 +23,11 @@ class Monster;
 class Hero
 {
 public:
-  explicit Hero(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human, Preparations preparations = {});
+  explicit Hero(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human);
+  explicit Hero(const DungeonSetup& dungeonSetup);
   Hero(HeroStats, Defence, Experience);
 
   std::string getName() const;
-
-  // Prepare a set of resources according to the hero's traits, optionally accounting for dungeon preparations
-  MapResources createResources(std::set<ResourceModifier> preparations = {},
-                               std::optional<God> preparedDeity = {},
-                               int mapSize = DefaultMapSize) const;
 
   int getXP() const;
   int getLevel() const;
@@ -211,9 +207,9 @@ private:
   std::map<HeroDebuff, int> debuffs;
   std::optional<PietyChange> collectedPiety;
   std::mt19937 generator{std::random_device{}()};
-  bool dodgeNext;
-  bool alchemistScrollUsedThisLevel;
-  bool namtarsWardUsedThisLevel;
+  bool dodgeNext{false};
+  bool alchemistScrollUsedThisLevel{false};
+  bool namtarsWardUsedThisLevel{false};
 
   void gainExperience(int xpGained, int xpBonuses, Monsters& allMonsters);
   void drinkHealthPotion();

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "engine/Items.hpp"
+#include "engine/DungeonSetup.hpp"
 #include "engine/GodsAndBoons.hpp"
+#include "engine/Items.hpp"
 #include "engine/Spells.hpp"
 
 #include <optional>
@@ -9,42 +10,10 @@
 #include <set>
 #include <vector>
 
-struct DefaultResources
-{
-};
-
-struct ThiefResources
-{
-};
-
-enum class ResourceModifier
-{
-  // Preparations
-  ExtraAttackBoosters,
-  ExtraManaBoosters,
-  ExtraHealthBoosters,
-  FlameMagnet,
-  FewerGlyphs,
-  ExtraGlyph,
-  QuestItems, // TODO
-  EliteItems, // TODO
-  Apothecary,
-  ExtraAltar,
-  BlackMarket,
-  PatchesTheTeddy,
-  // Hero traits
-  Hoarder,
-  Martyr,
-  Merchant,
-};
-
-static const int DefaultMapSize = 20;
-
 struct ResourceSet
 {
   ResourceSet() = default;
-  ResourceSet(DefaultResources, int mapSize = DefaultMapSize);
-  ResourceSet(const std::set<ResourceModifier>& modifiers, std::optional<God> preparedDeity, int mapSize = DefaultMapSize);
+  explicit ResourceSet(DungeonSetup);
 
   bool pactmakerAvailable() const;
 
@@ -92,12 +61,16 @@ struct SimpleResources
   : public Resources
   , public ResourceSet
 {
-  explicit SimpleResources(ResourceSet visible, int mapSize = DefaultMapSize);
+  explicit SimpleResources(ResourceSet visible = {}, int mapSize = DefaultMapSize);
 
   ResourceSet& operator()() override { return *this; }
   const ResourceSet& operator()() const override { return *this; }
 
-  void revealTile() override { --numHiddenTiles; ++numRevealedTiles; }
+  void revealTile() override
+  {
+    --numHiddenTiles;
+    ++numRevealedTiles;
+  }
 
   int mapSize;
 };

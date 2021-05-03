@@ -35,7 +35,7 @@ public:
 private:
   std::vector<int> values;
   std::optional<Pact> pact;
-  bool jehora;
+  bool jehora{false};
 };
 
 using ItemOrSpell = std::variant<Item, Spell>;
@@ -43,6 +43,8 @@ using ItemOrSpell = std::variant<Item, Spell>;
 class Faith
 {
 public:
+  explicit Faith(std::optional<GodOrPactmaker> preparedAltar [[maybe_unused]] = {}) { /* TODO */ }
+
   bool followDeity(God god, Hero& hero, int numRevealedTiles);
   std::optional<God> getFollowedDeity() const;
   bool canFollow(God god, const Hero& hero) const;
@@ -111,25 +113,25 @@ private:
 
   std::optional<God> followedDeity;
   std::vector<Boon> boons;
-  int piety;
-  int indulgence;
-  int numDesecrated;
+  int piety{0};
+  int indulgence{0};
+  int numDesecrated{0};
   std::optional<Pact> pact;
-  bool consensus;
+  bool consensus{false};
 
   // counts that may affect awarded piety
-  int numMonstersKilled;
-  int numSpellsCast;
-  int numManaPointsSpent;
-  int numConsecutiveLevelUpsWithGlowingGuardian;
+  int numMonstersKilled{0};
+  int numSpellsCast{0};
+  int numManaPointsSpent{0};
+  int numConsecutiveLevelUpsWithGlowingGuardian{0};
 
   struct MonsterPietyHistory
   {
     // for Dracul
-    bool hadLifeStolen;
+    bool hadLifeStolen{false};
     // for Tikki Tooki
-    bool hitHero;
-    bool becamePoisoned;
+    bool hitHero{false};
+    bool becamePoisoned{false};
   };
   std::map<int, MonsterPietyHistory> history;
 

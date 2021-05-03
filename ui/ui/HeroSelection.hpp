@@ -1,8 +1,8 @@
 #pragma once
 
+#include "engine/DungeonSetup.hpp"
 #include "engine/Hero.hpp"
 #include "engine/HeroClass.hpp"
-#include "engine/Preparations.hpp"
 
 #include <array>
 #include <map>
@@ -20,7 +20,7 @@ namespace ui
   private:
     HeroClass selectedClass;
     HeroRace selectedRace;
-    Preparations preparations;
+    DungeonSetup preparations;
     int level;
   };
 

@@ -7,34 +7,22 @@
 #include <algorithm>
 #include <cassert>
 
-ResourceSet::ResourceSet(DefaultResources, int mapSize)
-  : numWalls{mapSize * mapSize * 4 / 10}
+ResourceSet::ResourceSet(DungeonSetup setup)
+  : numWalls{setup.mapSize * setup.mapSize * 4 * (setup.altar == GodOrPactmaker{God::BinlorIronshield} ? 7 : 10) / 100}
   , numHealthPotions{3}
   , numManaPotions{3}
-  , numPotionShops{1}
-  , numAttackBoosters{3}
-  , numManaBoosters{3}
-  , numHealthBoosters{3}
+  , numPotionShops{setup.modifiers.count(BazaarModifier::Apothecary) ? 3 : 1}
+  , numAttackBoosters{setup.modifiers.count(MageModifier::ExtraAttackBoosters) ? 5 : 3}
+  , numManaBoosters{setup.modifiers.count(MageModifier::ExtraManaBoosters) ? 5 : 3}
+  , numHealthBoosters{setup.modifiers.count(MageModifier::ExtraHealthBoosters) ? 5 : 3}
   , numGoldPiles{10}
 {
-  addRandomResources(8, 5, 3);
-}
-
-ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optional<God> preparedDeity, int mapSize)
-  : numWalls{mapSize * mapSize * 4 / 10 * (preparedDeity == God::BinlorIronshield ? 7 : 10) / 10}
-  , numHealthPotions{3}
-  , numManaPotions{3}
-  , numPotionShops{modifiers.count(ResourceModifier::Apothecary) ? 3 : 1}
-  , numAttackBoosters{modifiers.count(ResourceModifier::ExtraAttackBoosters) ? 5 : 3}
-  , numManaBoosters{modifiers.count(ResourceModifier::ExtraManaBoosters) ? 5 : 3}
-  , numHealthBoosters{modifiers.count(ResourceModifier::ExtraHealthBoosters) ? 5 : 3}
-  , numGoldPiles{10}
-{
-  int numShops = modifiers.count(ResourceModifier::Merchant) ? 10 : 8;
+  int numShops = hasStartingTrait(setup.heroClass, HeroTrait::Merchant) ? 10 : 8;
   int numSpells =
-      modifiers.count(ResourceModifier::ExtraGlyph) ? 6 : modifiers.count(ResourceModifier::FewerGlyphs) ? 4 : 5;
-  const int numAltars = 3 + modifiers.count(ResourceModifier::Martyr) + modifiers.count(ResourceModifier::ExtraAltar);
-  if (modifiers.count(ResourceModifier::Hoarder))
+      setup.modifiers.count(MageModifier::ExtraGlyph) ? 6 : (setup.modifiers.count(MageModifier::FewerGlyphs) ? 4 : 5);
+  const int numAltars = 3 + (int)hasStartingTrait(setup.heroClass, HeroTrait::Martyr) +
+                        (int)(setup.altar == GodOrPactmaker{Pactmaker::ThePactmaker});
+  if (hasStartingTrait(setup.heroClass, HeroTrait::Hoarder))
   {
     numHealthPotions += numHealthPotions / 3;
     numManaPotions += numManaPotions / 3;
@@ -46,13 +34,14 @@ ResourceSet::ResourceSet(const std::set<ResourceModifier>& modifiers, std::optio
     numSpells += numSpells / 3;
   }
   addRandomResources(numShops, numSpells, numAltars);
-  if (preparedDeity && std::find(begin(altars), end(altars), GodOrPactmaker{*preparedDeity}) == end(altars))
+  if (setup.altar && std::find(begin(altars), end(altars), *setup.altar) == end(altars))
   {
     if (!altars.empty())
       altars.pop_back();
-    altars.push_back(*preparedDeity);
+    altars.push_back(*setup.altar);
   }
-  if (modifiers.count(ResourceModifier::FlameMagnet))
+  // Flame magnet moves Burndayraz from the map to the player's inventory
+  if (setup.modifiers.count(MageModifier::FlameMagnet))
     spells.erase(std::find(begin(spells), end(spells), Spell::Burndayraz));
 }
 
@@ -143,13 +132,12 @@ SimpleResources::SimpleResources(ResourceSet visible, int mapSize)
   , ResourceSet(std::move(visible))
   , mapSize(mapSize)
 {
-  numHiddenTiles -= 9;
 }
 
 MapResources::MapResources(int mapSize)
   : Resources{mapSize}
-  , visible(ResourceSet{})
-  , hidden(DefaultResources{}, mapSize)
+  , visible()
+  , hidden(DungeonSetup{HeroClass::Guard, HeroRace::Human, mapSize})
 {
   revealTiles(9);
 }
@@ -164,7 +152,7 @@ MapResources::MapResources(ResourceSet visible, ResourceSet hidden, int mapSize)
 
 MapResources::MapResources(SimpleResources resources)
   : Resources(resources)
-  , visible(DefaultResources{})
+  , visible()
   , hidden(std::move(resources))
 {
 }
