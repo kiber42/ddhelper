@@ -83,7 +83,7 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
 
 SimpleResources getResourcesForScenario(Scenario scenario)
 {
-  ResourceSet resources{EmptyResources{}};
+  ResourceSet resources;
   if (scenario == Scenario::TheThirdAct)
   {
     resources.shops = {Item{Potion::HealthPotion}, ShopItem::VenomDagger, ShopItem::BadgeOfHonour};

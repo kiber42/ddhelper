@@ -97,7 +97,7 @@ void testCombatWithTwoMonsters()
   describe("Burn stack damage", [] {
     Hero hero;
     Monsters allMonsters;
-    SimpleResources resources{EmptyResources{}};
+    SimpleResources resources{{}};
     allMonsters.reserve(2); // prevent reallocation
     Monster& burning = allMonsters.emplace_back(Monster(1, 10, 1));
     Monster& nextTarget = allMonsters.emplace_back(MonsterType::MeatMan, 1);

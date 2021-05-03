@@ -152,7 +152,7 @@ Hero::createResources(std::set<ResourceModifier> preparations, std::optional<God
     preparations.insert(ResourceModifier::Martyr);
   if (hasTrait(HeroTrait::Merchant))
     preparations.insert(ResourceModifier::Merchant);
-  return MapResources{EmptyResources{}, {preparations, preparedDeity, mapSize}, mapSize};
+  return MapResources{{}, {preparations, preparedDeity, mapSize}, mapSize};
 }
 
 int Hero::getXP() const

@@ -7,8 +7,6 @@
 #include <algorithm>
 #include <cassert>
 
-ResourceSet::ResourceSet(EmptyResources){};
-
 ResourceSet::ResourceSet(DefaultResources, int mapSize)
   : numWalls{mapSize * mapSize * 4 / 10}
   , numHealthPotions{3}
@@ -140,14 +138,6 @@ void Resources::revealTiles(int n)
   }
 }
 
-SimpleResources::SimpleResources(int mapSize)
-  : Resources(mapSize)
-  , ResourceSet(DefaultResources{}, mapSize)
-  , mapSize(mapSize)
-{
-  numHiddenTiles -= 9;
-}
-
 SimpleResources::SimpleResources(ResourceSet visible, int mapSize)
   : Resources(mapSize)
   , ResourceSet(std::move(visible))
@@ -158,7 +148,7 @@ SimpleResources::SimpleResources(ResourceSet visible, int mapSize)
 
 MapResources::MapResources(int mapSize)
   : Resources{mapSize}
-  , visible(EmptyResources{})
+  , visible(ResourceSet{})
   , hidden(DefaultResources{}, mapSize)
 {
   revealTiles(9);

@@ -9,10 +9,6 @@
 #include <set>
 #include <vector>
 
-struct EmptyResources
-{
-};
-
 struct DefaultResources
 {
 };
@@ -46,7 +42,7 @@ static const int DefaultMapSize = 20;
 
 struct ResourceSet
 {
-  ResourceSet(EmptyResources);
+  ResourceSet() = default;
   ResourceSet(DefaultResources, int mapSize = DefaultMapSize);
   ResourceSet(const std::set<ResourceModifier>& modifiers, std::optional<God> preparedDeity, int mapSize = DefaultMapSize);
 
@@ -96,7 +92,6 @@ struct SimpleResources
   : public Resources
   , public ResourceSet
 {
-  explicit SimpleResources(int mapSize = DefaultMapSize);
   explicit SimpleResources(ResourceSet visible, int mapSize = DefaultMapSize);
 
   ResourceSet& operator()() override { return *this; }

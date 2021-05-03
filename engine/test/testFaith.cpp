@@ -14,13 +14,13 @@ using namespace snowhouse;
 namespace
 {
   Monsters noOtherMonsters;
-  SimpleResources resources{EmptyResources{}};
+  SimpleResources resources{{}};
 } // namespace
 
 void testFaith()
 {
   describe("Glowing Guardian", [] {
-    describe("Likes", [] {
+    describe("[Likes]", [] {
       it("shall award 2 piety for suffering poisoned or mana burned", [] {
         Hero hero;
         hero.followDeity(God::GlowingGuardian, 0);
@@ -39,7 +39,7 @@ void testFaith()
     });
   });
   describe("Tikki Tooki", [] {
-    describe("Likes", [] {
+    describe("[Likes]", [] {
       it("shall award 5 piety for killing an XP-valuable enemy of lower level", [] {
         Hero hero;
         hero.gainLevel(noOtherMonsters);
@@ -55,7 +55,7 @@ void testFaith()
         AssertThat(hero.getPiety(), Equals(5));
       });
     });
-    describe("Dislikes", [] {
+    describe("[Dislikes]", [] {
       it("shall subtract 3 piety for taking more than one hit from an enemy", [] {
         Hero hero;
         hero.addStatus(HeroStatus::Learning, 4);

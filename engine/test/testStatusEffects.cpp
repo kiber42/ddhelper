@@ -13,7 +13,7 @@ using namespace snowhouse;
 namespace
 {
   Monsters noOtherMonsters;
-  SimpleResources resources{EmptyResources{}};
+  SimpleResources resources{{}};
 } // namespace
 
 void testStatusEffects()

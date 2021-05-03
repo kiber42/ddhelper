@@ -18,25 +18,22 @@ void testResources()
       ResourceSet resourceSet2{DefaultResources{}};
       AssertThat(resourceSet, !Equals(resourceSet2));
     });
-    it("shall have 3 different altars",
-       [&altars = resourceSet.altars] {
-         AssertThat(altars.size(), Equals(3u));
-         AssertThat(std::set(begin(altars), end(altars)).size(), Equals(3u));
-       });
+    it("shall have 3 different altars", [&altars = resourceSet.altars] {
+      AssertThat(altars.size(), Equals(3u));
+      AssertThat(std::set(begin(altars), end(altars)).size(), Equals(3u));
+    });
     it("shall have 5 different spells", [&spells = resourceSet.spells] {
       AssertThat(spells.size(), Equals(5u));
       AssertThat(std::set(begin(spells), end(spells)).size(), Equals(5u));
     });
-    it("shall have 8 different shops",  [&shops = resourceSet.shops] {
+    it("shall have 8 different shops", [&shops = resourceSet.shops] {
       AssertThat(shops.size(), Equals(8u));
       AssertThat(std::set(begin(shops), end(shops)).size(), Equals(8u));
     });
-    it("shall have Burndayraz", [&spells = resourceSet.spells] {
-      AssertThat(spells, Contains(Spell::Burndayraz));
-    });
+    it("shall have Burndayraz", [&spells = resourceSet.spells] { AssertThat(spells, Contains(Spell::Burndayraz)); });
     it("shall avoid duplicate resources", [] {
       std::mt19937 generator{std::random_device{}()};
-      ResourceSet lotsOf{EmptyResources{}};
+      ResourceSet lotsOf;
       for (int i = 0; i < 100; ++i)
       {
         lotsOf.addRandomAltar(generator);
@@ -83,7 +80,7 @@ void testResources()
 
   describe("Simple Resources", [] {
     it("shall have a pretend reveal mechanism", [] {
-      SimpleResources resources;
+      SimpleResources resources{DefaultResources{}};
       auto initialResourceSet = resources();
       const int initialTiles = resources.numHiddenTiles;
       AssertThat(initialTiles, IsGreaterThan(100));
@@ -114,7 +111,7 @@ void testResources()
       AssertThat(resources().numGoldPiles, Equals(10));
     });
     it("shall have a constructor that allows to define the available resources", [] {
-      ResourceSet empty{EmptyResources{}};
+      ResourceSet empty;
       ResourceSet resourceSet{DefaultResources{}};
       MapResources initiallyVisible{resourceSet, empty};
       AssertThat(initiallyVisible(), Equals(resourceSet));
