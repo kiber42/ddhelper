@@ -75,14 +75,20 @@ namespace ui
         applyUndoable(std::move(result->first), std::move(result->second));
     };
 
-    auto hero = heroSelection.run();
-    if (!hero)
-      hero = heroBuilder.run();
+    auto hero = heroBuilder.run();
+    std::optional<MapResources> resources;
+    if (heroSelection.run())
+    {
+      hero.emplace(heroSelection.get());
+      resources.emplace(heroSelection.getResources());
+    }
     if (hero)
     {
       std::string title = hero->getName() + " enters"s;
-      applyUndoable(std::move(title), [newHero = Hero(*hero)](State& state) {
+      applyUndoable(std::move(title), [newHero = Hero(*hero), resources](State& state) {
         state.hero = newHero;
+        if (resources)
+          state.resources = *resources;
         return Summary::None;
       });
     }

@@ -134,20 +134,22 @@ SimpleResources::SimpleResources(ResourceSet visible, int mapSize)
 {
 }
 
-MapResources::MapResources(int mapSize)
-  : Resources{mapSize}
-  , visible()
-  , hidden(DungeonSetup{HeroClass::Guard, HeroRace::Human, mapSize})
-{
-  revealTiles(9);
-}
-
 MapResources::MapResources(ResourceSet visible, ResourceSet hidden, int mapSize)
   : Resources(mapSize)
   , visible(std::move(visible))
   , hidden(std::move(hidden))
 {
   revealTiles(9);
+}
+
+MapResources::MapResources(int mapSize)
+  : MapResources(DungeonSetup{HeroClass::Guard, HeroRace::Human, mapSize})
+{
+}
+
+MapResources::MapResources(DungeonSetup dungeonSetup)
+  : MapResources(ResourceSet{}, ResourceSet{dungeonSetup}, dungeonSetup.mapSize)
+{
 }
 
 MapResources::MapResources(SimpleResources resources)

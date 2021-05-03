@@ -78,8 +78,9 @@ struct SimpleResources
 // simple emulation of a map that can be revealed tile by tile
 struct MapResources : public Resources
 {
-  explicit MapResources(int mapSize = DefaultMapSize);
   MapResources(ResourceSet visible, ResourceSet hidden, int mapSize = DefaultMapSize);
+  explicit MapResources(int mapSize = DefaultMapSize);
+  explicit MapResources(DungeonSetup dungeonSetup);
   explicit MapResources(SimpleResources resources);
 
   ResourceSet& operator()() override { return visible; }

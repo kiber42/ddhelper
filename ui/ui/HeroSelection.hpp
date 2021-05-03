@@ -3,6 +3,7 @@
 #include "engine/DungeonSetup.hpp"
 #include "engine/Hero.hpp"
 #include "engine/HeroClass.hpp"
+#include "engine/Resources.hpp"
 
 #include <array>
 #include <map>
@@ -13,8 +14,10 @@ namespace ui
   class HeroSelection
   {
   public:
-    std::optional<Hero> run();
+    bool run();
+
     Hero get() const;
+    MapResources getResources() const;
 
   private:
     DungeonSetup setup{HeroClass::Fighter, HeroRace::Human};

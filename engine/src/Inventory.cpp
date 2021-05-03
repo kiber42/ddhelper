@@ -30,7 +30,8 @@ Inventory::Inventory(const DungeonSetup& setup)
 {
   for (const auto& item : setup.startingEquipment)
   {
-    if (auto potion = std::get_if<Potion>(&item); potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
+    if (auto potion = std::get_if<Potion>(&item);
+        potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
       addFree(item);
     else
       add(item);

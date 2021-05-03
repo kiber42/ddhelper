@@ -4,7 +4,7 @@
 
 namespace ui
 {
-  std::optional<Hero> HeroSelection::run()
+  bool HeroSelection::run()
   {
     ImGui::Begin("Hero");
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
@@ -54,11 +54,9 @@ namespace ui
       ImGui::EndCombo();
     }
 
-    std::optional<Hero> newHero;
-    if (ImGui::Button("Send to Arena"))
-      newHero.emplace(get());
+    const bool clicked = ImGui::Button("Send to Arena");
     ImGui::End();
-    return newHero;
+    return clicked;
   }
 
   Hero HeroSelection::get() const
@@ -69,6 +67,8 @@ namespace ui
       hero.gainLevel(ignore);
     return hero;
   }
+
+  MapResources HeroSelection::getResources() const { return MapResources{setup}; }
 
   CustomHeroBuilder::CustomHeroBuilder()
     : data{1, 10, 10, 10, 10, 5, 0, 0, 0}
