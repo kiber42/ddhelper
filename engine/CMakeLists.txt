@@ -9,6 +9,7 @@ add_library(
   src/Conversion.cpp
   src/Defence.cpp
   src/Dungeon.cpp
+  src/DungeonSetup.cpp
   src/Experience.cpp
   src/Faith.cpp
   src/GlowingGuardian.cpp
