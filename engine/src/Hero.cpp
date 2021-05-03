@@ -21,19 +21,12 @@ Hero::Hero(const DungeonSetup& setup)
   , stats()
   , defence(0, 0, 65, 65)
   , experience()
-  , inventory(setup.altar == GodOrPactmaker{God::JehoraJeheyu} ? 5 : 6,
-              100,
-              hasTrait(HeroTrait::MagicSense),
-              hasTrait(HeroTrait::RegalSize),
-              hasTrait(HeroTrait::Negotiator))
-  , conversion(setup.heroClass, setup.heroRace)
-  , faith()
+  , inventory(setup)
+  , conversion(setup)
+  , faith(setup.altar)
   , statuses()
   , collectedPiety()
   , generator(std::random_device{}())
-  , dodgeNext(false)
-  , alchemistScrollUsedThisLevel(false)
-  , namtarsWardUsedThisLevel(false)
 {
   if (hasTrait(HeroTrait::Veteran))
     experience = Experience(Experience::IsVeteran{});
@@ -121,6 +114,14 @@ Hero::Hero(const DungeonSetup& setup)
 
   if (setup.modifiers.count(ThievesModifier::BlackMarket))
     addTrait(HeroTrait::BlackMarket);
+  for (const auto& item : setup.startingEquipment)
+  {
+    if (auto potion = std::get_if<Potion>(&item); potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
+      inventory.addFree(item);
+    else
+      inventory.add(item);
+  }
+  // TODO: Store prepared altar, if any
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -130,14 +131,11 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
   , defence(std::move(defence))
   , experience(std::move(experience))
   , inventory()
-  , conversion(HeroClass::Guard, HeroRace::Human)
+  , conversion(DungeonSetup{})
   , faith()
   , statuses()
   , collectedPiety()
   , generator(std::random_device{}())
-  , dodgeNext(false)
-  , alchemistScrollUsedThisLevel(false)
-  , namtarsWardUsedThisLevel(false)
 {
 }
 

@@ -5,13 +5,13 @@
 
 #include <cassert>
 
-Conversion::Conversion(HeroClass theClass, HeroRace race)
+Conversion::Conversion(DungeonSetup setup)
   : points(0)
   , threshold(100)
 {
-  if (isMonsterClass(theClass))
+  if (isMonsterClass(setup.heroClass))
   {
-    switch (theClass)
+    switch (setup.heroClass)
     {
     case HeroClass::Vampire:
       threshold = 120;
@@ -42,7 +42,7 @@ Conversion::Conversion(HeroClass theClass, HeroRace race)
     return;
   }
 
-  switch (race)
+  switch (setup.heroRace)
   {
   case HeroRace::Human:
     threshold = 100;

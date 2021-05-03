@@ -13,15 +13,12 @@ namespace ui
   class HeroSelection
   {
   public:
-    HeroSelection();
     std::optional<Hero> run();
     Hero get() const;
 
   private:
-    HeroClass selectedClass;
-    HeroRace selectedRace;
-    DungeonSetup preparations;
-    int level;
+    DungeonSetup setup{HeroClass::Fighter, HeroRace::Human};
+    int level{1};
   };
 
   class CustomHeroBuilder

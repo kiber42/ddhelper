@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/DungeonSetup.hpp"
 #include "engine/Items.hpp"
 #include "engine/Spells.hpp"
 
@@ -18,50 +19,51 @@ public:
                      bool spellsSmall = false,
                      bool allItemsLarge = false,
                      bool hasNegotiatorTrait = false);
+  explicit Inventory(const DungeonSetup&);
 
   // Add item or spell to inventory (currently this does not check space requirements)
-  void add(ItemOrSpell itemOrSpell);
+  void add(ItemOrSpell);
   // Add item to inventory, set its selling price to 0 (conversion points are unchanged)
-  void addFree(Item item);
+  void addFree(Item);
   // Add spell to inventory, set its conversion value to 0 (price is always 0)
-  void addFree(Spell spell);
+  void addFree(Spell);
 
-  bool has(ItemOrSpell itemOrSpell) const;
+  bool has(ItemOrSpell) const;
 
   // Returns true if item or spell is in inventory and can be converted
-  bool canConvert(ItemOrSpell itemOrSpell) const;
+  bool canConvert(ItemOrSpell) const;
 
   // Returns conversion value of item or spell, or nullopt if item is not in inventory or cannot be converted
-  std::optional<int> getConversionPoints(ItemOrSpell itemOrSpell) const;
+  std::optional<int> getConversionPoints(ItemOrSpell) const;
 
   // Tries to remove an item, returns nullopt if item is not in inventory or cannot be converted.
   // On success, returns conversion value and whether the item was small.
-  std::optional<std::pair<int, bool>> removeForConversion(ItemOrSpell itemOrSpell, bool magicAffinity = false);
+  std::optional<std::pair<int, bool>> removeForConversion(ItemOrSpell, bool magicAffinity = false);
 
   // If item or spell is present in inventory, remove it and return true; false otherwise.
   // No additional restrictions are applied: also removes non-convertable items and items that cannot be transmuted.
-  bool remove(ItemOrSpell itemOrSpell);
+  bool remove(ItemOrSpell);
 
   // Return the shop price of an item; can differ from the regular price for negotiator.
-  int buyingPrice(Item item) const;
+  int buyingPrice(Item) const;
 
   // Return the price of an item when "selling" it (by using a transmutation scroll). Spell prices are always 0.
-  int sellingPrice(ItemOrSpell itemOrSpell) const;
+  int sellingPrice(ItemOrSpell) const;
 
   // Return number of free small inventory slots
   int numFreeSmallSlots() const;
 
   // Check if there is enough space in the inventory for an item or a spell
-  bool hasRoomFor(ItemOrSpell itemOrSpell) const;
+  bool hasRoomFor(ItemOrSpell) const;
 
   // Mark an item or spell as small.  Returns false if no matching normal-sized entry was found in inventory.
-  bool compress(ItemOrSpell itemOrSpell);
+  bool compress(ItemOrSpell);
 
   // Remove an item and receive its cost in gold.  Returns false if item not in inventory or if it cannot be transmuted.
-  bool transmute(ItemOrSpell itemOrSpell);
+  bool transmute(ItemOrSpell);
 
   // Add item obtained using a Translocation Seal, i.e. with half its usual conversion points (rounded down)
-  bool translocate(Item item);
+  bool translocate(Item);
 
   // Remove all items and spells from inventory
   void clear();
@@ -102,23 +104,23 @@ public:
   // For each type of spell in inventory, return how many there are
   std::vector<std::pair<Spell, int>> getSpellCounts() const;
 
-  int gold;
+  int gold{20};
 
 private:
   std::vector<Entry> entries;
 
   std::optional<std::pair<int, bool>> removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale);
 
-  int numSlots;
-  int spellConversionPoints;
-  bool spellsSmall;
-  bool allItemsLarge;
-  bool negotiator;
+  int numSlots{6};
+  int spellConversionPoints{100};
+  bool spellsSmall{false};
+  bool allItemsLarge{false};
+  bool negotiator{false};
 
-  int fireHeartCharge;
-  int crystalBallCharge;
-  int crystalBallCosts;
-  int triswordDamage;
+  int fireHeartCharge{0};
+  int crystalBallCharge{10};
+  int crystalBallCosts{4};
+  int triswordDamage{2};
 };
 
 template <class... Ts>

@@ -4,35 +4,28 @@
 
 namespace ui
 {
-  HeroSelection::HeroSelection()
-    : selectedClass(HeroClass::Fighter)
-    , selectedRace(HeroRace::Human)
-    , level(1)
-  {
-  }
-
   std::optional<Hero> HeroSelection::run()
   {
     ImGui::Begin("Hero");
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
-    if (ImGui::BeginCombo("Class", toString(selectedClass)))
+    if (ImGui::BeginCombo("Class", toString(setup.heroClass)))
     {
       for (int n = 0; n <= static_cast<int>(HeroClass::Last); ++n)
       {
         const HeroClass theClass = static_cast<HeroClass>(n);
-        if (ImGui::Selectable(toString(theClass), theClass == selectedClass))
-          selectedClass = theClass;
+        if (ImGui::Selectable(toString(theClass), theClass == setup.heroClass))
+          setup.heroClass = theClass;
       }
       ImGui::EndCombo();
     }
 
-    if (!isMonsterClass(selectedClass) && ImGui::BeginCombo("Race", toString(selectedRace)))
+    if (!isMonsterClass(setup.heroClass) && ImGui::BeginCombo("Race", toString(setup.heroRace)))
     {
       for (int n = 0; n <= static_cast<int>(HeroRace::Last); ++n)
       {
         const HeroRace race = static_cast<HeroRace>(n);
-        if (ImGui::Selectable(toString(race), race == selectedRace))
-          selectedRace = race;
+        if (ImGui::Selectable(toString(race), race == setup.heroRace))
+          setup.heroRace = race;
       }
       ImGui::EndCombo();
     }
@@ -40,11 +33,11 @@ namespace ui
     if (ImGui::InputInt("Level", &level, 1, 1))
       level = std::min(std::max(level, 1), 10);
 
-    const std::string preview = preparations.altar ? toString(*preparations.altar) : "None";
+    const std::string preview = setup.altar ? toString(*setup.altar) : "None";
     if (ImGui::BeginCombo("Altar", preview.c_str()))
     {
-      if (ImGui::Selectable("None", !preparations.altar))
-        preparations.altar.reset();
+      if (ImGui::Selectable("None", !setup.altar))
+        setup.altar.reset();
       for (int index = 0; index <= static_cast<int>(God::Last) + 1; ++index)
       {
         const auto altar = [index]() -> GodOrPactmaker {
@@ -52,9 +45,9 @@ namespace ui
             return static_cast<God>(index);
           return Pactmaker::ThePactmaker;
         }();
-        const bool isSelected = altar == preparations.altar;
+        const bool isSelected = altar == setup.altar;
         if (ImGui::Selectable(toString(altar), isSelected))
-          preparations.altar = altar;
+          setup.altar = altar;
         if (isSelected)
           ImGui::SetItemDefaultFocus();
       }
@@ -70,7 +63,7 @@ namespace ui
 
   Hero HeroSelection::get() const
   {
-    Hero hero(selectedClass, selectedRace);
+    Hero hero{setup};
     Monsters ignore;
     for (int i = 1; i < level; ++i)
       hero.gainLevel(ignore);

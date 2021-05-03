@@ -9,19 +9,33 @@
 
 Inventory::Inventory(
     int numSlots, int spellConversionPoints, bool spellsSmall, bool allItemsLarge, bool hasNegotiatorTrait)
-  : gold(20)
-  , numSlots(numSlots)
+  : numSlots(numSlots)
   , spellConversionPoints(spellConversionPoints)
   , spellsSmall(spellsSmall)
   , allItemsLarge(allItemsLarge)
   , negotiator(hasNegotiatorTrait)
-  , fireHeartCharge(0)
-  , crystalBallCharge(10)
-  , crystalBallCosts(4)
-  , triswordDamage(2)
 {
   addFree(Potion::HealthPotion);
   addFree(Potion::ManaPotion);
+}
+
+constexpr int initialSpellConversionPoints(bool hasExtraGlyph, bool hasFewerGlyphs)
+{
+  int conversionPoints = 100;
+  if (hasExtraGlyph)
+    conversionPoints -= 20;
+  if (hasFewerGlyphs)
+    conversionPoints += 50;
+  return conversionPoints;
+}
+
+Inventory::Inventory(const DungeonSetup& setup)
+  : numSlots(setup.altar == GodOrPactmaker{God::JehoraJeheyu} ? 5 : 6)
+  , spellConversionPoints(initialSpellConversionPoints(setup.modifiers.count(MageModifier::ExtraGlyph), setup.modifiers.count(MageModifier::FewerGlyphs)))
+  , spellsSmall(hasStartingTrait(setup.heroClass, HeroTrait::MagicSense))
+  , allItemsLarge(hasStartingTrait(setup.heroClass, HeroTrait::RegalSize))
+  , negotiator(hasStartingTrait(setup.heroClass, HeroTrait::Negotiator))
+{
 }
 
 void Inventory::add(ItemOrSpell itemOrSpell)

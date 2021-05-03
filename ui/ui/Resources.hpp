@@ -1,11 +1,7 @@
 #pragma once
 
+#include "ui/State.hpp"
 #include "ui/Utils.hpp"
-
-#include "engine/Hero.hpp"
-#include "engine/Resources.hpp"
-
-#include <optional>
 
 namespace ui
 {
@@ -17,7 +13,7 @@ namespace ui
   private:
     ActionResultUI result;
 
-    int selectedPopupItem;
+    int selectedPopupItem{-1};
 
     void runSpawnShop(const State& state);
     void runSpawnSpell(const State& state);

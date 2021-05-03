@@ -1,7 +1,7 @@
 #pragma once
 
 class Hero;
-#include "engine/HeroClass.hpp"
+#include "engine/DungeonSetup.hpp"
 #include "engine/Monster.hpp"
 
 #include <functional>
@@ -9,7 +9,7 @@ class Hero;
 class Conversion
 {
 public:
-  Conversion(HeroClass theClass, HeroRace race);
+  Conversion(DungeonSetup);
   int getPoints() const;
   int getThreshold() const;
 
