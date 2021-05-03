@@ -2,6 +2,7 @@
 
 #include "engine/HeroTraits.hpp"
 
+#include <array>
 #include <stdexcept>
 #include <vector>
 
@@ -122,57 +123,73 @@ constexpr bool isMonsterClass(HeroClass theClass)
          theClass == HeroClass::RatMonarch || theClass == HeroClass::Goatperson;
 }
 
-inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
+constexpr std::array<HeroTrait, 3> startingTraitsHelper(HeroClass theClass)
 {
   switch (theClass)
   {
   case HeroClass::Fighter:
-    return {HeroTrait::Instincts, HeroTrait::Veteran, HeroTrait::PitDog};
+    return {{HeroTrait::Instincts, HeroTrait::Veteran, HeroTrait::PitDog}};
   case HeroClass::Berserker:
-    return {HeroTrait::Bloodlust, HeroTrait::Mageslay, HeroTrait::Spellkill};
+    return {{HeroTrait::Bloodlust, HeroTrait::Mageslay, HeroTrait::Spellkill}};
   case HeroClass::Warlord:
-    return {HeroTrait::Courageous, HeroTrait::Determined, HeroTrait::Defiant};
+    return {{HeroTrait::Courageous, HeroTrait::Determined, HeroTrait::Defiant}};
   case HeroClass::Wizard:
-    return {HeroTrait::MagicSense, HeroTrait::MagicAffinity, HeroTrait::MagicAttunement};
+    return {{HeroTrait::MagicSense, HeroTrait::MagicAffinity, HeroTrait::MagicAttunement}};
   case HeroClass::Sorcerer:
-    return {HeroTrait::EssenceTransit, HeroTrait::ArcaneKnowledge, HeroTrait::ManaShield};
+    return {{HeroTrait::EssenceTransit, HeroTrait::ArcaneKnowledge, HeroTrait::ManaShield}};
   case HeroClass::Bloodmage:
-    return {HeroTrait::PowerHungry, HeroTrait::Sanguine, HeroTrait::Insane};
+    return {{HeroTrait::PowerHungry, HeroTrait::Sanguine, HeroTrait::Insane}};
   case HeroClass::Thief:
-    return {HeroTrait::Stabber, HeroTrait::Hoarder, HeroTrait::Survivor};
+    return {{HeroTrait::Stabber, HeroTrait::Hoarder, HeroTrait::Survivor}};
   case HeroClass::Rogue:
-    return {HeroTrait::Dangerous, HeroTrait::Dexterous, HeroTrait::Evasive};
+    return {{HeroTrait::Dangerous, HeroTrait::Dexterous, HeroTrait::Evasive}};
   case HeroClass::Assassin:
-    return {HeroTrait::PoisonedBlade, HeroTrait::LightFoot, HeroTrait::SwiftHand};
+    return {{HeroTrait::PoisonedBlade, HeroTrait::LightFoot, HeroTrait::SwiftHand}};
   case HeroClass::Priest:
-    return {HeroTrait::GoodHealth, HeroTrait::GoodDrink, HeroTrait::GoodGolly};
+    return {{HeroTrait::GoodHealth, HeroTrait::GoodDrink, HeroTrait::GoodGolly}};
   case HeroClass::Monk:
-    return {HeroTrait::HandToHand, HeroTrait::Discipline, HeroTrait::DiamondBody};
+    return {{HeroTrait::HandToHand, HeroTrait::Discipline, HeroTrait::DiamondBody}};
   case HeroClass::Paladin:
-    return {HeroTrait::HolyWork, HeroTrait::HolyHands, HeroTrait::HolyShield};
+    return {{HeroTrait::HolyWork, HeroTrait::HolyHands, HeroTrait::HolyShield}};
   case HeroClass::Crusader:
-    return {HeroTrait::Scars, HeroTrait::Momentum, HeroTrait::Martyr};
+    return {{HeroTrait::Scars, HeroTrait::Momentum, HeroTrait::Martyr}};
   case HeroClass::Transmuter:
-    return {HeroTrait::InnerFocus, HeroTrait::DungeonLore, HeroTrait::SpiritSword};
+    return {{HeroTrait::InnerFocus, HeroTrait::DungeonLore, HeroTrait::SpiritSword}};
   case HeroClass::Tinker:
-    return {HeroTrait::Merchant, HeroTrait::Negotiator, HeroTrait::Macguyver};
+    return {{HeroTrait::Merchant, HeroTrait::Negotiator, HeroTrait::Macguyver}};
   case HeroClass::Chemist:
-    // return {HeroTrait::Additives, HeroTrait::Preservatives, HeroTrait::Colourants};
+    // return {{HeroTrait::Additives, HeroTrait::Preservatives, HeroTrait::Colourants}};
   case HeroClass::Vampire:
-    return {HeroTrait::Undead, HeroTrait::Damned, HeroTrait::EternalThirst};
+    return {{HeroTrait::Undead, HeroTrait::Damned, HeroTrait::EternalThirst}};
   case HeroClass::HalfDragon:
-    // return {HeroTrait::DragonBreath, HeroTrait::DragonTail, HeroTrait::DragonStature};
+    // return {{HeroTrait::DragonBreath, HeroTrait::DragonTail, HeroTrait::DragonStature}};
   case HeroClass::Gorgon:
-    // return {HeroTrait::AzureBody, HeroTrait::SapphireLocks, HeroTrait::AmethystStare};
+    // return {{HeroTrait::AzureBody, HeroTrait::SapphireLocks, HeroTrait::AmethystStare}};
   case HeroClass::RatMonarch:
-    return {HeroTrait::RegalHygiene, HeroTrait::RegalPerks, HeroTrait::RegalSize};
+    return {{HeroTrait::RegalHygiene, HeroTrait::RegalPerks, HeroTrait::RegalSize}};
   case HeroClass::Goatperson:
-    // return {HeroTrait::Scapegoat, HeroTrait::Prototype, HeroTrait::Herbivore};
+    // return {{HeroTrait::Scapegoat, HeroTrait::Prototype, HeroTrait::Herbivore}};
     break;
   case HeroClass::Guard:
     // Tutorial class without traits, also used for unit tests
-    return {};
+    break;
   }
   using namespace std::string_literals;
   throw std::runtime_error("Traits for "s + toString(theClass) + " not implemented");
+}
+
+constexpr bool hasStartingTrait(HeroClass theClass, HeroTrait trait)
+{
+  if (theClass == HeroClass::Guard)
+    return false;
+  const auto traits = startingTraitsHelper(theClass);
+  return std::find(begin(traits), end(traits), trait) != end(traits);
+}
+
+inline std::vector<HeroTrait> startingTraits(HeroClass theClass)
+{
+  if (theClass == HeroClass::Guard)
+    return {};
+  const auto traits = startingTraitsHelper(theClass);
+  return {begin(traits), end(traits)};
 }
