@@ -5,6 +5,7 @@
 #include "engine/Items.hpp"
 #include "engine/Jehora.hpp"
 #include "engine/Monster.hpp"
+#include "engine/PietyChange.hpp"
 #include "engine/Resources.hpp"
 
 #include <map>
@@ -15,28 +16,6 @@
 class Hero;
 
 enum class Spell;
-
-struct JehoraTriggered
-{
-};
-
-struct [[nodiscard]] PietyChange
-{
-public:
-  PietyChange(int deltaPoints = 0);
-  PietyChange(Pact activated);
-  PietyChange(JehoraTriggered);
-  const std::vector<int>& operator()() const;
-  std::optional<Pact> activatedPact() const;
-  bool randomJehoraEvent() const;
-  PietyChange& operator+=(const PietyChange&);
-  PietyChange& operator+=(int deltaPoints);
-
-private:
-  std::vector<int> values;
-  std::optional<Pact> pact;
-  bool jehora{false};
-};
 
 using ItemOrSpell = std::variant<Item, Spell>;
 
@@ -112,11 +91,12 @@ private:
   void punish(God god, Hero& hero, Monsters& allMonsters);
 
   std::optional<God> followedDeity;
+  std::optional<God> preparedAltar;
+  std::optional<Pact> pact;
   std::vector<Boon> boons;
   int piety{0};
   int indulgence{0};
   int numDesecrated{0};
-  std::optional<Pact> pact;
   bool consensus{false};
 
   // counts that may affect awarded piety
