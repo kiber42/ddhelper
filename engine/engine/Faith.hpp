@@ -22,7 +22,7 @@ using ItemOrSpell = std::variant<Item, Spell>;
 class Faith
 {
 public:
-  explicit Faith(std::optional<GodOrPactmaker> preparedAltar [[maybe_unused]] = {}) { /* TODO */ }
+  explicit Faith(std::optional<GodOrPactmaker> preparedAltar = {});
 
   bool followDeity(God god, Hero& hero, int numRevealedTiles);
   std::optional<God> getFollowedDeity() const;
@@ -92,6 +92,7 @@ private:
 
   std::optional<God> followedDeity;
   std::optional<God> preparedAltar;
+  bool preparationPenalty{false};
   std::optional<Pact> pact;
   std::vector<Boon> boons;
   int piety{0};

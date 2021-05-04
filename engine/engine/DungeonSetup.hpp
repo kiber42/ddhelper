@@ -38,6 +38,11 @@ enum class ThievesModifier
 
 using DungeonModifier = std::variant<MageModifier, BazaarModifier, ThievesModifier>;
 
+/** TODO: Preparation penalties:
+ *  Dracul: 25% of enemies are bloodless
+ *  Taurog: all enemies are cowardly
+ */
+
 struct DungeonSetup
 {
   explicit DungeonSetup(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human, int mapSize = DefaultMapSize);

@@ -1,12 +1,13 @@
 #include "bandit/bandit.h"
 
 #include "engine/Combat.hpp"
+#include "engine/DungeonSetup.hpp"
 #include "engine/Faith.hpp"
 #include "engine/Hero.hpp"
 #include "engine/Items.hpp"
+#include "engine/Magic.hpp"
 #include "engine/Monster.hpp"
 #include "engine/MonsterTypes.hpp"
-#include "engine/Spells.hpp"
 
 using namespace bandit;
 using namespace snowhouse;
@@ -36,6 +37,56 @@ void testFaith()
         AssertThat(Combat::attack(hero, poisonMonster, noOtherMonsters), Equals(Summary::Win));
         AssertThat(hero.getPiety() - initialPiety, Equals(4));
       });
+    });
+  });
+  describe("Mystera Annur", [] {
+    it("shall award piety for spending mana (1 piety per 2 MP)", [] {
+      Hero hero;
+      hero.setManaPointsMax(14);
+      hero.recoverManaPoints(4);
+      hero.followDeity(God::MysteraAnnur, 0);
+      Monster meatMan(MonsterType::MeatMan, 1);
+      AssertThat(Magic::cast(hero, meatMan, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Safe));
+      AssertThat(hero.getPiety(), Equals(3));
+      Magic::cast(hero, Spell::Getindare, noOtherMonsters, resources);
+      AssertThat(hero.getManaPoints(), Equals(5));
+      AssertThat(hero.getPiety(), Equals(4));
+      Magic::cast(hero, meatMan, Spell::Apheelsik, noOtherMonsters, resources);
+      AssertThat(hero.getPiety(), Equals(7));
+      AssertThat(hero.getManaPoints(), Equals(0));
+    });
+    it("shall award only 2 piety per 5 MP (1 after 3 MP, 1 after 2 MP) if her altar was prepared", [] {
+      DungeonSetup setup;
+      setup.altar = God::MysteraAnnur;
+
+      Hero hero{setup};
+      hero.followDeity(God::MysteraAnnur, 0);
+      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(hero.getPiety(), Equals(0));
+      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(hero.getPiety(), Equals(1));
+      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(hero.getPiety(), Equals(2));
+      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(hero.getPiety(), Equals(3));
+      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(hero.getPiety(), Equals(4));
+      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(hero.getPiety(), Equals(4));
+
+      setup.heroClass = HeroClass::Wizard;
+      Hero wizard{setup};
+      wizard.followDeity(God::MysteraAnnur, 0);
+      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(wizard.getPiety(), Equals(0));
+      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(wizard.getPiety(), Equals(0));
+      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(wizard.getPiety(), Equals(1));
+      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(wizard.getPiety(), Equals(1));
+      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      AssertThat(wizard.getPiety(), Equals(2));
     });
   });
   describe("Tikki Tooki", [] {
@@ -74,6 +125,22 @@ void testFaith()
         AssertThat(hero.getPiety(), Equals(0));
         AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5));
+      });
+      it("shall subtract 3 piety for taking any hit if his altar was prepared", [] {
+        DungeonSetup setup;
+        setup.altar = God::TikkiTooki;
+        Hero hero{setup};
+        hero.getFaith().gainPiety(10);
+        hero.followDeity(God::TikkiTooki, 0);
+        Monsters monsters{{MonsterType::MeatMan, 1}, {MonsterType::Wraith, 1}};
+        Monster& meatMan = monsters[0];
+        Monster& wraith = monsters[1];
+        AssertThat(Combat::attack(hero, meatMan, monsters), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(7));
+        AssertThat(Combat::attack(hero, meatMan, monsters), Equals(Summary::Safe));
+        AssertThat(hero.getPiety(), Equals(4));
+        AssertThat(Combat::attack(hero, wraith, monsters), Equals(Summary::Win));
+        AssertThat(hero.getPiety(), Equals(1));
       });
       it("shall accept tribute", [] {
         Hero hero;

@@ -6,6 +6,16 @@
 
 #include <algorithm>
 #include <cassert>
+#include <variant>
+
+Faith::Faith(std::optional<GodOrPactmaker> preparedAltar0)
+{
+  if (preparedAltar0)
+  {
+    if (auto god = std::get_if<God>(&*preparedAltar0))
+      preparedAltar.emplace(*god);
+  }
+}
 
 bool Faith::followDeity(God god, Hero& hero, int numRevealedTiles)
 {
@@ -19,6 +29,7 @@ bool Faith::followDeity(God god, Hero& hero, int numRevealedTiles)
   else
     initialBoon(god, hero, numRevealedTiles);
   followedDeity = god;
+  preparationPenalty = preparedAltar == god;
   return true;
 }
 
@@ -89,7 +100,7 @@ void Faith::losePiety(int pointsLost, Hero& hero, Monsters& allMonsters)
   if (piety < 0)
   {
     piety = 0;
-    assert(followedDeity.has_value());
+    assert(followedDeity);
     punish(*followedDeity, hero, allMonsters);
   }
 }
@@ -283,18 +294,18 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   }
   case Boon::Greenblood:
-    resources().numPlants += 3;
+    resources().numPlants += preparationPenalty ? 6 : 3;
     hero.reduceStatus(HeroDebuff::Cursed);
     for (auto& monster : allMonstersOnFloor)
       monster.corrode();
     break;
   case Boon::Entanglement:
-    resources().numPlants += 5;
+    resources().numPlants += preparationPenalty ? 10 : 5;
     for (auto& monster : allMonstersOnFloor)
       monster.slow();
     break;
   case Boon::VineForm:
-    resources().numPlants += 2;
+    resources().numPlants += preparationPenalty ? 4 : 2;
     hero.changeHitPointsMax(+4);
     hero.addStatus(HeroStatus::DamageReduction);
     break;
@@ -742,14 +753,29 @@ PietyChange Faith::spellCast(Spell spell, int manaCost)
       return JehoraTriggered{};
     break;
   case God::MysteraAnnur:
+  {
+    const int numManaPointsSpentBefore = numManaPointsSpent;
     numManaPointsSpent += manaCost;
-    if (numManaPointsSpent >= 2)
+    if (preparationPenalty)
+    {
+      // 2 piety are awarded for 5 mana points spent.
+      int reward = numManaPointsSpent / 5 * 2;
+      numManaPointsSpent %= 5;
+      // However, 1 piety of these is already awarded after 3 MP.
+      if (numManaPointsSpentBefore >= 3)
+        reward -= 1;
+      if (numManaPointsSpent >= 3)
+        reward += 1;
+      return reward;
+    }
+    else if (numManaPointsSpent >= 2)
     {
       const int reward = numManaPointsSpent / 2;
       numManaPointsSpent %= 2;
       return reward;
     }
     break;
+  }
   case God::Taurog:
     return -2;
   case God::TikkiTooki:
@@ -788,9 +814,9 @@ PietyChange Faith::levelGained()
         return -10;
       if (deity == God::GlowingGuardian)
       {
-        // TODO: Preparation penalty for Glowing Guardian: reduce level-up bonus to 2 * (N - 1)
         ++numConsecutiveLevelUpsWithGlowingGuardian;
-        return 3 * numConsecutiveLevelUpsWithGlowingGuardian;
+        return preparationPenalty ? 2 * (numConsecutiveLevelUpsWithGlowingGuardian - 1)
+                                  : 3 * numConsecutiveLevelUpsWithGlowingGuardian;
       }
       return {};
     }();
@@ -922,9 +948,8 @@ PietyChange Faith::receivedHit(const Monster& monster)
     result += *pact;
   if (followedDeity == God::TikkiTooki)
   {
-    // TODO: If Tikki Tooki was equipped, any hit results in a penalty
     auto& monsterHistory = history[monster.getID()];
-    if (monsterHistory.hitHero)
+    if (preparationPenalty || monsterHistory.hitHero)
       result += PietyChange{-3};
     monsterHistory.hitHero = true;
   }
