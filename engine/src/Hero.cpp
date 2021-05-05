@@ -1166,7 +1166,7 @@ void Hero::convert(ItemOrSpell itemOrSpell, Monsters& allMonsters)
       conversion.applyBonus(*this, allMonsters);
 
     applyOrCollect(faith.converted(itemOrSpell, wasSmall), allMonsters);
-    if (std::holds_alternative<TaurogItem>(*item))
+    if (item && std::holds_alternative<TaurogItem>(*item))
       faith.convertedTaurogItem(*this, allMonsters);
   }
 }
