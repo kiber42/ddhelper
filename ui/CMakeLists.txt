@@ -5,16 +5,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(USE_VULKAN)
   add_library(imguiapp STATIC src/ImguiAppVulkan.cpp)
-  target_link_options(imguiapp PUBLIC "-lvulkan")
+  target_link_libraries(imguiapp "-lvulkan")
 
 else()
   add_library(imguiapp STATIC src/ImguiAppOpenGL.cpp)
   if(NOT WIN32)
-    target_link_options(imguiapp PUBLIC "-lGL" "-lGLEW")
+    target_link_libraries(imguiapp "-lGL" "-lGLEW")
   else()
     target_sources(imguiapp PRIVATE "${GL3W_INCLUDE_PATH}/GL/gl3w.c")
-    target_link_options(imguiapp PUBLIC "-lOpenGL32" "-lglu32"
-                        "-Wl,-subsystem:console")
+    target_link_libraries(imguiapp "-lOpenGL32" "-lglu32")
+    target_link_options(imguiapp PUBLIC "-Wl,-subsystem:console")
   endif()
 
 endif()

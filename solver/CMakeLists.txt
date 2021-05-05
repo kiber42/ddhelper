@@ -13,7 +13,7 @@ add_library(
 target_include_directories(ddsolver PUBLIC .)
 target_link_libraries(ddsolver ddhelperengine)
 if(NOT WIN32)
-  target_link_options(ddsolver PUBLIC "-ltbb")
+  target_link_libraries(ddsolver "-ltbb")
 endif()
 
 add_executable(testsolve src/testsolve.cpp)

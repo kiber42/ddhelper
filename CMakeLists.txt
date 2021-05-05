@@ -7,6 +7,8 @@ project(ddhelper VERSION 0.3.5)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+add_compile_options(-Wno-return-type)
+
 # compile with warnings
 if ( MSVC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
@@ -36,7 +38,7 @@ add_library(
   imgui/backends/imgui_impl_sdl.cpp)
 target_include_directories(dearimgui PUBLIC imgui ${SDL_INCLUDE_PATH}
                                             ${GL3W_INCLUDE_PATH})
-target_link_options(dearimgui PUBLIC "-lSDL2" "-lSDL2main")
+target_link_libraries(dearimgui "-lSDL2" "-lSDL2main")
 if(USE_VULKAN)
   target_sources(dearimgui PRIVATE imgui/backends/imgui_impl_vulkan.cpp)
 else()
