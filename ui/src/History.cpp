@@ -9,6 +9,8 @@ namespace ui
   bool History::run()
   {
     ImGui::Begin("History");
+    ImGui::SetWindowPos(ImVec2{765, 410}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{250, 305}, ImGuiCond_FirstUseEver);
     int repeated = 1;
     for (unsigned i = 0; i < history.size(); ++i)
     {

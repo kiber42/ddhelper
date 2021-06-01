@@ -94,6 +94,8 @@ namespace ui
     };
 
     ImGui::Begin("Resources");
+    ImGui::SetWindowPos(ImVec2{1020, 5}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{255, 710}, ImGuiCond_FirstUseEver);
 
     const auto& resources = state.resources;
     ImGui::TextUnformatted(("Visible (" + std::to_string(resources.numRevealedTiles) + " Tiles)").c_str());

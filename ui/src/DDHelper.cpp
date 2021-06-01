@@ -40,6 +40,8 @@ namespace ui
   {
     std::optional<Scenario> selection;
     ImGui::Begin("Scenario");
+    ImGui::SetWindowPos(ImVec2{260, 545}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{170, 170}, ImGuiCond_FirstUseEver);
     ImGui::TextUnformatted("Agbaar's Academy");
     if (ImGui::Button("Slowing Part 2"))
       selection = Scenario::AgbaarsAcademySlowingPart2;

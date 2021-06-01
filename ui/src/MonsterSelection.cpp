@@ -17,6 +17,8 @@ namespace ui
   void MonsterSelection::run()
   {
     ImGui::Begin("Monster");
+    ImGui::SetWindowPos(ImVec2{260, 5}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{250, 150}, ImGuiCond_FirstUseEver);
     ImGui::PushItemWidth(150);
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
     if (ImGui::BeginCombo("Type", toString(selectedType)))
@@ -110,6 +112,8 @@ namespace ui
     };
 
     ImGui::Begin("Custom Monster");
+    ImGui::SetWindowPos(ImVec2{260, 160}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{250, 380}, ImGuiCond_FirstUseEver);
     ImGui::PushItemWidth(80);
     inputInt("Level", data[0], 1, 10);
     ImGui::DragIntRange2("HP / max", &data[1], &data[2], 0.5f, 0, 300, "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);

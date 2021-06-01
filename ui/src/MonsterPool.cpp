@@ -9,6 +9,8 @@ namespace ui
   Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex)
   {
     ImGui::Begin("Monster Pool");
+    ImGui::SetWindowPos(ImVec2{515, 410}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{245, 305}, ImGuiCond_FirstUseEver);
     auto selected = end(monsters);
     int index = 0;
     for (auto monsterIt = begin(monsters); monsterIt != end(monsters); ++monsterIt)

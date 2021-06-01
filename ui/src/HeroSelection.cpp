@@ -7,6 +7,8 @@ namespace ui
   bool HeroSelection::run()
   {
     ImGui::Begin("Hero");
+    ImGui::SetWindowPos(ImVec2{5, 5}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{250, 150}, ImGuiCond_FirstUseEver);
     ImGui::PushItemWidth(100);
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
     if (ImGui::BeginCombo("Class", toString(setup.heroClass)))
@@ -98,6 +100,8 @@ namespace ui
     };
 
     ImGui::Begin("Custom Hero");
+    ImGui::SetWindowPos(ImVec2{5, 160}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{250, 380}, ImGuiCond_FirstUseEver);
     ImGui::PushItemWidth(80);
     inputInt("Level", data[0], 1, 10);
     ImGui::DragIntRange2("HP / max", &data[1], &data[2], 0.5f, 0, 300, "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);

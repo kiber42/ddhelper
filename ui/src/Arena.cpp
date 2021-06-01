@@ -717,6 +717,8 @@ namespace ui
     result.reset();
 
     ImGui::Begin("Arena");
+    ImGui::SetWindowPos(ImVec2{515, 5}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{500, 400}, ImGuiCond_FirstUseEver);
     showStatus(state);
     if (!state.hero.isDefeated())
     {
