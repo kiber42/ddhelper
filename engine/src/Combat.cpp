@@ -16,7 +16,7 @@ namespace Combat
     {
       if (hero.isDefeated())
       {
-        if (monster.getDeathGazePercent() == 0)
+        if (monster.getDeathGazePercent() == 0 || hero.hasStatus(HeroStatus::DeathGazeImmune))
           return Summary::Death;
         return Summary::Petrified;
       }
