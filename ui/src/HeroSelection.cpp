@@ -7,6 +7,7 @@ namespace ui
   bool HeroSelection::run()
   {
     ImGui::Begin("Hero");
+    ImGui::PushItemWidth(100);
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
     if (ImGui::BeginCombo("Class", toString(setup.heroClass)))
     {
@@ -34,6 +35,7 @@ namespace ui
       level = std::min(std::max(level, 1), 10);
 
     const std::string preview = setup.altar ? toString(*setup.altar) : "None";
+    ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100), ImVec2(500, 1000));
     if (ImGui::BeginCombo("Altar", preview.c_str()))
     {
       if (ImGui::Selectable("None", !setup.altar))
@@ -71,42 +73,87 @@ namespace ui
   MapResources HeroSelection::getResources() const { return MapResources{setup}; }
 
   CustomHeroBuilder::CustomHeroBuilder()
-    : data{1, 10, 10, 10, 10, 5, 0, 0, 0}
+    : data{1, 10, 10, 10, 10, 5, 0, 0}
   {
   }
 
   std::optional<Hero> CustomHeroBuilder::run()
   {
-    ImGui::Begin("Custom Hero");
-    ImGui::DragInt("Level", &data[0], 0.1f, 1, 10);
-    if (ImGui::DragInt2("HP / max", &data[1], 0.5f, 0, 300))
-      data[1] = std::min(data[1], data[2] * 3 / 2);
-    if (ImGui::DragInt2("MP / max", &data[3], 0.1f, 0, 30))
-      data[3] = std::min(data[3], data[4]);
-    ImGui::DragInt("Attack", &data[5], 0.5f, 0, 300);
-    ImGui::DragInt("Physical Resistance", &data[6], 0.2f, 0, 80);
-    ImGui::DragInt("Magical Resistance", &data[7], 0.2f, 0, 80);
-    ImGui::DragInt("XP", &data[8], 0.1f, 0, 50);
+    auto inputInt = [](auto label, int& value, int minValue, int maxValue) {
+      if (ImGui::InputInt(label, &value))
+        value = std::min(std::max(value, minValue), maxValue);
+      return value;
+    };
 
-    for (HeroStatus status :
-         {HeroStatus::FirstStrikePermanent, HeroStatus::FirstStrikeTemporary, HeroStatus::SlowStrike,
-          HeroStatus::Reflexes, HeroStatus::MagicalAttack, HeroStatus::ConsecratedStrike, HeroStatus::HeavyFireball,
-          HeroStatus::DeathProtection, HeroStatus::ExperienceBoost})
+    constexpr std::array statusesWithIntensity = {
+        HeroStatus::CorrosiveStrike, HeroStatus::DamageReduction, HeroStatus::DodgePermanent, HeroStatus::Learning,
+        HeroStatus::LifeSteal,       HeroStatus::Momentum,        HeroStatus::Poisonous,      HeroStatus::Sanguine,
+    };
+
+    constexpr std::array statusesWithoutIntensity = {
+        HeroStatus::FirstStrikePermanent, HeroStatus::SlowStrike,     HeroStatus::MagicalAttack,
+        HeroStatus::BurningStrike,        HeroStatus::HeavyFireball,  HeroStatus::DeathProtection,
+        HeroStatus::PoisonImmune,         HeroStatus::ManaBurnImmune, HeroStatus::CurseImmune,
+        HeroStatus::DeathGazeImmune,
+    };
+
+    ImGui::Begin("Custom Hero");
+    ImGui::PushItemWidth(80);
+    inputInt("Level", data[0], 1, 10);
+    ImGui::DragIntRange2("HP / max", &data[1], &data[2], 0.5f, 0, 300, "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
+    ImGui::DragIntRange2("MP / max", &data[3], &data[4], 0.1f, 0, 30, "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
+    inputInt("Attack", data[5], 0, 300);
+    inputInt("Physical Resist", data[6], 0, 100);
+    inputInt("Magical Resist", data[7], 0, 100);
+    for (HeroStatus status : statusesWithIntensity)
     {
-      bool current = statuses[status] > 0;
-      if (ImGui::Checkbox(toString(status), &current))
-        statuses[status] = current;
-    }
-    for (HeroStatus status : {HeroStatus::Learning})
-    {
-      int current = statuses[status];
-      if (ImGui::InputInt(toString(status), &current))
+      if (auto statusIter = statuses.find(status); statusIter != statuses.end())
       {
-        if (current < 0)
-          current = 0;
-        statuses[status] = current;
+        if (inputInt(toString(status), statusIter->second, -1, 100) == -1)
+          statuses.erase(statusIter);
       }
     }
+    ImGui::PopItemWidth();
+
+    for (HeroStatus status : statusesWithoutIntensity)
+    {
+      if (statuses.find(status) != statuses.end())
+      {
+        ImGui::TextUnformatted(toString(status));
+        ImGui::SameLine();
+        ImGui::PushID(static_cast<int>(status));
+        if (ImGui::SmallButton("Remove"))
+          statuses.erase(status);
+        ImGui::PopID();
+      }
+    }
+    auto addChoice = [&](const auto& status) {
+      if (statuses.find(status) != statuses.end())
+        return;
+      const bool isSelected = comboSelection == status;
+      if (ImGui::Selectable(toString(status), isSelected))
+        comboSelection = status;
+      // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+      if (isSelected)
+        ImGui::SetItemDefaultFocus();
+    };
+    ImGui::PushItemWidth(160);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(160, 100), ImVec2(500, 1000));
+    if (ImGui::BeginCombo("##statuses", "Add status"))
+    {
+      for (HeroStatus status : statusesWithIntensity)
+        addChoice(status);
+      for (HeroStatus status : statusesWithoutIntensity)
+        addChoice(status);
+      ImGui::EndCombo();
+    }
+    else if (comboSelection)
+    {
+      statuses[*comboSelection] = 1;
+      comboSelection.reset();
+    }
+    ImGui::PopItemWidth();
+
     std::optional<Hero> newHero;
     if (ImGui::Button("Send to Arena"))
       newHero.emplace(get());
@@ -122,11 +169,9 @@ namespace ui
     const int damage = data[5];
     const int physicalResistance = data[6];
     const int magicalResistance = data[7];
-    const int xp = data[8];
     Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
     Monsters ignore;
     hero.clearInventory();
-    hero.gainExperienceNoBonuses(xp, ignore);
 
     const int deltaHp = maxHp - data[1];
     const int deltaMp = maxMp - data[3];

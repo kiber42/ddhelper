@@ -66,9 +66,11 @@ namespace ui
       }
       std::vector<std::string> strings(v.size());
       std::transform(begin(v), end(v), begin(strings), [](auto item) { return toString(item); });
+      ImGui::PushTextWrapPos(std::max(ImGui::GetWindowWidth() - 40, 140.f));
       ImGui::TextWrapped("%s", std::accumulate(begin(strings), end(strings), prefix, [](const auto& a, const auto& b) {
                                  return a + " " + b;
                                }).c_str());
+      ImGui::PopTextWrapPos();
     };
 
     auto revealFromVector = [this, &state](std::string label, auto ResourceSet::*item) {
@@ -134,7 +136,6 @@ namespace ui
 
   void Resources::runSpawnShop(const State& state)
   {
-    // TODO: Change layout so that button is always visible even when text expands
     ImGui::SameLine();
     ImGui::SmallButton("Add##Shop");
     if (ImGui::IsItemActive())
@@ -144,10 +145,12 @@ namespace ui
     }
     if (ImGui::BeginPopup("SpawnShopPopup"))
     {
-      auto makeSubmenu = [this, index = 0, &state](const auto title, const auto firstItem, const auto lastItem) mutable {
-                if (ImGui::BeginMenu(title))
+      auto makeSubmenu = [this, index = 0, &state](const auto title, const auto firstItem,
+                                                   const auto lastItem) mutable {
+        if (ImGui::BeginMenu(title))
         {
-          for (auto item = firstItem; item != lastItem; item = static_cast<decltype(firstItem)>(static_cast<int>(item) + 1))
+          for (auto item = firstItem; item != lastItem;
+               item = static_cast<decltype(firstItem)>(static_cast<int>(item) + 1))
           {
             const bool isSelected = ++index == selectedPopupItem;
             if (addPopupAction(

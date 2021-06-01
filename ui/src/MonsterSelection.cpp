@@ -17,6 +17,7 @@ namespace ui
   void MonsterSelection::run()
   {
     ImGui::Begin("Monster");
+    ImGui::PushItemWidth(150);
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
     if (ImGui::BeginCombo("Type", toString(selectedType)))
     {
@@ -74,6 +75,7 @@ namespace ui
     }
     if (ImGui::Button("Send to Arena"))
       arenaMonster.emplace(get());
+    ImGui::SameLine();
     if (ImGui::Button("Send to Pool"))
       poolMonster.emplace(get());
     ImGui::End();
@@ -102,31 +104,41 @@ namespace ui
 
   void CustomMonsterBuilder::run()
   {
+    auto inputInt = [](auto label, int& value, int minValue, int maxValue) {
+      if (ImGui::InputInt(label, &value))
+        value = std::min(std::max(value, minValue), maxValue);
+    };
+
     ImGui::Begin("Custom Monster");
-    ImGui::DragInt("Level", &data[0], 0.1f, 1, 10);
-    ImGui::DragInt2("HP / max", &data[1], 0.5f, 0, 300);
-    ImGui::DragInt("Attack", &data[3], 0.5f, 0, 300);
-    ImGui::DragInt("Physical Resistance", &data[4], 0.2f, 0, 100);
-    ImGui::DragInt("Magical Resistance", &data[5], 0.2f, 0, 100);
-    ImGui::DragInt("Death Protection", &data[6], 0.1f, 1, 50);
+    ImGui::PushItemWidth(80);
+    inputInt("Level", data[0], 1, 10);
+    ImGui::DragIntRange2("HP / max", &data[1], &data[2], 0.5f, 0, 300, "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
+    inputInt("Attack", data[3], 0, 300);
+    inputInt("Physical Resist", data[4], 0, 100);
+    inputInt("Magical Resist", data[5], 0, 100);
+    inputInt("Death Protection", data[6], 0, 50);
+    inputInt("Death Gaze %", traits.deathGazePercent, 0, 100);
+    inputInt("Life Steal %", traits.lifeStealPercent, 0, 100);
+    inputInt("Berserk at %", traits.berserkPercent, 0, 100);
+    const int colsize = 120;
     ImGui::Checkbox("First Strike", &traits.firstStrike);
+    ImGui::SameLine(colsize);
     ImGui::Checkbox("Magical Attack", &traits.magicalDamage);
     ImGui::Checkbox("Retaliate", &traits.retaliate);
+    ImGui::SameLine(colsize);
     ImGui::Checkbox("Poisonous", &traits.poisonous);
     ImGui::Checkbox("Mana Burn", &traits.manaBurn);
+    ImGui::SameLine(colsize);
     ImGui::Checkbox("Cursed", &traits.curse);
     ImGui::Checkbox("Corrosive", &traits.corrosive);
+    ImGui::SameLine(colsize);
     ImGui::Checkbox("Weakening", &traits.weakening);
     ImGui::Checkbox("Undead", &traits.undead);
+    ImGui::SameLine(colsize);
     ImGui::Checkbox("Bloodless ", &traits.bloodless);
-    if (ImGui::InputInt("Death Gaze %", &traits.deathGazePercent))
-      traits.deathGazePercent = std::min(std::max(traits.deathGazePercent, 0), 100);
-    if (ImGui::InputInt("Life Steal %", &traits.lifeStealPercent))
-      traits.lifeStealPercent = std::min(std::max(traits.lifeStealPercent, 0), 100);
-    if (ImGui::InputInt("Berserk at %", &traits.berserkPercent))
-      traits.berserkPercent = std::min(std::max(traits.berserkPercent, 0), 100);
     if (ImGui::Button("Send to Arena"))
       arenaMonster.emplace(get());
+    ImGui::SameLine();
     if (ImGui::Button("Send to Pool"))
       poolMonster.emplace(get());
     ImGui::End();
