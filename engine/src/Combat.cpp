@@ -10,16 +10,10 @@ namespace Combat
   namespace
   {
     // Determines outcome summary and awards experience if applicable.
-    // Helper used by Combat::attack and Magic::cast, do not call directly.
     Summary summaryAndExperience(
         Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
     {
-      if (hero.isDefeated())
-      {
-        if (monster.getDeathGazePercent() == 0 || hero.hasStatus(HeroStatus::DeathGazeImmune))
-          return Summary::Death;
-        return Summary::Petrified;
-      }
+      assert(!hero.isDefeated());
 
       if (!monster.isDefeated())
         return Summary::Safe;
@@ -89,9 +83,12 @@ namespace Combat
                            bool triggerBurndown,
                            Monsters& allMonsters)
     {
+      if (hero.isDefeated())
+        return Summary::Death;
+
       auto summary = summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters);
 
-      if (!hero.isDefeated() && triggerBurndown)
+      if (triggerBurndown)
       {
         const int levelBefore = hero.getLevel() + hero.getPrestige();
         for (auto& otherMonster : allMonsters)
@@ -228,6 +225,9 @@ namespace Combat
     }
 
     hero.adjustMomentum(monster.isDefeated());
+
+    if (willPetrify && hero.isDefeated())
+      return Summary::Petrified;
 
     return detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, true, allMonsters);
   }
