@@ -78,7 +78,19 @@ int Defence::predictDamageTaken(int attackerDamageOutput, DamageType damageType,
     return damage;
   if (!isCursed)
   {
-    const int resist = damageType == DamageType::Physical ? getPhysicalResistPercent() : getMagicalResistPercent();
+    const int resist = [&, damageType] {
+      switch (damageType)
+      {
+      case DamageType::Physical:
+        return getPhysicalResistPercent();
+      case DamageType::Piercing:
+        return std::max(getPhysicalResistPercent() - 35, 0);
+      case DamageType::Magical:
+        return getMagicalResistPercent();
+      case DamageType::Typeless:
+        return 0;
+      }
+    }();
     const int resistedPoints = (attackerDamageOutput * resist + burnStackSize * magicalResistPercent) / 100;
     damage -= resistedPoints;
   }

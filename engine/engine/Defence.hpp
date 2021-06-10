@@ -5,6 +5,7 @@ enum class MonsterType;
 enum class DamageType
 {
   Physical,
+  Piercing,
   Magical,
   Typeless
 };

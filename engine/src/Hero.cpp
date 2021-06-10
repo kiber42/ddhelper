@@ -356,7 +356,8 @@ bool Hero::doesMagicalDamage() const
 
 DamageType Hero::damageType() const
 {
-  return doesMagicalDamage() ? DamageType::Magical : DamageType::Physical;
+  return doesMagicalDamage() ? DamageType::Magical
+                             : hasStatus(HeroStatus::PiercePhysical) ? DamageType::Piercing : DamageType::Physical;
 }
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const

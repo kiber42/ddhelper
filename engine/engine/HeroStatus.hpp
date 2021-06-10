@@ -26,7 +26,7 @@ enum class HeroStatus
   ManaBurnImmune,
   Might,
   Momentum,
-  PiercePhysical, // TODO
+  PiercePhysical,
   Poisonous,
   PoisonImmune,
   Reflexes,

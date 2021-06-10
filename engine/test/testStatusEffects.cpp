@@ -3,9 +3,9 @@
 #include "engine/Combat.hpp"
 #include "engine/Hero.hpp"
 #include "engine/Items.hpp"
+#include "engine/Magic.hpp"
 #include "engine/Monster.hpp"
 #include "engine/MonsterTypes.hpp"
-#include "engine/Magic.hpp"
 
 using namespace bandit;
 using namespace snowhouse;
@@ -418,7 +418,64 @@ void testStatusEffects()
       });
       it("should wear off", [&] { AssertThat(hero.hasStatus(HeroStatus::Might), IsFalse()); });
     });
-    describe("Pierce Physical", [] { /* TODO */ });
+    describe("Pierce Physical", [] {
+      it("should ignore 35% of physical resist", [] {
+        Hero hero;
+        hero.setHitPointsMax(100);
+        hero.gainLevel(noOtherMonsters);
+        hero.gainLevel(noOtherMonsters);
+        hero.gainLevel(noOtherMonsters);
+        const int damage = hero.getDamageVersusStandard();
+
+        Monster resist25(MonsterType::SteelGolem, 5); // 25% physical resist
+        AssertThat(Combat::attack(hero, resist25, noOtherMonsters), Equals(Summary::Safe));
+        const int resisted = damage / 4;
+        AssertThat(resist25.getHitPointsMax() - resist25.getHitPoints(), Equals(damage - resisted));
+        resist25.recover(100);
+
+        hero.receive(BlacksmithItem::ReallyBigSword);
+        AssertThat(hero.hasStatus(HeroStatus::PiercePhysical), IsTrue());
+        AssertThat(Combat::attack(hero, resist25, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(resist25.getHitPointsMax() - resist25.getHitPoints(), Equals(damage));
+
+        Monster resist50(MonsterType::GooBlob, 3);
+        AssertThat(Combat::attack(hero, resist50, noOtherMonsters), Equals(Summary::Safe));
+        const int resistedReduced = damage * (50 - 35) / 100;
+        AssertThat(resist50.getHitPointsMax() - resist50.getHitPoints(), Equals(damage - resistedReduced));
+
+        Monster resist0(MonsterType::MeatMan, 3);
+        AssertThat(Combat::attack(hero, resist0, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(resist0.getHitPointsMax() - resist0.getHitPoints(), Equals(damage));
+
+        hero.convert(BlacksmithItem::ReallyBigSword, noOtherMonsters);
+        AssertThat(hero.hasStatus(HeroStatus::PiercePhysical), IsFalse());
+      });
+      it("should not affect magical attacks", [] {
+        Hero hero;
+        hero.setHitPointsMax(100);
+        hero.gainLevel(noOtherMonsters);
+        hero.gainLevel(noOtherMonsters);
+        hero.addStatus(HeroStatus::ConsecratedStrike);
+        hero.receive(BlacksmithItem::ReallyBigSword);
+        Monster troll(MonsterType::FrozenTroll, 3);
+        AssertThat(troll.getPhysicalResistPercent(), Equals(50));
+        AssertThat(troll.getMagicalResistPercent(), Equals(50));
+        const int damage = hero.getDamageVersusStandard();
+        const int resisted = damage / 2;
+        AssertThat(Combat::attack(hero, troll, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(troll.getHitPointsMax() - troll.getHitPoints(), Equals(damage - resisted));
+        troll.recover(100);
+        AssertThat(hero.hasStatus(HeroStatus::ConsecratedStrike), IsFalse());
+        hero.addStatus(HeroStatus::MagicalAttack);
+        AssertThat(Combat::attack(hero, troll, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(troll.getHitPointsMax() - troll.getHitPoints(), Equals(damage - resisted));
+        troll.recover(100);
+        hero.resetStatus(HeroStatus::MagicalAttack);
+        const int resistedReduced = damage * (50 - 35) / 100;
+        AssertThat(Combat::attack(hero, troll, noOtherMonsters), Equals(Summary::Safe));
+        AssertThat(troll.getHitPointsMax() - troll.getHitPoints(), Equals(damage - resistedReduced));
+      });
+    });
     describe("Poisoned", [] {
       it("should prevent health recovery", [] {
         Hero hero;
