@@ -322,7 +322,8 @@ namespace Magic
     if (spell == Spell::Imawal)
     {
       const bool levelBefore = hero.getLevel() + hero.getPrestige();
-      hero.gainExperienceForPetrification(monster.isSlowed(), allMonsters);
+      if (monster.grantsXP())
+        hero.gainExperienceForPetrification(monster.isSlowed(), allMonsters);
       monster.petrify();
       hero.addStatus(HeroStatus::ExperienceBoost);
       // Remove one curse stack, even for cursed monsters

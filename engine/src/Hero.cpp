@@ -656,13 +656,16 @@ void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool mon
   assert(monster.isDefeated());
   addStatus(HeroDebuff::Cursed, allMonsters, monster.bearsCurse() ? 1 : -1);
   applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning), allMonsters);
-  gainExperienceForKill(monster.getLevel(), monsterWasSlowed, allMonsters);
-  if (has(ShopItem::GlovesOfMidas))
-    ++inventory.gold;
+  if (monster.grantsXP())
+  {
+    gainExperienceForKill(monster.getLevel(), monsterWasSlowed, allMonsters);
+    if (has(ShopItem::GlovesOfMidas))
+      ++inventory.gold;
+    if (has(ShopItem::BlueBead) && !hasStatus(HeroDebuff::ManaBurned))
+      recoverManaPoints(1);
+  }
   if (has(ShopItem::StoneSigil))
     faith.gainPiety(1);
-  if (has(ShopItem::BlueBead) && !hasStatus(HeroDebuff::ManaBurned))
-    recoverManaPoints(1);
 }
 
 void Hero::adjustMomentum(bool increase)
@@ -1337,7 +1340,8 @@ void Hero::use(Item item, Monster& monster, Monsters& allMonsters)
 {
   if (item == Item{BlacksmithItem::SlayerWand})
   {
-    gainExperienceForKill(std::min(getLevel(), monster.getLevel()), monster.isSlowed(), allMonsters);
+    if (monster.grantsXP())
+      gainExperienceForKill(std::min(getLevel(), monster.getLevel()), monster.isSlowed(), allMonsters);
     monster.die();
     inventory.remove(item);
   }
