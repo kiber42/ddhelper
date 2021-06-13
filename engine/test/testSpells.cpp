@@ -78,7 +78,43 @@ void testBludtupowa()
   });
 }
 
+void testBurndayraz()
+{
+  describe("Burndayraz", [] {
+    // TODO
+  });
+  describe("Burndown", [] {
+    it("shall deal damage equal to burn stack size", [] {
+      Hero hero;
+      Monster monster{MonsterType::MeatMan, 2};
+      Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources);
+      hero.recoverManaPoints(6);
+      Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources);
+      AssertThat(monster.isBurning(), IsTrue());
+      AssertThat(monster.getBurnStackSize(), Equals(2));
+      monster.recover(100);
+      monster.burnDown();
+      AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2));
+      AssertThat(monster.getBurnStackSize(), Equals(0));
+      monster.burnMax(4);
+      monster.burnDown();
+      AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(6));
+      monster.burnMax(monster.getHitPoints());
+      monster.burnDown();
+      AssertThat(monster.isDefeated(), IsTrue());
+    });
+    it("shall account for magical resist", [] {
+      Hero hero;
+      Monster monster{"lvl1", {1, 10, 0, 0}, Defence{0, 20}, {}};
+      monster.burnMax(11);
+      monster.burnDown();
+      AssertThat(monster.getHitPoints(), Equals(1 /* 10 - (11 - 11 * 2 / 10) */));
+    });
+  });
+}
+
 void testSpells()
 {
   testBludtupowa();
+  testBurndayraz();
 }
