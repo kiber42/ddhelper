@@ -98,7 +98,7 @@ void testStatusEffects()
       it("should be added/removed when cursed/not-cursed monster is defeated", [] {
         Hero hero;
         hero.changeBaseDamage(100);
-        Monster monster("", MonsterStats{1, 10, 3, 0}, {}, MonsterTraitsBuilder().addCurse());
+        Monster monster("", MonsterStats{1, 10, 3, 0}, {}, {MonsterTrait::CurseBearer});
         Combat::attack(hero, monster, noOtherMonsters);
         // One curse from hit, one from killing
         AssertThat(hero.getStatusIntensity(HeroDebuff::Cursed), Equals(2));
@@ -111,7 +111,7 @@ void testStatusEffects()
         hero.gainLevel(noOtherMonsters);
         const int health = hero.getHitPoints();
         hero.setPhysicalResistPercent(50);
-        Monster monster("", MonsterStats(1, 100, 10, 0), {}, MonsterTraitsBuilder().addCurse());
+        Monster monster("", MonsterStats(1, 100, 10, 0), {}, {MonsterTrait::CurseBearer});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(hero.hasStatus(HeroDebuff::Cursed), IsTrue());
         AssertThat(hero.getHitPoints(), Equals(health - 10));
@@ -353,7 +353,7 @@ void testStatusEffects()
       it("should not work on bloodless monsters", [] {
         Hero hero;
         hero.addStatus(HeroStatus::LifeSteal);
-        Monster monster("Bloodless", {1, 10, 3, 0}, {}, MonsterTraitsBuilder().addBloodless());
+        Monster monster("Bloodless", {1, 10, 3, 0}, {}, {MonsterTrait::Bloodless});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(7));
       });

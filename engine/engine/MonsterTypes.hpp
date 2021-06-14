@@ -1,7 +1,5 @@
 #pragma once
 
-#include "engine/MonsterTraits.hpp"
-
 enum class MonsterType
 {
   // Basic
@@ -358,5 +356,3 @@ inline int getDeathProtectionInitial(MonsterType type, int level)
     return 1;
   return 0;
 }
-
-MonsterTraits getTraits(MonsterType type);

@@ -26,7 +26,7 @@ namespace ui
     std::optional<Monster> poolMonster;
   };
 
-  class CustomMonsterBuilder
+  class CustomMonsterBuilder : public MonsterTraits
   {
   public:
     CustomMonsterBuilder();
@@ -37,7 +37,6 @@ namespace ui
 
   private:
     std::array<int, 7> data;
-    MonsterTraits traits;
     std::optional<Monster> arenaMonster;
     std::optional<Monster> poolMonster;
   };

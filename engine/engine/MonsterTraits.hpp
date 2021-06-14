@@ -1,87 +1,112 @@
 #pragma once
 
-enum class MonsterType;
-class MonsterTraitsBuilder;
-namespace ui
+#include "MonsterTypes.hpp"
+
+#include <cstdint>
+#include <type_traits>
+#include <utility>
+
+enum class MonsterTrait : uint8_t
 {
-  class CustomMonsterBuilder;
+  Blinks,
+  Bloodless,
+  Corrosive,
+  Cowardly, // TODO
+  CurseBearer,
+  FastRegen,
+  FirstStrike,
+  MagicalAttack,
+  ManaBurn,
+  Poisonous,
+  Retaliate,
+  Undead,
+  Weakening,
+
+  Revives, // TODO
+  Spawns,  // TODO
+};
+
+constexpr const char* toString(MonsterTrait monsterTrait)
+{
+  switch (monsterTrait)
+  {
+  case MonsterTrait::Blinks:
+    return "Blinks";
+  case MonsterTrait::Bloodless:
+    return "Bloodless";
+  case MonsterTrait::Corrosive:
+    return "Corrosive";
+  case MonsterTrait::Cowardly:
+    return "Cowardly";
+  case MonsterTrait::CurseBearer:
+    return "Curse Bearer";
+  case MonsterTrait::FastRegen:
+    return "Fast Regen";
+  case MonsterTrait::FirstStrike:
+    return "First Strike";
+  case MonsterTrait::MagicalAttack:
+    return "Magical Attack";
+  case MonsterTrait::ManaBurn:
+    return "Mana Burn";
+  case MonsterTrait::Poisonous:
+    return "Poisonous";
+  case MonsterTrait::Retaliate:
+    return "Retaliate";
+  case MonsterTrait::Undead:
+    return "Undead";
+  case MonsterTrait::Weakening:
+    return "Weakening";
+  case MonsterTrait::Revives:
+    return "Revives";
+  case MonsterTrait::Spawns:
+    return "Spawns";
+  }
 }
 
 struct MonsterTraits
 {
-  bool doesMagicalDamage() const { return magicalDamage; }
-  bool doesRetaliate() const { return retaliate; }
+  MonsterTraits() = default;
+  MonsterTraits(MonsterType);
+  MonsterTraits(std::initializer_list<MonsterTrait> traits);
 
-  bool isPoisonous() const { return poisonous; }
-  bool hasManaBurn() const { return manaBurn; }
-  bool bearsCurse() const { return curse; }
-  bool isCorrosive() const { return corrosive; }
-  bool isWeakening() const { return weakening; }
+  inline bool has(MonsterTrait trait) const
+  {
+    return traits & (1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait));
+  }
 
-  bool hasFirstStrike() const { return firstStrike; }
+  bool doesMagicalDamage() const { return has(MonsterTrait::MagicalAttack); }
+  bool doesRetaliate() const { return has(MonsterTrait::Retaliate); }
+
+  bool isPoisonous() const { return has(MonsterTrait::Poisonous); }
+  bool hasManaBurn() const { return has(MonsterTrait::ManaBurn); }
+  bool bearsCurse() const { return has(MonsterTrait::CurseBearer); }
+  bool isCorrosive() const { return has(MonsterTrait::Corrosive); }
+  bool isWeakening() const { return has(MonsterTrait::Weakening); }
+
+  bool hasFirstStrike() const { return has(MonsterTrait::FirstStrike); }
   int getDeathGazePercent() const { return deathGazePercent; }
   int getLifeStealPercent() const { return lifeStealPercent; }
   int getBerserkPercent() const { return berserkPercent; }
-  bool isUndead() const { return undead; }
-  bool isBloodless() const { return bloodless; }
-  bool isCowardly() const { return cowardly; }
-  bool hasFastRegen() const { return fastRegen; }
+  bool isUndead() const { return has(MonsterTrait::Undead); }
+  bool isBloodless() const { return has(MonsterTrait::Bloodless); }
+  bool isCowardly() const { return has(MonsterTrait::Cowardly); }
+  bool hasFastRegen() const { return has(MonsterTrait::FastRegen); }
   int getKnockbackPercent() const { return knockbackPercent; }
 
-  void makeFast() { firstStrike = true; }
-  void makeWeakening() { weakening = true; }
+  void makeFast() { add(MonsterTrait::FirstStrike); }
+  void makeWeakening() { add(MonsterTrait::Weakening); }
 
-  MonsterTraits() = default;
-  MonsterTraits(MonsterType type);
-  MonsterTraits(MonsterTraitsBuilder& builder);
+protected:
+  inline void add(MonsterTrait trait) { traits |= 1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait); }
+  inline void toggle(MonsterTrait trait) { traits ^= 1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait); }
 
-private:
-  bool magicalDamage{false};
-  bool retaliate{false};
-  bool poisonous{false};
-  bool manaBurn{false};
-  bool curse{false};
-  bool corrosive{false};
-  bool weakening{false};
-  bool firstStrike{false};
-  int deathGazePercent{0};
-  int lifeStealPercent{0};
-  int berserkPercent{0};
-  bool undead{false};
-  bool bloodless{false};
-  bool cowardly{false};
-  bool fastRegen{false};
-  int knockbackPercent{0};
-
-  friend class MonsterTraitsBuilder;
-  friend class ui::CustomMonsterBuilder;
-};
-
-class MonsterTraitsBuilder
-{
-public:
-  MonsterTraits&& get();
-
-  MonsterTraitsBuilder& addMagicalDamage();
-  MonsterTraitsBuilder& addRetaliate();
-  MonsterTraitsBuilder& addPoisonous();
-  MonsterTraitsBuilder& addManaBurn();
-  MonsterTraitsBuilder& addCurse();
-  MonsterTraitsBuilder& addCorrosive();
-  MonsterTraitsBuilder& addWeakening();
-  MonsterTraitsBuilder& addFirstStrike();
-  MonsterTraitsBuilder& setDeathGazePercent(int deathGazePercent);
-  MonsterTraitsBuilder& setLifeStealPercent(int lifeStealPercent);
-  MonsterTraitsBuilder& setBerserkPercent(int berserkPercent);
-  MonsterTraitsBuilder& addUndead();
-  MonsterTraitsBuilder& addBloodless();
-  MonsterTraitsBuilder& addCowardly();
-  MonsterTraitsBuilder& addFastRegen();
-  MonsterTraitsBuilder& addBlinks();
-  MonsterTraitsBuilder& addRevives();
-  MonsterTraitsBuilder& addSpawns();
-  MonsterTraitsBuilder& setKnockbackPercent(int knockbackPercent);
+  uint8_t deathGazePercent{0};
+  // TODO: lifesteal not considered by engine
+  uint8_t lifeStealPercent{0};
+  uint8_t berserkPercent{0};
+  // TODO: knockback not considered by engine
+  uint8_t knockbackPercent{0};
 
 private:
-  MonsterTraits traits;
+  uint16_t traits{0};
 };

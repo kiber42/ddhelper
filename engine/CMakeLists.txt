@@ -22,7 +22,6 @@ add_library(
   src/MonsterStats.cpp
   src/MonsterStatus.cpp
   src/MonsterTraits.cpp
-  src/MonsterTypes.cpp
   src/Outcome.cpp
   src/PietyChange.cpp
   src/Resources.cpp)

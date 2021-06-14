@@ -26,12 +26,12 @@ void testFaith()
         Hero hero;
         hero.followDeity(God::GlowingGuardian, 0);
         const int initialPiety = hero.getPiety();
-        Monster manaBurnMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addManaBurn());
+        Monster manaBurnMonster("", {1, 10, 1, 0}, {}, {MonsterTrait::ManaBurn});
         AssertThat(Combat::attack(hero, manaBurnMonster, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(hero.getPiety() - initialPiety, Equals(2));
         AssertThat(Combat::attack(hero, manaBurnMonster, noOtherMonsters), Equals(Summary::Win));
         AssertThat(hero.getPiety() - initialPiety, Equals(2));
-        Monster poisonMonster("", {1, 10, 1, 0}, {}, MonsterTraitsBuilder().addPoisonous());
+        Monster poisonMonster("", {1, 10, 1, 0}, {}, {MonsterTrait::Poisonous});
         AssertThat(Combat::attack(hero, poisonMonster, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(hero.getPiety() - initialPiety, Equals(4));
         AssertThat(Combat::attack(hero, poisonMonster, noOtherMonsters), Equals(Summary::Win));

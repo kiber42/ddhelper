@@ -106,9 +106,19 @@ namespace ui
 
   void CustomMonsterBuilder::run()
   {
-    auto inputInt = [](auto label, int& value, int minValue, int maxValue) {
-      if (ImGui::InputInt(label, &value))
-        value = std::min(std::max(value, minValue), maxValue);
+    auto inputInt = [](auto label, auto& value, int minValue, int maxValue) {
+      int valueAsInt = static_cast<int>(value);
+      if (ImGui::InputInt(label, &valueAsInt))
+      {
+        valueAsInt = std::min(std::max(valueAsInt, minValue), maxValue);
+        value = static_cast<typename std::remove_reference<decltype(value)>::type>(valueAsInt);
+      }
+    };
+
+    auto checkbox = [&](auto label, MonsterTrait trait) {
+      bool checked = has(trait);
+      if (ImGui::Checkbox(label, &checked))
+        toggle(trait);
     };
 
     ImGui::Begin("Custom Monster");
@@ -121,25 +131,20 @@ namespace ui
     inputInt("Physical Resist", data[4], 0, 100);
     inputInt("Magical Resist", data[5], 0, 100);
     inputInt("Death Protection", data[6], 0, 50);
-    inputInt("Death Gaze %", traits.deathGazePercent, 0, 100);
-    inputInt("Life Steal %", traits.lifeStealPercent, 0, 100);
-    inputInt("Berserk at %", traits.berserkPercent, 0, 100);
-    const int colsize = 120;
-    ImGui::Checkbox("First Strike", &traits.firstStrike);
-    ImGui::SameLine(colsize);
-    ImGui::Checkbox("Magical Attack", &traits.magicalDamage);
-    ImGui::Checkbox("Retaliate", &traits.retaliate);
-    ImGui::SameLine(colsize);
-    ImGui::Checkbox("Poisonous", &traits.poisonous);
-    ImGui::Checkbox("Mana Burn", &traits.manaBurn);
-    ImGui::SameLine(colsize);
-    ImGui::Checkbox("Cursed", &traits.curse);
-    ImGui::Checkbox("Corrosive", &traits.corrosive);
-    ImGui::SameLine(colsize);
-    ImGui::Checkbox("Weakening", &traits.weakening);
-    ImGui::Checkbox("Undead", &traits.undead);
-    ImGui::SameLine(colsize);
-    ImGui::Checkbox("Bloodless ", &traits.bloodless);
+    inputInt("Death Gaze %", deathGazePercent, 0, 100);
+    inputInt("Life Steal %", lifeStealPercent, 0, 100);
+    inputInt("Berserk at %", berserkPercent, 0, 100);
+    bool rightColumn = false;
+    for (MonsterTrait trait :
+         {MonsterTrait::FirstStrike, MonsterTrait::MagicalAttack, MonsterTrait::Retaliate, MonsterTrait::Poisonous,
+          MonsterTrait::ManaBurn, MonsterTrait::CurseBearer, MonsterTrait::Corrosive, MonsterTrait::Weakening,
+          MonsterTrait::Undead, MonsterTrait::Bloodless})
+    {
+      if (rightColumn)
+        ImGui::SameLine(120);
+      rightColumn = !rightColumn;
+      checkbox(toString(trait), trait);
+    }
     if (ImGui::Button("Send to Arena"))
       arenaMonster.emplace(get());
     ImGui::SameLine();
@@ -162,7 +167,7 @@ namespace ui
     else if (hp > maxHp)
       stats.healHitPoints(hp - maxHp, true);
     auto defence = Defence{data[4], data[5]};
-    return {std::move(name), std::move(stats), std::move(defence), MonsterTraits(traits)};
+    return {std::move(name), std::move(stats), std::move(defence), static_cast<MonsterTraits>(*this)};
   }
 
   std::optional<Monster> CustomMonsterBuilder::toArena()

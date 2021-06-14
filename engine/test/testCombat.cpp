@@ -59,6 +59,16 @@ void testMelee()
   });
 
   describe("Monster death gaze", [] {
+    class CustomMonsterTraits : public MonsterTraits
+    {
+    public:
+      static MonsterTraits withDeathGaze(unsigned char percent)
+      {
+        CustomMonsterTraits traits;
+        traits.deathGazePercent = percent;
+        return static_cast<MonsterTraits>(traits);
+      }
+    };
     it("should petrify hero with low health (<50%)", [] {
       Hero hero;
       Monster gorgon(MonsterType::Gorgon, 1);
@@ -70,7 +80,7 @@ void testMelee()
     });
     it("should be available with 100% intensity", [] {
       Hero hero;
-      MonsterTraits traits = MonsterTraitsBuilder().setDeathGazePercent(100);
+      auto traits = CustomMonsterTraits::withDeathGaze(100);
       Monster monster("", {1, 100, 1, 0}, {}, std::move(traits));
       hero.addStatus(HeroStatus::DeathProtection);
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
@@ -85,7 +95,7 @@ void testMelee()
     });
     it("should be available with 101% intensity", [] {
       Hero hero;
-      MonsterTraits traits = MonsterTraitsBuilder().setDeathGazePercent(101);
+      MonsterTraits traits = CustomMonsterTraits::withDeathGaze(101);
       Monster monster("", {1, 10, 1, 0}, {}, std::move(traits));
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Petrified));
     });
