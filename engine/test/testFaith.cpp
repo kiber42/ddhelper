@@ -118,8 +118,8 @@ void testFaith()
         AssertThat(hero.getPiety(), Equals(2));
         AssertThat(Combat::attack(hero, meatMen[0], meatMen), Equals(Summary::LevelUp));
         AssertThat(hero.getPiety(), Equals(0));
-        AssertThat(meatMen[1].hasFirstStrike(), IsTrue());
-        AssertThat(meatMen[1].isWeakening(), IsTrue());
+        AssertThat(meatMen[1].has(MonsterTrait::FirstStrike), IsTrue());
+        AssertThat(meatMen[1].has(MonsterTrait::Weakening), IsTrue());
 
         AssertThat(Combat::attack(hero, meatMen[1], meatMen), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(0));

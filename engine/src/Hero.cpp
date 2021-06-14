@@ -291,7 +291,7 @@ int Hero::getDamageOutputVersus(const Monster& monster) const
     damage += standardDamage * 3 / 10;
   if (hasTrait(HeroTrait::PoisonedBlade) && monster.isPoisoned())
     damage += standardDamage * 4 / 10;
-  if (hasTrait(HeroTrait::GoodGolly) && monster.isUndead())
+  if (hasTrait(HeroTrait::GoodGolly) && monster.has(MonsterTrait::Undead))
     damage += getBaseDamage();
   return damage;
 }
@@ -367,7 +367,7 @@ bool Hero::hasInitiativeVersus(const Monster& monster) const
 
   const bool firstStrike = hasStatus(HeroStatus::FirstStrikePermanent) || hasStatus(HeroStatus::FirstStrikeTemporary);
   const bool heroFast = firstStrike && !hasStatus(HeroStatus::SlowStrike);
-  const bool monsterFast = monster.hasFirstStrike() && !monster.isSlowed();
+  const bool monsterFast = monster.has(MonsterTrait::FirstStrike) && !monster.isSlowed();
   if (heroFast || monsterFast)
     return !monsterFast;
 
@@ -654,7 +654,7 @@ bool Hero::hasTrait(HeroTrait trait) const
 void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
 {
   assert(monster.isDefeated());
-  addStatus(HeroDebuff::Cursed, allMonsters, monster.bearsCurse() ? 1 : -1);
+  addStatus(HeroDebuff::Cursed, allMonsters, monster.has(MonsterTrait::CurseBearer) ? 1 : -1);
   applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning), allMonsters);
   if (monster.grantsXP())
   {

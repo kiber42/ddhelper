@@ -673,11 +673,11 @@ PietyChange Faith::monsterKilled(const Monster& monster, int heroLevel, bool mon
       switch (deity)
       {
       case God::Dracul:
-        return monster.isUndead() ? -5 : 2;
+        return monster.has(MonsterTrait::Undead) ? -5 : 2;
       case God::GlowingGuardian:
       {
         int award = 0;
-        if (monster.isUndead() && monster.grantsXP())
+        if (monster.has(MonsterTrait::Undead) && monster.grantsXP())
           ++award;
         if (monsterWasBurning)
           ++award;
@@ -690,11 +690,11 @@ PietyChange Faith::monsterKilled(const Monster& monster, int heroLevel, bool mon
           return JehoraTriggered{};
         break;
       case God::MysteraAnnur:
-        if (monster.doesMagicalDamage())
+        if (monster.has(MonsterTrait::MagicalAttack))
           return -5;
         break;
       case God::Taurog:
-        return monster.doesMagicalDamage() ? 8 : 4;
+        return monster.has(MonsterTrait::MagicalAttack) ? 8 : 4;
       case God::TikkiTooki:
         if (monster.grantsXP() && monster.getLevel() < heroLevel)
           return 5;

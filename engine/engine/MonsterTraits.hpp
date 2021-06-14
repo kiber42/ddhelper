@@ -74,23 +74,9 @@ struct MonsterTraits
     return traits & (1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait));
   }
 
-  bool doesMagicalDamage() const { return has(MonsterTrait::MagicalAttack); }
-  bool doesRetaliate() const { return has(MonsterTrait::Retaliate); }
-
-  bool isPoisonous() const { return has(MonsterTrait::Poisonous); }
-  bool hasManaBurn() const { return has(MonsterTrait::ManaBurn); }
-  bool bearsCurse() const { return has(MonsterTrait::CurseBearer); }
-  bool isCorrosive() const { return has(MonsterTrait::Corrosive); }
-  bool isWeakening() const { return has(MonsterTrait::Weakening); }
-
-  bool hasFirstStrike() const { return has(MonsterTrait::FirstStrike); }
   int getDeathGazePercent() const { return deathGazePercent; }
   int getLifeStealPercent() const { return lifeStealPercent; }
   int getBerserkPercent() const { return berserkPercent; }
-  bool isUndead() const { return has(MonsterTrait::Undead); }
-  bool isBloodless() const { return has(MonsterTrait::Bloodless); }
-  bool isCowardly() const { return has(MonsterTrait::Cowardly); }
-  bool hasFastRegen() const { return has(MonsterTrait::FastRegen); }
   int getKnockbackPercent() const { return knockbackPercent; }
 
   void makeFast() { add(MonsterTrait::FirstStrike); }

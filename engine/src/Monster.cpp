@@ -136,7 +136,7 @@ void Monster::recover(int nSquares)
   if (isDefeated())
     return;
   int recoverPoints = nSquares * (getLevel() - static_cast<int>(status.isBurning()));
-  if (traits.hasFastRegen())
+  if (has(MonsterTrait::FastRegen))
     recoverPoints *= 2;
   if (status.isPoisoned())
   {
@@ -179,7 +179,7 @@ void Monster::burnDown()
 
 bool Monster::poison(int addedPoisonAmount)
 {
-  if (isUndead())
+  if (has(MonsterTrait::Undead))
     return false;
   status.setPoison(status.getPoisonAmount() + addedPoisonAmount);
   return true;
@@ -284,49 +284,14 @@ int Monster::getCorroded() const
   return status.getCorroded();
 }
 
-bool Monster::doesMagicalDamage() const
-{
-  return traits.doesMagicalDamage();
-}
-
 DamageType Monster::damageType() const
 {
-  return doesMagicalDamage() ? DamageType::Magical : DamageType::Physical;
+  return traits.has(MonsterTrait::MagicalAttack) ? DamageType::Magical : DamageType::Physical;
 }
 
-bool Monster::doesRetaliate() const
+bool Monster::has(MonsterTrait trait) const
 {
-  return traits.doesRetaliate();
-}
-
-bool Monster::isPoisonous() const
-{
-  return traits.isPoisonous();
-}
-
-bool Monster::hasManaBurn() const
-{
-  return traits.hasManaBurn();
-}
-
-bool Monster::bearsCurse() const
-{
-  return traits.bearsCurse();
-}
-
-bool Monster::isCorrosive() const
-{
-  return traits.isCorrosive();
-}
-
-bool Monster::isWeakening() const
-{
-  return traits.isWeakening();
-}
-
-bool Monster::hasFirstStrike() const
-{
-  return traits.hasFirstStrike();
+  return traits.has(trait);
 }
 
 int Monster::getDeathGazePercent() const
@@ -337,21 +302,6 @@ int Monster::getDeathGazePercent() const
 int Monster::getLifeStealPercent() const
 {
   return traits.getLifeStealPercent();
-}
-
-bool Monster::isUndead() const
-{
-  return traits.isUndead();
-}
-
-bool Monster::isBloodless() const
-{
-  return traits.isBloodless();
-}
-
-bool Monster::isCowardly() const
-{
-  return traits.isCowardly();
 }
 
 void Monster::addPhysicalResist(int additionalResistPercent)
@@ -385,30 +335,36 @@ std::vector<std::string> describe(const Monster& monster)
                           std::to_string(monster.getHitPoints()) + "/" + std::to_string(monster.getHitPointsMax()) +
                               " HP",
                           std::to_string(monster.getDamage()) + " damage"};
-  if (monster.hasFirstStrike() && !monster.isSlowed())
-    description.emplace_back("First Strike");
-  if (monster.doesMagicalDamage())
-    description.emplace_back("Magical Attack");
-  if (monster.doesRetaliate() && !monster.isSlowed())
-    description.emplace_back("Retaliate: Fireball");
+
+  auto checkTrait = [&](MonsterTrait trait) {
+    if (monster.has(trait))
+      description.emplace_back(toString(trait));
+  };
+
+  if (!monster.isSlowed())
+  {
+    checkTrait(MonsterTrait::Blinks);
+    checkTrait(MonsterTrait::FirstStrike);
+    if (monster.has(MonsterTrait::Retaliate))
+      description.emplace_back("Retaliate: Fireball");
+  }
+  checkTrait(MonsterTrait::Cowardly);
+  checkTrait(MonsterTrait::FastRegen);
+  checkTrait(MonsterTrait::MagicalAttack);
   if (monster.getPhysicalResistPercent() > 0)
     description.emplace_back("Physical resist "s + std::to_string(monster.getPhysicalResistPercent()) + "%");
   if (monster.getMagicalResistPercent() > 0)
     description.emplace_back("Magical resist "s + std::to_string(monster.getMagicalResistPercent()) + "%");
-  if (monster.isPoisonous())
-    description.emplace_back("Poisonous");
-  if (monster.hasManaBurn())
-    description.emplace_back("Mana Burn");
-  if (monster.bearsCurse())
-    description.emplace_back("Curse bearer");
-  if (monster.isCorrosive())
-    description.emplace_back("Corrosive");
-  if (monster.isWeakening())
+  checkTrait(MonsterTrait::Poisonous);
+  checkTrait(MonsterTrait::ManaBurn);
+  checkTrait(MonsterTrait::CurseBearer);
+  checkTrait(MonsterTrait::Corrosive);
+  if (monster.has(MonsterTrait::Weakening))
     description.emplace_back("Weakening Blow");
   if (monster.getDeathGazePercent() > 0)
     description.emplace_back("Death Gaze "s + std::to_string(monster.getDeathGazePercent()) + "%");
   if (monster.getDeathProtection() > 0)
-    description.emplace_back("Death protection (x"s + std::to_string(monster.getDeathProtection()) + "%");
+    description.emplace_back("Death protection (x"s + std::to_string(monster.getDeathProtection()) + ")");
   if (monster.getLifeStealPercent() > 0)
     description.emplace_back("Life Steal "s + std::to_string(monster.getLifeStealPercent()) + "%");
   if (monster.isBurning())
@@ -423,10 +379,8 @@ std::vector<std::string> describe(const Monster& monster)
     description.emplace_back("Wicked Sick");
   if (monster.getCorroded() > 0)
     description.emplace_back("Corroded (x"s + std::to_string(monster.getCorroded()) + ")");
-  if (monster.isUndead())
-    description.emplace_back("Undead");
-  if (monster.isBloodless())
-    description.emplace_back("Bloodless");
+  checkTrait(MonsterTrait::Undead);
+  checkTrait(MonsterTrait::Bloodless);
   if (!monster.grantsXP())
     description.emplace_back("No Experience");
 

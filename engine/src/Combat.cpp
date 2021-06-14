@@ -38,7 +38,7 @@ namespace Combat
 
     void applyLifeSteal(Hero& hero, const Monster& monster, int monsterHitPointsBefore)
     {
-      if (hero.hasStatus(HeroStatus::LifeSteal) && !monster.isBloodless())
+      if (hero.hasStatus(HeroStatus::LifeSteal) && !monster.has(MonsterTrait::Bloodless))
       {
         const int multiplier = monster.getLevel() < hero.getLevel() ? 2 : 1;
         const int damageDealt = monsterHitPointsBefore - monster.getHitPoints();
@@ -161,7 +161,7 @@ namespace Combat
     auto monsterAttacks = [&] {
       if (!hero.tryDodge(allMonsters))
       {
-        if (monster.bearsCurse())
+        if (monster.has(MonsterTrait::CurseBearer))
           hero.addStatus(HeroDebuff::Cursed, allMonsters);
         if (willPetrify)
         {
@@ -207,13 +207,13 @@ namespace Combat
 
     if (heroReceivedHit)
     {
-      if (monster.isPoisonous())
+      if (monster.has(MonsterTrait::Poisonous))
         hero.addStatus(HeroDebuff::Poisoned, allMonsters);
-      if (monster.hasManaBurn())
+      if (monster.has(MonsterTrait::ManaBurn))
         hero.addStatus(HeroDebuff::ManaBurned, allMonsters);
-      if (monster.isCorrosive())
+      if (monster.has(MonsterTrait::Corrosive))
         hero.addStatus(HeroDebuff::Corroded, allMonsters);
-      if (monster.isWeakening())
+      if (monster.has(MonsterTrait::Weakening))
         hero.addStatus(HeroDebuff::Weakened, allMonsters);
       hero.collect(hero.getFaith().receivedHit(monster));
     }
@@ -250,7 +250,7 @@ namespace Combat
           summary = knockBackMonster(hero, primary, allMonsters, knockback.monster);
         break;
       case Knockback::TargetType::Wall:
-        if (!primary.isCowardly())
+        if (!primary.has(MonsterTrait::Cowardly))
         {
           auto& resourceSet = resources();
           assert(resourceSet.numWalls > 0);

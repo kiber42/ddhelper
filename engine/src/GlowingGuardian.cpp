@@ -10,7 +10,7 @@ GlowingGuardian::GlowingGuardian()
 bool GlowingGuardian::canUseAbsolution(int heroLevel, const Monsters& monsters) const
 {
   return std::find_if(begin(monsters), end(monsters), [maxLevel = std::min(heroLevel, 9)](auto& monster) {
-           return monster.getLevel() <= maxLevel && !monster.isUndead();
+           return monster.getLevel() <= maxLevel && !monster.has(MonsterTrait::Undead);
          }) != end(monsters);
 }
 
@@ -20,7 +20,7 @@ Monsters::iterator GlowingGuardian::pickMonsterForAbsolution(int heroLevel, Mons
   const int maxLevel = std::min(heroLevel, 9);
   for (auto monsterIt = begin(monsters); monsterIt != end(monsters); ++monsterIt)
   {
-    if (monsterIt->getLevel() <= maxLevel && !monsterIt->isUndead())
+    if (monsterIt->getLevel() <= maxLevel && !monsterIt->has(MonsterTrait::Undead))
       lowerLevelMonsters.emplace_back(monsterIt);
   }
   if (lowerLevelMonsters.empty())

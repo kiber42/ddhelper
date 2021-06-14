@@ -58,22 +58,11 @@ public:
   int getDeathProtection() const;
   int getCorroded() const;
 
-  bool doesMagicalDamage() const;
-  DamageType damageType() const;
-  bool doesRetaliate() const;
-
-  bool isPoisonous() const;
-  bool hasManaBurn() const;
-  bool bearsCurse() const;
-  bool isCorrosive() const;
-  bool isWeakening() const;
-
-  bool hasFirstStrike() const;
+  bool has(MonsterTrait trait) const;
   int getDeathGazePercent() const;
   int getLifeStealPercent() const;
-  bool isUndead() const;
-  bool isBloodless() const;
-  bool isCowardly() const;
+
+  DamageType damageType() const;
 
   // Boosts from punishments
   void addPhysicalResist(int additionalResistPercent);

@@ -40,7 +40,7 @@ namespace Magic
         monster.burn(maxBurnStackSize);
 
       // Retaliation
-      if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.doesRetaliate()))
+      if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.has(MonsterTrait::Retaliate)))
       {
         hero.takeDamage(monster.getDamage() / 2, monster.damageType(), allMonsters);
         if (hero.hasTrait(HeroTrait::ManaShield))
@@ -170,7 +170,7 @@ namespace Magic
     switch (spell)
     {
     case Spell::Apheelsik:
-      return !monster.isUndead();
+      return !monster.has(MonsterTrait::Undead);
     case Spell::Wonafyt:
       return hero.getLevel() >= monster.getLevel();
     default:
@@ -333,7 +333,7 @@ namespace Magic
       return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
     }
 
-    if (monster.isDefeated() && !monster.isBloodless())
+    if (monster.isDefeated() && !monster.has(MonsterTrait::Bloodless))
       ++(resources().numBloodPools);
 
     const bool triggerBurnDown = spell == Spell::Burndayraz || spell == Spell::Pisorf;
