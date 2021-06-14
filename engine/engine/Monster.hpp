@@ -67,8 +67,7 @@ public:
   // Boosts from punishments
   void addPhysicalResist(int additionalResistPercent);
   void addMagicResist(int additionalResistPercent);
-  void makeFast();
-  void makeWeakening();
+  void applyTikkiTookiBoost();
 
   // TODO: Add non xp-valuable monsters, and plants
   bool grantsXP() const { return true; }

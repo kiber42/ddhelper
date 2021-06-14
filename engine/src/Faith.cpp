@@ -642,10 +642,7 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
     hero.resetStatus(HeroStatus::DodgeTemporary);
     hero.resetStatus(HeroStatus::Poisonous);
     for (auto& monster : allMonsters)
-    {
-      monster.makeFast();
-      monster.makeWeakening();
-    }
+      monster.applyTikkiTookiBoost();
     break;
   }
 }

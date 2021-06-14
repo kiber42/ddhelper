@@ -314,14 +314,9 @@ void Monster::addMagicResist(int additionalResistPercent)
   defence.setMagicalResistPercent(defence.getMagicalResistPercent() + additionalResistPercent);
 }
 
-void Monster::makeFast()
+void Monster::applyTikkiTookiBoost()
 {
-  traits.makeFast();
-}
-
-void Monster::makeWeakening()
-{
-  traits.makeWeakening();
+  traits.applyTikkiTookiBoost();
 }
 
 using namespace std::string_literals;

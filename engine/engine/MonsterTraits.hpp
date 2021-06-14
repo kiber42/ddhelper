@@ -79,8 +79,11 @@ struct MonsterTraits
   int getBerserkPercent() const { return berserkPercent; }
   int getKnockbackPercent() const { return knockbackPercent; }
 
-  void makeFast() { add(MonsterTrait::FirstStrike); }
-  void makeWeakening() { add(MonsterTrait::Weakening); }
+  void applyTikkiTookiBoost()
+  {
+    add(MonsterTrait::FirstStrike);
+    add(MonsterTrait::Weakening);
+  }
 
 protected:
   inline void add(MonsterTrait trait) { traits |= 1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait); }
