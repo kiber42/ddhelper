@@ -9,10 +9,10 @@ Defence::Defence(MonsterType type)
 {
 }
 
-Defence::Defence(int physicalResistPercent,
-                 int magicalResistPercent,
-                 int physicalResistPercentMax,
-                 int magicalResistPercentMax)
+Defence::Defence(uint8_t physicalResistPercent,
+                 uint8_t magicalResistPercent,
+                 uint8_t physicalResistPercentMax,
+                 uint8_t magicalResistPercentMax)
   : physicalResistPercent(physicalResistPercent)
   , magicalResistPercent(magicalResistPercent)
   , physicalResistPercentMax(physicalResistPercentMax)
@@ -23,62 +23,62 @@ Defence::Defence(int physicalResistPercent,
 {
 }
 
-int Defence::getPhysicalResistPercent(bool raw) const
+uint8_t Defence::getPhysicalResistPercent(bool raw) const
 {
   if (raw)
     return physicalResistPercent;
   return std::min(physicalResistPercent + 20 * numStoneSkinLayers, static_cast<int>(physicalResistPercentMax));
 }
 
-int Defence::getMagicalResistPercent(bool raw) const
+uint8_t Defence::getMagicalResistPercent(bool raw) const
 {
   if (raw)
     return magicalResistPercent;
   return std::min(magicalResistPercent, magicalResistPercentMax);
 }
 
-void Defence::setPhysicalResistPercent(int newPhysicalResistPercent)
+void Defence::setPhysicalResistPercent(uint8_t newPhysicalResistPercent)
 {
-  physicalResistPercent = std::max(newPhysicalResistPercent, 0);
+  physicalResistPercent = newPhysicalResistPercent;
 }
 
-void Defence::setMagicalResistPercent(int newMagicalResistPercent)
+void Defence::setMagicalResistPercent(uint8_t newMagicalResistPercent)
 {
-  magicalResistPercent = std::max(newMagicalResistPercent, 0);
+  magicalResistPercent = newMagicalResistPercent;
 }
 
-int Defence::getPhysicalResistPercentMax() const
+uint8_t Defence::getPhysicalResistPercentMax() const
 {
   return physicalResistPercentMax;
 }
 
-int Defence::getMagicalResistPercentMax() const
+uint8_t Defence::getMagicalResistPercentMax() const
 {
   return magicalResistPercentMax;
 }
 
-void Defence::setPhysicalResistPercentMax(int newMax)
+void Defence::setPhysicalResistPercentMax(uint8_t newMax)
 {
   physicalResistPercentMax = newMax;
   if (physicalResistPercent > physicalResistPercentMax)
     physicalResistPercent = physicalResistPercentMax;
 }
 
-void Defence::setMagicalResistPercentMax(int newMax)
+void Defence::setMagicalResistPercentMax(uint8_t newMax)
 {
   magicalResistPercentMax = newMax;
   if (magicalResistPercent > magicalResistPercentMax)
     magicalResistPercent = magicalResistPercentMax;
 }
 
-int Defence::predictDamageTaken(int attackerDamageOutput, DamageType damageType, int burnStackSize) const
+int Defence::predictDamageTaken(int attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const
 {
   int damage = attackerDamageOutput + burnStackSize;
   if (damageType == DamageType::Typeless)
     return damage;
   if (!isCursed)
   {
-    const int resist = [&, damageType] {
+    const int resist = [&, damageType]() -> int {
       switch (damageType)
       {
       case DamageType::Physical:
@@ -99,12 +99,12 @@ int Defence::predictDamageTaken(int attackerDamageOutput, DamageType damageType,
   return damage;
 }
 
-void Defence::setCorrosion(int corrosion)
+void Defence::setCorrosion(uint8_t corrosion)
 {
   numCorrosionLayers = corrosion;
 }
 
-void Defence::setStoneSkin(int stoneSkinLayers)
+void Defence::setStoneSkin(uint8_t stoneSkinLayers)
 {
   numStoneSkinLayers = stoneSkinLayers;
 }

@@ -171,8 +171,8 @@ namespace ui
     const int maxHp = data[2];
     const int maxMp = data[4];
     const int damage = data[5];
-    const int physicalResistance = data[6];
-    const int magicalResistance = data[7];
+    const uint8_t physicalResistance = data[6];
+    const uint8_t magicalResistance = data[7];
     Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
     Monsters ignore;
     hero.clearInventory();

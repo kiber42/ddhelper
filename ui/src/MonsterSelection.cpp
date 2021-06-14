@@ -166,7 +166,7 @@ namespace ui
       stats.loseHitPoints(maxHp - hp);
     else if (hp > maxHp)
       stats.healHitPoints(hp - maxHp, true);
-    auto defence = Defence{data[4], data[5]};
+    auto defence = Defence{static_cast<uint8_t>(data[4]), static_cast<uint8_t>(data[5])};
     return {std::move(name), std::move(stats), std::move(defence), static_cast<MonsterTraits>(*this)};
   }
 

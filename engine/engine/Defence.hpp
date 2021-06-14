@@ -16,25 +16,25 @@ class Defence
 {
 public:
   Defence(MonsterType type);
-  Defence(int physicalResistPercent = 0,
-          int magicalResistPercent = 0,
-          int physicalResistPercentMax = 100,
-          int magicalResistPercentMax = 100);
+  Defence(uint8_t physicalResistPercent = 0,
+          uint8_t magicalResistPercent = 0,
+          uint8_t physicalResistPercentMax = 100,
+          uint8_t magicalResistPercentMax = 100);
 
-  int getPhysicalResistPercent(bool raw = false) const;
-  int getMagicalResistPercent(bool raw = false) const;
-  void setPhysicalResistPercent(int physicalResistPercent);
-  void setMagicalResistPercent(int magicalResistPercent);
+  uint8_t getPhysicalResistPercent(bool raw = false) const;
+  uint8_t getMagicalResistPercent(bool raw = false) const;
+  void setPhysicalResistPercent(uint8_t physicalResistPercent);
+  void setMagicalResistPercent(uint8_t magicalResistPercent);
 
-  int getPhysicalResistPercentMax() const;
-  int getMagicalResistPercentMax() const;
-  void setPhysicalResistPercentMax(int newMax);
-  void setMagicalResistPercentMax(int newMax);
+  uint8_t getPhysicalResistPercentMax() const;
+  uint8_t getMagicalResistPercentMax() const;
+  void setPhysicalResistPercentMax(uint8_t newMax);
+  void setMagicalResistPercentMax(uint8_t newMax);
 
-  int predictDamageTaken(int attackerDamageOutput, DamageType damageType, int burnStackSize) const;
+  int predictDamageTaken(int attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const;
 
-  void setCorrosion(int numCorrosionLayers);
-  void setStoneSkin(int stoneSkinLayers);
+  void setCorrosion(uint8_t numCorrosionLayers);
+  void setStoneSkin(uint8_t stoneSkinLayers);
   void setCursed(bool isCursed);
 
 private:
