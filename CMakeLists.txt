@@ -10,10 +10,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_compile_options(-Wno-return-type)
 
 # compile with warnings
-if ( MSVC )
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 else()
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
 set(USE_VULKAN OFF)
