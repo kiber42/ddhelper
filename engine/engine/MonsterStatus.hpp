@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class MonsterStatus
 {
 public:
@@ -13,18 +15,17 @@ public:
   int getPoisonAmount() const;
   int getCorroded() const;
 
-  void setBurn(int nStacks);
-  void setPoison(int poisonAmount);
-  void setCorroded(int numCorrosionStacks);
+  void setBurn(uint8_t nStacks);
+  void setPoison(uint16_t poisonAmount);
+  void setCorroded(uint16_t numCorrosionStacks);
   void setSlowed(bool slowed);
   void setZotted();
   void setWickedSick();
 
 private:
-  int burnStackSize{0};
-  int poisonAmount{0};
-  int corroded{0};
-  bool slowed{false};
-  bool zotted{false};
-  bool wickedSick{false};
+  enum class Status { Slowed, Zotted, WickedSick };
+  uint8_t burnStackSize{0};
+  uint8_t status{0};
+  uint16_t poisonAmount{0};
+  uint16_t corroded{0};
 };

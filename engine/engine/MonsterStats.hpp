@@ -1,6 +1,8 @@
 #pragma once
 
-enum class MonsterType;
+#include <cstdint>
+
+enum class MonsterType : uint8_t;
 
 class MonsterStats
 {
@@ -28,10 +30,10 @@ public:
 
 private:
   MonsterType type;
-  int level;
-  int dungeonMultiplier;
-  int hp;
-  int hpMax;
-  int damage;
-  int deathProtection;
+  uint8_t level;
+  uint8_t deathProtection;
+  uint8_t dungeonMultiplier;
+  uint16_t hp;
+  uint16_t hpMax;
+  uint16_t damage;
 };

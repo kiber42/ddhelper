@@ -1,5 +1,7 @@
 #include "engine/MonsterStatus.hpp"
 
+#include <type_traits>
+
 bool MonsterStatus::isBurning() const
 {
   return burnStackSize > 0;
@@ -12,17 +14,17 @@ bool MonsterStatus::isPoisoned() const
 
 bool MonsterStatus::isSlowed() const
 {
-  return slowed;
+  return status & (1 << static_cast<std::underlying_type_t<Status>>(Status::Slowed));
 }
 
 bool MonsterStatus::isZotted() const
 {
-  return zotted;
+  return status & (1 << static_cast<std::underlying_type_t<Status>>(Status::Zotted));
 }
 
 bool MonsterStatus::isWickedSick() const
 {
-  return wickedSick;
+  return status & (1 << static_cast<std::underlying_type_t<Status>>(Status::WickedSick));
 }
 
 int MonsterStatus::getBurnStackSize() const
@@ -40,32 +42,35 @@ int MonsterStatus::getCorroded() const
   return corroded;
 }
 
-void MonsterStatus::setBurn(int nStacks)
+void MonsterStatus::setBurn(uint8_t nStacks)
 {
   burnStackSize = nStacks;
 }
 
-void MonsterStatus::setPoison(int newPoisonAmount)
+void MonsterStatus::setPoison(uint16_t newPoisonAmount)
 {
   poisonAmount = newPoisonAmount;
 }
 
-void MonsterStatus::setSlowed(bool newStunned)
+void MonsterStatus::setSlowed(bool newSlowed)
 {
-  slowed = newStunned;
+  if (newSlowed)
+    status |= 1 << static_cast<std::underlying_type_t<Status>>(Status::Slowed);
+  else
+    status &= ~(1 << static_cast<std::underlying_type_t<Status>>(Status::Slowed));
 }
 
-void MonsterStatus::setCorroded(int numCorrosionStacks)
+void MonsterStatus::setCorroded(uint16_t numCorrosionStacks)
 {
   corroded = numCorrosionStacks;
 }
 
 void MonsterStatus::setZotted()
 {
-  zotted = true;
+  status |= 1 << static_cast<std::underlying_type_t<Status>>(Status::Zotted);
 }
 
 void MonsterStatus::setWickedSick()
 {
-  wickedSick = true;
+  status |= 1 << static_cast<std::underlying_type_t<Status>>(Status::WickedSick);
 }

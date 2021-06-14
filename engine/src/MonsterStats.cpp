@@ -21,21 +21,22 @@ namespace
 MonsterStats::MonsterStats(MonsterType type, int level, int dungeonMultiplier)
   : type(type)
   , level(level)
+  , deathProtection(getDeathProtectionInitial(type, level))
   , dungeonMultiplier(dungeonMultiplier)
   , hp(hpInitial(level, dungeonMultiplier, getHPMultiplierPercent(type)))
   , hpMax(hp)
   , damage(damageInitial(level, dungeonMultiplier, getDamageMultiplierPercent(type)))
-  , deathProtection(getDeathProtectionInitial(type, level))
 {
 }
 
 MonsterStats::MonsterStats(int level, int hpMax, int damage, int deathProtection)
   : type(MonsterType::Generic)
   , level(level)
+  , deathProtection(deathProtection)
+  , dungeonMultiplier(100)
   , hp(hpMax)
   , hpMax(hpMax)
   , damage(damage)
-  , deathProtection(deathProtection)
 {
 }
 

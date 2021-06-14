@@ -1,6 +1,6 @@
 #pragma once
 
-enum class MonsterType
+enum class MonsterType : unsigned char
 {
   // Basic
   Bandit,

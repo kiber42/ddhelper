@@ -27,7 +27,7 @@ int Defence::getPhysicalResistPercent(bool raw) const
 {
   if (raw)
     return physicalResistPercent;
-  return std::min(physicalResistPercent + 20 * numStoneSkinLayers, physicalResistPercentMax);
+  return std::min(physicalResistPercent + 20 * numStoneSkinLayers, static_cast<int>(physicalResistPercentMax));
 }
 
 int Defence::getMagicalResistPercent(bool raw) const

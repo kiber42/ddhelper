@@ -1,8 +1,10 @@
 #pragma once
 
-enum class MonsterType;
+#include <cstdint>
 
-enum class DamageType
+enum class MonsterType : uint8_t;
+
+enum class DamageType : uint8_t
 {
   Physical,
   Piercing,
@@ -36,11 +38,11 @@ public:
   void setCursed(bool isCursed);
 
 private:
-  int physicalResistPercent;
-  int magicalResistPercent;
-  int physicalResistPercentMax;
-  int magicalResistPercentMax;
-  int numCorrosionLayers;
-  int numStoneSkinLayers;
+  uint8_t physicalResistPercent;
+  uint8_t magicalResistPercent;
+  uint8_t physicalResistPercentMax;
+  uint8_t magicalResistPercentMax;
+  uint8_t numCorrosionLayers;
+  uint8_t numStoneSkinLayers;
   bool isCursed;
 };
