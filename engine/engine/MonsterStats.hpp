@@ -7,7 +7,7 @@ enum class MonsterType : uint8_t;
 class MonsterStats
 {
 public:
-  MonsterStats(MonsterType type, int level, int dungeonMultiplier);
+  MonsterStats(MonsterType type, int level, uint8_t dungeonMultiplier);
   MonsterStats(int level, int hpMax, int damage, int deathProtection);
 
   MonsterType getType() const;
@@ -20,13 +20,13 @@ public:
 
   void healHitPoints(int amountPointsHealed, bool allowOverheal);
   void loseHitPoints(int amountPointsLost);
-  void setHitPointsMax(int newHitPointsMax);
+  void setHitPointsMax(uint16_t newHitPointsMax);
 
   uint16_t getDamage() const;
-  void setDamage(int damagePoints);
+  void setDamage(uint16_t damagePoints);
 
   uint8_t getDeathProtection() const;
-  void setDeathProtection(int numDeathProtectionLayers);
+  void setDeathProtection(uint8_t numDeathProtectionLayers);
 
 private:
   MonsterType type;

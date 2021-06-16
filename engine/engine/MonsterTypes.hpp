@@ -316,7 +316,7 @@ constexpr int getDamageMultiplierPercent(MonsterType type)
   }
 }
 
-constexpr int getPhysicalResistancePercent(MonsterType type)
+constexpr unsigned char getPhysicalResistancePercent(MonsterType type)
 {
   if (type == MonsterType::GooBlob)
     return 50;
@@ -335,7 +335,7 @@ constexpr int getPhysicalResistancePercent(MonsterType type)
   return 0;
 }
 
-constexpr int getMagicalResistancePercent(MonsterType type)
+constexpr unsigned char getMagicalResistancePercent(MonsterType type)
 {
   if (type == MonsterType::Goat)
     return 25;

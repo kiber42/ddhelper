@@ -27,7 +27,11 @@ uint8_t Defence::getPhysicalResistPercent(bool raw) const
 {
   if (raw)
     return physicalResistPercent;
-  return std::min(physicalResistPercent + 20 * numStoneSkinLayers, static_cast<int>(physicalResistPercentMax));
+  const auto withStoneSkin = physicalResistPercent + 20 * numStoneSkinLayers;
+  if (withStoneSkin > physicalResistPercentMax)
+    return physicalResistPercentMax;
+  else
+    return static_cast<uint8_t>(withStoneSkin);
 }
 
 uint8_t Defence::getMagicalResistPercent(bool raw) const
