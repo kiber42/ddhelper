@@ -27,17 +27,17 @@ bool MonsterStatus::isWickedSick() const
   return status & (1 << static_cast<std::underlying_type_t<Status>>(Status::WickedSick));
 }
 
-int MonsterStatus::getBurnStackSize() const
+uint8_t MonsterStatus::getBurnStackSize() const
 {
   return burnStackSize;
 }
 
-int MonsterStatus::getPoisonAmount() const
+uint16_t MonsterStatus::getPoisonAmount() const
 {
   return poisonAmount;
 }
 
-int MonsterStatus::getCorroded() const
+uint16_t MonsterStatus::getCorroded() const
 {
   return corroded;
 }

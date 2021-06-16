@@ -11,21 +11,21 @@ public:
   MonsterStats(int level, int hpMax, int damage, int deathProtection);
 
   MonsterType getType() const;
-  int getLevel() const;
-  int getDungeonMultiplier() const;
+  uint8_t getLevel() const;
+  uint8_t getDungeonMultiplier() const;
 
   bool isDefeated() const;
-  int getHitPoints() const;
-  int getHitPointsMax() const;
+  uint16_t getHitPoints() const;
+  uint16_t getHitPointsMax() const;
 
   void healHitPoints(int amountPointsHealed, bool allowOverheal);
   void loseHitPoints(int amountPointsLost);
   void setHitPointsMax(int newHitPointsMax);
 
-  int getDamage() const;
+  uint16_t getDamage() const;
   void setDamage(int damagePoints);
 
-  int getDeathProtection() const;
+  uint8_t getDeathProtection() const;
   void setDeathProtection(int numDeathProtectionLayers);
 
 private:

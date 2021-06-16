@@ -74,10 +74,10 @@ struct MonsterTraits
     return traits & (1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait));
   }
 
-  int getDeathGazePercent() const { return deathGazePercent; }
-  int getLifeStealPercent() const { return lifeStealPercent; }
-  int getBerserkPercent() const { return berserkPercent; }
-  int getKnockbackPercent() const { return knockbackPercent; }
+  uint8_t getDeathGazePercent() const { return deathGazePercent; }
+  uint8_t getLifeStealPercent() const { return lifeStealPercent; }
+  uint8_t getBerserkPercent() const { return berserkPercent; }
+  uint8_t getKnockbackPercent() const { return knockbackPercent; }
 
   void applyTikkiTookiBoost()
   {

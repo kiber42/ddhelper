@@ -40,7 +40,7 @@ MonsterStats::MonsterStats(int level, int hpMax, int damage, int deathProtection
 {
 }
 
-int MonsterStats::getLevel() const
+uint8_t MonsterStats::getLevel() const
 {
   return level;
 }
@@ -50,7 +50,7 @@ MonsterType MonsterStats::getType() const
   return type;
 }
 
-int MonsterStats::getDungeonMultiplier() const
+uint8_t MonsterStats::getDungeonMultiplier() const
 {
   return dungeonMultiplier;
 }
@@ -60,12 +60,12 @@ bool MonsterStats::isDefeated() const
   return hp == 0;
 }
 
-int MonsterStats::getHitPoints() const
+uint16_t MonsterStats::getHitPoints() const
 {
   return hp;
 }
 
-int MonsterStats::getHitPointsMax() const
+uint16_t MonsterStats::getHitPointsMax() const
 {
   return hpMax;
 }
@@ -92,7 +92,7 @@ void MonsterStats::setHitPointsMax(int newHitPointsMax)
   hpMax = std::max(newHitPointsMax, 1);
 }
 
-int MonsterStats::getDamage() const
+uint16_t MonsterStats::getDamage() const
 {
   return damage;
 }
@@ -102,7 +102,7 @@ void MonsterStats::setDamage(int damagePoints)
   damage = damagePoints;
 }
 
-int MonsterStats::getDeathProtection() const
+uint8_t MonsterStats::getDeathProtection() const
 {
   return deathProtection;
 }

@@ -11,9 +11,9 @@ public:
   bool isZotted() const;
   bool isWickedSick() const;
 
-  int getBurnStackSize() const;
-  int getPoisonAmount() const;
-  int getCorroded() const;
+  uint8_t getBurnStackSize() const;
+  uint16_t getPoisonAmount() const;
+  uint16_t getCorroded() const;
 
   void setBurn(uint8_t nStacks);
   void setPoison(uint16_t poisonAmount);
