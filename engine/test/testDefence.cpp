@@ -47,7 +47,7 @@ void testDefenceBasics()
       });
     });
     describe("Resistance crushing", [] {
-      it("should reduce resistances by 3 percentage points", [&] {
+      it("should reduce resistances by 3 percentage points", [] {
         Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 75}, {});
         monster.erodeResitances();
         AssertThat(monster.getPhysicalResistPercent(), Equals(47u));
@@ -61,6 +61,16 @@ void testDefenceBasics()
         // 35% physical resistance remaining -> no damage reduction
         monster.takeDamage(2, DamageType::Physical);
         AssertThat(monster.getHitPoints(), Equals(8u));
+      });
+      it("should not reduce resistances below 0", [] {
+        Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{2, 3}, {});
+        monster.erodeResitances();
+        AssertThat(monster.getPhysicalResistPercent(), Equals(0u));
+        AssertThat(monster.getMagicalResistPercent(), Equals(0u));
+        Monster monster2("", MonsterStats{1, 10, 1, 0}, Defence{3, 4}, {});
+        monster2.erodeResitances();
+        AssertThat(monster2.getPhysicalResistPercent(), Equals(0u));
+        AssertThat(monster2.getMagicalResistPercent(), Equals(1u));
       });
     });
     describe("Death protection", [] {
@@ -94,10 +104,21 @@ void testDefenceBasics()
         hero.takeDamage(3, DamageType::Magical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(1u));
       });
-      it("should be capped (at 65% by default)", [&] {
+      it("should be capped (at 65% by default)", [] {
+        Hero hero;
         hero.setPhysicalResistPercent(100);
         hero.changePhysicalResistPercent(+100);
         AssertThat(hero.getPhysicalResistPercent(), Equals(65));
+        Hero monk(HeroClass::Monk);
+        monk.changePhysicalResistPercent(+100);
+        AssertThat(monk.getPhysicalResistPercent(), Equals(75));
+      });
+      it("should be non-negative", [] {
+        Hero hero;
+        hero.setPhysicalResistPercent(-100);
+        AssertThat(hero.getPhysicalResistPercent(), Equals(0));
+        hero.changePhysicalResistPercent(-1);
+        AssertThat(hero.getPhysicalResistPercent(), Equals(0));
       });
     });
     describe("Magical resistance", [] {
@@ -112,10 +133,18 @@ void testDefenceBasics()
         hero.takeDamage(3, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(1u));
       });
-      it("should be capped (at 65% by default)", [&] {
+      it("should be capped (at 65% by default)", [] {
+        Hero hero;
         hero.setMagicalResistPercent(100);
         hero.changeMagicalResistPercent(+100);
         AssertThat(hero.getMagicalResistPercent(), Equals(65));
+      });
+      it("should be non-negative", [] {
+        Hero hero;
+        hero.setMagicalResistPercent(-20);
+        AssertThat(hero.getMagicalResistPercent(), Equals(0));
+        hero.changeMagicalResistPercent(-10);
+        AssertThat(hero.getMagicalResistPercent(), Equals(0));
       });
     });
     describe("Damage reduction", [] {

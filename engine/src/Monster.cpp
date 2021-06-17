@@ -195,8 +195,10 @@ void Monster::slow()
 
 void Monster::erodeResitances()
 {
-  defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() - 3);
-  defence.setMagicalResistPercent(defence.getMagicalResistPercent() - 3);
+  const auto physicalResist = defence.getPhysicalResistPercent();
+  const auto magicalResist = defence.getMagicalResistPercent();
+  defence.setPhysicalResistPercent(physicalResist > 3 ? physicalResist - 3 : 0);
+  defence.setMagicalResistPercent(magicalResist > 3 ? magicalResist - 3 : 0);
 }
 
 void Monster::petrify()
