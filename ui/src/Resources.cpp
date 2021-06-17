@@ -26,7 +26,7 @@ namespace ui
     };
 
     auto makeAddEntry = [this, &state](std::string label, unsigned ResourceSet::*item) {
-      const int count = state.resources.visible.*item;
+      const auto count = state.resources.visible.*item;
       ImGui::Text("%2d %s%s", count, label.c_str(), count == 1 ? "" : "s");
       ImGui::SameLine();
       addActionButton(
@@ -39,7 +39,7 @@ namespace ui
     };
 
     auto makeRevealEntry = [this, &state](std::string label, unsigned ResourceSet::*item) {
-      const int count = state.resources.hidden.*item;
+      const auto count = state.resources.hidden.*item;
       ImGui::Text("%2d %s%s", count, label.c_str(), count == 1 ? "" : "s");
       if (state.resources.numHiddenTiles > 0 && state.resources.hidden.*item > 0)
       {

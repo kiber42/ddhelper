@@ -170,7 +170,9 @@ namespace ui
   Hero CustomHeroBuilder::get() const
   {
     const auto level = clamped<uint8_t>(data[0], 1, 10);
+    const auto hp = clampedTo<uint16_t>(data[1]);
     const auto maxHp = clampedTo<uint16_t>(data[2]);
+    const auto mp = clampedTo<uint16_t>(data[3]);
     const auto maxMp = clampedTo<uint16_t>(data[4]);
     const auto damage = clampedTo<uint16_t>(data[5]);
     const auto physicalResistance = clampedTo<uint8_t>(data[6]);
@@ -179,14 +181,12 @@ namespace ui
     Monsters ignore;
     hero.clearInventory();
 
-    const int deltaHp = maxHp - data[1];
-    const int deltaMp = maxMp - data[3];
-    if (deltaHp > 0)
-      hero.loseHitPointsOutsideOfFight(deltaHp, ignore);
-    else if (deltaHp < 0)
-      hero.healHitPoints(-deltaHp, true);
-    else if (deltaMp > 0)
-      hero.loseManaPoints(deltaMp);
+    if (hp < maxHp)
+      hero.loseHitPointsOutsideOfFight(maxHp - hp, ignore);
+    else
+      hero.healHitPoints(hp - maxHp, true);
+    if (mp < maxMp)
+      hero.loseManaPoints(maxMp - mp);
 
     for (const auto& [status, intensity] : statuses)
       for (int i = 0; i < intensity; ++i)
