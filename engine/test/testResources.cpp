@@ -50,13 +50,13 @@ void testResources()
   describe("Custom dungeon setups", [] {
     it("shall respect hero class traits", [] {
       ResourceSet hoarder{DungeonSetup{HeroClass::Thief, HeroRace::Human}};
-      AssertThat(hoarder.numGoldPiles, Equals(13));
+      AssertThat(hoarder.numGoldPiles, Equals(13u));
       AssertThat(hoarder.shops.size(), Equals(10u));
       ResourceSet martyr{DungeonSetup{HeroClass::Crusader, HeroRace::Human}};
       AssertThat(martyr.altars.size(), Equals(4u));
       ResourceSet merchant{
           DungeonSetup{HeroClass::Tinker, HeroRace::Goblin, {}, {}, {}, {}, {God::TikkiTooki}, {}, {}, {}}};
-      AssertThat(merchant.numGoldPiles, Equals(10));
+      AssertThat(merchant.numGoldPiles, Equals(10u));
       AssertThat(merchant.shops.size(), Equals(10u));
       AssertThat(merchant.altars, Contains(GodOrPactmaker{God::TikkiTooki}));
     });
@@ -65,20 +65,20 @@ void testResources()
       setup.modifiers = {MageModifier::ExtraManaBoosters, MageModifier::FlameMagnet, MageModifier::ExtraGlyph,
                          BazaarModifier::Apothecary};
       ResourceSet prepared{setup};
-      AssertThat(prepared.numAttackBoosters, Equals(3));
-      AssertThat(prepared.numManaBoosters, Equals(5));
-      AssertThat(prepared.numHealthBoosters, Equals(3));
+      AssertThat(prepared.numAttackBoosters, Equals(3u));
+      AssertThat(prepared.numManaBoosters, Equals(5u));
+      AssertThat(prepared.numHealthBoosters, Equals(3u));
       AssertThat(prepared.spells, !Contains(Spell::Burndayraz));
       AssertThat(prepared.spells.size(), Equals(5u));
-      AssertThat(prepared.numPotionShops, Equals(3));
+      AssertThat(prepared.numPotionShops, Equals(3u));
       setup.modifiers = {MageModifier::ExtraHealthBoosters, MageModifier::FewerGlyphs};
       setup.altar = Pactmaker::ThePactmaker;
       ResourceSet prepared2{setup};
-      AssertThat(prepared2.numManaBoosters, Equals(3));
-      AssertThat(prepared2.numHealthBoosters, Equals(5));
+      AssertThat(prepared2.numManaBoosters, Equals(3u));
+      AssertThat(prepared2.numHealthBoosters, Equals(5u));
       AssertThat(prepared2.spells, Contains(Spell::Burndayraz));
       AssertThat(prepared2.spells.size(), Equals(4u));
-      AssertThat(prepared2.numPotionShops, Equals(1));
+      AssertThat(prepared2.numPotionShops, Equals(1u));
       AssertThat(prepared2.altars.size(), Equals(4u));
     });
   });
@@ -87,15 +87,15 @@ void testResources()
     it("shall have a pretend reveal mechanism", [] {
       SimpleResources resources{ResourceSet{DungeonSetup{}}};
       auto initialResourceSet = resources();
-      const int initialTiles = resources.numHiddenTiles;
-      AssertThat(initialTiles, IsGreaterThan(100));
+      const auto initialTiles = resources.numHiddenTiles;
+      AssertThat(initialTiles, IsGreaterThan(100u));
       resources.revealTile();
-      AssertThat(resources.numHiddenTiles, Equals(initialTiles - 1));
+      AssertThat(resources.numHiddenTiles, Equals(initialTiles - 1u));
       resources.revealTiles(50);
-      AssertThat(resources.numHiddenTiles, Equals(initialTiles - 51));
+      AssertThat(resources.numHiddenTiles, Equals(initialTiles - 51u));
       AssertThat(resources(), Equals(initialResourceSet));
       resources.revealTiles(resources.numHiddenTiles);
-      AssertThat(resources.numHiddenTiles, Equals(0));
+      AssertThat(resources.numHiddenTiles, Equals(0u));
       AssertThat(resources(), Equals(initialResourceSet));
     });
     it("shall have a constructor that allows to define the available resources", [] {
@@ -108,12 +108,12 @@ void testResources()
   describe("Map Resources", [] {
     it("shall distinguish between visible and hidden resources", [] {
       MapResources resources;
-      AssertThat(resources().numGoldPiles, IsLessThan(10));
+      AssertThat(resources().numGoldPiles, IsLessThan(10u));
     });
     it("shall eventually reveal all resources", [] {
       MapResources resources;
       resources.revealTiles(resources.numHiddenTiles);
-      AssertThat(resources().numGoldPiles, Equals(10));
+      AssertThat(resources().numGoldPiles, Equals(10u));
     });
     it("shall have a constructor that allows to define the available resources", [] {
       ResourceSet empty;

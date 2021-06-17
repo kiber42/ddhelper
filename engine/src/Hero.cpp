@@ -1,5 +1,6 @@
 #include "engine/Hero.hpp"
 
+#include "engine/Clamp.hpp"
 #include "engine/Experience.hpp"
 #include "engine/Items.hpp"
 #include "engine/Magic.hpp"
@@ -117,30 +118,30 @@ std::string Hero::getName() const
   return name;
 }
 
-int Hero::getXP() const
+unsigned Hero::getXP() const
 {
   return experience.getXP();
 }
 
-int Hero::getLevel() const
+unsigned Hero::getLevel() const
 {
   return experience.getLevel();
 }
 
-int Hero::getPrestige() const
+unsigned Hero::getPrestige() const
 {
   return experience.getPrestige();
 }
 
-int Hero::getXPforNextLevel() const
+unsigned Hero::getXPforNextLevel() const
 {
   return experience.getXPforNextLevel();
 }
 
-void Hero::gainExperienceForKill(int monsterLevel, bool monsterWasSlowed, Monsters& allMonsters)
+void Hero::gainExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed, Monsters& allMonsters)
 {
-  const int xpBase = Experience::forHeroAndMonsterLevels(getLevel(), monsterLevel);
-  int xpBonuses = getStatusIntensity(HeroStatus::Learning);
+  const auto xpBase = Experience::forHeroAndMonsterLevels(getLevel(), monsterLevel);
+  auto xpBonuses = getStatusIntensity(HeroStatus::Learning);
   if (monsterWasSlowed)
     ++xpBonuses;
   if (hasTrait(HeroTrait::Veteran))
@@ -156,15 +157,15 @@ void Hero::gainExperienceForPetrification(bool monsterWasSlowed, Monsters& allMo
     gainExperience(0, 1, allMonsters);
 }
 
-void Hero::gainExperienceNoBonuses(int xpGained, Monsters& allMonsters)
+void Hero::gainExperienceNoBonuses(unsigned xpGained, Monsters& allMonsters)
 {
   gainExperience(0, xpGained, allMonsters);
 }
 
-void Hero::gainExperience(int xpBase, int xpBonuses, Monsters& allMonsters)
+void Hero::gainExperience(unsigned xpBase, unsigned xpBonuses, Monsters& allMonsters)
 {
-  int level = getLevel();
-  const int prestige = getPrestige();
+  auto level = getLevel();
+  const auto prestige = getPrestige();
   experience.gain(xpBase, xpBonuses, hasStatus(HeroStatus::ExperienceBoost));
   if (xpBase > 0)
     resetStatus(HeroStatus::ExperienceBoost);
@@ -180,7 +181,7 @@ void Hero::gainExperience(int xpBase, int xpBonuses, Monsters& allMonsters)
 
 void Hero::gainLevel(Monsters& allMonsters)
 {
-  const int initialLevel = getLevel();
+  const unsigned initialLevel = getLevel();
   experience.gainLevel();
   if (getLevel() > initialLevel)
     levelGainedUpdate(getLevel(), allMonsters);
@@ -192,22 +193,22 @@ bool Hero::isDefeated() const
   return stats.isDefeated();
 }
 
-int Hero::getHitPoints() const
+uint16_t Hero::getHitPoints() const
 {
   return stats.getHitPoints();
 }
 
-int Hero::getHitPointsMax() const
+uint16_t Hero::getHitPointsMax() const
 {
   return stats.getHitPointsMax();
 }
 
-int Hero::getManaPoints() const
+uint16_t Hero::getManaPoints() const
 {
   return stats.getManaPoints();
 }
 
-int Hero::getManaPointsMax() const
+uint16_t Hero::getManaPointsMax() const
 {
   return stats.getManaPointsMax();
 }
@@ -215,7 +216,7 @@ int Hero::getManaPointsMax() const
 void Hero::drinkHealthPotion()
 {
   const bool hasNagaCauldron = has(BossReward::NagaCauldron);
-  int percentHealed = hasTrait(HeroTrait::GoodDrink) ? 100 : 40;
+  unsigned percentHealed = hasTrait(HeroTrait::GoodDrink) ? 100 : 40;
   if (hasNagaCauldron)
     percentHealed += nagaCauldronBonus();
   stats.healHitPoints(getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
@@ -227,7 +228,7 @@ void Hero::drinkHealthPotion()
 void Hero::drinkManaPotion()
 {
   const bool hasNagaCauldron = has(BossReward::NagaCauldron);
-  int percentRestored = 40;
+  unsigned percentRestored = 40;
   if (hasTrait(HeroTrait::PowerHungry))
   {
     percentRestored = 60;
@@ -243,27 +244,31 @@ void Hero::drinkManaPotion()
     stats.healHitPoints(getHitPointsMax() * 2 / 10, false);
 }
 
-int Hero::nagaCauldronBonus() const
+unsigned Hero::nagaCauldronBonus() const
 {
-  return 5 * (static_cast<int>(hasStatus(HeroDebuff::Poisoned)) + static_cast<int>(hasStatus(HeroDebuff::ManaBurned)) +
-              static_cast<int>(hasStatus(HeroDebuff::Corroded)) + static_cast<int>(hasStatus(HeroDebuff::Weakened)) +
-              static_cast<int>(hasStatus(HeroDebuff::Cursed)));
+  return 5u * (static_cast<unsigned>(hasStatus(HeroDebuff::Poisoned)) +
+               static_cast<unsigned>(hasStatus(HeroDebuff::ManaBurned)) +
+               static_cast<unsigned>(hasStatus(HeroDebuff::Corroded)) +
+               static_cast<unsigned>(hasStatus(HeroDebuff::Weakened)) +
+               static_cast<unsigned>(hasStatus(HeroDebuff::Cursed)));
 }
 
-int Hero::getBaseDamage() const
+uint16_t Hero::getBaseDamage() const
 {
-  const int modifiers = getStatusIntensity(HeroStatus::SpiritStrength) - getStatusIntensity(HeroDebuff::Weakened);
-  return std::max(stats.getBaseDamage() + modifiers, 0);
+  const auto damage = stats.getBaseDamage() + getStatusIntensity(HeroStatus::SpiritStrength);
+  const auto weakened = getStatusIntensity(HeroDebuff::Weakened);
+  return damage > weakened ? damage - weakened : 0u;
 }
 
 void Hero::changeBaseDamage(int deltaDamagePoints)
 {
-  stats.setBaseDamage(std::max(stats.getBaseDamage() + deltaDamagePoints, 0));
+  const auto newDamage = static_cast<int>(stats.getBaseDamage()) + deltaDamagePoints;
+  stats.setBaseDamage(newDamage > 0 ? static_cast<unsigned>(newDamage) : 0u);
 }
 
 int Hero::getDamageBonusPercent() const
 {
-  int bonus = stats.getDamageBonusPercent();
+  auto bonus = stats.getDamageBonusPercent();
   if (hasStatus(HeroStatus::Might))
     bonus += 30;
   if (hasTrait(HeroTrait::Determined) && stats.getHitPoints() * 2 < stats.getHitPointsMax())
@@ -273,18 +278,22 @@ int Hero::getDamageBonusPercent() const
 
 void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
 {
-  stats.setDamageBonusPercent(stats.getDamageBonusPercent() + deltaDamageBonusPercent);
+  stats.setDamageBonusPercent(static_cast<int>(stats.getDamageBonusPercent()) + deltaDamageBonusPercent);
 }
 
-int Hero::getDamageVersusStandard() const
+uint16_t Hero::getDamageVersusStandard() const
 {
-  return getBaseDamage() * (100 + getDamageBonusPercent()) / 100;
+  const int multiplier = 100 + getDamageBonusPercent();
+  if (multiplier > 0)
+    return getBaseDamage() * static_cast<uint16_t>(multiplier) / 100u;
+  else
+    return 0;
 }
 
-int Hero::getDamageOutputVersus(const Monster& monster) const
+uint16_t Hero::getDamageOutputVersus(const Monster& monster) const
 {
-  const int standardDamage = getDamageVersusStandard();
-  int damage = standardDamage;
+  const auto standardDamage = getDamageVersusStandard();
+  auto damage = standardDamage;
   if (hasTrait(HeroTrait::Bloodlust) && monster.getLevel() > getLevel())
     damage += standardDamage * 2 / 10;
   if (hasTrait(HeroTrait::Stabber) && monster.getHitPoints() >= monster.getHitPointsMax())
@@ -331,12 +340,12 @@ int Hero::getMagicalResistPercent() const
 
 void Hero::setPhysicalResistPercent(int physicalResistPercent)
 {
-  defence.setPhysicalResistPercent(physicalResistPercent);
+  defence.setPhysicalResistPercent(clampedTo<uint8_t>(physicalResistPercent));
 }
 
 void Hero::setMagicalResistPercent(int magicalResistPercent)
 {
-  defence.setMagicalResistPercent(magicalResistPercent);
+  defence.setMagicalResistPercent(clampedTo<uint8_t>(magicalResistPercent));
 }
 
 void Hero::changePhysicalResistPercent(int deltaPercent)
@@ -379,13 +388,16 @@ bool Hero::hasInitiativeVersus(const Monster& monster) const
   return getLevel() > monster.getLevel();
 }
 
-int Hero::predictDamageTaken(int attackerDamageOutput, DamageType damageType) const
+unsigned Hero::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const
 {
-  return defence.predictDamageTaken(std::max(0, attackerDamageOutput - getStatusIntensity(HeroStatus::DamageReduction)),
-                                    damageType, 0);
+  const auto reduction = getStatusIntensity(HeroStatus::DamageReduction);
+  if (reduction < attackerDamageOutput)
+    return defence.predictDamageTaken(attackerDamageOutput - reduction, damageType, 0);
+  else
+    return 0;
 }
 
-void Hero::loseHitPoints(int amountPointsLost, Monsters& allMonsters)
+void Hero::loseHitPoints(unsigned amountPointsLost, Monsters& allMonsters)
 {
   stats.loseHitPointsWithoutDeathProtection(amountPointsLost);
   if (stats.getHitPoints() == 0 && hasStatus(HeroStatus::DeathProtection))
@@ -396,9 +408,9 @@ void Hero::loseHitPoints(int amountPointsLost, Monsters& allMonsters)
   }
 }
 
-bool Hero::takeDamage(int attackerDamageOutput, DamageType damageType, Monsters& allMonsters)
+bool Hero::takeDamage(unsigned attackerDamageOutput, DamageType damageType, Monsters& allMonsters)
 {
-  const int damagePoints = predictDamageTaken(attackerDamageOutput, damageType);
+  const auto damagePoints = predictDamageTaken(attackerDamageOutput, damageType);
   loseHitPoints(damagePoints, allMonsters);
   if (damagePoints > 0 && hasStatus(HeroStatus::Schadenfreude))
   {
@@ -409,7 +421,7 @@ bool Hero::takeDamage(int attackerDamageOutput, DamageType damageType, Monsters&
   return damagePoints > 0;
 }
 
-void Hero::recover(int nSquares)
+void Hero::recover(unsigned nSquares)
 {
   const bool exhausted = hasStatus(HeroStatus::Exhausted);
   if (!hasStatus(HeroDebuff::Poisoned))
@@ -418,9 +430,9 @@ void Hero::recover(int nSquares)
     stats.recoverManaPoints(nSquares);
 }
 
-int Hero::recoveryMultiplier() const
+unsigned Hero::recoveryMultiplier() const
 {
-  int multiplier = getLevel();
+  auto multiplier = getLevel();
   if (hasTrait(HeroTrait::Discipline))
     multiplier *= 2;
   if (has(ShopItem::BloodySigil))
@@ -430,38 +442,38 @@ int Hero::recoveryMultiplier() const
   return multiplier;
 }
 
-int Hero::numSquaresForFullRecovery() const
+unsigned Hero::numSquaresForFullRecovery() const
 {
   // TODO: For Goatperson, never return a number larger than the amount of food in inventory!
 
-  int numHP = 0;
+  auto numHP = 0u;
   if (!hasStatus(HeroDebuff::Poisoned))
   {
-    const int multiplier = recoveryMultiplier();
+    const auto multiplier = recoveryMultiplier();
     numHP = (getHitPointsMax() - getHitPoints() + (multiplier - 1) /* always round up */) / multiplier;
   }
-  const int numMP = hasStatus(HeroDebuff::ManaBurned) ? 0 : getManaPointsMax() - getManaPoints();
+  const auto numMP = hasStatus(HeroDebuff::ManaBurned) ? 0u : getManaPointsMax() - getManaPoints();
   if (hasTrait(HeroTrait::Damned))
     return numHP + numMP;
   return std::max(numHP, numMP);
 }
 
-void Hero::healHitPoints(int amountPointsHealed, bool mayOverheal)
+void Hero::healHitPoints(unsigned amountPointsHealed, bool mayOverheal)
 {
   stats.healHitPoints(amountPointsHealed, mayOverheal);
 }
 
-void Hero::loseHitPointsOutsideOfFight(int amountPointsLost, Monsters& allMonsters)
+void Hero::loseHitPointsOutsideOfFight(unsigned amountPointsLost, Monsters& allMonsters)
 {
   loseHitPoints(amountPointsLost, allMonsters);
 }
 
-void Hero::recoverManaPoints(int amountPointsRecovered)
+void Hero::recoverManaPoints(unsigned amountPointsRecovered)
 {
   stats.recoverManaPoints(amountPointsRecovered);
 }
 
-void Hero::loseManaPoints(int amountPointsLost)
+void Hero::loseManaPoints(unsigned amountPointsLost)
 {
   stats.loseManaPoints(amountPointsLost);
 }
@@ -473,8 +485,8 @@ void Hero::refillHealthAndMana()
 
 void Hero::addSpiritStrength()
 {
-  const int mp = getManaPoints();
-  const int newSpiritStrength = getLevel() + mp;
+  const auto mp = getManaPoints();
+  const auto newSpiritStrength = getLevel() + mp;
   auto iter = statuses.find(HeroStatus::SpiritStrength);
   if (iter == end(statuses))
     statuses[HeroStatus::SpiritStrength] = newSpiritStrength;
@@ -485,7 +497,9 @@ void Hero::addSpiritStrength()
 
 void Hero::addStatus(HeroStatus status, int addedIntensity)
 {
-  setStatusIntensity(status, statuses[status] + addedIntensity);
+  const int newIntensity = static_cast<int>(statuses[status]) + addedIntensity;
+  assert(newIntensity >= 0);
+  setStatusIntensity(status, static_cast<unsigned>(newIntensity));
 }
 
 void Hero::reduceStatus(HeroStatus status)
@@ -503,21 +517,23 @@ bool Hero::hasStatus(HeroStatus status) const
   return getStatusIntensity(status) > 0;
 }
 
-void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
+void Hero::setStatusIntensity(HeroStatus status, unsigned newIntensity)
 {
   assert(status != HeroStatus::Exhausted && "Exhausted status is computed on the fly");
   const bool canStack = canHaveMultiple(status) || (status == HeroStatus::Might && hasTrait(HeroTrait::Additives));
   if (newIntensity > 1 && !canStack)
     newIntensity = 1;
-  else if (newIntensity < 0)
-    newIntensity = 0;
 
-  const int oldIntensity = std::exchange(statuses[status], newIntensity);
+  const auto oldIntensity = std::exchange(statuses[status], newIntensity);
   if (newIntensity == oldIntensity)
     return;
 
   if (status == HeroStatus::Momentum)
-    changeDamageBonusPercent(newIntensity - oldIntensity);
+  {
+    const auto delta =
+        static_cast<int>(newIntensity > oldIntensity ? newIntensity - oldIntensity : oldIntensity - newIntensity);
+    changeDamageBonusPercent(delta);
+  }
 
   if (newIntensity > 0)
   {
@@ -535,10 +551,10 @@ void Hero::setStatusIntensity(HeroStatus status, int newIntensity)
     rerollDodgeNext();
 
   if (status == HeroStatus::StoneSkin)
-    defence.setStoneSkin(newIntensity);
+    defence.setStoneSkin(clampedTo<uint8_t>(newIntensity));
 }
 
-int Hero::getStatusIntensity(HeroStatus status) const
+unsigned Hero::getStatusIntensity(HeroStatus status) const
 {
   // Compute Exhausted status when needed instead of updating it all the time
   if (status == HeroStatus::Exhausted)
@@ -567,7 +583,7 @@ void Hero::addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensit
       (debuff == HeroDebuff::Poisoned && hasStatus(HeroStatus::PoisonImmune)))
     return;
 
-  int& intensity = debuffs[debuff];
+  auto& intensity = debuffs[debuff];
 
   // Mana burn is special: Although one cannot have multiple layers, adding it will always set mana to 0
   if (debuff == HeroDebuff::ManaBurned)
@@ -575,7 +591,7 @@ void Hero::addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensit
     PietyChange pietyChange;
     if (intensity == 0)
       pietyChange += faith.becameManaBurned();
-    const int mp = getManaPoints();
+    const auto mp = getManaPoints();
     pietyChange += faith.manaPointsBurned(mp);
     loseManaPoints(mp);
     applyOrCollect(pietyChange, allMonsters);
@@ -584,12 +600,12 @@ void Hero::addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensit
   if (intensity != 0 && !canHaveMultiple(debuff))
     return;
 
-  intensity += addedIntensity;
+  intensity += static_cast<unsigned>(addedIntensity);
 
   if (debuff == HeroDebuff::Poisoned)
     applyOrCollect(faith.becamePoisoned(), allMonsters);
   else if (debuff == HeroDebuff::Corroded)
-    defence.setCorrosion(intensity);
+    defence.setCorrosion(clampedTo<uint8_t>(intensity));
   else if (debuff == HeroDebuff::Cursed)
     defence.setCursed(true);
 }
@@ -600,7 +616,7 @@ void Hero::reduceStatus(HeroDebuff debuff)
   if (iter == debuffs.end() || iter->second == 0)
     return;
 
-  const int newIntensity = iter->second - 1;
+  const auto newIntensity = iter->second - 1;
 
   if (newIntensity == 0)
   {
@@ -611,7 +627,7 @@ void Hero::reduceStatus(HeroDebuff debuff)
   debuffs[debuff] = newIntensity;
 
   if (debuff == HeroDebuff::Corroded)
-    defence.setCorrosion(newIntensity);
+    defence.setCorrosion(clampedTo<uint8_t>(newIntensity));
 }
 
 void Hero::resetStatus(HeroDebuff debuff)
@@ -630,7 +646,7 @@ bool Hero::hasStatus(HeroDebuff debuff) const
   return getStatusIntensity(debuff) > 0;
 }
 
-int Hero::getStatusIntensity(HeroDebuff debuff) const
+unsigned Hero::getStatusIntensity(HeroDebuff debuff) const
 {
   auto iter = debuffs.find(debuff);
   return iter != debuffs.end() ? iter->second : 0;
@@ -676,8 +692,8 @@ void Hero::adjustMomentum(bool increase)
       addStatus(HeroStatus::Momentum, 15);
     else
     {
-      const int momentum = getStatusIntensity(HeroStatus::Momentum);
-      const int delta = -(momentum + 1) / 2;
+      const auto momentum = static_cast<int>(getStatusIntensity(HeroStatus::Momentum));
+      const auto delta = -(momentum + 1) / 2;
       addStatus(HeroStatus::Momentum, delta);
     }
   }
@@ -696,9 +712,11 @@ void Hero::removeOneTimeAttackEffects()
     changeBaseDamage(-1);
 }
 
-void Hero::levelGainedUpdate(int newLevel, Monsters& allMonsters)
+void Hero::levelGainedUpdate(unsigned newLevel, Monsters& allMonsters)
 {
-  stats.setHitPointsMax(stats.getHitPointsMax() + 10 + stats.getHealthBonus());
+  const int newHpMax = static_cast<int>(stats.getHitPointsMax()) + 10 + stats.getHealthBonus();
+  assert(newHpMax > 0);
+  stats.setHitPointsMax(static_cast<unsigned>(newHpMax));
   const int addedBaseDamage = [&] {
     if (hasTrait(HeroTrait::HandToHand))
       return 3;
@@ -777,18 +795,18 @@ void Hero::levelUpRefresh(Monsters& allMonsters)
     stats.refresh();
 }
 
-void Hero::addDodgeChancePercent(int percent, bool isPermanent)
+void Hero::addDodgeChancePercent(unsigned percent, bool isPermanent)
 {
   const auto statusToUpdate = isPermanent ? HeroStatus::DodgePermanent : HeroStatus::DodgeTemporary;
-  const int newDodgeChance = std::min(std::max(getStatusIntensity(statusToUpdate) + percent, 0), 100);
+  const auto newDodgeChance = std::min(getStatusIntensity(statusToUpdate) + percent, 100u);
   setStatusIntensity(statusToUpdate, newDodgeChance);
 }
 
-int Hero::getDodgeChancePercent() const
+unsigned Hero::getDodgeChancePercent() const
 {
-  const int dodgeChance =
-      std::min(getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary), 100);
-  if (hasStatus(HeroStatus::Pessimist) && dodgeChance != 100)
+  const unsigned dodgeChance =
+      std::min(getStatusIntensity(HeroStatus::DodgePermanent) + getStatusIntensity(HeroStatus::DodgeTemporary), 100u);
+  if (hasStatus(HeroStatus::Pessimist) && dodgeChance != 100u)
     return 0;
   return dodgeChance;
 }
@@ -837,7 +855,7 @@ void Hero::plantDestroyed(bool wasPhysicalAttack)
 
 bool Hero::bloodPoolConsumed()
 {
-  const int sanguine = getStatusIntensity(HeroStatus::Sanguine);
+  const auto sanguine = getStatusIntensity(HeroStatus::Sanguine);
   if (sanguine == 0)
     return false;
   healHitPoints(getHitPointsMax() * sanguine / 100, false);
@@ -852,7 +870,7 @@ bool Hero::petrifyPlant(Monsters& allMonsters)
 {
   if (!has(Spell::Imawal))
     return false;
-  const int manaCosts = Magic::spellCosts(Spell::Imawal, *this);
+  const auto manaCosts = Magic::spellCosts(Spell::Imawal, *this);
   if (getManaPoints() < manaCosts)
     return false;
   loseManaPoints(manaCosts);
@@ -862,11 +880,11 @@ bool Hero::petrifyPlant(Monsters& allMonsters)
 
 void Hero::rerollDodgeNext()
 {
-  std::uniform_int_distribution<> number(1, 100);
+  std::uniform_int_distribution<unsigned> number(1, 100);
   dodgeNext = getDodgeChancePercent() >= number(generator);
 }
 
-void Hero::applyDragonSoul(int manaCosts)
+void Hero::applyDragonSoul(unsigned manaCosts)
 {
   if (hasStatus(HeroStatus::Pessimist))
     return;
@@ -885,19 +903,17 @@ void Hero::chargeCrystalBall()
   inventory.chargeCrystalBall();
 }
 
-int Hero::gold() const
+unsigned Hero::gold() const
 {
   return inventory.gold;
 }
 
-void Hero::addGold(int amountAdded)
+void Hero::addGold(unsigned amountReceived)
 {
-  inventory.gold += amountAdded;
-  if (inventory.gold < 0)
-    inventory.gold = 0;
+  inventory.gold += amountReceived;
 }
 
-bool Hero::spendGold(int amountSpent)
+bool Hero::spendGold(unsigned amountSpent)
 {
   if (inventory.gold < amountSpent)
     return false;
@@ -907,7 +923,7 @@ bool Hero::spendGold(int amountSpent)
 
 void Hero::collectGoldPile()
 {
-  int amount = std::uniform_int_distribution<>(1, 3)(generator);
+  unsigned amount = std::uniform_int_distribution<unsigned>(1, 3)(generator);
   if (hasTrait(HeroTrait::BlackMarket))
     ++amount;
   inventory.gold += amount;
@@ -930,7 +946,8 @@ bool Hero::canBuy(Item item) const
 
 bool Hero::buy(Item item)
 {
-  if (!hasRoomFor(item) || !spendGold(buyingPrice(item)))
+  const int price = buyingPrice(item);
+  if (price < 0 || !hasRoomFor(item) || !spendGold(static_cast<unsigned>(price)))
     return false;
   if (hasTrait(HeroTrait::RegalPerks))
     healHitPoints(getHitPointsMax() / 2, true);
@@ -948,7 +965,7 @@ const Faith& Hero::getFaith() const
   return faith;
 }
 
-int Hero::getPiety() const
+unsigned Hero::getPiety() const
 {
   return faith.getPiety();
 }
@@ -963,7 +980,7 @@ bool Hero::has(Boon boon) const
   return faith.has(boon);
 }
 
-int Hero::receivedBoonCount(Boon boon) const
+unsigned Hero::receivedBoonCount(Boon boon) const
 {
   return faith.boonCount(boon);
 }
@@ -973,7 +990,7 @@ int Hero::getBoonCosts(Boon boon) const
   return faith.getCosts(boon, *this);
 }
 
-bool Hero::followDeity(God god, int numRevealedTiles)
+bool Hero::followDeity(God god, unsigned numRevealedTiles)
 {
   return faith.followDeity(god, *this, numRevealedTiles);
 }
@@ -1017,43 +1034,42 @@ void Hero::applyOrCollect(PietyChange pietyChange, Monsters& allMonsters)
     faith.apply(pietyChange, *this, allMonsters);
 }
 
-void Hero::applyOrCollectPietyGain(int pointsGained)
+void Hero::applyOrCollectPietyGain(unsigned pointsGained)
 {
-  assert(pointsGained >= 0);
   if (collectedPiety)
-    *collectedPiety += pointsGained;
+    *collectedPiety += static_cast<int>(pointsGained);
   else
     faith.gainPiety(pointsGained);
 }
 
-void Hero::setHitPointsMax(int hitPointsMax)
+void Hero::setHitPointsMax(unsigned hitPointsMax)
 {
   stats.setHitPointsMax(hitPointsMax);
 }
 
-void Hero::setManaPointsMax(int manaPointsMax)
+void Hero::setManaPointsMax(unsigned manaPointsMax)
 {
   stats.setManaPointsMax(manaPointsMax);
 }
 
 void Hero::changeHitPointsMax(int deltaPoints)
 {
-  stats.setHitPointsMax(stats.getHitPointsMax() + deltaPoints);
+  stats.setHitPointsMax(static_cast<unsigned>(static_cast<int>(stats.getHitPointsMax()) + deltaPoints));
 }
 
 void Hero::changeManaPointsMax(int deltaPoints)
 {
-  stats.setManaPointsMax(stats.getManaPointsMax() + deltaPoints);
+  stats.setManaPointsMax(static_cast<unsigned>(static_cast<int>(stats.getManaPointsMax()) + deltaPoints));
 }
 
 void Hero::changePhysicalResistPercentMax(int deltaPoints)
 {
-  defence.setPhysicalResistPercentMax(defence.getPhysicalResistPercentMax() + deltaPoints);
+  defence.setPhysicalResistPercentMax(clampedTo<uint8_t>(defence.getPhysicalResistPercentMax() + deltaPoints));
 }
 
 void Hero::changeMagicalResistPercentMax(int deltaPoints)
 {
-  defence.setMagicalResistPercentMax(defence.getMagicalResistPercentMax() + deltaPoints);
+  defence.setMagicalResistPercentMax(clampedTo<uint8_t>(defence.getMagicalResistPercentMax() + deltaPoints));
 }
 
 void Hero::modifyLevelBy(int delta)
@@ -1061,7 +1077,7 @@ void Hero::modifyLevelBy(int delta)
   experience.modifyLevelBy(delta);
 }
 
-void Hero::addConversionPoints(int points, Monsters& allMonsters)
+void Hero::addConversionPoints(unsigned points, Monsters& allMonsters)
 {
   if (conversion.addPoints(points))
     conversion.applyBonus(*this, allMonsters);
@@ -1082,9 +1098,9 @@ void Hero::receiveFreeSpell(Spell spell)
 
 void Hero::receiveEnlightenment(Monsters& allMonsters)
 {
-  const int enchantedBeads = inventory.enchantPrayerBeads();
-  changeHitPointsMax(enchantedBeads);
-  changeDamageBonusPercent(+enchantedBeads);
+  const auto enchantedBeads = inventory.enchantPrayerBeads();
+  changeHitPointsMax(static_cast<int>(enchantedBeads));
+  changeDamageBonusPercent(static_cast<int>(enchantedBeads));
   changeManaPointsMax(+5);
   if (conversion.addPoints(10 * enchantedBeads))
     conversion.applyBonus(*this, allMonsters);
@@ -1137,14 +1153,16 @@ bool Hero::hasRoomFor(ItemOrSpell itemOrSpell) const
   return inventory.hasRoomFor(itemOrSpell);
 }
 
-int Hero::numFreeSmallInventorySlots() const
+unsigned Hero::numFreeSmallInventorySlots() const
 {
   return inventory.numFreeSmallSlots();
 }
 
 bool Hero::canAfford(Item item) const
 {
-  return gold() >= buyingPrice(item);
+  // Negative price means item cannot be traded
+  const int price = buyingPrice(item);
+  return price >= 0 && gold() >= static_cast<unsigned>(price);
 }
 
 void Hero::receive(ItemOrSpell itemOrSpell)
@@ -1472,7 +1490,7 @@ void Hero::changeStatsImpl(ShopItem item, bool itemReceived)
     changeBaseDamage(2 * sign);
     break;
   case ShopItem::Platemail:
-    addStatus(HeroStatus::DamageReduction, 2 * sign * getLevel());
+    addStatus(HeroStatus::DamageReduction, 2 * sign * static_cast<int>(getLevel()));
     addStatus(HeroStatus::SlowStrike, sign);
     break;
   case ShopItem::Whurrgarbl:
@@ -1657,7 +1675,7 @@ std::vector<std::string> describe(const Hero& hero)
 
   if (hero.getFollowedDeity())
     description.emplace_back("follows "s + toString(*hero.getFollowedDeity()));
-  const int indulgence = hero.getFaith().getIndulgence();
+  const auto indulgence = hero.getFaith().getIndulgence();
   if (indulgence > 0)
     description.emplace_back("indulgence points: "s + std::to_string(indulgence));
   for (auto boon :

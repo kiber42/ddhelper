@@ -41,8 +41,8 @@ void testMelee()
     it("should correctly predict win outcome (one shot, monster has lower level)", [&] {
       Hero hero;
       hero.gainExperienceNoBonuses(30, noOtherMonsters);
-      AssertThat(hero.getLevel(), Equals(4));
-      AssertThat(hero.getXP(), Equals(0));
+      AssertThat(hero.getLevel(), Equals(4u));
+      AssertThat(hero.getXP(), Equals(0u));
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1, noOtherMonsters);
       monster.recover(100);
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Win));
@@ -50,11 +50,11 @@ void testMelee()
     it("should correctly predict hitpoint loss (simple case)", [] {
       Hero hero;
       Monster monster(3, 15, 9);
-      AssertThat(hero.getHitPoints(), Equals(10));
-      AssertThat(monster.getHitPoints(), Equals(15));
+      AssertThat(hero.getHitPoints(), Equals(10u));
+      AssertThat(monster.getHitPoints(), Equals(15u));
       Combat::attack(hero, monster, noOtherMonsters);
-      AssertThat(hero.getHitPoints(), Equals(10 - monster.getDamage()));
-      AssertThat(monster.getHitPoints(), Equals(15 - hero.getDamageOutputVersus(monster)));
+      AssertThat(hero.getHitPoints(), Equals(10u - monster.getDamage()));
+      AssertThat(monster.getHitPoints(), Equals(15u - hero.getDamageOutputVersus(monster)));
     });
   });
 
@@ -113,23 +113,23 @@ void testCombatWithTwoMonsters()
     Monster& nextTarget = allMonsters.emplace_back(MonsterType::MeatMan, 1);
     it("should occur on physical attack to other monster", [&] {
       AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));
-      AssertThat(burning.getHitPoints(), Equals(6));
+      AssertThat(burning.getHitPoints(), Equals(6u));
       AssertThat(Combat::attack(hero, nextTarget, allMonsters), Equals(Summary::Safe));
       AssertThat(burning.isBurning(), IsFalse());
-      AssertThat(burning.getHitPoints(), Equals(5));
+      AssertThat(burning.getHitPoints(), Equals(5u));
     });
     it("should count as a burning kill", [&] {
       hero.recoverManaPoints(2);
       AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));
-      AssertThat(burning.getHitPoints(), Equals(1));
+      AssertThat(burning.getHitPoints(), Equals(1u));
       hero.followDeity(God::GlowingGuardian, 0);
-      AssertThat(hero.getPiety(), Equals(5));
+      AssertThat(hero.getPiety(), Equals(5u));
       AssertThat(Combat::attack(hero, nextTarget, allMonsters), Equals(Summary::Safe));
       AssertThat(burning.isDefeated(), IsTrue());
       AssertThat(burning.isBurning(), IsFalse());
-      AssertThat(burning.getHitPoints(), Equals(0));
-      AssertThat(hero.getXP(), Equals(1));
-      AssertThat(hero.getPiety(), Equals(6));
+      AssertThat(burning.getHitPoints(), Equals(0u));
+      AssertThat(hero.getXP(), Equals(1u));
+      AssertThat(hero.getPiety(), Equals(6u));
     });
   });
 }

@@ -21,7 +21,7 @@ namespace ui
     MonsterType selectedType;
     int level;
     int dungeonMultiplier;
-    int selectedDungeonIndex;
+    unsigned selectedDungeonIndex;
     std::optional<Monster> arenaMonster;
     std::optional<Monster> poolMonster;
   };

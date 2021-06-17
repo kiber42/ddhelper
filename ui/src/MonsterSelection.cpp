@@ -1,5 +1,6 @@
 #include "ui/MonsterSelection.hpp"
 
+#include "engine/Clamp.hpp"
 #include "engine/MonsterTypes.hpp"
 
 #include "imgui.h"
@@ -61,7 +62,7 @@ namespace ui
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
     if (ImGui::BeginCombo("Dungeon", dungeons[selectedDungeonIndex].first))
     {
-      int n = 0;
+      auto n = 0u;
       for (auto dungeon : dungeons)
       {
         char buffer[30];
@@ -83,7 +84,10 @@ namespace ui
     ImGui::End();
   }
 
-  Monster MonsterSelection::get() const { return {selectedType, level, dungeonMultiplier}; }
+  Monster MonsterSelection::get() const
+  {
+    return {selectedType, clamped<uint8_t>(level, 1, 10), clampedTo<uint8_t>(dungeonMultiplier)};
+  }
 
   std::optional<Monster> MonsterSelection::toArena()
   {
@@ -155,12 +159,12 @@ namespace ui
 
   Monster CustomMonsterBuilder::get() const
   {
-    const int level = data[0];
+    const auto level = clamped<uint8_t>(data[0], 1, 10);
     std::string name = "Level " + std::to_string(level) + " monster";
-    const int hp = data[1];
-    const int maxHp = data[2];
-    const int damage = data[3];
-    const int deathProtection = data[6];
+    const auto hp = clampedTo<uint8_t>(data[1]);
+    const auto maxHp = clampedTo<uint16_t>(data[2]);
+    const auto damage = clampedTo<uint16_t>(data[3]);
+    const auto deathProtection = clampedTo<uint8_t>(data[6]);
     auto stats = MonsterStats{level, maxHp, damage, deathProtection};
     if (hp < maxHp)
       stats.loseHitPoints(maxHp - hp);

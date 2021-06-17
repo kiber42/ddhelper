@@ -96,8 +96,8 @@ void testPotions()
     it("adds 50% dodge change (temporary)", [] {
       Hero hero;
       hero.use(Potion::QuicksilverPotion, noOtherMonsters);
-      AssertThat(hero.getDodgeChancePercent(), Equals(50));
-      AssertThat(hero.hasStatus(HeroStatus::DodgePermanent), Equals(0));
+      AssertThat(hero.getDodgeChancePercent(), Equals(50u));
+      AssertThat(hero.hasStatus(HeroStatus::DodgePermanent), Equals(0u));
     });
     it("adds dodge prediction", [] {
       Hero hero;

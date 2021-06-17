@@ -29,11 +29,11 @@ public:
   bool canConvert(ItemOrSpell) const;
 
   // Returns conversion value of item or spell, or nullopt if item is not in inventory or cannot be converted
-  std::optional<int> getConversionPoints(ItemOrSpell) const;
+  std::optional<unsigned> getConversionPoints(ItemOrSpell) const;
 
   // Tries to remove an item, returns nullopt if item is not in inventory or cannot be converted.
   // On success, returns conversion value and whether the item was small.
-  std::optional<std::pair<int, bool>> removeForConversion(ItemOrSpell, bool magicAffinity = false);
+  std::optional<std::pair<unsigned, bool>> removeForConversion(ItemOrSpell, bool magicAffinity = false);
 
   // If item or spell is present in inventory, remove it and return true; false otherwise.
   // No additional restrictions are applied: also removes non-convertable items and items that cannot be transmuted.
@@ -46,7 +46,7 @@ public:
   int sellingPrice(ItemOrSpell) const;
 
   // Return number of free small inventory slots
-  int numFreeSmallSlots() const;
+  unsigned numFreeSmallSlots() const;
 
   // Check if there is enough space in the inventory for an item or a spell
   bool hasRoomFor(ItemOrSpell) const;
@@ -65,20 +65,20 @@ public:
 
   // Helper functions for inventory items with special behaviours
   void chargeFireHeart();
-  [[nodiscard]] int fireHeartUsed();
-  int getFireHeartCharge() const;
+  [[nodiscard]] unsigned fireHeartUsed();
+  unsigned getFireHeartCharge() const;
 
   void chargeCrystalBall();
-  [[nodiscard]] int crystalBallUsed();
-  int getCrystalBallCharge() const;
-  int getCrystalBallUseCosts() const;
+  [[nodiscard]] unsigned crystalBallUsed();
+  unsigned getCrystalBallCharge() const;
+  unsigned getCrystalBallUseCosts() const;
 
   [[nodiscard]] int chargeTrisword();
   [[nodiscard]] bool triswordUsed();
   int getTriswordDamage() const;
 
   // Replace prayer beads by enchanted prayer beads, return number of beads enchanted
-  int enchantPrayerBeads();
+  unsigned enchantPrayerBeads();
 
   struct Entry
   {
@@ -99,22 +99,22 @@ public:
   // For each type of spell in inventory, return how many there are
   std::vector<std::pair<Spell, int>> getSpellCounts() const;
 
-  int gold{20};
+  unsigned gold{20};
 
 private:
   std::vector<Entry> entries;
 
   std::optional<std::pair<int, bool>> removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale);
 
-  int numSlots{6};
+  unsigned numSlots{6};
   int spellConversionPoints{100};
   bool spellsSmall{false};
   bool allItemsLarge{false};
   bool negotiator{false};
 
-  int fireHeartCharge{0};
-  int crystalBallCharge{10};
-  int crystalBallCosts{4};
+  unsigned fireHeartCharge{0};
+  unsigned crystalBallCharge{10};
+  unsigned crystalBallCosts{4};
   int triswordDamage{2};
 };
 

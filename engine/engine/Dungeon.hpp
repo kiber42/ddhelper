@@ -13,7 +13,7 @@ class Monster;
 class Dungeon
 {
 public:
-  Dungeon(int sizeX, int sizeY);
+  Dungeon(unsigned sizeX, unsigned sizeY);
   void setHero(std::shared_ptr<Hero> hero, Position position);
 
   void add(std::shared_ptr<Monster> monster, Position position);
@@ -50,7 +50,7 @@ public:
   bool isConnected(Position position) const;
 
 private:
-  int sizeX, sizeY;
+  unsigned sizeX, sizeY;
   Positioned<std::shared_ptr<Hero>> hero;
   PositionedVector<std::shared_ptr<Monster>> monsters;
   Grid<bool> revealed;

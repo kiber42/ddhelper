@@ -9,7 +9,7 @@
 #include <set>
 #include <variant>
 
-static const int DefaultMapSize = 20;
+static const unsigned char DefaultMapSize = 20;
 
 enum class MageModifier
 {
@@ -45,7 +45,7 @@ using DungeonModifier = std::variant<MageModifier, BazaarModifier, ThievesModifi
 
 struct DungeonSetup
 {
-  explicit DungeonSetup(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human, int mapSize = DefaultMapSize);
+  explicit DungeonSetup(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human, unsigned char mapSize = DefaultMapSize);
 
   DungeonSetup(HeroClass heroClass,
                HeroRace heroRace,
@@ -57,12 +57,12 @@ struct DungeonSetup
                std::optional<MageModifier> mageModifier,
                std::optional<BazaarModifier> bazaarModifier,
                std::optional<ThievesModifier> thiefModifier,
-               int mapSize = DefaultMapSize);
+               unsigned char mapSize = DefaultMapSize);
 
   HeroClass heroClass;
   HeroRace heroRace;
   std::set<Item> startingEquipment;
   std::set<DungeonModifier> modifiers;
   std::optional<GodOrPactmaker> altar;
-  int mapSize;
+  unsigned char mapSize;
 };

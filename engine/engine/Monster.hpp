@@ -11,39 +11,39 @@
 class Monster
 {
 public:
-  Monster(MonsterType type, int level, int dungeonMultiplier = 100);
+  Monster(MonsterType type, uint8_t level, uint8_t dungeonMultiplier = 100);
   Monster(std::string name, MonsterStats, Defence, MonsterTraits);
-  Monster(int level, int hp, int damage);
+  Monster(uint8_t level, uint16_t hp, uint16_t damage);
 
   const char* getName() const;
   int getID() const;
-  int getLevel() const;
+  unsigned getLevel() const;
   bool isDefeated() const;
 
-  int getHitPoints() const;
-  int getHitPointsMax() const;
-  int getDamage() const;
+  unsigned getHitPoints() const;
+  unsigned getHitPointsMax() const;
+  unsigned getDamage() const;
 
-  int getPhysicalResistPercent() const;
-  int getMagicalResistPercent() const;
+  unsigned getPhysicalResistPercent() const;
+  unsigned getMagicalResistPercent() const;
 
-  int predictDamageTaken(int attackerDamageOutput, DamageType damageType) const;
-  void takeDamage(int attackerDamageOutput, DamageType damageType);
-  void takeFireballDamage(int casterLevel, int damageMultiplier = 4);
-  void takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, DamageType damageType);
-  void takeManaShieldDamage(int casterLevel);
+  unsigned predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const;
+  void takeDamage(unsigned attackerDamageOutput, DamageType damageType);
+  void takeFireballDamage(unsigned casterLevel, unsigned damageMultiplier = 4);
+  void takeBurningStrikeDamage(unsigned attackerDamageOutput, unsigned casterLevel, DamageType damageType);
+  void takeManaShieldDamage(unsigned casterLevel);
   void receiveCrushingBlow();
-  void recover(int nSquares);
-  void burn(int nMaxStacks);
-  void burnMax(int nMaxStacks);
+  void recover(unsigned nSquares);
+  void burn(unsigned nMaxStacks);
+  void burnMax(unsigned nMaxStacks);
   void burnDown();
   // returns false for undead monsters as they cannot be poisoned
-  bool poison(int addedPoisonAmount);
+  bool poison(unsigned addedPoisonAmount);
   void slow();
   void erodeResitances();
   void petrify();
   void die();
-  void corrode(int amount = 1);
+  void corrode(unsigned amount = 1);
   void zot();
   void makeWickedSick();
 
@@ -53,20 +53,20 @@ public:
   bool isZotted() const;
   bool isWickedSick() const;
 
-  int getBurnStackSize() const;
-  int getPoisonAmount() const;
-  int getDeathProtection() const;
-  int getCorroded() const;
+  unsigned getBurnStackSize() const;
+  unsigned getPoisonAmount() const;
+  unsigned getDeathProtection() const;
+  unsigned getCorroded() const;
 
   bool has(MonsterTrait trait) const;
-  int getDeathGazePercent() const;
-  int getLifeStealPercent() const;
+  unsigned getDeathGazePercent() const;
+  unsigned getLifeStealPercent() const;
 
   DamageType damageType() const;
 
   // Boosts from punishments
-  void addPhysicalResist(int additionalResistPercent);
-  void addMagicResist(int additionalResistPercent);
+  void changePhysicalResist(int deltaPercent);
+  void changeMagicResist(int deltaPercent);
   void applyTikkiTookiBoost();
 
   // TODO: Add non xp-valuable monsters, and plants

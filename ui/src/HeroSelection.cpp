@@ -1,5 +1,7 @@
 #include "ui/HeroSelection.hpp"
 
+#include "engine/Clamp.hpp"
+
 #include "imgui.h"
 
 namespace ui
@@ -167,12 +169,12 @@ namespace ui
 
   Hero CustomHeroBuilder::get() const
   {
-    const int level = data[0];
-    const int maxHp = data[2];
-    const int maxMp = data[4];
-    const int damage = data[5];
-    const uint8_t physicalResistance = data[6];
-    const uint8_t magicalResistance = data[7];
+    const auto level = clamped<uint8_t>(data[0], 1, 10);
+    const auto maxHp = clampedTo<uint16_t>(data[2]);
+    const auto maxMp = clampedTo<uint16_t>(data[4]);
+    const auto damage = clampedTo<uint16_t>(data[5]);
+    const auto physicalResistance = clampedTo<uint8_t>(data[6]);
+    const auto magicalResistance = clampedTo<uint8_t>(data[7]);
     Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
     Monsters ignore;
     hero.clearInventory();

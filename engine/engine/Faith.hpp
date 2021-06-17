@@ -24,18 +24,18 @@ class Faith
 public:
   explicit Faith(std::optional<GodOrPactmaker> preparedAltar = {});
 
-  bool followDeity(God god, Hero& hero, int numRevealedTiles);
+  bool followDeity(God god, Hero& hero, unsigned numRevealedTiles);
   std::optional<God> getFollowedDeity() const;
   bool canFollow(God god, const Hero& hero) const;
 
-  int getPiety() const;
-  int getMaxPiety() const;
+  unsigned getPiety() const;
+  unsigned getMaxPiety() const;
   bool has(Boon) const;
-  int boonCount(Boon) const;
-  int getIndulgence() const;
+  unsigned boonCount(Boon) const;
+  unsigned getIndulgence() const;
 
-  void gainPiety(int pointsGained);
-  void losePiety(int pointsLost, Hero& hero, Monsters& allMonsters);
+  void gainPiety(unsigned pointsGained);
+  void losePiety(unsigned pointsLost, Hero& hero, Monsters& allMonsters);
 
   // Apply one of Jehora's random event (piety gain or punishment)
   void applyRandomJehoraEvent(Hero& hero);
@@ -53,22 +53,22 @@ public:
   void desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgnosticCollar);
 
   // The following methods address the gods' likes and dislikes.
-  PietyChange monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning);
+  PietyChange monsterKilled(const Monster& monster, unsigned heroLevel, bool monsterWasBurning);
   PietyChange monsterPoisoned(const Monster& monster);
   // Regular spells (no target or targeting monster), including Imawal cast on monster
-  PietyChange spellCast(Spell spell, int manaCost);
+  PietyChange spellCast(Spell spell, unsigned manaCost);
   // Imawal cast on empty space (Binlor)
-  PietyChange imawalCreateWall(int manaCost);
+  PietyChange imawalCreateWall(unsigned manaCost);
   // Imawal cast on a plant (Earthmother)
-  PietyChange imawalPetrifyPlant(int manaCost);
+  PietyChange imawalPetrifyPlant(unsigned manaCost);
   PietyChange levelGained();
 
   PietyChange drankPotion(Potion potion);
   PietyChange lifeStolen(const Monster& monster);
-  PietyChange bloodPoolConsumed(int numBloodTithe);
+  PietyChange bloodPoolConsumed(unsigned numBloodTithe);
   PietyChange becamePoisoned();
   PietyChange becameManaBurned();
-  PietyChange manaPointsBurned(int pointsLost);
+  PietyChange manaPointsBurned(unsigned pointsLost);
 
   PietyChange converted(ItemOrSpell itemOrSpell, bool wasSmall);
 
@@ -87,7 +87,7 @@ public:
   void convertedTaurogItem(Hero& hero, Monsters& allMonsters);
 
 private:
-  void initialBoon(God god, Hero& hero, int numRevealedTiles);
+  void initialBoon(God god, Hero& hero, unsigned numRevealedTiles);
   void punish(God god, Hero& hero, Monsters& allMonsters);
 
   std::optional<God> followedDeity;
@@ -95,16 +95,16 @@ private:
   bool preparationPenalty{false};
   std::optional<Pact> pact;
   std::vector<Boon> boons;
-  int piety{0};
-  int indulgence{0};
-  int numDesecrated{0};
+  unsigned piety{0};
+  unsigned indulgence{0};
+  unsigned numDesecrated{0};
   bool consensus{false};
 
   // counts that may affect awarded piety
-  int numMonstersKilled{0};
-  int numSpellsCast{0};
-  int numManaPointsSpent{0};
-  int numConsecutiveLevelUpsWithGlowingGuardian{0};
+  unsigned numMonstersKilled{0};
+  unsigned numSpellsCast{0};
+  unsigned numManaPointsSpent{0};
+  unsigned numConsecutiveLevelUpsWithGlowingGuardian{0};
 
   struct MonsterPietyHistory
   {

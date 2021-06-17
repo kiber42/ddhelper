@@ -40,7 +40,7 @@ namespace solver
 
     auto randomElement = [](auto& vec) {
       assert(!vec.empty());
-      return vec[std::uniform_int_distribution<>(0, vec.size() - 1)(generator)];
+      return vec[std::uniform_int_distribution<unsigned>(0, vec.size() - 1)(generator)];
     };
 
     while (true)
@@ -125,7 +125,7 @@ namespace solver
           auto boons = offeredBoons(*state.hero.getFollowedDeity());
           std::shuffle(begin(boons), end(boons), generator);
           auto boonIt = std::find_if(begin(boons), end(boons), [&state, &faith = state.hero.getFaith()](Boon boon) {
-            return faith.getPiety() >= faith.getCosts(boon, state.hero) &&
+            return static_cast<int>(faith.getPiety()) >= faith.getCosts(boon, state.hero) &&
                    faith.isAvailable(boon, state.hero, state.monsters, state.resources);
           });
           if (boonIt != end(boons))
@@ -163,7 +163,7 @@ namespace solver
                    },
                    [&](Uncover uncover) { return state.resources.numHiddenTiles >= uncover.numTiles; },
                    [&, &shops = state.resources.shops](Buy buy) {
-                     return hero.hasRoomFor(buy.item) && hero.gold() >= price(buy.item) &&
+                     return hero.hasRoomFor(buy.item) && static_cast<int>(hero.gold()) >= price(buy.item) &&
                             std::find(begin(shops), end(shops), buy.item) != end(shops);
                    },
                    [&](Use use) { return hero.has(use.item) && hero.canUse(use.item); },
@@ -181,7 +181,7 @@ namespace solver
                     &monsters = state.monsters](Request request) {
                      if (const auto boon = std::get_if<Boon>(&request.boonOrPact))
                        return faith.isAvailable(*boon, hero, monsters, resources) &&
-                              hero.getPiety() >= faith.getCosts(*boon, hero);
+                              static_cast<int>(hero.getPiety()) >= faith.getCosts(*boon, hero);
                      return resources.pactmakerAvailable() && !faith.getPact() &&
                             (!faith.enteredConsensus() || std::get<Pact>(request.boonOrPact) != Pact::Consensus);
                    },

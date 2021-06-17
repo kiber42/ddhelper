@@ -17,7 +17,7 @@ namespace ui
 
   void Arena::runAttack(const State& state)
   {
-    const Monster* activeMonster = state.activeMonster >= 0 ? (&state.monsterPool[state.activeMonster]) : nullptr;
+    const Monster* activeMonster = state.monster();
     if (activeMonster && !activeMonster->isDefeated())
     {
       addActionButton(
@@ -60,7 +60,7 @@ namespace ui
         const bool isSelected = ++index == selectedPopupItem;
         const bool possible = Magic::isPossible(state.hero, spell, state.resources) ||
                               (withMonster && Magic::isPossible(state.hero, *state.monster(), spell, state.resources));
-        const int costs = Magic::spellCosts(spell, state.hero);
+        const auto costs = Magic::spellCosts(spell, state.hero);
         const std::string label = toString(spell) + " ("s + std::to_string(costs) + " MP)";
         if (!possible)
         {
@@ -280,7 +280,7 @@ namespace ui
   void Arena::runShopPopup(const State& state)
   {
     const auto shops = state.resources().shops;
-    const int numPotionShops = state.resources().numPotionShops;
+    const auto numPotionShops = state.resources().numPotionShops;
     if (shops.empty() && numPotionShops == 0)
     {
       disabledButton("Buy", "No shops");
@@ -302,7 +302,7 @@ namespace ui
         else
           useTranslocationSeal = false;
         const bool allItemsLarge = state.hero.hasTrait(HeroTrait::RegalSize);
-        const int numFreeSlots =
+        const auto numFreeSlots =
             state.hero.numFreeSmallInventorySlots() + (useTranslocationSeal ? (allItemsLarge ? 5 : 1) : 0);
         if (numFreeSlots < 5)
         {
@@ -323,7 +323,7 @@ namespace ui
             const std::string historyTitle = "Translocate " + label;
             if (addPopupAction(
                     state, label, historyTitle,
-                    [item, shopIndex](State& state) {
+                    [item, shopIndex=static_cast<long>(shopIndex)](State& state) {
                       if (state.hero.useTranslocationSealOn(item))
                       {
                         auto& shops = state.resources().shops;
@@ -340,7 +340,7 @@ namespace ui
             const std::string historyTitle = "Buy " + label;
             if (addPopupAction(
                     state, label, historyTitle,
-                    [item, shopIndex](State& state) {
+                    [item, shopIndex=static_cast<long>(shopIndex)](State& state) {
                       if (state.hero.buy(item))
                       {
                         auto& shops = state.resources().shops;
@@ -517,7 +517,7 @@ namespace ui
           const bool isSelected = ++index == selectedPopupItem;
           if (addPopupAction(
                   state, toString(god), "Desecrate "s + toString(god) + "'s altar",
-                  [god, altarIndex](State& state) {
+                  [god, altarIndex=static_cast<long>(altarIndex)](State& state) {
                     state.hero.desecrate(god, state.monsterPool);
                     auto& altars = state.resources().altars;
                     altars.erase(begin(altars) + altarIndex);
@@ -536,7 +536,7 @@ namespace ui
 
   void Arena::runUncoverTiles(const State& state)
   {
-    auto uncoverForAll = [](State& state, int numSquares) {
+    auto uncoverForAll = [](State& state, unsigned numSquares) {
       state.hero.recover(numSquares);
       for (auto& monster : state.monsterPool)
         monster.recover(numSquares);
@@ -554,7 +554,7 @@ namespace ui
           },
           result);
 
-      const int numSquares = std::min(numHidden, state.hero.numSquaresForFullRecovery());
+      const auto numSquares = std::min(numHidden, state.hero.numSquaresForFullRecovery());
       if (numSquares > 1)
       {
         ImGui::SameLine();

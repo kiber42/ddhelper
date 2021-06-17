@@ -93,8 +93,8 @@ namespace ui
   void showStatus(const State& state)
   {
     showStatus(state.hero);
-    if (state.activeMonster >= 0)
-      showStatus(state.monsterPool[state.activeMonster]);
+    if (state.activeMonster)
+      showStatus(state.monsterPool[*state.activeMonster]);
   }
 
   void showPredictedOutcomeTooltip(const State& initialState, const GameAction& stateUpdate)

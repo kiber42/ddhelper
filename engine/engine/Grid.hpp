@@ -8,9 +8,9 @@ template <class DataType>
 class Grid
 {
 public:
-  Grid(int sizeX, int sizeY, const DataType& init = DataType());
-  const int sizeX;
-  const int sizeY;
+  Grid(unsigned sizeX, unsigned sizeY, const DataType& init = DataType());
+  const unsigned sizeX;
+  const unsigned sizeY;
 
   using DataRef = typename std::vector<DataType>::reference;
 
@@ -23,7 +23,7 @@ private:
 };
 
 template <class DataType>
-Grid<DataType>::Grid(int sizeX, int sizeY, const DataType& init)
+Grid<DataType>::Grid(unsigned sizeX, unsigned sizeY, const DataType& init)
   : sizeX(sizeX)
   , sizeY(sizeY)
   , data(sizeX * sizeY)
@@ -34,7 +34,7 @@ Grid<DataType>::Grid(int sizeX, int sizeY, const DataType& init)
 template <class DataType>
 bool Grid<DataType>::isValid(Position position) const
 {
-  return position.getX() >= 0 && position.getY() >= 0 && position.getX() < sizeX && position.getY() < sizeY;
+  return position.getX() < sizeX && position.getY() < sizeY;
 }
 
 template <class DataType>

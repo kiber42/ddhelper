@@ -17,21 +17,21 @@ void testDefenceBasics()
     describe("Physical resistance", [] {
       Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 0}, {});
       it("should reduce damage according to resistance %", [&] {
-        AssertThat(monster.getPhysicalResistPercent(), Equals(50));
+        AssertThat(monster.getPhysicalResistPercent(), Equals(50u));
         monster.takeDamage(10, DamageType::Physical);
-        AssertThat(monster.getHitPoints(), Equals(5));
+        AssertThat(monster.getHitPoints(), Equals(5u));
       });
       it("should be rounded down", [&] {
         monster.takeDamage(1, DamageType::Physical);
-        AssertThat(monster.getHitPoints(), Equals(4));
+        AssertThat(monster.getHitPoints(), Equals(4u));
       });
     });
     describe("Magical resistance", [] {
       Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{0, 75}, {});
       it("should be applied for magical damage, resisted damage is rounded down", [&] {
-        AssertThat(monster.getMagicalResistPercent(), Equals(75));
+        AssertThat(monster.getMagicalResistPercent(), Equals(75u));
         monster.takeDamage(5 * 4 + 1, DamageType::Magical);
-        AssertThat(monster.getHitPoints(), Equals(10 - 5 - 1));
+        AssertThat(monster.getHitPoints(), Equals(10u - 5u - 1u));
       });
     });
     describe("Corroded", [] {
@@ -40,27 +40,27 @@ void testDefenceBasics()
         Monster monster(1, 20, 1);
         monster.corrode();
         monster.takeDamage(1, DamageType::Physical);
-        AssertThat(monster.getHitPoints(), Equals(18));
+        AssertThat(monster.getHitPoints(), Equals(18u));
         monster.corrode();
         monster.takeDamage(1, DamageType::Magical);
-        AssertThat(monster.getHitPoints(), Equals(15));
+        AssertThat(monster.getHitPoints(), Equals(15u));
       });
     });
     describe("Resistance crushing", [] {
       it("should reduce resistances by 3 percentage points", [&] {
         Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 75}, {});
         monster.erodeResitances();
-        AssertThat(monster.getPhysicalResistPercent(), Equals(47));
-        AssertThat(monster.getMagicalResistPercent(), Equals(72));
+        AssertThat(monster.getPhysicalResistPercent(), Equals(47u));
+        AssertThat(monster.getMagicalResistPercent(), Equals(72u));
         monster.erodeResitances();
         monster.erodeResitances();
         monster.erodeResitances();
         monster.erodeResitances();
-        AssertThat(monster.getPhysicalResistPercent(), Equals(47 - 12));
-        AssertThat(monster.getMagicalResistPercent(), Equals(72 - 12));
+        AssertThat(monster.getPhysicalResistPercent(), Equals(47u - 12u));
+        AssertThat(monster.getMagicalResistPercent(), Equals(72u - 12u));
         // 35% physical resistance remaining -> no damage reduction
         monster.takeDamage(2, DamageType::Physical);
-        AssertThat(monster.getHitPoints(), Equals(8));
+        AssertThat(monster.getHitPoints(), Equals(8u));
       });
     });
     describe("Death protection", [] {
@@ -68,13 +68,13 @@ void testDefenceBasics()
       it("should prevent defeat", [&] {
         monster.takeDamage(100, DamageType::Physical);
         AssertThat(monster.isDefeated(), IsFalse());
-        AssertThat(monster.getHitPoints(), Equals(1));
+        AssertThat(monster.getHitPoints(), Equals(1u));
       });
       it("should wear off", [&] {
         monster.takeDamage(100, DamageType::Physical);
         AssertThat(monster.isDefeated(), IsFalse());
-        AssertThat(monster.getHitPoints(), Equals(1));
-        AssertThat(monster.getDeathProtection(), Equals(0));
+        AssertThat(monster.getHitPoints(), Equals(1u));
+        AssertThat(monster.getDeathProtection(), Equals(0u));
         monster.takeDamage(1, DamageType::Physical);
         AssertThat(monster.isDefeated(), IsTrue());
       });
@@ -87,12 +87,12 @@ void testDefenceBasics()
       hero.setPhysicalResistPercent(50);
       it("should be accounted for (rounding down)", [&] {
         hero.takeDamage(11, DamageType::Physical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(10 - 6));
+        AssertThat(hero.getHitPoints(), Equals(10u - 6u));
       });
       it("should not block magical damage", [&] {
-        AssertThat(hero.getHitPoints(), Equals(4));
+        AssertThat(hero.getHitPoints(), Equals(4u));
         hero.takeDamage(3, DamageType::Magical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(1));
+        AssertThat(hero.getHitPoints(), Equals(1u));
       });
       it("should be capped (at 65% by default)", [&] {
         hero.setPhysicalResistPercent(100);
@@ -105,12 +105,12 @@ void testDefenceBasics()
       hero.setMagicalResistPercent(50);
       it("should be accounted for (rounding down)", [&] {
         hero.takeDamage(11, DamageType::Magical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(10 - 6));
+        AssertThat(hero.getHitPoints(), Equals(10u - 6u));
       });
       it("should not block physical damage", [&] {
-        AssertThat(hero.getHitPoints(), Equals(4));
+        AssertThat(hero.getHitPoints(), Equals(4u));
         hero.takeDamage(3, DamageType::Physical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(1));
+        AssertThat(hero.getHitPoints(), Equals(1u));
       });
       it("should be capped (at 65% by default)", [&] {
         hero.setMagicalResistPercent(100);
@@ -123,16 +123,16 @@ void testDefenceBasics()
         Hero hero;
         hero.addStatus(HeroStatus::DamageReduction);
         hero.takeDamage(3, DamageType::Physical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(8));
+        AssertThat(hero.getHitPoints(), Equals(8u));
         hero.addStatus(HeroStatus::DamageReduction, 99);
         hero.takeDamage(90, DamageType::Physical, noOtherMonsters);
         hero.takeDamage(99, DamageType::Magical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(8));
+        AssertThat(hero.getHitPoints(), Equals(8u));
         hero.takeDamage(104, DamageType::Physical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(4));
+        AssertThat(hero.getHitPoints(), Equals(4u));
         hero.addStatus(HeroStatus::DeathProtection);
         hero.takeDamage(104, DamageType::Magical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(1));
+        AssertThat(hero.getHitPoints(), Equals(1u));
         AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsFalse());
         hero.takeDamage(101, DamageType::Magical, noOtherMonsters);
         AssertThat(hero.isDefeated(), IsTrue());
@@ -143,9 +143,9 @@ void testDefenceBasics()
         Hero hero;
         hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
         hero.takeDamage(1, DamageType::Physical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(8));
+        AssertThat(hero.getHitPoints(), Equals(8u));
         hero.takeDamage(1, DamageType::Magical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(6));
+        AssertThat(hero.getHitPoints(), Equals(6u));
         hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
         hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
         hero.takeDamage(3, DamageType::Magical, noOtherMonsters);
@@ -156,7 +156,7 @@ void testDefenceBasics()
         hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
         hero.addStatus(HeroStatus::DamageReduction);
         hero.takeDamage(1, DamageType::Physical, noOtherMonsters);
-        AssertThat(hero.getHitPoints(), Equals(10));
+        AssertThat(hero.getHitPoints(), Equals(10u));
       });
     });
     describe("Damage reduction, resistance and corrosion", [] {
@@ -166,8 +166,8 @@ void testDefenceBasics()
         hero.addStatus(HeroStatus::DamageReduction, 2);
         hero.addStatus(HeroDebuff::Corroded, noOtherMonsters, 5);
         hero.takeDamage(3, DamageType::Physical, noOtherMonsters);
-        const int expectedDamage = (3 - 2) - 0 /* 50% of 1, rounded down */ + 5;
-        AssertThat(hero.getHitPoints(), Equals(10 - expectedDamage));
+        const unsigned expectedDamage = (3 - 2) - 0 /* 50% of 1, rounded down */ + 5;
+        AssertThat(hero.getHitPoints(), Equals(10u - expectedDamage));
       });
     });
   });

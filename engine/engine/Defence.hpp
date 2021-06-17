@@ -31,7 +31,7 @@ public:
   void setPhysicalResistPercentMax(uint8_t newMax);
   void setMagicalResistPercentMax(uint8_t newMax);
 
-  int predictDamageTaken(int attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const;
+  unsigned predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const;
 
   void setCorrosion(uint8_t numCorrosionLayers);
   void setStoneSkin(uint8_t stoneSkinLayers);

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
-Experience::Experience(int initialLevel)
+Experience::Experience(unsigned initialLevel)
   : level(1)
   , unmodifiedLevel(1)
   , prestige(0)
@@ -27,7 +27,7 @@ Experience::Experience(IsVeteran)
 {
 }
 
-void Experience::gain(int xpGained, int xpBonus, bool xpBoost)
+void Experience::gain(unsigned xpGained, unsigned xpBonus, bool xpBoost)
 {
   if (xpBoost)
     xpGained += xpGained / 2;
@@ -62,16 +62,20 @@ void Experience::gainLevel()
 
 void Experience::modifyLevelBy(int delta)
 {
-  level = std::min(std::max(level + delta, 1), 10);
+  level = static_cast<unsigned>(std::min(std::max(static_cast<int>(level) + delta, 1), 10));
 }
 
-int Experience::getUnmodifiedLevel() const
+unsigned Experience::getUnmodifiedLevel() const
 {
   return unmodifiedLevel;
 }
 
-int Experience::forHeroAndMonsterLevels(int heroLevel, int monsterLevel)
+unsigned Experience::forHeroAndMonsterLevels(unsigned heroLevel, unsigned monsterLevel)
 {
-  const int delta = monsterLevel - heroLevel;
-  return monsterLevel + (delta > 0 ? delta * (delta - 1) + 2 : 0);
+  if (monsterLevel > heroLevel)
+  {
+    const auto delta = monsterLevel - heroLevel;
+    return monsterLevel + delta * (delta - 1) + 2;
+  }
+  return monsterLevel;
 }

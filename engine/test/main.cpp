@@ -25,7 +25,7 @@ go_bandit([] {
   testResources();
   testPotions();
   testFaith();
-  testDungeon();
+//  testDungeon();
 });
 
 int main(int argc, char* argv[])

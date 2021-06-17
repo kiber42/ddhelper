@@ -8,13 +8,13 @@
 #include <cassert>
 
 ResourceSet::ResourceSet(DungeonSetup setup)
-  : numWalls{setup.mapSize * setup.mapSize * 4 * (setup.altar == GodOrPactmaker{God::BinlorIronshield} ? 7 : 10) / 100}
+  : numWalls{setup.mapSize * setup.mapSize * 4 * (setup.altar == GodOrPactmaker{God::BinlorIronshield} ? 7u : 10u) / 100}
   , numHealthPotions{3}
   , numManaPotions{3}
-  , numPotionShops{setup.modifiers.count(BazaarModifier::Apothecary) ? 3 : 1}
-  , numAttackBoosters{setup.modifiers.count(MageModifier::ExtraAttackBoosters) ? 5 : 3}
-  , numManaBoosters{setup.modifiers.count(MageModifier::ExtraManaBoosters) ? 5 : 3}
-  , numHealthBoosters{setup.modifiers.count(MageModifier::ExtraHealthBoosters) ? 5 : 3}
+  , numPotionShops{setup.modifiers.count(BazaarModifier::Apothecary) ? 3u : 1u}
+  , numAttackBoosters{setup.modifiers.count(MageModifier::ExtraAttackBoosters) ? 5u : 3u}
+  , numManaBoosters{setup.modifiers.count(MageModifier::ExtraManaBoosters) ? 5u : 3u}
+  , numHealthBoosters{setup.modifiers.count(MageModifier::ExtraHealthBoosters) ? 5u : 3u}
   , numGoldPiles{10}
 {
   int numShops = hasStartingTrait(setup.heroClass, HeroTrait::Merchant) ? 10 : 8;
@@ -84,7 +84,7 @@ void ResourceSet::addRandomAltar(std::mt19937 generator)
   GodOrPactmaker god;
   do
   {
-    const unsigned value = std::uniform_int_distribution<>(0, n)(generator);
+    const unsigned value = std::uniform_int_distribution<unsigned>(0, n)(generator);
     if (value < n)
       god = static_cast<God>(value);
     else
@@ -112,29 +112,25 @@ void ResourceSet::addRandomResources(int numShops, int numSpells, int numAltars)
   }
 }
 
-Resources::Resources(int mapSize)
+Resources::Resources(unsigned char mapSize)
   : numHiddenTiles(mapSize * mapSize)
 {
 }
 
-void Resources::revealTiles(int n)
+void Resources::revealTiles(unsigned n)
 {
-  for (int i = 0; i < n; ++i)
-  {
-    if (numHiddenTiles <= 0)
-      break;
+  for (; n > 0 && numHiddenTiles > 0; --n)
     revealTile();
-  }
 }
 
-SimpleResources::SimpleResources(ResourceSet visible, int mapSize)
+SimpleResources::SimpleResources(ResourceSet visible, unsigned char mapSize)
   : Resources(mapSize)
   , ResourceSet(std::move(visible))
   , mapSize(mapSize)
 {
 }
 
-MapResources::MapResources(ResourceSet visible, ResourceSet hidden, int mapSize)
+MapResources::MapResources(ResourceSet visible, ResourceSet hidden, unsigned char mapSize)
   : Resources(mapSize)
   , visible(std::move(visible))
   , hidden(std::move(hidden))
@@ -142,7 +138,7 @@ MapResources::MapResources(ResourceSet visible, ResourceSet hidden, int mapSize)
   revealTiles(9);
 }
 
-MapResources::MapResources(int mapSize)
+MapResources::MapResources(unsigned char mapSize)
   : MapResources(DungeonSetup{HeroClass::Guard, HeroRace::Human, mapSize})
 {
 }
@@ -169,29 +165,35 @@ void MapResources::revealTile()
   // Except for plants and blood pools, at most own resource is spawned.
   // This ignores some situations, e.g. petrified enemies which are both a wall and a gold pile.
   // The helper functions return the available amount of a hidden resources of a given type and a method to reveal it.
-  auto countAndReveal = [&](auto what) {
-    return std::pair{hidden.*what, [&from = hidden.*what, &to = visible.*what](size_t) {
+  auto countAndReveal = [&](auto resourceAmount) {
+    return std::pair{hidden.*resourceAmount, [&from = hidden.*resourceAmount, &to = visible.*resourceAmount](unsigned) {
                        assert(from > 0);
                        ++to;
                        --from;
                      }};
   };
   auto countAndRevealVector = [&](auto group) {
-    return std::pair{(hidden.*group).size(), [&from = hidden.*group, &to = visible.*group](size_t index) {
+    return std::pair{(hidden.*group).size(), [&from = hidden.*group, &to = visible.*group](unsigned index) {
                        assert(index < from.size());
                        auto resource = begin(from) + index;
                        to.emplace_back(std::move(*resource));
                        from.erase(resource);
                      }};
   };
-  std::array<std::pair<int, std::function<void(size_t)>>, 12> resourceCountsAndReveals{
+  std::array<std::pair<unsigned, std::function<void(unsigned)>>, 12> resourceCountsAndReveals{
       countAndReveal(&ResourceSet::numWalls),         countAndReveal(&ResourceSet::numGoldPiles),
       countAndRevealVector(&ResourceSet::shops),      countAndRevealVector(&ResourceSet::spells),
       countAndRevealVector(&ResourceSet::altars),     countAndReveal(&ResourceSet::numAttackBoosters),
       countAndReveal(&ResourceSet::numManaBoosters),  countAndReveal(&ResourceSet::numHealthBoosters),
       countAndReveal(&ResourceSet::numHealthPotions), countAndReveal(&ResourceSet::numManaPotions),
       countAndReveal(&ResourceSet::numPotionShops)};
-  auto rand = std::uniform_int_distribution<>(0, numHiddenTiles);
+  auto rand = std::uniform_int_distribution<unsigned>(0, numHiddenTiles);
+  // Use n as an index into the 'cumulative resource function':
+  // for n            < numWalls                -> reveal a wall
+  // for n - numWalls < numGoldPiles            -> reveal a gold pile
+  // for n - numWalls - numGoldPiles < numShops -> reveal a shop
+  // ...
+  // numOfAllResources <= n < numHiddenTiles -> reveal nothing
   auto n = rand(generator);
   bool revealedWall = true;
   for (const auto& [count, reveal] : resourceCountsAndReveals)
@@ -207,6 +209,7 @@ void MapResources::revealTile()
   if (revealedWall)
     return;
 
+  // if the revealed tile isn't a wall, it may also contain a plant and/or a blood pool
   if (hidden.numPlants > 0 && rand(generator) < hidden.numPlants)
   {
     --hidden.numPlants;

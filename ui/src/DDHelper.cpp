@@ -130,7 +130,7 @@ namespace ui
         const auto monster = state.monster();
         if (monster && monster->isDefeated())
         {
-          state.monsterPool.erase(begin(state.monsterPool) + state.activeMonster);
+          state.monsterPool.erase(begin(state.monsterPool) + static_cast<long>(*state.activeMonster));
           state.activeMonster = poolIndex - 1;
         }
         else

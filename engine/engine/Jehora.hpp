@@ -9,18 +9,18 @@ class Jehora
 {
 public:
   Jehora();
-  int initialPietyBonus(int heroLevel, bool isPessimist);
+  unsigned initialPietyBonus(unsigned heroLevel, bool isPessimist);
   bool lastChanceSuccessful(int remainingPiety);
-  int operator()();
+  unsigned operator()();
   void applyRandomPunishment(Hero& hero);
 
 private:
   std::mt19937 generator{std::random_device{}()};
-  int happiness;
-  int thresholdPoison;
-  int thresholdManaBurn;
-  int thresholdHealthLoss;
-  int thresholdWeakened;
-  int thresholdCorrosion;
-  int thresholdCursed;
+  unsigned happiness;
+  unsigned thresholdPoison;
+  unsigned thresholdManaBurn;
+  unsigned thresholdHealthLoss;
+  unsigned thresholdWeakened;
+  unsigned thresholdCorrosion;
+  unsigned thresholdCursed;
 };

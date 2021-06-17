@@ -49,7 +49,7 @@ void testDungeonBasics()
       AssertThat(dungeon.isAccessible({9, 9}), IsFalse());
     });
     it("should consider squares accessible if there is a revealed path", [&] {
-      for (int x = 2; x < 10; ++x)
+      for (unsigned x = 2; x < 10; ++x)
         dungeon.reveal({x, x});
       AssertThat(dungeon.isAccessible({9, 9}), IsTrue());
     });

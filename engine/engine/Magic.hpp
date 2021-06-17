@@ -33,7 +33,7 @@ namespace Magic
     return spell == Spell::Imawal || spell == Spell::Weytwut || spell == Spell::Wonafyt;
   }
 
-  int spellCosts(Spell spell, const Hero& hero);
+  unsigned spellCosts(Spell spell, const Hero& hero);
 
-  int healthCostsBludtupowa(const Hero& hero);
+  unsigned healthCostsBludtupowa(const Hero& hero);
 } // namespace Magic

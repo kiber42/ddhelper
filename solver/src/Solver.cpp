@@ -39,10 +39,10 @@ namespace GeneticAlgorithm
     if (finalState.monsters.empty())
       return 1000;
     const auto& hero = finalState.hero;
-    const int heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
+    const auto heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
     return std::accumulate(
-        begin(finalState.monsters), end(finalState.monsters), heroScore,
-        [](const int runningTotal, const Monster& monster) { return runningTotal - monster.getHitPoints(); });
+        begin(finalState.monsters), end(finalState.monsters), static_cast<int>(heroScore),
+        [](const int runningTotal, const Monster& monster) { return runningTotal - static_cast<int>(monster.getHitPoints()); });
   }
 
   void explainScore(const GameState& finalState)
@@ -53,15 +53,15 @@ namespace GeneticAlgorithm
       return;
     }
     const auto& hero = finalState.hero;
-    const int heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
+    const auto heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
     std::cout << "   Hero level = " << hero.getLevel() << " -> " << 50 * hero.getLevel() << std::endl
               << "   Hero XP = " << hero.getXP() << std::endl
               << "   Hero damage = " << hero.getDamageVersusStandard() << std::endl
               << "   Hero hitpoints = " << hero.getHitPoints() << std::endl
               << "=> " << heroScore << std::endl;
-    const int monsterHitpoints = std::accumulate(
-        begin(finalState.monsters), end(finalState.monsters), 0,
-        [](const int runningTotal, const Monster& monster) { return runningTotal + monster.getHitPoints(); });
+    const auto monsterHitpoints = std::accumulate(
+        begin(finalState.monsters), end(finalState.monsters), 0u,
+        [](const unsigned runningTotal, const Monster& monster) { return runningTotal + monster.getHitPoints(); });
     std::cout << "   Total monster hit points = " << monsterHitpoints << std::endl
               << "=> " << heroScore - monsterHitpoints << std::endl;
   }
@@ -83,7 +83,7 @@ namespace GeneticAlgorithm
     int num_mutations = std::poisson_distribution<>(candidate.size() * probability_erasure)(generator);
     while (--num_mutations >= 0 && !candidate.empty())
     {
-      const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
+      const int pos = std::uniform_int_distribution<>(0, static_cast<int>(candidate.size()) - 1)(generator);
       candidate.erase(begin(candidate) + pos);
     }
     if (!candidate.empty())
@@ -91,8 +91,8 @@ namespace GeneticAlgorithm
       num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_any)(generator);
       while (--num_mutations >= 0)
       {
-        const size_t posA = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
-        const size_t posB = std::uniform_int_distribution<>(0, candidate.size() - 1)(generator);
+        const size_t posA = std::uniform_int_distribution<size_t>(0, candidate.size() - 1)(generator);
+        const size_t posB = std::uniform_int_distribution<size_t>(0, candidate.size() - 1)(generator);
         if (posA != posB)
           std::swap(candidate[posA], candidate[posB]);
       }
@@ -102,7 +102,7 @@ namespace GeneticAlgorithm
       num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_neighbor)(generator);
       while (--num_mutations >= 0)
       {
-        const size_t pos = std::uniform_int_distribution<>(0, candidate.size() - 2)(generator);
+        const size_t pos = std::uniform_int_distribution<size_t>(0, candidate.size() - 2)(generator);
         std::swap(candidate[pos], candidate[pos + 1]);
       }
     }
@@ -150,10 +150,10 @@ namespace GeneticAlgorithm
   std::optional<Solution> run(GameState state)
   {
     state.hero.addStatus(HeroStatus::Pessimist);
-    const int num_generations = 100;
-    const int generation_size = 1000;
+    const unsigned num_generations = 100;
+    const unsigned generation_size = 1000;
     // Keep `num_keep` top performers, multiply them to reach original generation size
-    const int num_keep = 100;
+    const unsigned num_keep = 100;
 
     // Create and rate initial generation of solutions
     std::array<std::pair<Solution, int>, generation_size> population;
@@ -163,14 +163,14 @@ namespace GeneticAlgorithm
       return std::pair{std::move(candidate), fitnessScore(finalState)};
     });
 
-    for (int i = 0; i < num_generations; ++i)
+    for (unsigned gen = 0; gen < num_generations; ++gen)
     {
       std::stable_sort(begin(population), end(population),
                        [](const auto& scoredCandidateA, const auto& scoredCandidateB) {
                          return scoredCandidateA.second > scoredCandidateB.second;
                        });
 
-      std::cout << "Generation " << i << " complete:" << std::endl;
+      std::cout << "Generation " << gen << " complete:" << std::endl;
       std::cout << "  Highest fitness score: " << population.front().second << std::endl;
       std::cout << "  Lowest retained fitness score: " << population[num_keep - 1].second << std::endl;
       const auto& bestCandidateSolution = population.front().first;
@@ -183,10 +183,10 @@ namespace GeneticAlgorithm
 
       // A) Spawn new generation of candidate solutions by mixing successful solutions
       // Fill entire array with copies of `num_keep` most successful solutions
-      int n = num_keep;
+      auto n = num_keep;
       while (n < generation_size)
       {
-        const int num_copy = std::min(num_keep, generation_size - n);
+        const auto num_copy = std::min(num_keep, generation_size - n);
         std::copy(begin(population), begin(population) + num_copy, begin(population) + n);
         n += num_keep;
       }
@@ -195,7 +195,7 @@ namespace GeneticAlgorithm
       std::shuffle(begin(population) + 1, end(population), generator);
 
       // Generate new solution candidates by intertwining two existing candidates
-      for (int j = 2; j < generation_size; j += 2)
+      for (unsigned j = 2; j < generation_size; j += 2)
       {
         auto& solutionA = population[j - 1].first;
         auto& solutionB = population[j].first;

@@ -22,19 +22,19 @@ void testInventory()
       AssertThat(inv.has(Potion::ManaPotion), IsTrue());
     });
     it("shall have room for 30 small / 6 large items", [&] {
-      AssertThat(inv.numFreeSmallSlots(), Equals(28));
+      AssertThat(inv.numFreeSmallSlots(), Equals(28u));
       inv.clear();
-      AssertThat(inv.numFreeSmallSlots(), Equals(30));
+      AssertThat(inv.numFreeSmallSlots(), Equals(30u));
       inv.add(ShopItem::BadgeOfHonour);
-      AssertThat(inv.numFreeSmallSlots(), Equals(25));
+      AssertThat(inv.numFreeSmallSlots(), Equals(25u));
       inv.add(ShopItem::BloodySigil);
       inv.add(ShopItem::FineSword);
       inv.add(ShopItem::PendantOfHealth);
       inv.add(ShopItem::PendantOfMana);
-      AssertThat(inv.numFreeSmallSlots(), Equals(5));
+      AssertThat(inv.numFreeSmallSlots(), Equals(5u));
       AssertThat(inv.hasRoomFor(ShopItem::TowerShield), IsTrue());
       inv.add(ShopItem::Spoon);
-      AssertThat(inv.numFreeSmallSlots(), Equals(4));
+      AssertThat(inv.numFreeSmallSlots(), Equals(4u));
       AssertThat(inv.hasRoomFor(ShopItem::MagePlate), IsFalse());
       AssertThat(inv.hasRoomFor(ShopItem::TowerShield), IsFalse());
       AssertThat(inv.hasRoomFor(ShopItem::DragonSoul), IsTrue());
@@ -42,16 +42,18 @@ void testInventory()
       inv.add(Potion::HealthPotion);
       inv.add(ShopItem::DragonSoul);
       inv.add(AlchemistSeal::CompressionSeal);
-      AssertThat(inv.numFreeSmallSlots(), Equals(0));
+      AssertThat(inv.numFreeSmallSlots(), Equals(0u));
     });
     it("shall account for grouping", [&] {
       inv.clear();
       inv.add(Potion::HealthPotion);
-      AssertThat(inv.numFreeSmallSlots(), Equals(29));
+      AssertThat(inv.numFreeSmallSlots(), Equals(29u));
       inv.add(Potion::HealthPotion);
-      AssertThat(inv.numFreeSmallSlots(), Equals(29));
+      AssertThat(inv.numFreeSmallSlots(), Equals(29u));
       inv.add(Potion::HealthPotion);
-      AssertThat(inv.numFreeSmallSlots(), Equals(29));
+      AssertThat(inv.numFreeSmallSlots(), Equals(29u));
+      inv.addFree(Potion::HealthPotion);
+      AssertThat(inv.numFreeSmallSlots(), Equals(29u));
     });
     it("shall treat spells as large for most classes", [] {
       Hero hero(HeroClass::Sorcerer);

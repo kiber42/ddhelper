@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class HeroStats
 {
 public:
@@ -13,43 +15,43 @@ public:
   HeroStats();
   HeroStats(IsDangerous);
   HeroStats(RegalSize);
-  HeroStats(int hpMax, int mpMax, int baseDamage);
+  HeroStats(uint16_t hpMax, uint16_t mpMax, uint16_t baseDamage);
 
   bool isDefeated() const;
-  int getHitPoints() const;
-  int getHitPointsMax() const;
-  void setHitPointsMax(int hitPointsMax);
+  uint16_t getHitPoints() const;
+  uint16_t getHitPointsMax() const;
+  void setHitPointsMax(uint16_t hitPointsMax);
 
-  int getManaPoints() const;
-  int getManaPointsMax() const;
-  void setManaPointsMax(int manaPointsMax);
+  uint16_t getManaPoints() const;
+  uint16_t getManaPointsMax() const;
+  void setManaPointsMax(uint16_t manaPointsMax);
 
-  void healHitPoints(int amountPointsHealed, bool allowOverheal);
-  void loseHitPointsWithoutDeathProtection(int amountPointsLost);
+  void healHitPoints(uint16_t amountPointsHealed, bool allowOverheal);
+  void loseHitPointsWithoutDeathProtection(uint16_t amountPointsLost);
   void barelySurvive();
 
-  void recoverManaPoints(int amountPointsRecovered);
-  void loseManaPoints(int amountPointsLost);
+  void recoverManaPoints(uint16_t amountPointsRecovered);
+  void loseManaPoints(uint16_t amountPointsLost);
   void refresh();
 
-  int getBaseDamage() const;
-  void setBaseDamage(int damagePoints);
+  uint16_t getBaseDamage() const;
+  void setBaseDamage(uint16_t damagePoints);
 
-  int getDamageBonusPercent() const;
-  void setDamageBonusPercent(int newDamageBonus);
+  int16_t getDamageBonusPercent() const;
+  void setDamageBonusPercent(int16_t newDamageBonus);
 
   int getHealthBonus() const;
   // Increase health bonus and also apply it for earlier level-ups
-  void addHealthBonus(int unmodifiedLevel);
+  void addHealthBonus(uint8_t unmodifiedLevel);
   // Decrease future health bonuses (do not reduce previous bonuses)
   void reduceHealthBonus();
 
 private:
-  int hp;
-  int hpMax;
-  int mp;
-  int mpMax;
-  int baseDamage;
-  int damageBonusPercent;
-  int healthBonus;
+  uint16_t hp;
+  uint16_t hpMax;
+  uint16_t mp;
+  uint16_t mpMax;
+  uint16_t baseDamage;
+  int16_t damageBonusPercent;
+  int8_t healthBonus;
 };

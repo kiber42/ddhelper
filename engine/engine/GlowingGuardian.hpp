@@ -8,8 +8,8 @@ class GlowingGuardian
 {
 public:
   GlowingGuardian();
-  bool canUseAbsolution(int heroLevel, const Monsters& monsters) const;
-  Monsters::iterator pickMonsterForAbsolution(int heroLevel, Monsters& monsters);
+  bool canUseAbsolution(unsigned heroLevel, const Monsters& monsters) const;
+  Monsters::iterator pickMonsterForAbsolution(unsigned heroLevel, Monsters& monsters);
 
 private:
   std::mt19937 generator{std::random_device{}()};

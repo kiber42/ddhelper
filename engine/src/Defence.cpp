@@ -75,27 +75,33 @@ void Defence::setMagicalResistPercentMax(uint8_t newMax)
     magicalResistPercent = magicalResistPercentMax;
 }
 
-int Defence::predictDamageTaken(int attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const
+unsigned Defence::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const
 {
-  int damage = attackerDamageOutput + burnStackSize;
-  if (damageType == DamageType::Typeless)
+  unsigned damage = attackerDamageOutput + burnStackSize;
+  if (damage == 0 || damageType == DamageType::Typeless)
     return damage;
   if (!isCursed)
   {
-    const int resist = [&, damageType]() -> int {
+    const auto resist = [&, damageType]() -> unsigned {
       switch (damageType)
       {
       case DamageType::Physical:
         return getPhysicalResistPercent();
       case DamageType::Piercing:
-        return std::max(getPhysicalResistPercent() - 35, 0);
+      {
+        const auto physicalResist = getPhysicalResistPercent();
+        const uint8_t pierced = 35;
+        if (physicalResist <= pierced)
+          return 0;
+        return physicalResist - pierced;
+      }
       case DamageType::Magical:
         return getMagicalResistPercent();
       case DamageType::Typeless:
         return 0;
       }
     }();
-    const int resistedPoints = (attackerDamageOutput * resist + burnStackSize * magicalResistPercent) / 100;
+    const unsigned resistedPoints = (attackerDamageOutput * resist + burnStackSize * magicalResistPercent) / 100;
     damage -= resistedPoints;
   }
   if (damage > 0)

@@ -26,10 +26,10 @@ void testHeroTraits()
     it("should apply spirit strength on conversion", [] {
       Hero hero;
       hero.gainLevel(noOtherMonsters);
-      const int baseDamage = hero.getBaseDamage();
+      const auto baseDamage = hero.getBaseDamage();
       hero.addTrait(HeroTrait::SpiritSword);
       hero.addConversionPoints(1000, noOtherMonsters);
-      const int spiritStrength = hero.getLevel() + hero.getManaPointsMax();
+      const auto spiritStrength = hero.getLevel() + hero.getManaPointsMax();
       AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(spiritStrength));
       AssertThat(hero.getManaPoints(), Equals(0));
       AssertThat(hero.getBaseDamage(), Equals(baseDamage + spiritStrength));

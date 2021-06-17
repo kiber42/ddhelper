@@ -74,7 +74,7 @@ Conversion::Conversion(DungeonSetup setup)
     break;
   case HeroRace::Goblin:
     threshold = 85;
-    bonus = [xp = 5](Hero& hero, Monsters& allMonsters) mutable {
+    bonus = [xp = 5u](Hero& hero, Monsters& allMonsters) mutable {
       hero.gainExperienceNoBonuses(xp, allMonsters);
       ++xp;
     };
@@ -92,7 +92,7 @@ int Conversion::getThreshold() const
   return threshold;
 }
 
-bool Conversion::addPoints(int pointsAdded)
+bool Conversion::addPoints(unsigned pointsAdded)
 {
   points += pointsAdded;
   return points >= getThreshold();

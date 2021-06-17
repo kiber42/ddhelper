@@ -18,7 +18,7 @@ namespace Combat
       if (!monster.isDefeated())
         return Summary::Safe;
 
-      const int levelBefore = hero.getLevel() + hero.getPrestige();
+      const auto levelBefore = hero.getLevel() + hero.getPrestige();
       hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning, allMonsters);
       if (hero.getLevel() + hero.getPrestige() > levelBefore)
         return Summary::LevelUp;
@@ -36,13 +36,13 @@ namespace Combat
         hero.monsterKilled(monster, monsterWasSlowed, true, allMonsters);
     }
 
-    void applyLifeSteal(Hero& hero, const Monster& monster, int monsterHitPointsBefore)
+    void applyLifeSteal(Hero& hero, const Monster& monster, unsigned monsterHitPointsBefore)
     {
       if (hero.hasStatus(HeroStatus::LifeSteal) && !monster.has(MonsterTrait::Bloodless))
       {
-        const int multiplier = monster.getLevel() < hero.getLevel() ? 2 : 1;
-        const int damageDealt = monsterHitPointsBefore - monster.getHitPoints();
-        const int healthStolen =
+        const auto multiplier = monster.getLevel() < hero.getLevel() ? 2u : 1u;
+        const auto damageDealt = monsterHitPointsBefore - monster.getHitPoints();
+        const auto healthStolen =
             std::min(hero.getStatusIntensity(HeroStatus::LifeSteal) * hero.getLevel() * multiplier, damageDealt);
         if (healthStolen > 0)
         {
@@ -54,7 +54,7 @@ namespace Combat
 
     Summary knockBackMonster(Hero& hero, Monster& monster, Monsters& allMonsters, Monster* intoMonster)
     {
-      const int knockback = hero.getStatusIntensity(HeroStatus::Knockback);
+      const auto knockback = hero.getStatusIntensity(HeroStatus::Knockback);
       if (knockback == 0)
         return Summary::Safe;
       const bool monsterWasSlowed = monster.isSlowed();
@@ -63,10 +63,10 @@ namespace Combat
         monster.takeDamage(hero.getBaseDamage() * knockback, DamageType::Physical);
       else
       {
-        const int damageOutput = hero.getBaseDamage() * knockback * 8 / 10;
-        const int effectiveDamage = monster.predictDamageTaken(damageOutput, DamageType::Physical);
+        const auto damageOutput = hero.getBaseDamage() * knockback * 8u / 10u;
+        const auto effectiveDamage = monster.predictDamageTaken(damageOutput, DamageType::Physical);
         monster.takeDamage(effectiveDamage, DamageType::Typeless);
-        const int maxSecondaryDamage = intoMonster->getHitPoints() - 1;
+        const auto maxSecondaryDamage = intoMonster->getHitPoints() - 1u;
         if (maxSecondaryDamage > 0)
           intoMonster->takeDamage(std::min(effectiveDamage, maxSecondaryDamage), DamageType::Typeless);
       }
@@ -90,7 +90,7 @@ namespace Combat
 
       if (triggerBurndown)
       {
-        const int levelBefore = hero.getLevel() + hero.getPrestige();
+        const auto levelBefore = hero.getLevel() + hero.getPrestige();
         for (auto& otherMonster : allMonsters)
         {
           if (otherMonster != monster)
@@ -126,28 +126,28 @@ namespace Combat
     bool heroReceivedHit = false;
     bool appliedPoison = false;
 
-    const int monsterDamageInitial = monster.getDamage();
+    const auto monsterDamageInitial = monster.getDamage();
     const bool reflexes = hero.hasStatus(HeroStatus::Reflexes);
     const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
     const bool willPetrify = !hero.hasStatus(HeroStatus::DeathGazeImmune) &&
                              (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
 
     auto heroAttacks = [&] {
-      const int monsterHPBefore = monster.getHitPoints();
+      const auto monsterHPBefore = monster.getHitPoints();
       if (hero.hasStatus(HeroStatus::CrushingBlow))
         monster.receiveCrushingBlow();
       else if (hero.hasStatus(HeroStatus::BurningStrike))
       {
         monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.damageType());
         if (hero.hasStatus(HeroStatus::HeavyFireball))
-          monster.burnMax(2 * hero.getLevel());
+          monster.burnMax(static_cast<uint8_t>(2 * hero.getLevel()));
       }
       else
         monster.takeDamage(hero.getDamageOutputVersus(monster), hero.damageType());
       applyLifeSteal(hero, monster, monsterHPBefore);
       if (!monster.isDefeated() && hero.hasStatus(HeroStatus::Poisonous))
       {
-        const int poisonAmount = hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel();
+        const auto poisonAmount = hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel();
         if (monster.poison(poisonAmount))
           appliedPoison = true;
       }

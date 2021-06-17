@@ -16,12 +16,12 @@ Jehora::Jehora()
   // http://www.qcfdesign.com/wiki/DesktopDungeons/index.php?title=Jehora_Jeheyu
 }
 
-int Jehora::initialPietyBonus(int heroLevel, bool isPessimist)
+unsigned Jehora::initialPietyBonus(unsigned heroLevel, bool isPessimist)
 {
-  int multiplier;
+  unsigned multiplier;
   if (!isPessimist)
   {
-    std::uniform_int_distribution<> initialBonus(70, 100);
+    std::uniform_int_distribution<unsigned> initialBonus(70, 100);
     multiplier = initialBonus(generator);
   }
   else
@@ -35,18 +35,18 @@ bool Jehora::lastChanceSuccessful(int remainingPiety)
   return remainingPiety >= 50;
 }
 
-int Jehora::operator()()
+unsigned Jehora::operator()()
 {
   // Randomly award 2-4 XP or apply random punishment
-  std::uniform_int_distribution<> happinessRoll(1, 15);
-  std::uniform_int_distribution<> pietyRoll(2, 4);
+  std::uniform_int_distribution<unsigned> happinessRoll(1, 15);
+  std::uniform_int_distribution<unsigned> pietyRoll(2, 4);
   if (happinessRoll(generator) <= happiness)
   {
-    happiness = std::max(happiness - 1, 5);
+    happiness = std::max(happiness - 1, 5u);
     return pietyRoll(generator);
   }
   // a punishment is to be applied
-  happiness = std::min(happiness + 1, 14);
+  happiness = std::min(happiness + 1, 14u);
   return 0;
 }
 
@@ -59,7 +59,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
   // It is therefore okay to pass an empty vector as second argument to addStatus.
   Monsters ignore;
   std::uniform_int_distribution<> punishmentRoll(0, 10);
-  int rerolls = 0;
+  unsigned rerolls = 0;
   while (true)
   {
     const int roll = punishmentRoll(generator);

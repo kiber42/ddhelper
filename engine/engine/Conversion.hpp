@@ -14,7 +14,7 @@ public:
   int getThreshold() const;
 
   // Add points, returns true if threshold was reached
-  [[nodiscard]] bool addPoints(int pointsAdded);
+  [[nodiscard]] bool addPoints(unsigned pointsAdded);
 
   void applyBonus(Hero& hero, Monsters& allMonsters);
 

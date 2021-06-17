@@ -7,47 +7,23 @@
 class Position
 {
 public:
-  Position();
-  Position(int x, int y);
-  int getX() const;
-  int getY() const;
-  bool operator==(const Position& other) const;
-  bool operator!=(const Position& other) const;
+  Position() = default;
+
+  Position(unsigned x, unsigned y)
+    : x(x)
+    , y(y)
+  {
+  }
+
+  unsigned getX() const { return x; }
+  unsigned getY() const { return y; }
+
+  auto operator<=>(const Position&) const = default;
 
 private:
-  int x, y;
+  unsigned x{0};
+  unsigned y{0};
 };
-
-inline Position::Position()
-  : x(0)
-  , y(0)
-{
-}
-
-inline Position::Position(int x, int y)
-  : x(x)
-  , y(y)
-{
-}
-
-inline int Position::getX() const
-{
-  return x;
-}
-
-inline int Position::getY() const
-{
-  return y;
-}
-
-inline bool Position::operator==(const Position& other) const
-{
-  return x == other.x && y == other.y;
-}
-inline bool Position::operator!=(const Position& other) const
-{
-  return x != other.x || y != other.y;
-}
 
 template <class Object>
 class Positioned : public Object

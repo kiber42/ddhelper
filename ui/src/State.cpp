@@ -9,7 +9,7 @@ namespace ui
       newState.hero.addStatus(HeroStatus::Pessimist);
     const auto summary = stateUpdate(newState);
     const Outcome outcome = Outcome{summary, findDebuffs(initialState.hero, newState.hero),
-                                    newState.hero.getPiety() - initialState.hero.getPiety()};
+                                    static_cast<int>(newState.hero.getPiety()) - static_cast<int>(initialState.hero.getPiety())};
     return {std::move(newState), std::move(outcome)};
   }
 } // namespace ui

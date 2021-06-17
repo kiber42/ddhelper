@@ -7,30 +7,30 @@ public:
   {
   };
 
-  explicit Experience(int initialLevel = 1);
+  explicit Experience(unsigned initialLevel = 1);
   Experience(IsVeteran);
 
-  int getXP() const { return xp; }
-  int getLevel() const { return level; }
-  int getPrestige() const { return prestige; }
-  int getXPforNextLevel() const { return xpNext; }
+  unsigned getXP() const { return xp; }
+  unsigned getLevel() const { return level; }
+  unsigned getPrestige() const { return prestige; }
+  unsigned getXPforNextLevel() const { return xpNext; }
 
-  void gain(int xpGained, int xpBonus, bool xpBoost);
+  void gain(unsigned xpGained, unsigned xpBonus, bool xpBoost);
   void gainLevel();
   void modifyLevelBy(int delta);
 
   // May differ from getLevel if Humility or Blood Curse are involved
-  int getUnmodifiedLevel() const;
+  unsigned getUnmodifiedLevel() const;
 
-  static int forHeroAndMonsterLevels(int heroLevel, int monsterLevel);
+  static unsigned forHeroAndMonsterLevels(unsigned heroLevel, unsigned monsterLevel);
 
 private:
-  int level;
-  int unmodifiedLevel;
-  int prestige;
+  unsigned level;
+  unsigned unmodifiedLevel;
+  unsigned prestige;
   bool veteran;
 
-  int xp;
-  int xpStep;
-  int xpNext;
+  unsigned xp;
+  unsigned xpStep;
+  unsigned xpNext;
 };

@@ -6,18 +6,19 @@
 
 namespace ui
 {
-  Monsters::iterator runMonsterPool(Monsters& monsters, int activeIndex)
+  Monsters::iterator runMonsterPool(Monsters& monsters, std::optional<size_t> activeIndex)
   {
     ImGui::Begin("Monster Pool");
     ImGui::SetWindowPos(ImVec2{515, 410}, ImGuiCond_FirstUseEver);
     ImGui::SetWindowSize(ImVec2{245, 305}, ImGuiCond_FirstUseEver);
     auto selected = end(monsters);
-    int index = 0;
+    size_t index = 0;
     for (auto monsterIt = begin(monsters); monsterIt != end(monsters); ++monsterIt)
     {
       // Button labels need to be unique
+      const bool inArena = activeIndex && index == *activeIndex;
       std::string label = std::to_string(++index) + ") " + monsterIt->getName();
-      if (index == activeIndex + 1)
+      if (inArena)
       {
         label += " (in Arena)";
         disabledButton(label.c_str());

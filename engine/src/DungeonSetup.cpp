@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-DungeonSetup::DungeonSetup(HeroClass heroClass, HeroRace heroRace, int mapSize)
+DungeonSetup::DungeonSetup(HeroClass heroClass, HeroRace heroRace, unsigned char mapSize)
   : heroClass(heroClass)
   , heroRace(heroRace)
   , startingEquipment({Potion::HealthPotion, Potion::ManaPotion})
@@ -20,7 +20,7 @@ DungeonSetup::DungeonSetup(HeroClass heroClass,
                            std::optional<MageModifier> mageModifier,
                            std::optional<BazaarModifier> bazaarModifier,
                            std::optional<ThievesModifier> thievesModifier,
-                           int mapSize)
+                           unsigned char mapSize)
   : heroClass(heroClass)
   , heroRace(heroRace)
   , altar(altar)

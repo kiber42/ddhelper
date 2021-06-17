@@ -9,7 +9,7 @@
 
 #include <cassert>
 
-Dungeon::Dungeon(int sizeX, int sizeY)
+Dungeon::Dungeon(unsigned sizeX, unsigned sizeY)
   : sizeX(sizeX)
   , sizeY(sizeY)
   , revealed(sizeX, sizeY, false)
@@ -36,16 +36,15 @@ std::vector<std::shared_ptr<Monster>> Dungeon::getMonsters()
 
 namespace
 {
-  std::random_device rd;
-  std::mt19937 g(rd());
+  std::mt19937 generator{std::random_device{}()};
 } // namespace
 
 std::optional<Position> Dungeon::randomFreePosition() const
 {
-  std::vector<int> indices(sizeX * sizeY);
-  std::iota(begin(indices), end(indices), 0);
-  std::shuffle(begin(indices), end(indices), g);
-  for (int index : indices)
+  std::vector<unsigned> indices(sizeX * sizeY);
+  std::iota(begin(indices), end(indices), 0u);
+  std::shuffle(begin(indices), end(indices), generator);
+  for (unsigned index : indices)
   {
     Position position(index % sizeX, index / sizeX);
     if (isFree(position))
@@ -83,8 +82,8 @@ bool Dungeon::isRevealed(Position position) const
 
 void Dungeon::reveal(Position position)
 {
-  for (int dy = -1; dy <= +1; ++dy)
-    for (int dx = -1; dx <= +1; ++dx)
+  for (unsigned dy = -1u; dy <= +1; ++dy)
+    for (unsigned dx = -1u; dx <= +1; ++dx)
     {
       Position posToReveal(position.getX() + dx, position.getY() + dy);
       if (revealed.isValid(posToReveal))
@@ -114,18 +113,18 @@ bool Dungeon::isConnected(Position position) const
 
 bool Dungeon::pathfinder(Position position, bool mustBeRevealed, bool mustNotBeBlocked) const
 {
-  Grid<int> path(sizeX, sizeY, sizeX * sizeY);
+  Grid<unsigned> path(sizeX, sizeY, -1u);
   Grid<bool> updated(sizeX, sizeY, false);
   assert(path.isValid(hero.getPosition()));
   assert(path.isValid(position));
-  for (int x = 0; x < sizeX; ++x)
+  for (unsigned x = 0; x < sizeX; ++x)
   {
-    for (int y = 0; y < sizeY; ++y)
+    for (unsigned y = 0; y < sizeY; ++y)
     {
       Position pos(x, y);
       if (!(mustNotBeBlocked ? isFree(pos) : isGround(pos)) || (mustBeRevealed && !isRevealed(pos)))
       {
-        path[pos] = -1;
+        path[pos] = -1u;
       }
     }
   }
@@ -135,17 +134,17 @@ bool Dungeon::pathfinder(Position position, bool mustBeRevealed, bool mustNotBeB
   do
   {
     anyUpdate = false;
-    for (int x = 0; x < sizeX; ++x)
+    for (unsigned x = 0; x < sizeX; ++x)
     {
-      for (int y = 0; y < sizeY; ++y)
+      for (unsigned y = 0; y < sizeY; ++y)
       {
         const Position p0(x, y);
         if (updated[p0])
         {
-          int dist = path[p0] + 1;
-          for (int dx = -1; dx <= +1; ++dx)
+          unsigned dist = path[p0] + 1;
+          for (unsigned dx = -1u; dx <= +1; ++dx)
           {
-            for (int dy = -1; dy <= +1; ++dy)
+            for (unsigned dy = -1u; dy <= +1; ++dy)
             {
               const Position p1(x + dx, y + dy);
               if (path.isValid(p1) && dist < path[p1])

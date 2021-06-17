@@ -1,5 +1,6 @@
 #include "engine/Faith.hpp"
 
+#include "engine/Clamp.hpp"
 #include "engine/Hero.hpp"
 #include "engine/Items.hpp"
 #include "engine/Spells.hpp"
@@ -17,7 +18,7 @@ Faith::Faith(std::optional<GodOrPactmaker> preparedAltar0)
   }
 }
 
-bool Faith::followDeity(God god, Hero& hero, int numRevealedTiles)
+bool Faith::followDeity(God god, Hero& hero, unsigned numRevealedTiles)
 {
   if (!canFollow(god, hero))
     return false;
@@ -54,14 +55,14 @@ std::optional<God> Faith::getFollowedDeity() const
   return followedDeity;
 }
 
-int Faith::getPiety() const
+unsigned Faith::getPiety() const
 {
   return piety;
 }
 
-int Faith::getMaxPiety() const
+unsigned Faith::getMaxPiety() const
 {
-  return consensus ? 50 : 100;
+  return consensus ? 50u : 100u;
 }
 
 bool Faith::has(Boon boon) const
@@ -69,45 +70,43 @@ bool Faith::has(Boon boon) const
   return std::find(begin(boons), end(boons), boon) != end(boons);
 }
 
-int Faith::boonCount(Boon boon) const
+unsigned Faith::boonCount(Boon boon) const
 {
-  if (!allowRepeatedUse(boon))
-    return (int)(has(boon));
-  return std::count(begin(boons), end(boons), boon);
+  return clampedTo<unsigned>(std::count(begin(boons), end(boons), boon));
 }
 
-int Faith::getIndulgence() const
+unsigned Faith::getIndulgence() const
 {
   return indulgence;
 }
 
-void Faith::gainPiety(int pointsGained)
+void Faith::gainPiety(unsigned pointsGained)
 {
-  if (pointsGained > 0)
-    piety = std::min(piety + pointsGained, getMaxPiety());
+  piety = std::min(piety + pointsGained, getMaxPiety());
 }
 
-void Faith::losePiety(int pointsLost, Hero& hero, Monsters& allMonsters)
+void Faith::losePiety(unsigned pointsLost, Hero& hero, Monsters& allMonsters)
 {
-  if (pointsLost <= 0)
-    return;
-  if (indulgence > 0)
+  if (indulgence > 0 && pointsLost > 0)
   {
     --indulgence;
     return;
   }
-  piety -= pointsLost;
-  if (piety < 0)
+  if (piety < pointsLost)
   {
     piety = 0;
     assert(followedDeity);
     punish(*followedDeity, hero, allMonsters);
   }
+  else
+  {
+    piety -= pointsLost;
+  }
 }
 
 void Faith::applyRandomJehoraEvent(Hero& hero)
 {
-  const int result = jehora();
+  const auto result = jehora();
   if (result > 0 && !hero.hasStatus(HeroStatus::Pessimist))
     gainPiety(result);
   else
@@ -119,9 +118,9 @@ void Faith::apply(PietyChange change, Hero& hero, Monsters& allMonsters)
   for (int value : change())
   {
     if (value > 0)
-      gainPiety(value);
+      gainPiety(static_cast<unsigned>(value));
     else if (value < 0)
-      losePiety(-value, hero, allMonsters);
+      losePiety(static_cast<unsigned>(-value), hero, allMonsters);
   }
   if (change.randomJehoraEvent())
     applyRandomJehoraEvent(hero);
@@ -180,7 +179,7 @@ int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters,
   if (!allowRepeatedUse(boon) && boonCount(boon) > 0)
     return false;
   const int costs = getCosts(boon, hero);
-  if (costs > piety)
+  if (costs > 0 && static_cast<unsigned>(costs) > piety)
     return false;
   switch (boon)
   {
@@ -219,7 +218,12 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   if (!isAvailable(boon, hero, allMonstersOnFloor, resources))
     return false;
   const int costs = getCosts(boon, hero);
-  piety -= costs;
+  const int newPiety = static_cast<int>(piety) - costs;
+  if (newPiety < 0)
+  {
+    assert(newPiety >= 0);
+  }
+  piety = static_cast<unsigned>(newPiety);
   boons.push_back(boon);
   // Apply immediate effects.
   switch (boon)
@@ -252,7 +256,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
       hero.addStatus(HeroStatus::Might);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
     for (auto& monster : allMonstersOnFloor)
-      monster.addMagicResist(-5);
+      monster.changeMagicResist(-5);
     break;
 
   case Boon::BloodCurse:
@@ -288,7 +292,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   case Boon::Clearance:
   {
     auto& resourceSet = resources();
-    const int cleared = std::min(10, resourceSet.numPlants);
+    const auto cleared = std::min(10u, resourceSet.numPlants);
     hero.recoverManaPoints(cleared);
     resourceSet.numPlants -= cleared;
     break;
@@ -364,8 +368,8 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.resetStatus(HeroDebuff::Corroded);
     for (auto& monster : allMonstersOnFloor)
     {
-      monster.addPhysicalResist(-20);
-      monster.addMagicResist(-20);
+      monster.changePhysicalResist(-20);
+      monster.changeMagicResist(-20);
     }
     break;
 
@@ -378,7 +382,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   case Boon::Weakening:
     hero.changeMagicalResistPercent(-10);
     for (auto& monster : allMonstersOnFloor)
-      monster.addMagicResist(-10);
+      monster.changeMagicResist(-10);
     break;
 
   case Boon::TaurogsBlade:
@@ -530,8 +534,8 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
   }();
   // Last Chance uses all remaining piety points
   if (baseCosts == -1)
-    return getPiety();
-  const int count = boonCount(boon);
+    return static_cast<int>(getPiety());
+  const auto count = static_cast<int>(boonCount(boon));
   if (hero.hasTrait(HeroTrait::HolyWork))
     return baseCosts * 8 / 10 + (increase * 8 / 10) * count;
   return baseCosts + increase * count;
@@ -563,13 +567,13 @@ bool Faith::enteredConsensus() const
   return consensus;
 }
 
-void Faith::initialBoon(God god, Hero& hero, int numRevealedTiles)
+void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles)
 {
   switch (god)
   {
   case God::BinlorIronshield:
     hero.receiveFreeSpell(Spell::Pisorf);
-    gainPiety(numRevealedTiles / 10);
+    gainPiety(numRevealedTiles / 10u);
     break;
   case God::Dracul:
     gainPiety(2 * numMonstersKilled);
@@ -628,14 +632,14 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
   case God::MysteraAnnur:
     for (auto& monster : allMonsters)
     {
-      monster.addPhysicalResist(15);
-      monster.addMagicResist(15);
+      monster.changePhysicalResist(15);
+      monster.changeMagicResist(15);
     }
     break;
   case God::Taurog:
     hero.changeDamageBonusPercent(-40);
     for (auto& monster : allMonsters)
-      monster.addMagicResist(10);
+      monster.changeMagicResist(10);
     break;
   case God::TikkiTooki:
     hero.resetStatus(HeroStatus::DodgePermanent);
@@ -657,7 +661,7 @@ void Faith::desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgno
   indulgence += 3;
 }
 
-PietyChange Faith::monsterKilled(const Monster& monster, int heroLevel, bool monsterWasBurning)
+PietyChange Faith::monsterKilled(const Monster& monster, unsigned heroLevel, bool monsterWasBurning)
 {
   ++numMonstersKilled;
 
@@ -721,7 +725,7 @@ PietyChange Faith::monsterPoisoned(const Monster& monster)
   return {};
 }
 
-PietyChange Faith::spellCast(Spell spell, int manaCost)
+PietyChange Faith::spellCast(Spell spell, unsigned manaCost)
 {
   ++numSpellsCast;
   if (!followedDeity)
@@ -751,7 +755,7 @@ PietyChange Faith::spellCast(Spell spell, int manaCost)
     break;
   case God::MysteraAnnur:
   {
-    const int numManaPointsSpentBefore = numManaPointsSpent;
+    const auto numManaPointsSpentBefore = numManaPointsSpent;
     numManaPointsSpent += manaCost;
     if (preparationPenalty)
     {
@@ -783,7 +787,7 @@ PietyChange Faith::spellCast(Spell spell, int manaCost)
   return {};
 }
 
-PietyChange Faith::imawalCreateWall(int manaCost)
+PietyChange Faith::imawalCreateWall(unsigned manaCost)
 {
   if (followedDeity == God::BinlorIronshield)
     return -5;
@@ -792,7 +796,7 @@ PietyChange Faith::imawalCreateWall(int manaCost)
   return spellCast(Spell::Imawal, manaCost);
 }
 
-PietyChange Faith::imawalPetrifyPlant(int manaCost)
+PietyChange Faith::imawalPetrifyPlant(unsigned manaCost)
 {
   if (followedDeity == God::TheEarthmother)
     return 5;
@@ -812,8 +816,9 @@ PietyChange Faith::levelGained()
       if (deity == God::GlowingGuardian)
       {
         ++numConsecutiveLevelUpsWithGlowingGuardian;
-        return preparationPenalty ? 2 * (numConsecutiveLevelUpsWithGlowingGuardian - 1)
-                                  : 3 * numConsecutiveLevelUpsWithGlowingGuardian;
+        const auto piety = preparationPenalty ? 2u * (numConsecutiveLevelUpsWithGlowingGuardian - 1u)
+                                              : 3u * numConsecutiveLevelUpsWithGlowingGuardian;
+        return static_cast<int>(piety);
       }
       return {};
     }();
@@ -860,10 +865,10 @@ PietyChange Faith::lifeStolen(const Monster& monster)
   return {};
 }
 
-PietyChange Faith::bloodPoolConsumed(int numBloodTithe)
+PietyChange Faith::bloodPoolConsumed(unsigned numBloodTithe)
 {
   if (followedDeity == God::Dracul && numBloodTithe > 0)
-    return numBloodTithe;
+    return static_cast<int>(numBloodTithe);
   else if (followedDeity == God::GlowingGuardian)
     return -10;
   return {};
@@ -885,10 +890,10 @@ PietyChange Faith::becameManaBurned()
   return {};
 }
 
-PietyChange Faith::manaPointsBurned(int pointsLost)
+PietyChange Faith::manaPointsBurned(unsigned pointsLost)
 {
   if (followedDeity == God::MysteraAnnur)
-    return -pointsLost;
+    return -static_cast<int>(pointsLost);
   return {};
 }
 
@@ -975,5 +980,5 @@ void Faith::convertedTaurogItem(Hero& hero, Monsters& allMonsters)
     return;
   hero.changeDamageBonusPercent(-10);
   for (auto& monster : allMonsters)
-    monster.addMagicResist(10);
+    monster.changeMagicResist(10);
 }

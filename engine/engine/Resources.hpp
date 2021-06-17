@@ -24,16 +24,16 @@ struct ResourceSet
   std::vector<Item> shops;
   std::vector<Spell> spells;
   std::vector<GodOrPactmaker> altars;
-  int numWalls{0};
-  int numPlants{0};
-  int numBloodPools{0};
-  int numHealthPotions{0};
-  int numManaPotions{0};
-  int numPotionShops{0};
-  int numAttackBoosters{0};
-  int numManaBoosters{0};
-  int numHealthBoosters{0};
-  int numGoldPiles{0};
+  unsigned numWalls{0};
+  unsigned numPlants{0};
+  unsigned numBloodPools{0};
+  unsigned numHealthPotions{0};
+  unsigned numManaPotions{0};
+  unsigned numPotionShops{0};
+  unsigned numAttackBoosters{0};
+  unsigned numManaBoosters{0};
+  unsigned numHealthBoosters{0};
+  unsigned numGoldPiles{0};
 
   bool operator==(const ResourceSet&) const = default;
 
@@ -43,17 +43,17 @@ private:
 
 struct Resources
 {
-  explicit Resources(int mapSize);
+  explicit Resources(unsigned char mapSize);
   virtual ~Resources() = default;
 
   virtual ResourceSet& operator()() = 0;
   virtual const ResourceSet& operator()() const = 0;
 
   virtual void revealTile() = 0;
-  void revealTiles(int n);
+  void revealTiles(unsigned n);
 
-  int numHiddenTiles{0};
-  int numRevealedTiles{0};
+  unsigned numHiddenTiles{0};
+  unsigned numRevealedTiles{0};
 };
 
 // simplified Resources management, everything is considered visible
@@ -61,25 +61,28 @@ struct SimpleResources
   : public Resources
   , public ResourceSet
 {
-  explicit SimpleResources(ResourceSet visible = {}, int mapSize = DefaultMapSize);
+  explicit SimpleResources(ResourceSet visible = {}, unsigned char mapSize = DefaultMapSize);
 
   ResourceSet& operator()() override { return *this; }
   const ResourceSet& operator()() const override { return *this; }
 
   void revealTile() override
   {
-    --numHiddenTiles;
-    ++numRevealedTiles;
+    if (numHiddenTiles > 0)
+    {
+      --numHiddenTiles;
+      ++numRevealedTiles;
+    }
   }
 
-  int mapSize;
+  unsigned char mapSize;
 };
 
 // simple emulation of a map that can be revealed tile by tile
 struct MapResources : public Resources
 {
-  MapResources(ResourceSet visible, ResourceSet hidden, int mapSize = DefaultMapSize);
-  explicit MapResources(int mapSize = DefaultMapSize);
+  MapResources(ResourceSet visible, ResourceSet hidden, unsigned char mapSize = DefaultMapSize);
+  explicit MapResources(unsigned char mapSize = DefaultMapSize);
   explicit MapResources(DungeonSetup dungeonSetup);
   explicit MapResources(SimpleResources resources);
 

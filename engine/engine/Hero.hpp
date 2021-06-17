@@ -30,27 +30,27 @@ public:
 
   std::string getName() const;
 
-  int getXP() const;
-  int getLevel() const;
-  int getPrestige() const;
-  int getXPforNextLevel() const;
-  void gainExperienceForKill(int monsterLevel, bool monsterWasSlowed, Monsters& allMonsters);
+  unsigned getXP() const;
+  unsigned getLevel() const;
+  unsigned getPrestige() const;
+  unsigned getXPforNextLevel() const;
+  void gainExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed, Monsters& allMonsters);
   void gainExperienceForPetrification(bool monsterWasSlowed, Monsters& allMonsters);
-  void gainExperienceNoBonuses(int xpGained, Monsters& allMonsters);
+  void gainExperienceNoBonuses(unsigned xpGained, Monsters& allMonsters);
   void gainLevel(Monsters& allMonsters);
 
   bool isDefeated() const;
-  int getHitPoints() const;
-  int getHitPointsMax() const;
-  int getManaPoints() const;
-  int getManaPointsMax() const;
+  uint16_t getHitPoints() const;
+  uint16_t getHitPointsMax() const;
+  uint16_t getManaPoints() const;
+  uint16_t getManaPointsMax() const;
 
-  int getBaseDamage() const;
+  uint16_t getBaseDamage() const;
   void changeBaseDamage(int deltaDamagePoints);
   int getDamageBonusPercent() const;
   void changeDamageBonusPercent(int deltaDamageBonusPercent);
-  int getDamageVersusStandard() const;
-  int getDamageOutputVersus(const Monster& monster) const;
+  uint16_t getDamageVersusStandard() const;
+  uint16_t getDamageOutputVersus(const Monster& monster) const;
 
   void addAttackBonus();
   void addHealthBonus();
@@ -67,17 +67,17 @@ public:
   DamageType damageType() const;
 
   bool hasInitiativeVersus(const Monster& monster) const;
-  int predictDamageTaken(int attackerDamageOutput, DamageType damageType) const;
+  unsigned predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const;
   // Returns false if damage was fully absorbed by damage reduction / resistances
-  bool takeDamage(int attackerDamageOutput, DamageType damageType, Monsters& allMonsters);
-  void recover(int nSquares);
-  int recoveryMultiplier() const;
-  int numSquaresForFullRecovery() const;
+  bool takeDamage(unsigned attackerDamageOutput, DamageType damageType, Monsters& allMonsters);
+  void recover(unsigned nSquares);
+  unsigned recoveryMultiplier() const;
+  unsigned numSquaresForFullRecovery() const;
 
-  void healHitPoints(int amountPointsHealed, bool mayOverheal = false);
-  void loseHitPointsOutsideOfFight(int amountPointsLost, Monsters& allMonsters);
-  void recoverManaPoints(int amountPointsRecovered);
-  void loseManaPoints(int amountPointsLost);
+  void healHitPoints(unsigned amountPointsHealed, bool mayOverheal = false);
+  void loseHitPointsOutsideOfFight(unsigned amountPointsLost, Monsters& allMonsters);
+  void recoverManaPoints(unsigned amountPointsRecovered);
+  void loseManaPoints(unsigned amountPointsLost);
   void refillHealthAndMana();
   void addSpiritStrength();
 
@@ -85,13 +85,13 @@ public:
   void reduceStatus(HeroStatus status);
   void resetStatus(HeroStatus status);
   bool hasStatus(HeroStatus status) const;
-  int getStatusIntensity(HeroStatus status) const;
+  unsigned getStatusIntensity(HeroStatus status) const;
 
   void addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensity = 1);
   void reduceStatus(HeroDebuff debuff);
   void resetStatus(HeroDebuff debuff);
   bool hasStatus(HeroDebuff debuff) const;
-  int getStatusIntensity(HeroDebuff debuff) const;
+  unsigned getStatusIntensity(HeroDebuff debuff) const;
 
   void addTrait(HeroTrait trait);
   bool hasTrait(HeroTrait trait) const;
@@ -101,8 +101,8 @@ public:
   void adjustMomentum(bool increase);
   void removeOneTimeAttackEffects();
 
-  void addDodgeChancePercent(int percent, bool isPermanent);
-  int getDodgeChancePercent() const;
+  void addDodgeChancePercent(unsigned percent, bool isPermanent);
+  unsigned getDodgeChancePercent() const;
   bool predictDodgeNext() const;
   bool tryDodge(Monsters& allMonsters);
 
@@ -117,13 +117,13 @@ public:
   bool petrifyPlant(Monsters& allMonsters);
 
   // Special functions for items. They don't check if the item is actually in the inventory.
-  void applyDragonSoul(int manaCosts); // 15% chance to refund mana
+  void applyDragonSoul(unsigned manaCosts); // 15% chance to refund mana
   void chargeFireHeart();
   void chargeCrystalBall();
 
-  int gold() const;
-  void addGold(int amountAdded);
-  bool spendGold(int amountSpent);
+  unsigned gold() const;
+  void addGold(unsigned amountReceived);
+  bool spendGold(unsigned amountSpent);
   void collectGoldPile();
   int buyingPrice(Item item) const;
   int sellingPrice(Item item) const;
@@ -132,14 +132,14 @@ public:
 
   Faith& getFaith();
   const Faith& getFaith() const;
-  int getPiety() const;
+  unsigned getPiety() const;
 
   std::optional<God> getFollowedDeity() const;
   bool has(Boon boon) const;
-  int receivedBoonCount(Boon boon) const;
+  unsigned receivedBoonCount(Boon boon) const;
   int getBoonCosts(Boon boon) const;
 
-  bool followDeity(God god, int numRevealedTiles);
+  bool followDeity(God god, unsigned numRevealedTiles);
   bool request(BoonOrPact boon, Monsters& allMonsters, Resources& resources);
   void desecrate(God altar, Monsters& allMonsters);
 
@@ -150,14 +150,14 @@ public:
   void applyCollectedPiety(Monsters& allMonsters);
 
   // Methods required to apply side effects of worship, boons and punishments
-  void setHitPointsMax(int hitPointsMax);
-  void setManaPointsMax(int manaPointsMax);
+  void setHitPointsMax(unsigned hitPointsMax);
+  void setManaPointsMax(unsigned manaPointsMax);
   void changeHitPointsMax(int deltaPoints);
   void changeManaPointsMax(int deltaPoints);
   void changePhysicalResistPercentMax(int deltaPoints);
   void changeMagicalResistPercentMax(int deltaPoints);
   void modifyLevelBy(int delta);
-  void addConversionPoints(int points, Monsters& allMonsters);
+  void addConversionPoints(unsigned points, Monsters& allMonsters);
   bool lose(Item item);
   void receiveFreeSpell(Spell spell);
   void receiveEnlightenment(Monsters& allMonsters);
@@ -171,7 +171,7 @@ public:
   std::vector<Inventory::Entry> getSpells() const;
   bool has(ItemOrSpell itemOrSpell) const;
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
-  int numFreeSmallInventorySlots() const;
+  unsigned numFreeSmallInventorySlots() const;
   bool canAfford(Item item) const;
   void receive(ItemOrSpell itemOrSpell);
   void convert(ItemOrSpell itemOrSpell, Monsters& allMonsters);
@@ -204,27 +204,27 @@ private:
   Inventory inventory;
   Conversion conversion;
   Faith faith;
-  std::map<HeroStatus, int> statuses;
-  std::map<HeroDebuff, int> debuffs;
+  std::map<HeroStatus, unsigned> statuses;
+  std::map<HeroDebuff, unsigned> debuffs;
   std::optional<PietyChange> collectedPiety;
   std::mt19937 generator{std::random_device{}()};
   bool dodgeNext{false};
   bool alchemistScrollUsedThisLevel{false};
   bool namtarsWardUsedThisLevel{false};
 
-  void gainExperience(int xpGained, int xpBonuses, Monsters& allMonsters);
+  void gainExperience(unsigned xpGained, unsigned xpBonuses, Monsters& allMonsters);
   void drinkHealthPotion();
   void drinkManaPotion();
   // Change health bonus, but not retroactively
   void modifyFutureHealthBonus(int amount);
-  int nagaCauldronBonus() const;
-  void loseHitPoints(int amountPointsLost, Monsters& allMonsters);
-  void setStatusIntensity(HeroStatus status, int newIntensity);
-  void levelGainedUpdate(int newLevel, Monsters& allMonsters);
+  unsigned nagaCauldronBonus() const;
+  void loseHitPoints(unsigned amountPointsLost, Monsters& allMonsters);
+  void setStatusIntensity(HeroStatus status, unsigned newIntensity);
+  void levelGainedUpdate(unsigned newLevel, Monsters& allMonsters);
   void levelUpRefresh(Monsters& allMonsters);
   void rerollDodgeNext();
   void applyOrCollect(PietyChange pietyChange, Monsters& allMonsters);
-  void applyOrCollectPietyGain(int pointsGained);
+  void applyOrCollectPietyGain(unsigned pointsGained);
 
   // Add or remove item effects
   void changeStatsImpl(BlacksmithItem item, bool itemReceived);

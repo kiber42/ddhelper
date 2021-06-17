@@ -15,19 +15,23 @@ namespace ui
   {
     Hero hero{};
     Monsters monsterPool{};
-    int activeMonster = -1;
+    std::optional<size_t> activeMonster;
     MapResources resources{20};
 
     Monster* monster()
     {
-      assert(activeMonster < static_cast<int>(monsterPool.size()));
-      return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
+      if (!activeMonster)
+        return nullptr;
+      assert(*activeMonster < monsterPool.size());
+      return &monsterPool[*activeMonster];
     }
 
     const Monster* monster() const
     {
-      assert(activeMonster < static_cast<int>(monsterPool.size()));
-      return activeMonster >= 0 ? &monsterPool[activeMonster] : nullptr;
+      if (!activeMonster)
+        return nullptr;
+      assert(*activeMonster < monsterPool.size());
+      return &monsterPool[*activeMonster];
     }
   };
 

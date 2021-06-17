@@ -1,5 +1,6 @@
 #include "engine/Monster.hpp"
 
+#include "engine/Clamp.hpp"
 #include "engine/MonsterTypes.hpp"
 
 #include <algorithm>
@@ -9,14 +10,14 @@ int Monster::lastId = 0;
 
 namespace
 {
-  std::string makeMonsterName(MonsterType type, int level)
+  std::string makeMonsterName(MonsterType type, unsigned level)
   {
     using namespace std::string_literals;
     return toString(type) + " level "s + std::to_string(level);
   }
 } // namespace
 
-Monster::Monster(MonsterType type, int level, int dungeonMultiplier)
+Monster::Monster(MonsterType type, uint8_t level, uint8_t dungeonMultiplier)
   : name(makeMonsterName(type, level))
   , id(++lastId)
   , stats(type, level, dungeonMultiplier)
@@ -35,7 +36,7 @@ Monster::Monster(std::string name, MonsterStats stats, Defence damage, MonsterTr
 {
 }
 
-Monster::Monster(int level, int hp, int damage)
+Monster::Monster(uint8_t level, uint16_t hp, uint16_t damage)
   : Monster("Monster level " + std::to_string(level), {level, hp, damage, 0}, {}, {})
 {
 }
@@ -50,7 +51,7 @@ int Monster::getID() const
   return id;
 }
 
-int Monster::getLevel() const
+unsigned Monster::getLevel() const
 {
   return stats.getLevel();
 }
@@ -60,63 +61,63 @@ bool Monster::isDefeated() const
   return stats.isDefeated();
 }
 
-int Monster::getHitPoints() const
+unsigned Monster::getHitPoints() const
 {
   return stats.getHitPoints();
 }
 
-int Monster::getHitPointsMax() const
+unsigned Monster::getHitPointsMax() const
 {
   return stats.getHitPointsMax();
 }
 
-int Monster::getDamage() const
+unsigned Monster::getDamage() const
 {
-  const int standardDamage = stats.getDamage();
-  const int berserkLimit = traits.getBerserkPercent() * getHitPointsMax();
+  const auto standardDamage = stats.getDamage();
+  const auto berserkLimit = traits.getBerserkPercent() * getHitPointsMax();
   if (berserkLimit > 0 && getHitPoints() <= berserkLimit)
     return standardDamage * 3 / 2;
   return standardDamage;
 }
 
-int Monster::getPhysicalResistPercent() const
+unsigned Monster::getPhysicalResistPercent() const
 {
   return defence.getPhysicalResistPercent();
 }
 
-int Monster::getMagicalResistPercent() const
+unsigned Monster::getMagicalResistPercent() const
 {
   return defence.getMagicalResistPercent();
 }
 
-int Monster::predictDamageTaken(int attackerDamageOutput, DamageType damageType) const
+unsigned Monster::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const
 {
   return defence.predictDamageTaken(attackerDamageOutput, damageType, status.getBurnStackSize());
 }
 
-void Monster::takeDamage(int attackerDamageOutput, DamageType damageType)
+void Monster::takeDamage(unsigned attackerDamageOutput, DamageType damageType)
 {
   stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, damageType));
   status.setSlowed(false);
   status.setBurn(0);
 }
 
-void Monster::takeFireballDamage(int casterLevel, int damageMultiplier)
+void Monster::takeFireballDamage(unsigned casterLevel, unsigned damageMultiplier)
 {
-  const int damagePoints = casterLevel * damageMultiplier;
+  const auto damagePoints = casterLevel * damageMultiplier;
   stats.loseHitPoints(predictDamageTaken(damagePoints, DamageType::Magical));
   status.setSlowed(false);
   burn(casterLevel * 2);
 }
 
-void Monster::takeBurningStrikeDamage(int attackerDamageOutput, int casterLevel, DamageType damageType)
+void Monster::takeBurningStrikeDamage(unsigned attackerDamageOutput, unsigned casterLevel, DamageType damageType)
 {
   stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, damageType));
   status.setSlowed(false);
   burn(casterLevel * 2);
 }
 
-void Monster::takeManaShieldDamage(int casterLevel)
+void Monster::takeManaShieldDamage(unsigned casterLevel)
 {
   // Mana Shield damage against magical resistance is rounded down (usually resisted damage is rounded down)
   stats.loseHitPoints(casterLevel * (100 - getMagicalResistPercent()) / 100);
@@ -124,64 +125,66 @@ void Monster::takeManaShieldDamage(int casterLevel)
 
 void Monster::receiveCrushingBlow()
 {
-  int delta = stats.getHitPoints() - stats.getHitPointsMax() * 3 / 4;
-  if (delta > 0)
-    stats.loseHitPoints(delta);
+  const auto hp = stats.getHitPoints();
+  const auto crushed = stats.getHitPointsMax() * 3u / 4u;
+  if (hp > crushed)
+    stats.loseHitPoints(hp - crushed);
   status.setSlowed(false);
   status.setBurn(0);
 }
 
-void Monster::recover(int nSquares)
+void Monster::recover(unsigned nSquares)
 {
   if (isDefeated())
     return;
-  int recoverPoints = nSquares * (getLevel() - static_cast<int>(status.isBurning()));
+  auto recoverPoints = nSquares * (getLevel() - (status.isBurning() ? 1 : 0));
   if (has(MonsterTrait::FastRegen))
     recoverPoints *= 2;
   if (status.isPoisoned())
   {
-    int poison = status.getPoisonAmount();
+    const auto poison = status.getPoisonAmount();
     if (poison >= recoverPoints)
     {
-      status.setPoison(poison - recoverPoints);
+      status.setPoison(static_cast<uint16_t>(poison - recoverPoints));
       recoverPoints = 0;
     }
     else
     {
-      recoverPoints -= poison;
       status.setPoison(0);
+      recoverPoints -= poison;
     }
   }
   if (recoverPoints > 0)
     stats.healHitPoints(recoverPoints, false);
 }
 
-void Monster::burn(int nMaxStacks)
+void Monster::burn(unsigned nMaxStacks)
 {
-  status.setBurn(std::min(status.getBurnStackSize() + 1, nMaxStacks));
+  if (status.getBurnStackSize() < clampedTo<uint8_t>(nMaxStacks))
+    status.setBurn(static_cast<uint8_t>(status.getBurnStackSize() + 1));
 }
 
-void Monster::burnMax(int nMaxStacks)
+void Monster::burnMax(unsigned nMaxStacks)
 {
-  status.setBurn(nMaxStacks);
+  status.setBurn(clampedTo<uint8_t>(nMaxStacks));
 }
 
 void Monster::burnDown()
 {
   if (status.getBurnStackSize() > 0)
   {
-    const int resist = status.getBurnStackSize() * getMagicalResistPercent() / 100;
+    const unsigned resist = status.getBurnStackSize() * getMagicalResistPercent() / 100;
     stats.loseHitPoints(status.getBurnStackSize() - resist);
     status.setSlowed(false);
     status.setBurn(0);
   }
 }
 
-bool Monster::poison(int addedPoisonAmount)
+bool Monster::poison(unsigned addedPoisonAmount)
 {
   if (has(MonsterTrait::Undead))
     return false;
-  status.setPoison(status.getPoisonAmount() + addedPoisonAmount);
+  status.setPoison(clampedTo<uint16_t>(status.getPoisonAmount() + addedPoisonAmount));
   return true;
 }
 
@@ -209,7 +212,7 @@ void Monster::die()
   stats.loseHitPoints(stats.getHitPoints());
 }
 
-void Monster::corrode(int amount)
+void Monster::corrode(unsigned amount)
 {
   status.setCorroded(getCorroded() + amount);
   defence.setCorrosion(getCorroded());
@@ -226,11 +229,11 @@ void Monster::zot()
 
 void Monster::makeWickedSick()
 {
-  const int level = getLevel();
+  const auto level = getLevel();
   if (level < 10 && !status.isWickedSick())
   {
     const auto type = stats.getType();
-    const int newLevel = level + 1;
+    const auto newLevel = level + 1;
     const bool hasStandardName = name == makeMonsterName(type, level);
     status.setWickedSick();
     stats = MonsterStats(stats.getType(), newLevel, stats.getDungeonMultiplier());
@@ -264,22 +267,22 @@ bool Monster::isWickedSick() const
   return status.isWickedSick();
 }
 
-int Monster::getBurnStackSize() const
+unsigned Monster::getBurnStackSize() const
 {
   return status.getBurnStackSize();
 }
 
-int Monster::getPoisonAmount() const
+unsigned Monster::getPoisonAmount() const
 {
   return status.getPoisonAmount();
 }
 
-int Monster::getDeathProtection() const
+unsigned Monster::getDeathProtection() const
 {
   return stats.getDeathProtection();
 }
 
-int Monster::getCorroded() const
+unsigned Monster::getCorroded() const
 {
   return status.getCorroded();
 }
@@ -294,24 +297,24 @@ bool Monster::has(MonsterTrait trait) const
   return traits.has(trait);
 }
 
-int Monster::getDeathGazePercent() const
+unsigned Monster::getDeathGazePercent() const
 {
   return traits.getDeathGazePercent();
 }
 
-int Monster::getLifeStealPercent() const
+unsigned Monster::getLifeStealPercent() const
 {
   return traits.getLifeStealPercent();
 }
 
-void Monster::addPhysicalResist(int additionalResistPercent)
+void Monster::changePhysicalResist(int deltaPercent)
 {
-  defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() + additionalResistPercent);
+  defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() + deltaPercent);
 }
 
-void Monster::addMagicResist(int additionalResistPercent)
+void Monster::changeMagicResist(int deltaPercent)
 {
-  defence.setMagicalResistPercent(defence.getMagicalResistPercent() + additionalResistPercent);
+  defence.setMagicalResistPercent(defence.getMagicalResistPercent() + deltaPercent);
 }
 
 void Monster::applyTikkiTookiBoost()

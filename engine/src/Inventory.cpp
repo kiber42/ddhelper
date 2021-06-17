@@ -92,7 +92,7 @@ bool Inventory::canConvert(ItemOrSpell itemOrSpell) const
   return getConversionPoints(itemOrSpell).has_value();
 }
 
-std::optional<int> Inventory::getConversionPoints(ItemOrSpell itemOrSpell) const
+std::optional<unsigned> Inventory::getConversionPoints(ItemOrSpell itemOrSpell) const
 {
   const auto it = std::find_if(begin(entries), end(entries), [itemOrSpell](auto& entry) {
     return entry.itemOrSpell == itemOrSpell && entry.conversionPoints >= 0;
@@ -134,7 +134,7 @@ std::optional<std::pair<int, bool>> Inventory::removeImpl(ItemOrSpell itemOrSpel
   return {std::move(result)};
 }
 
-std::optional<std::pair<int, bool>> Inventory::removeForConversion(ItemOrSpell itemOrSpell, bool magicAffinity)
+std::optional<std::pair<unsigned, bool>> Inventory::removeForConversion(ItemOrSpell itemOrSpell, bool magicAffinity)
 {
   auto conversionResult = removeImpl(itemOrSpell, true, false);
   if (magicAffinity && conversionResult)
@@ -178,12 +178,12 @@ int Inventory::sellingPrice(ItemOrSpell itemOrSpell) const
 
 namespace
 {
-  constexpr int LargeItemSize = 5;
+  constexpr unsigned LargeItemSize = 5;
 }
 
-int Inventory::numFreeSmallSlots() const
+unsigned Inventory::numFreeSmallSlots() const
 {
-  int roomTaken = getSpells().size() * (spellsSmall ? 1 : LargeItemSize);
+  unsigned roomTaken = getSpells().size() * (spellsSmall ? 1 : LargeItemSize);
   for (const auto& [entry, _] : getItemsGrouped())
     roomTaken += entry.isSmall ? 1 : LargeItemSize;
   return numSlots * LargeItemSize - roomTaken;
@@ -222,7 +222,7 @@ bool Inventory::transmute(ItemOrSpell itemOrSpell)
   const auto price = item ? sellingPrice(*item) : 0;
   if (price < 0 || !removeImpl(itemOrSpell, false, true))
     return false;
-  gold += price;
+  gold += static_cast<unsigned>(price);
   return true;
 }
 
@@ -246,12 +246,12 @@ void Inventory::chargeFireHeart()
     fireHeartCharge = 100;
 }
 
-int Inventory::fireHeartUsed()
+unsigned Inventory::fireHeartUsed()
 {
   return std::exchange(fireHeartCharge, 0);
 }
 
-int Inventory::getFireHeartCharge() const
+unsigned Inventory::getFireHeartCharge() const
 {
   return fireHeartCharge;
 }
@@ -261,18 +261,18 @@ void Inventory::chargeCrystalBall()
   ++crystalBallCharge;
 }
 
-int Inventory::crystalBallUsed()
+unsigned Inventory::crystalBallUsed()
 {
   crystalBallCosts += 2;
   return std::exchange(crystalBallCharge, 0);
 }
 
-int Inventory::getCrystalBallCharge() const
+unsigned Inventory::getCrystalBallCharge() const
 {
   return crystalBallCharge;
 }
 
-int Inventory::getCrystalBallUseCosts() const
+unsigned Inventory::getCrystalBallUseCosts() const
 {
   return crystalBallCosts;
 }
@@ -297,9 +297,9 @@ int Inventory::getTriswordDamage() const
   return triswordDamage;
 }
 
-int Inventory::enchantPrayerBeads()
+unsigned Inventory::enchantPrayerBeads()
 {
-  int count = 0;
+  unsigned count = 0;
   for (auto& entry : entries)
   {
     if (entry.itemOrSpell == ItemOrSpell{MiscItem::PrayerBead})

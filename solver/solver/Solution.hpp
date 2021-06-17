@@ -19,7 +19,7 @@ struct Cast
 
 struct Uncover
 {
-  int numTiles;
+  unsigned numTiles;
 };
 
 struct Buy

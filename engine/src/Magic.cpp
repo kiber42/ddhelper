@@ -27,13 +27,13 @@ namespace Magic
     {
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
-      const int multiplier = 4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(ShopItem::BattlemageRing) ? 1 : 0);
+      const unsigned multiplier = 4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(ShopItem::BattlemageRing) ? 1 : 0);
 
       // Damage and burning
       monster.takeFireballDamage(hero.getLevel(), multiplier);
       if (hero.has(ShopItem::PiercingWand))
         monster.erodeResitances();
-      const int maxBurnStackSize = 2 * hero.getLevel();
+      const auto maxBurnStackSize = 2 * hero.getLevel();
       if (heavy)
         monster.burnMax(maxBurnStackSize);
       else if (hero.hasTrait(HeroTrait::MagicAttunement))
@@ -54,7 +54,7 @@ namespace Magic
       hero.adjustMomentum(monster.isDefeated());
     }
 
-    void applyCastingSideEffects(Hero& hero, int manaCosts, Monsters& allMonsters)
+    void applyCastingSideEffects(Hero& hero, unsigned manaCosts, Monsters& allMonsters)
     {
       if (hero.isDefeated())
         return;
@@ -73,7 +73,7 @@ namespace Magic
       }
     }
 
-    constexpr int baseSpellCosts(Spell spell)
+    constexpr unsigned baseSpellCosts(Spell spell)
     {
       switch (spell)
       {
@@ -107,10 +107,10 @@ namespace Magic
     }
   } // namespace
 
-  int spellCosts(Spell spell, const Hero& hero)
+  unsigned spellCosts(Spell spell, const Hero& hero)
   {
     // TODO: Chemist can have multiple layers of bysseps, cost doubles per layer (Additives trait)
-    int costs = baseSpellCosts(spell);
+    unsigned costs = baseSpellCosts(spell);
     if (hero.hasTrait(HeroTrait::Mageslay))
       costs += 2;
     if (hero.hasTrait(HeroTrait::MagicAffinity))
@@ -125,7 +125,7 @@ namespace Magic
     return costs;
   }
 
-  int healthCostsBludtupowa(const Hero& hero)
+  unsigned healthCostsBludtupowa(const Hero& hero)
   {
     if (hero.hasTrait(HeroTrait::EssenceTransit))
       return hero.getLevel() * 3 + 4;
@@ -183,7 +183,7 @@ namespace Magic
     if (!isPossible(hero, spell, resources))
       return;
 
-    const int manaCosts = spellCosts(spell, hero);
+    const auto manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
 
     hero.startPietyCollection();
@@ -193,7 +193,7 @@ namespace Magic
     case Spell::Bludtupowa:
     {
       // uncover up to 3 tiles, monsters do not recover, hero converts health to mana
-      const int uncoveredTiles = std::min(3, resources.numHiddenTiles);
+      const auto uncoveredTiles = std::min(3u, resources.numHiddenTiles);
       resources.revealTiles(uncoveredTiles);
       if (hero.getFollowedDeity() != God::GlowingGuardian)
       {
@@ -227,7 +227,7 @@ namespace Magic
       break;
     case Spell::Lemmisi:
     {
-      const int uncoveredTiles = std::min(3, resources.numHiddenTiles);
+      const auto uncoveredTiles = std::min(3u, resources.numHiddenTiles);
       resources.numHiddenTiles -= uncoveredTiles;
       hero.recover(uncoveredTiles);
       for (auto& monster : allMonsters)
@@ -262,7 +262,7 @@ namespace Magic
     const bool monsterWasSlowed = monster.isSlowed();
     const bool monsterWasBurning = monster.isBurning();
 
-    const int manaCosts = spellCosts(spell, hero);
+    const auto manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
 
     hero.startPietyCollection();
@@ -281,7 +281,7 @@ namespace Magic
       break;
     case Spell::Lemmisi:
     {
-      const int uncoveredTiles = std::min(resources.numHiddenTiles, 3);
+      const auto uncoveredTiles = std::min(resources.numHiddenTiles, 3u);
       resources.revealTiles(uncoveredTiles);
       hero.recover(uncoveredTiles);
       monster.recover(uncoveredTiles);
@@ -293,7 +293,7 @@ namespace Magic
       // (TODO?) slightly less than 50% of base damage as physical damage if against enemy + corrosion of first enemy as
       // typeless damage. Net damage to first enemy is applied as typeless damage to second enemy; second enemy cannot
       // drop below 1 HP.
-      int& numWalls = resources().numWalls;
+      auto& numWalls = resources().numWalls;
       if (numWalls > 0)
       {
         --numWalls;

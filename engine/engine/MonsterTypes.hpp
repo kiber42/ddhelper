@@ -138,7 +138,7 @@ constexpr const char* toString(MonsterType type)
   }
 }
 
-constexpr int getHPMultiplierPercent(MonsterType type)
+constexpr unsigned char getHPMultiplierPercent(MonsterType type)
 {
   switch (type)
   {
@@ -227,7 +227,7 @@ constexpr int getHPMultiplierPercent(MonsterType type)
   }
 }
 
-constexpr int getDamageMultiplierPercent(MonsterType type)
+constexpr unsigned char getDamageMultiplierPercent(MonsterType type)
 {
   switch (type)
   {
@@ -348,7 +348,7 @@ constexpr unsigned char getMagicalResistancePercent(MonsterType type)
   return 0;
 }
 
-inline int getDeathProtectionInitial(MonsterType type, int level)
+inline unsigned char getDeathProtectionInitial(MonsterType type, unsigned char level)
 {
   if (type == MonsterType::AnimatedArmour || type == MonsterType::DoomArmour)
     return level;

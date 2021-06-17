@@ -19,35 +19,35 @@ void testBludtupowa()
   describe("Bludtupowa", [] {
     it("should have costs based on the hero's level", [] {
       Hero hero;
-      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(3));
+      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(3u));
       hero.gainLevel(noOtherMonsters);
-      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(6));
+      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(6u));
       hero.gainLevel(noOtherMonsters);
-      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(9));
+      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(9u));
     });
     it("should convert health to MP", [] {
       Hero hero;
       hero.loseManaPoints(10);
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
-      AssertThat(hero.getHitPoints(), Equals(7));
-      AssertThat(hero.getManaPoints(), Equals(3));
+      AssertThat(hero.getHitPoints(), Equals(7u));
+      AssertThat(hero.getManaPoints(), Equals(3u));
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
-      AssertThat(hero.getHitPoints(), Equals(4));
-      AssertThat(hero.getManaPoints(), Equals(6));
+      AssertThat(hero.getHitPoints(), Equals(4u));
+      AssertThat(hero.getManaPoints(), Equals(6u));
     });
     it("should uncover tiles", [] {
       Hero hero;
       SimpleResources resources;
       resources.numHiddenTiles = 4;
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
-      AssertThat(resources.numHiddenTiles, Equals(1));
+      AssertThat(resources.numHiddenTiles, Equals(1u));
       hero.loseManaPoints(10);
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
-      AssertThat(hero.getHitPoints(), Equals(4));
-      AssertThat(hero.getManaPoints(), Equals(1));
+      AssertThat(hero.getHitPoints(), Equals(4u));
+      AssertThat(hero.getManaPoints(), Equals(1u));
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
-      AssertThat(hero.getHitPoints(), Equals(1));
-      AssertThat(hero.getManaPoints(), Equals(1));
+      AssertThat(hero.getHitPoints(), Equals(1u));
+      AssertThat(hero.getManaPoints(), Equals(1u));
     });
     it("should be available only if the hero has sufficient health", [] {
       Hero hero;
@@ -69,9 +69,9 @@ void testBludtupowa()
     });
     it("should cost 4 HP more for sorcerers", [] {
       Hero hero(HeroClass::Sorcerer);
-      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(7));
+      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(7u));
       hero.gainLevel(noOtherMonsters);
-      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(10));
+      AssertThat(Magic::healthCostsBludtupowa(hero), Equals(10u));
       Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
       AssertThat(hero.getHitPoints(), Equals(10));
     });
@@ -91,14 +91,14 @@ void testBurndayraz()
       hero.recoverManaPoints(6);
       Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources);
       AssertThat(monster.isBurning(), IsTrue());
-      AssertThat(monster.getBurnStackSize(), Equals(2));
+      AssertThat(monster.getBurnStackSize(), Equals(2u));
       monster.recover(100);
       monster.burnDown();
-      AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2));
-      AssertThat(monster.getBurnStackSize(), Equals(0));
+      AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2u));
+      AssertThat(monster.getBurnStackSize(), Equals(0u));
       monster.burnMax(4);
       monster.burnDown();
-      AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(6));
+      AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(6u));
       monster.burnMax(monster.getHitPoints());
       monster.burnDown();
       AssertThat(monster.isDefeated(), IsTrue());
@@ -108,7 +108,7 @@ void testBurndayraz()
       Monster monster{"lvl1", {1, 10, 0, 0}, Defence{0, 20}, {}};
       monster.burnMax(11);
       monster.burnDown();
-      AssertThat(monster.getHitPoints(), Equals(1 /* 10 - (11 - 11 * 2 / 10) */));
+      AssertThat(monster.getHitPoints(), Equals(1u /* 10 - (11 - 11 * 2 / 10) */));
     });
   });
 }
