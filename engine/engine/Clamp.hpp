@@ -3,33 +3,34 @@
 #include <limits>
 #include <type_traits>
 
-template <typename T>
-constexpr T clamped(T unclamped, T min, T max)
+template <typename Short, typename Long>
+constexpr Short clamped(Long unclamped, Short min, Short max)
 {
   return unclamped < min ? min : (unclamped > max ? max : unclamped);
 }
 
-template <typename T, typename T2>
-constexpr T clampedTo(T2 unclamped)
+template <typename Short, typename Long>
+constexpr Short clampedTo(Long unclamped)
 {
-  if constexpr (std::is_unsigned<T>::value)
+  if constexpr (std::is_unsigned<Short>::value)
   {
-    if constexpr (std::is_unsigned<T2>::value)
+    if constexpr (std::is_unsigned<Long>::value)
     {
-      return unclamped > std::numeric_limits<T>::max() ? std::numeric_limits<T>::max() : static_cast<T>(unclamped);
+      return unclamped > std::numeric_limits<Short>::max() ? std::numeric_limits<Short>::max()
+                                                           : static_cast<Short>(unclamped);
     }
     else
     {
-      return unclamped < 0 ? static_cast<T>(0)
-                           : (unclamped > std::numeric_limits<T>::max() ? std::numeric_limits<T>::max()
-                                                                        : static_cast<T>(unclamped));
+      return unclamped < 0 ? static_cast<Short>(0)
+                           : (unclamped > std::numeric_limits<Short>::max() ? std::numeric_limits<Short>::max()
+                                                                            : static_cast<Short>(unclamped));
     }
   }
   else
   {
-    return unclamped > std::numeric_limits<T>::max()
-               ? std::numeric_limits<T>::max()
-               : (unclamped < std::numeric_limits<T>::min() ? std::numeric_limits<T>::min()
-                                                            : static_cast<T>(unclamped));
+    return unclamped > std::numeric_limits<Short>::max()
+               ? std::numeric_limits<Short>::max()
+               : (unclamped < std::numeric_limits<Short>::min() ? std::numeric_limits<Short>::min()
+                                                                : static_cast<Short>(unclamped));
   }
 }
