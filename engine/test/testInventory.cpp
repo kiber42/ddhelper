@@ -21,6 +21,14 @@ void testInventory()
       AssertThat(inv.has(Potion::HealthPotion), IsTrue());
       AssertThat(inv.has(Potion::ManaPotion), IsTrue());
     });
+    it("shall report correct selling prices for potions", [&] {
+      AssertThat(inv.sellingPrice(Potion::HealthPotion), Equals(0));
+      AssertThat(inv.sellingPrice(Potion::ManaPotion), Equals(0));
+      inv.add(Potion::HealthPotion);
+      AssertThat(inv.sellingPrice(Potion::HealthPotion), Equals(10));
+      inv.add(Potion::ManaPotion);
+      AssertThat(inv.sellingPrice(Potion::ManaPotion), Equals(10));
+    });
     it("shall have room for 30 small / 6 large items", [&] {
       AssertThat(inv.numFreeSmallSlots(), Equals(28u));
       inv.clear();
