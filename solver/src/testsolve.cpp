@@ -1,9 +1,7 @@
-#include "solver/Solution.hpp"
-
+#include "solver/GameState.hpp"
 #include "solver/Scenario.hpp"
+#include "solver/Solution.hpp"
 #include "solver/Solver.hpp"
-
-#include "engine/MonsterTypes.hpp"
 
 #include <iostream>
 
