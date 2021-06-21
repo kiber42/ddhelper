@@ -82,8 +82,8 @@ bool Dungeon::isRevealed(Position position) const
 
 void Dungeon::reveal(Position position)
 {
-  for (unsigned dy = -1u; dy <= +1; ++dy)
-    for (unsigned dx = -1u; dx <= +1; ++dx)
+  for (unsigned dy = -1u; dy != +2; ++dy)
+    for (unsigned dx = -1u; dx != +2; ++dx)
     {
       Position posToReveal(position.getX() + dx, position.getY() + dy);
       if (revealed.isValid(posToReveal))
@@ -117,15 +117,14 @@ bool Dungeon::pathfinder(Position position, bool mustBeRevealed, bool mustNotBeB
   Grid<bool> updated(sizeX, sizeY, false);
   assert(path.isValid(hero.getPosition()));
   assert(path.isValid(position));
+  // Mark fields that should not be considered
   for (unsigned x = 0; x < sizeX; ++x)
   {
     for (unsigned y = 0; y < sizeY; ++y)
     {
       Position pos(x, y);
       if (!(mustNotBeBlocked ? isFree(pos) : isGround(pos)) || (mustBeRevealed && !isRevealed(pos)))
-      {
-        path[pos] = -1u;
-      }
+        path[pos] = 0;
     }
   }
   path[hero.getPosition()] = 1;
@@ -142,17 +141,17 @@ bool Dungeon::pathfinder(Position position, bool mustBeRevealed, bool mustNotBeB
         if (updated[p0])
         {
           unsigned dist = path[p0] + 1;
-          for (unsigned dx = -1u; dx <= +1; ++dx)
+          if (dist == 1)
+            continue;
+          for (unsigned dx = -1u; dx != +2; ++dx)
           {
-            for (unsigned dy = -1u; dy <= +1; ++dy)
+            for (unsigned dy = -1u; dy != +2; ++dy)
             {
               const Position p1(x + dx, y + dy);
               if (path.isValid(p1) && dist < path[p1])
               {
                 if (p1 == position)
-                {
                   return true;
-                }
                 path[p1] = dist;
                 updated[p1] = true;
                 anyUpdate = true;
