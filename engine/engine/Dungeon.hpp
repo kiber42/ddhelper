@@ -57,5 +57,5 @@ private:
   Grid<bool> wall;
   Grid<bool> permanentWall;
 
-  bool pathfinder(Position position, bool mustBeRevealed, bool mustNotBeBlocked) const;
+  static bool pathfinder(Position start, Position end, Grid<unsigned> path);
 };

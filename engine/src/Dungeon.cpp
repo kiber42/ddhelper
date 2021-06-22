@@ -103,65 +103,55 @@ void Dungeon::update()
 
 bool Dungeon::isAccessible(Position position) const
 {
-  return pathfinder(position, true, true);
+  Grid<unsigned> path(sizeX, sizeY, -1u);
+  // Zero fields that should not be used in pathfinding
+  path.setMatching([&](Position pos) { return !isRevealed(pos); }, 0u);
+  for (const auto& monster : monsters)
+    path[monster.getPosition()] = 0u;
+  return pathfinder(hero.getPosition(), position, std::move(path));
 }
 
 bool Dungeon::isConnected(Position position) const
 {
-  return pathfinder(position, false, false);
+  Grid<unsigned> path(sizeX, sizeY, -1u);
+  // Zero fields that should not be used in pathfinding
+  path.setMatching([&](Position pos) { return !isGround(pos); }, 0u);
+  return pathfinder(hero.getPosition(), position, std::move(path));
 }
 
-bool Dungeon::pathfinder(Position position, bool mustBeRevealed, bool mustNotBeBlocked) const
+bool Dungeon::pathfinder(Position start, Position end, Grid<unsigned> path)
 {
-  Grid<unsigned> path(sizeX, sizeY, -1u);
-  Grid<bool> updated(sizeX, sizeY, false);
-  assert(path.isValid(hero.getPosition()));
-  assert(path.isValid(position));
-  // Mark fields that should not be considered
-  for (unsigned x = 0; x < sizeX; ++x)
-  {
-    for (unsigned y = 0; y < sizeY; ++y)
-    {
-      Position pos(x, y);
-      if (!(mustNotBeBlocked ? isFree(pos) : isGround(pos)) || (mustBeRevealed && !isRevealed(pos)))
-        path[pos] = 0;
-    }
-  }
-  path[hero.getPosition()] = 1;
-  updated[hero.getPosition()] = true;
+  assert(path.isValid(start));
+  assert(path.isValid(end));
+  Grid<bool> updated(path.sizeX, path.sizeY, false);
+  path[start] = 1;
+  updated[start] = true;
   bool anyUpdate;
   do
   {
     anyUpdate = false;
-    for (unsigned x = 0; x < sizeX; ++x)
-    {
-      for (unsigned y = 0; y < sizeY; ++y)
-      {
-        const Position p0(x, y);
-        if (updated[p0])
+    const bool found = path.iterateOver([&](Position current) {
+      if (!updated[current])
+        return false;
+      updated[current] = false;
+      unsigned dist = path[current] + 1;
+      if (dist == 1)
+        return false;
+      return path.iterateAround(current, [&](Position near) {
+        assert(path.isValid(end));
+        if (end == near)
+          return true;
+        if (dist < path[near])
         {
-          unsigned dist = path[p0] + 1;
-          if (dist == 1)
-            continue;
-          for (unsigned dx = -1u; dx != +2; ++dx)
-          {
-            for (unsigned dy = -1u; dy != +2; ++dy)
-            {
-              const Position p1(x + dx, y + dy);
-              if (path.isValid(p1) && dist < path[p1])
-              {
-                if (p1 == position)
-                  return true;
-                path[p1] = dist;
-                updated[p1] = true;
-                anyUpdate = true;
-              }
-            }
-          }
-          updated[p0] = false;
+          path[near] = dist;
+          updated[near] = true;
+          anyUpdate = true;
         }
-      }
-    }
+        return false;
+      });
+    });
+    if (found)
+      return true;
   } while (anyUpdate);
   return false;
 }
