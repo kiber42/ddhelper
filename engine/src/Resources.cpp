@@ -8,10 +8,12 @@
 #include <cassert>
 
 ResourceSet::ResourceSet(DungeonSetup setup)
-  : numWalls{setup.mapSize * setup.mapSize * 4 * (setup.altar == GodOrPactmaker{God::BinlorIronshield} ? 7u : 10u) / 100}
+  : numWalls{setup.mapSize * setup.mapSize * 4 * (setup.altar == GodOrPactmaker{God::BinlorIronshield} ? 7u : 10u) /
+             100}
   , numHealthPotions{3}
   , numManaPotions{3}
-  , numPotionShops{setup.modifiers.count(BazaarModifier::Apothecary) ? 3u : 1u}
+  , numPotionShops{(setup.modifiers.count(BazaarModifier::Apothecary) ? 3u : 1u) +
+                   static_cast<unsigned>(hasStartingTrait(setup.heroClass, HeroTrait::Preservatives))}
   , numAttackBoosters{setup.modifiers.count(MageModifier::ExtraAttackBoosters) ? 5u : 3u}
   , numManaBoosters{setup.modifiers.count(MageModifier::ExtraManaBoosters) ? 5u : 3u}
   , numHealthBoosters{setup.modifiers.count(MageModifier::ExtraHealthBoosters) ? 5u : 3u}

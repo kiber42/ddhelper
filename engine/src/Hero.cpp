@@ -95,7 +95,6 @@ Hero::Hero(const DungeonSetup& setup)
   // TODO: Move gold pile size to MapResources? (+ remove this trait)
   if (setup.modifiers.count(ThievesModifier::BlackMarket))
     addTrait(HeroTrait::BlackMarket);
-  // TODO: Store prepared altar, if any
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -223,6 +222,11 @@ void Hero::drinkHealthPotion()
   resetStatus(HeroDebuff::Poisoned);
   if (hasTrait(HeroTrait::Survivor))
     stats.recoverManaPoints(getManaPointsMax() * 2 / 10);
+  if (hasTrait(HeroTrait::Colourants))
+  {
+    addStatus(HeroStatus::Healthform);
+    resetStatus(HeroStatus::Manaform);
+  }
 }
 
 void Hero::drinkManaPotion()
@@ -242,6 +246,11 @@ void Hero::drinkManaPotion()
     addStatus(HeroStatus::Might);
   if (hasTrait(HeroTrait::Survivor))
     stats.healHitPoints(getHitPointsMax() * 2 / 10, false);
+  if (hasTrait(HeroTrait::Colourants))
+  {
+    addStatus(HeroStatus::Manaform);
+    resetStatus(HeroStatus::Healthform);
+  }
 }
 
 unsigned Hero::nagaCauldronBonus() const
@@ -255,7 +264,9 @@ unsigned Hero::nagaCauldronBonus() const
 
 uint16_t Hero::getBaseDamage() const
 {
-  const auto damage = stats.getBaseDamage() + getStatusIntensity(HeroStatus::SpiritStrength);
+  auto damage = stats.getBaseDamage() + getStatusIntensity(HeroStatus::SpiritStrength);
+  if (hasTrait(HeroTrait::Additives))
+    damage += getStatusIntensity(HeroStatus::Might);
   const auto weakened = getStatusIntensity(HeroDebuff::Weakened);
   return damage > weakened ? damage - weakened : 0u;
 }
@@ -269,8 +280,7 @@ void Hero::changeBaseDamage(int deltaDamagePoints)
 int Hero::getDamageBonusPercent() const
 {
   auto bonus = stats.getDamageBonusPercent();
-  if (hasStatus(HeroStatus::Might))
-    bonus += 30;
+  bonus += 30 * getStatusIntensity(HeroStatus::Might);
   if (hasTrait(HeroTrait::Determined) && stats.getHitPoints() * 2 < stats.getHitPointsMax())
     bonus += 30;
   return bonus;
@@ -424,15 +434,18 @@ bool Hero::takeDamage(unsigned attackerDamageOutput, DamageType damageType, Mons
 void Hero::recover(unsigned nSquares)
 {
   const bool exhausted = hasStatus(HeroStatus::Exhausted);
-  if (!hasStatus(HeroDebuff::Poisoned))
+  const bool manaform = hasStatus(HeroStatus::Manaform);
+  if (!manaform && !hasStatus(HeroDebuff::Poisoned))
     stats.healHitPoints(nSquares * recoveryMultiplier(), false);
-  if (!hasStatus(HeroDebuff::ManaBurned) && !exhausted)
-    stats.recoverManaPoints(nSquares);
+  if (!exhausted && !hasStatus(HeroDebuff::ManaBurned) && !hasStatus(HeroStatus::Healthform))
+    stats.recoverManaPoints(nSquares * (manaform ? 2u : 1u));
 }
 
 unsigned Hero::recoveryMultiplier() const
 {
   auto multiplier = getLevel();
+  if (hasStatus(HeroStatus::Healthform))
+    multiplier *= 2;
   if (hasTrait(HeroTrait::Discipline))
     multiplier *= 2;
   if (has(ShopItem::BloodySigil))
@@ -520,8 +533,8 @@ bool Hero::hasStatus(HeroStatus status) const
 void Hero::setStatusIntensity(HeroStatus status, unsigned newIntensity)
 {
   assert(status != HeroStatus::Exhausted && "Exhausted status is computed on the fly");
-  const bool canStack = canHaveMultiple(status) || (status == HeroStatus::Might && hasTrait(HeroTrait::Additives));
-  if (newIntensity > 1 && !canStack)
+  assert(status != HeroStatus::Might || newIntensity <= 1 || hasTrait(HeroTrait::Additives));
+  if (newIntensity > 1 && !canHaveMultiple(status))
     newIntensity = 1;
 
   const auto oldIntensity = std::exchange(statuses[status], newIntensity);
@@ -704,6 +717,7 @@ void Hero::removeOneTimeAttackEffects()
   resetStatus(HeroStatus::ConsecratedStrike);
   resetStatus(HeroStatus::CrushingBlow);
   resetStatus(HeroStatus::Might);
+  resetStatus(HeroStatus::ByssepsStacks);
   resetStatus(HeroStatus::SpiritStrength);
   resetStatus(HeroStatus::FirstStrikeTemporary);
   resetStatus(HeroStatus::Reflexes);
@@ -748,9 +762,6 @@ void Hero::levelGainedUpdate(unsigned newLevel, Monsters& allMonsters)
 
 void Hero::levelUpRefresh(Monsters& allMonsters)
 {
-  resetStatus(HeroDebuff::Poisoned);
-  resetStatus(HeroDebuff::ManaBurned);
-
   if (has(MiscItem::PatchesTheTeddy) && !hasStatus(HeroStatus::Pessimist))
   {
     // Random positive effect
@@ -792,7 +803,13 @@ void Hero::levelUpRefresh(Monsters& allMonsters)
   }
 
   if (!hasTrait(HeroTrait::Prototype))
+  {
+    resetStatus(HeroDebuff::Poisoned);
+    resetStatus(HeroDebuff::ManaBurned);
+    resetStatus(HeroStatus::Healthform);
+    resetStatus(HeroStatus::Manaform);
     stats.refresh();
+  }
 }
 
 void Hero::addDodgeChancePercent(unsigned percent, bool isPermanent)
@@ -834,7 +851,7 @@ bool Hero::tryDodge(Monsters& allMonsters)
 
 void Hero::wallDestroyed()
 {
-  if (has(Boon::StoneForm))
+  if (has(Boon::StoneForm) && !hasStatus(HeroStatus::Might))
     addStatus(HeroStatus::Might);
   if (has(ShopItem::RockHeart))
   {
@@ -1234,6 +1251,12 @@ bool Hero::canUse(BossReward item) const
 
 void Hero::use(Potion potion, Monsters& allMonsters)
 {
+  if (hasTrait(HeroTrait::Colourants))
+  {
+    resetStatus(HeroStatus::Healthform);
+    resetStatus(HeroStatus::Manaform);
+  }
+
   switch (potion)
   {
   case Potion::HealthPotion:

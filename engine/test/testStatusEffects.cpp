@@ -6,6 +6,7 @@
 #include "engine/Magic.hpp"
 #include "engine/Monster.hpp"
 #include "engine/MonsterTypes.hpp"
+#include "engine/Resources.hpp"
 
 using namespace bandit;
 using namespace snowhouse;
@@ -48,7 +49,8 @@ void testStatusEffects()
         hero.refillHealthAndMana();
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getCorroded(), Equals(4u));
-        AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2u * hero.getDamageVersusStandard() + 1u));
+        AssertThat(monster.getHitPointsMax() - monster.getHitPoints(),
+                   Equals(2u * hero.getDamageVersusStandard() + 1u));
       });
     });
     describe("Crushing Blow", [] {
@@ -416,7 +418,10 @@ void testStatusEffects()
         AssertThat(monster.getPhysicalResistPercent(), Equals(47u));
         AssertThat(monster.getMagicalResistPercent(), Equals(72u));
       });
-      it("should wear off", [&] { AssertThat(hero.hasStatus(HeroStatus::Might), IsFalse()); });
+      it("should wear off", [&] {
+        AssertThat(hero.hasStatus(HeroStatus::Might), IsFalse());
+        AssertThat(hero.getDamageBonusPercent(), Equals(0));
+      });
     });
     describe("Pierce Physical", [] {
       it("should ignore 35% of physical resist", [] {

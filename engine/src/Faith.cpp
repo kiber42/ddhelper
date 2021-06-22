@@ -225,6 +225,10 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   }
   piety = static_cast<unsigned>(newPiety);
   boons.push_back(boon);
+  auto triggerStoneForm = [&]{
+    if ((boon == Boon::StoneForm || hero.has(Boon::StoneForm)) && !hero.hasStatus(HeroStatus::Might))
+      hero.addStatus(HeroStatus::Might);
+  };
   // Apply immediate effects.
   switch (boon)
   {
@@ -233,27 +237,24 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   case Boon::StoneSkin:
     resources().numWalls -= 3;
-    if (hero.getFaith().has(Boon::StoneForm))
-      hero.addStatus(HeroStatus::Might);
+    triggerStoneForm();
     hero.addStatus(HeroStatus::StoneSkin, 3);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
     break;
   case Boon::StoneForm:
     resources().numWalls -= 10;
-    hero.addStatus(HeroStatus::Might);
+    triggerStoneForm();
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 5);
     break;
   case Boon::StoneFist:
     resources().numWalls -= 20;
-    if (hero.getFaith().has(Boon::StoneForm))
-      hero.addStatus(HeroStatus::Might);
+    triggerStoneForm();
     hero.addStatus(HeroStatus::Knockback, 50);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 5);
     break;
   case Boon::StoneHeart:
     resources().numWalls -= 15;
-    if (hero.getFaith().has(Boon::StoneForm))
-      hero.addStatus(HeroStatus::Might);
+    triggerStoneForm();
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
     for (auto& monster : allMonstersOnFloor)
       monster.changeMagicResist(-5);

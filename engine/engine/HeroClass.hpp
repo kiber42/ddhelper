@@ -158,7 +158,7 @@ constexpr std::array<HeroTrait, 3> startingTraitsHelper(HeroClass theClass)
   case HeroClass::Tinker:
     return {{HeroTrait::Merchant, HeroTrait::Negotiator, HeroTrait::Macguyver}};
   case HeroClass::Chemist:
-    // return {{HeroTrait::Additives, HeroTrait::Preservatives, HeroTrait::Colourants}};
+    return {{HeroTrait::Additives, HeroTrait::Preservatives, HeroTrait::Colourants}};
   case HeroClass::Vampire:
     return {{HeroTrait::Undead, HeroTrait::Damned, HeroTrait::EternalThirst}};
   case HeroClass::HalfDragon:

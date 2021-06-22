@@ -27,7 +27,8 @@ namespace Magic
     {
       const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
-      const unsigned multiplier = 4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(ShopItem::BattlemageRing) ? 1 : 0);
+      const unsigned multiplier =
+          4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(ShopItem::BattlemageRing) ? 1 : 0);
 
       // Damage and burning
       monster.takeFireballDamage(hero.getLevel(), multiplier);
@@ -109,8 +110,9 @@ namespace Magic
 
   unsigned spellCosts(Spell spell, const Hero& hero)
   {
-    // TODO: Chemist can have multiple layers of bysseps, cost doubles per layer (Additives trait)
     unsigned costs = baseSpellCosts(spell);
+    if (spell == Spell::Bysseps)
+      costs <<= hero.getStatusIntensity(HeroStatus::ByssepsStacks);
     if (hero.hasTrait(HeroTrait::Mageslay))
       costs += 2;
     if (hero.hasTrait(HeroTrait::MagicAffinity))
@@ -204,6 +206,7 @@ namespace Magic
     }
     case Spell::Bysseps:
       hero.addStatus(HeroStatus::Might);
+      hero.addStatus(HeroStatus::ByssepsStacks);
       break;
     case Spell::Cydstepp:
       hero.addStatus(HeroStatus::DeathProtection);

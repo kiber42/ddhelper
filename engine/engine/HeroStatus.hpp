@@ -18,12 +18,14 @@ enum class HeroStatus
   ExperienceBoost,
   FirstStrikePermanent,
   FirstStrikeTemporary,
+  Healthform,
   HeavyFireball,
   Knockback,
   Learning,
   LifeSteal,
   MagicalAttack,
   ManaBurnImmune,
+  Manaform,
   Might,
   Momentum,
   PiercePhysical,
@@ -36,7 +38,8 @@ enum class HeroStatus
   SpiritStrength,
   StoneSkin,
   Last = StoneSkin,
-  Pessimist, // Loses all dice rolls
+  Pessimist,     // Loses all dice rolls
+  ByssepsStacks, // Used for Chemist
 };
 
 enum class HeroDebuff
@@ -85,6 +88,8 @@ constexpr const char* toString(HeroStatus status)
     return "First Strike (permanent)";
   case HeroStatus::FirstStrikeTemporary:
     return "First Strike (next attack)";
+  case HeroStatus::Healthform:
+    return "Healthform";
   case HeroStatus::HeavyFireball:
     return "Heavy Fireball";
   case HeroStatus::Knockback:
@@ -97,6 +102,8 @@ constexpr const char* toString(HeroStatus status)
     return "Magical Attack";
   case HeroStatus::ManaBurnImmune:
     return "Mana Burn Immune";
+  case HeroStatus::Manaform:
+    return "Manaform";
   case HeroStatus::Might:
     return "Might";
   case HeroStatus::Momentum:
@@ -121,6 +128,8 @@ constexpr const char* toString(HeroStatus status)
     return "Stone Skin";
   case HeroStatus::Pessimist:
     return "Pessimist";
+  case HeroStatus::ByssepsStacks:
+    return "Bysseps";
   }
 }
 
@@ -143,12 +152,13 @@ constexpr const char* toString(HeroDebuff debuff)
 
 constexpr bool canHaveMultiple(HeroStatus status)
 {
-  return status == HeroStatus::CorrosiveStrike || status == HeroStatus::CrushingBlow ||
-         status == HeroStatus::DamageReduction || status == HeroStatus::DeathGaze ||
-         status == HeroStatus::DodgePermanent || status == HeroStatus::DodgeTemporary ||
-         status == HeroStatus::Knockback || status == HeroStatus::Learning || status == HeroStatus::LifeSteal ||
-         status == HeroStatus::Momentum || status == HeroStatus::Poisonous || status == HeroStatus::Sanguine ||
-         status == HeroStatus::SpiritStrength || status == HeroStatus::StoneSkin;
+  return status == HeroStatus::ByssepsStacks || status == HeroStatus::CorrosiveStrike ||
+         status == HeroStatus::CrushingBlow || status == HeroStatus::DamageReduction ||
+         status == HeroStatus::DeathGaze || status == HeroStatus::DodgePermanent ||
+         status == HeroStatus::DodgeTemporary || status == HeroStatus::Knockback || status == HeroStatus::Learning ||
+         status == HeroStatus::LifeSteal || status == HeroStatus::Might || status == HeroStatus::Momentum ||
+         status == HeroStatus::Poisonous || status == HeroStatus::Sanguine || status == HeroStatus::SpiritStrength ||
+         status == HeroStatus::StoneSkin;
 }
 
 constexpr bool canHaveMultiple(HeroDebuff debuff)
