@@ -41,9 +41,9 @@ Monster::Monster(uint8_t level, uint16_t hp, uint16_t damage)
 {
 }
 
-const char* Monster::getName() const
+const std::string& Monster::getName() const
 {
-  return name.c_str();
+  return name;
 }
 
 int Monster::getID() const
@@ -328,9 +328,9 @@ using namespace std::string_literals;
 std::vector<std::string> describe(const Monster& monster)
 {
   if (monster.isDefeated())
-    return {monster.getName() + " defeated."s};
+    return {monster.getName() + " defeated."};
 
-  std::vector description{std::string{monster.getName()},
+  std::vector description{monster.getName(),
                           std::to_string(monster.getHitPoints()) + "/" + std::to_string(monster.getHitPointsMax()) +
                               " HP",
                           std::to_string(monster.getDamage()) + " damage"};

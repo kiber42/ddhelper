@@ -9,7 +9,7 @@
 #include <set>
 #include <variant>
 
-static const unsigned char DefaultMapSize = 20;
+constexpr unsigned char DefaultMapSize = 20;
 
 enum class MageModifier
 {

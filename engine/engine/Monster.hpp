@@ -15,7 +15,7 @@ public:
   Monster(std::string name, MonsterStats, Defence, MonsterTraits);
   Monster(uint8_t level, uint16_t hp, uint16_t damage);
 
-  const char* getName() const;
+  const std::string& getName() const;
   int getID() const;
   unsigned getLevel() const;
   bool isDefeated() const;

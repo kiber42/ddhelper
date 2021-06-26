@@ -133,9 +133,9 @@ struct Map
 
   [[nodiscard]] constexpr Value at(const Key& key) const
   {
-    const auto itr = std::find_if(begin(data), end(data), [&key](const auto& v) { return v.first == key; });
-    if (itr != end(data))
-      return itr->second;
+    const auto iter = std::find_if(begin(data), end(data), [&key](const auto& v) { return v.first == key; });
+    if (iter != end(data))
+      return iter->second;
     else
       throw std::range_error("Not found");
   }
