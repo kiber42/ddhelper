@@ -15,7 +15,7 @@ void testDefenceBasics()
 {
   describe("Monster", [] {
     describe("Physical resistance", [] {
-      Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 0}, {});
+      Monster monster("", {Level{1}, 10_HP, 1_damage}, Defence{50, 0}, {});
       it("should reduce damage according to resistance %", [&] {
         AssertThat(monster.getPhysicalResistPercent(), Equals(50u));
         monster.takeDamage(10, DamageType::Physical);
@@ -27,7 +27,7 @@ void testDefenceBasics()
       });
     });
     describe("Magical resistance", [] {
-      Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{0, 75}, {});
+      Monster monster("", {Level{1}, 10_HP, 1_damage}, Defence{0, 75}, {});
       it("should be applied for magical damage, resisted damage is rounded down", [&] {
         AssertThat(monster.getMagicalResistPercent(), Equals(75u));
         monster.takeDamage(5 * 4 + 1, DamageType::Magical);
@@ -48,7 +48,7 @@ void testDefenceBasics()
     });
     describe("Resistance crushing", [] {
       it("should reduce resistances by 3 percentage points", [] {
-        Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 75}, {});
+        Monster monster("", {Level{1}, 10_HP, 1_damage}, Defence{50, 75}, {});
         monster.erodeResitances();
         AssertThat(monster.getPhysicalResistPercent(), Equals(47u));
         AssertThat(monster.getMagicalResistPercent(), Equals(72u));
@@ -63,18 +63,18 @@ void testDefenceBasics()
         AssertThat(monster.getHitPoints(), Equals(8u));
       });
       it("should not reduce resistances below 0", [] {
-        Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{2, 3}, {});
+        Monster monster("", {Level{1}, 10_HP, 1_damage}, Defence{2, 3}, {});
         monster.erodeResitances();
         AssertThat(monster.getPhysicalResistPercent(), Equals(0u));
         AssertThat(monster.getMagicalResistPercent(), Equals(0u));
-        Monster monster2("", MonsterStats{1, 10, 1, 0}, Defence{3, 4}, {});
+        Monster monster2("", {Level{1}, 10_HP, 1_damage}, Defence{3, 4}, {});
         monster2.erodeResitances();
         AssertThat(monster2.getPhysicalResistPercent(), Equals(0u));
         AssertThat(monster2.getMagicalResistPercent(), Equals(1u));
       });
     });
     describe("Death protection", [] {
-      Monster monster("", MonsterStats{1, 10, 10, 2}, {}, {});
+      Monster monster("", {Level{1}, 10_HP, 10_damage, 2_dprot}, {}, {});
       it("should prevent defeat", [&] {
         monster.takeDamage(100, DamageType::Physical);
         AssertThat(monster.isDefeated(), IsFalse());

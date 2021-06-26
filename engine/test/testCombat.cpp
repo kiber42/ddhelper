@@ -81,7 +81,7 @@ void testMelee()
     it("should be available with 100% intensity", [] {
       Hero hero;
       auto traits = CustomMonsterTraits::withDeathGaze(100);
-      Monster monster("", {1, 100, 1, 0}, {}, std::move(traits));
+      Monster monster("", {Level{1}, 100_HP, 1_damage}, {}, std::move(traits));
       hero.addStatus(HeroStatus::DeathProtection);
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
       AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsTrue());
@@ -96,7 +96,7 @@ void testMelee()
     it("should be available with 101% intensity", [] {
       Hero hero;
       MonsterTraits traits = CustomMonsterTraits::withDeathGaze(101);
-      Monster monster("", {1, 10, 1, 0}, {}, std::move(traits));
+      Monster monster("", {Level{1}, 10_HP, 1_damage}, {}, std::move(traits));
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Petrified));
     });
   });

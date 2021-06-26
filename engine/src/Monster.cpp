@@ -10,17 +10,17 @@ int Monster::lastId = 0;
 
 namespace
 {
-  std::string makeMonsterName(MonsterType type, unsigned level)
+  std::string makeMonsterName(MonsterType type, Level level)
   {
     using namespace std::string_literals;
-    return toString(type) + " level "s + std::to_string(level);
+    return toString(type) + " level "s + std::to_string(level.get());
   }
 } // namespace
 
 Monster::Monster(MonsterType type, uint8_t level, uint8_t dungeonMultiplier)
-  : name(makeMonsterName(type, level))
+  : name(makeMonsterName(type, Level{level}))
   , id(++lastId)
-  , stats(type, level, dungeonMultiplier)
+  , stats(type, Level{level}, DungeonMultiplier{dungeonMultiplier})
   , defence(type)
   , traits(type)
 {
@@ -37,7 +37,7 @@ Monster::Monster(std::string name, MonsterStats stats, Defence damage, MonsterTr
 }
 
 Monster::Monster(uint8_t level, uint16_t hp, uint16_t damage)
-  : Monster("Monster level " + std::to_string(level), {level, hp, damage, 0}, {}, {})
+  : Monster("Monster level " + std::to_string(level), {Level{level}, HitPoints{hp}, DamagePoints{damage}, DeathProtection{0}}, {}, {})
 {
 }
 
@@ -53,7 +53,7 @@ int Monster::getID() const
 
 unsigned Monster::getLevel() const
 {
-  return stats.getLevel();
+  return stats.getLevel().get();
 }
 
 bool Monster::isDefeated() const
@@ -63,17 +63,17 @@ bool Monster::isDefeated() const
 
 unsigned Monster::getHitPoints() const
 {
-  return stats.getHitPoints();
+  return stats.getHitPoints().get();
 }
 
 unsigned Monster::getHitPointsMax() const
 {
-  return stats.getHitPointsMax();
+  return stats.getHitPointsMax().get();
 }
 
 unsigned Monster::getDamage() const
 {
-  const auto standardDamage = stats.getDamage();
+  const auto standardDamage = stats.getDamage().get();
   const auto berserkLimit = traits.getBerserkPercent() * getHitPointsMax();
   if (berserkLimit > 0 && getHitPoints() <= berserkLimit)
     return standardDamage * 3 / 2;
@@ -97,7 +97,7 @@ unsigned Monster::predictDamageTaken(unsigned attackerDamageOutput, DamageType d
 
 void Monster::takeDamage(unsigned attackerDamageOutput, DamageType damageType)
 {
-  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, damageType));
+  stats.loseHitPoints(HitPoints{predictDamageTaken(attackerDamageOutput, damageType)});
   status.setSlowed(false);
   status.setBurn(0);
 }
@@ -105,14 +105,14 @@ void Monster::takeDamage(unsigned attackerDamageOutput, DamageType damageType)
 void Monster::takeFireballDamage(unsigned casterLevel, unsigned damageMultiplier)
 {
   const auto damagePoints = casterLevel * damageMultiplier;
-  stats.loseHitPoints(predictDamageTaken(damagePoints, DamageType::Magical));
+  stats.loseHitPoints(HitPoints{predictDamageTaken(damagePoints, DamageType::Magical)});
   status.setSlowed(false);
   burn(casterLevel * 2);
 }
 
 void Monster::takeBurningStrikeDamage(unsigned attackerDamageOutput, unsigned casterLevel, DamageType damageType)
 {
-  stats.loseHitPoints(predictDamageTaken(attackerDamageOutput, damageType));
+  stats.loseHitPoints(HitPoints{predictDamageTaken(attackerDamageOutput, damageType)});
   status.setSlowed(false);
   burn(casterLevel * 2);
 }
@@ -120,13 +120,13 @@ void Monster::takeBurningStrikeDamage(unsigned attackerDamageOutput, unsigned ca
 void Monster::takeManaShieldDamage(unsigned casterLevel)
 {
   // Mana Shield damage against magical resistance is rounded down (usually resisted damage is rounded down)
-  stats.loseHitPoints(casterLevel * (100 - getMagicalResistPercent()) / 100);
+  stats.loseHitPoints(HitPoints{casterLevel * (100 - getMagicalResistPercent()) / 100});
 }
 
 void Monster::receiveCrushingBlow()
 {
   const auto hp = stats.getHitPoints();
-  const auto crushed = stats.getHitPointsMax() * 3u / 4u;
+  const auto crushed = HitPoints{stats.getHitPointsMax().get() * 3u / 4u};
   if (hp > crushed)
     stats.loseHitPoints(hp - crushed);
   status.setSlowed(false);
@@ -155,7 +155,7 @@ void Monster::recover(unsigned nSquares)
     }
   }
   if (recoverPoints > 0)
-    stats.healHitPoints(recoverPoints, false);
+    stats.healHitPoints(HitPoints{recoverPoints}, false);
 }
 
 void Monster::burn(unsigned nMaxStacks)
@@ -173,8 +173,8 @@ void Monster::burnDown()
 {
   if (status.getBurnStackSize() > 0)
   {
-    const unsigned resist = status.getBurnStackSize() * getMagicalResistPercent() / 100;
-    stats.loseHitPoints(status.getBurnStackSize() - resist);
+    const auto resist = HitPoints{status.getBurnStackSize() * getMagicalResistPercent() / 100};
+    stats.loseHitPoints(HitPoints{status.getBurnStackSize()} - resist);
     status.setSlowed(false);
     status.setBurn(0);
   }
@@ -210,7 +210,7 @@ void Monster::die()
 {
   status.setBurn(false);
   status.setSlowed(false);
-  stats.setDeathProtection(0);
+  stats.set(DeathProtection{0});
   stats.loseHitPoints(stats.getHitPoints());
 }
 
@@ -225,22 +225,21 @@ void Monster::zot()
   if (!status.isZotted())
   {
     status.setZotted();
-    stats.setHitPointsMax(stats.getHitPointsMax() / 2);
+    stats.setHitPointsMax(HitPoints{stats.getHitPointsMax().get() / 2});
   }
 }
 
 void Monster::makeWickedSick()
 {
-  const auto level = getLevel();
-  if (level < 10 && !status.isWickedSick())
+  auto level = Level{getLevel()};
+  if (!status.isWickedSick() && level.increase())
   {
     const auto type = stats.getType();
-    const auto newLevel = level + 1;
     const bool hasStandardName = name == makeMonsterName(type, level);
     status.setWickedSick();
-    stats = MonsterStats(stats.getType(), newLevel, stats.getDungeonMultiplier());
+    stats = MonsterStats(stats.getType(), level, stats.getDungeonMultiplier());
     if (hasStandardName)
-      name = makeMonsterName(type, newLevel);
+      name = makeMonsterName(type, level);
   }
 }
 
@@ -281,7 +280,7 @@ unsigned Monster::getPoisonAmount() const
 
 unsigned Monster::getDeathProtection() const
 {
-  return stats.getDeathProtection();
+  return stats.getDeathProtection().get();
 }
 
 unsigned Monster::getCorroded() const

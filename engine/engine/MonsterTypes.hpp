@@ -1,5 +1,7 @@
 #pragma once
 
+#include "StrongTypes.hpp"
+
 enum class MonsterType : unsigned char
 {
   // Basic
@@ -348,11 +350,11 @@ constexpr unsigned char getMagicalResistancePercent(MonsterType type)
   return 0;
 }
 
-inline unsigned char getDeathProtectionInitial(MonsterType type, unsigned char level)
+inline DeathProtection getDeathProtectionInitial(MonsterType type, Level level)
 {
   if (type == MonsterType::AnimatedArmour || type == MonsterType::DoomArmour)
-    return level;
+    return DeathProtection{level.get()};
   if (type == MonsterType::Druid)
-    return 1;
-  return 0;
+    return DeathProtection{1};
+  return DeathProtection{0};
 }

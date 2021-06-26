@@ -45,7 +45,7 @@ void testChemist()
       AssertThat(chemist.getManaPoints(), Equals(0u));
     });
     it("should not stack erode effect", [&] {
-      Monster monster("", MonsterStats{1, 16, 1, 0}, {4, 2}, {});
+      Monster monster("", {Level{1}, 16_HP, 1_damage}, {4, 2}, {});
       AssertThat(Combat::attack(chemist, monster, noOtherMonsters), Equals(Summary::Safe));
       AssertThat(monster.getHitPoints(), Equals(1u));
       AssertThat(monster.getPhysicalResistPercent(), Equals(1u));
@@ -78,7 +78,7 @@ void testChemist()
       chemist.request(Boon::StoneForm, noOtherMonsters, resources);
       chemist.wallDestroyed();
       AssertThat(chemist.getStatusIntensity(HeroStatus::Might), Equals(1u));
-      Monster monster("", MonsterStats{1, 16, 1, 0}, {4, 2}, {});
+      Monster monster("", {Level{1}, 16_HP, 1_damage}, {4, 2}, {});
       Combat::attack(chemist, monster, noOtherMonsters);
       AssertThat(chemist.hasStatus(HeroStatus::Might), IsFalse());
 

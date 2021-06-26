@@ -215,7 +215,7 @@ uint16_t Hero::getManaPointsMax() const
 void Hero::drinkHealthPotion()
 {
   const bool hasNagaCauldron = has(BossReward::NagaCauldron);
-  unsigned percentHealed = hasTrait(HeroTrait::GoodDrink) ? 100 : 40;
+  uint16_t percentHealed = hasTrait(HeroTrait::GoodDrink) ? 100 : 40;
   if (hasNagaCauldron)
     percentHealed += nagaCauldronBonus();
   stats.healHitPoints(getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
@@ -232,7 +232,7 @@ void Hero::drinkHealthPotion()
 void Hero::drinkManaPotion()
 {
   const bool hasNagaCauldron = has(BossReward::NagaCauldron);
-  unsigned percentRestored = 40;
+  uint16_t percentRestored = 40;
   if (hasTrait(HeroTrait::PowerHungry))
   {
     percentRestored = 60;
@@ -268,7 +268,7 @@ uint16_t Hero::getBaseDamage() const
   if (hasTrait(HeroTrait::Additives))
     damage += getStatusIntensity(HeroStatus::Might);
   const auto weakened = getStatusIntensity(HeroDebuff::Weakened);
-  return damage > weakened ? damage - weakened : 0u;
+  return damage > weakened ? clampedTo<uint16_t>(damage - weakened) : 0u;
 }
 
 void Hero::changeBaseDamage(int deltaDamagePoints)

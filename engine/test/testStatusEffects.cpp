@@ -29,7 +29,7 @@ void testStatusEffects()
         AssertThat(hero.doesMagicalDamage(), IsTrue());
       });
       it("should wear off", [&] {
-        Monster monster("", MonsterStats{1, 5, 1, 0}, Defence{100, 0}, {});
+        Monster monster("", {Level{1}, 5_HP, 1_damage}, Defence{100, 0}, {});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.isDefeated(), IsTrue());
         AssertThat(hero.doesMagicalDamage(), IsFalse());
@@ -65,12 +65,12 @@ void testStatusEffects()
         AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax() * 3u / 4u));
       });
       it("should ignore physical immunity", [&] {
-        Monster monster("", MonsterStats{1, 100, 1, 0}, Defence{100, 100}, {});
+        Monster monster("", {Level{1}, 100_HP, 1_damage}, Defence{100, 100}, {});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getHitPoints(), Equals(75u));
       });
       it("should ignore magical immunity", [&] {
-        Monster monster("", MonsterStats{1, 100, 1, 0}, Defence{100, 100}, {});
+        Monster monster("", {Level{1}, 100_HP, 1_damage}, Defence{100, 100}, {});
         hero.addStatus(HeroStatus::MagicalAttack);
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getHitPoints(), Equals(75u));
@@ -100,7 +100,7 @@ void testStatusEffects()
       it("should be added/removed when cursed/not-cursed monster is defeated", [] {
         Hero hero;
         hero.changeBaseDamage(100);
-        Monster monster("", MonsterStats{1, 10, 3, 0}, {}, {MonsterTrait::CurseBearer});
+        Monster monster("", {Level{1}, 10_HP, 3_damage}, {}, {MonsterTrait::CurseBearer});
         Combat::attack(hero, monster, noOtherMonsters);
         // One curse from hit, one from killing
         AssertThat(hero.getStatusIntensity(HeroDebuff::Cursed), Equals(2u));
@@ -113,7 +113,7 @@ void testStatusEffects()
         hero.gainLevel(noOtherMonsters);
         const auto health = hero.getHitPoints();
         hero.setPhysicalResistPercent(50);
-        Monster monster("", MonsterStats(1, 100, 10, 0), {}, {MonsterTrait::CurseBearer});
+        Monster monster("", {Level{1}, 100_HP, 10_damage}, {}, {MonsterTrait::CurseBearer});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(hero.hasStatus(HeroDebuff::Cursed), IsTrue());
         AssertThat(hero.getHitPoints(), Equals(health - 10u));
@@ -287,7 +287,7 @@ void testStatusEffects()
     describe("Life Steal", [] {
       Hero hero;
       hero.addStatus(HeroStatus::LifeSteal);
-      Monster cow("", {2, 1000, 1, 0}, {}, {});
+      Monster cow("", {Level{2}, 1000_HP, 1_damage}, {}, {});
       it("should heal hero by 1 per hero level and life steal level and allow overheal", [&] {
         Combat::attack(hero, cow, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(10u + 1u - 1u));
@@ -343,10 +343,10 @@ void testStatusEffects()
         hero.addStatus(HeroStatus::LifeSteal);
         hero.addStatus(HeroStatus::LifeSteal);
         const auto expected = 2 * hero.getLevel() * hero.getStatusIntensity(HeroStatus::LifeSteal);
-        auto limit = hero.getDamageVersusStandard();
+        const auto limit = hero.getDamageVersusStandard();
         AssertThat(expected > limit, IsTrue());
         hero.loseHitPointsOutsideOfFight(limit, noOtherMonsters);
-        Monster monster("", {1, ++limit, 0, 0}, {}, {});
+        Monster monster("", {Level{1}, HitPoints{limit + 1}, 0_damage}, {}, {});
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax()));
         AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Win));
@@ -355,7 +355,7 @@ void testStatusEffects()
       it("should not work on bloodless monsters", [] {
         Hero hero;
         hero.addStatus(HeroStatus::LifeSteal);
-        Monster monster("Bloodless", {1, 10, 3, 0}, {}, {MonsterTrait::Bloodless});
+        Monster monster("Bloodless", {Level{1}, 10_HP, 3_damage}, {}, {MonsterTrait::Bloodless});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(7u));
       });
@@ -413,7 +413,7 @@ void testStatusEffects()
         AssertThat(hero.getDamageBonusPercent(), Equals(30));
       });
       it("should lower enemies resistances by 3%", [&] {
-        Monster monster("", MonsterStats{1, 10, 1, 0}, Defence{50, 75}, {});
+        Monster monster("", {Level{1}, 10_HP, 1_damage}, Defence{50, 75}, {});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getPhysicalResistPercent(), Equals(47u));
         AssertThat(monster.getMagicalResistPercent(), Equals(72u));
@@ -528,7 +528,7 @@ void testStatusEffects()
         Hero hero;
         hero.loseManaPoints(10);
         hero.addStatus(HeroStatus::Schadenfreude);
-        Monster monster("", {1, 6, 8, 0}, {}, {});
+        Monster monster("", {Level{1}, 6_HP, 8_damage}, {}, {});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(8u));
         AssertThat(hero.getHitPoints(), Equals(2u));
@@ -571,7 +571,7 @@ void testStatusEffects()
         AssertThat(hero.getDamageVersusStandard(), Equals(24u));
       });
       it("should wear off after the next physical attack", [&] {
-        Monster monster("", {2, 40, 1, 0}, {}, {});
+        Monster monster("", {Level{2}, 40_HP, 1_damage}, {}, {});
         hero.addStatus(HeroStatus::Reflexes);
         AssertThat(Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Safe));
         AssertThat(hero.hasStatus(HeroStatus::SpiritStrength), IsTrue());
@@ -584,7 +584,7 @@ void testStatusEffects()
       });
       it("should wear off after casting Pisorf", [] {
         Hero hero(HeroClass::Transmuter, HeroRace::Human);
-        Monster monster("", {1, 31, 1, 0}, {}, {});
+        Monster monster("", {Level{1}, 31_HP, 1_damage}, {}, {});
         hero.addConversionPoints(100, noOtherMonsters);
         AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(11u));
         AssertThat(hero.getBaseDamage(), Equals(16u));

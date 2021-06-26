@@ -1,5 +1,7 @@
 #pragma once
 
+#include "StrongTypes.hpp"
+
 #include <cstdint>
 
 enum class MonsterType : uint8_t;
@@ -7,33 +9,33 @@ enum class MonsterType : uint8_t;
 class MonsterStats
 {
 public:
-  MonsterStats(MonsterType type, uint8_t level, uint8_t dungeonMultiplier);
-  MonsterStats(uint8_t level, uint16_t hpMax, uint16_t damage, uint8_t deathProtection);
+  MonsterStats(MonsterType, Level, DungeonMultiplier);
+  MonsterStats(Level, HitPoints, DamagePoints, DeathProtection = DeathProtection{0});
 
   MonsterType getType() const;
-  uint8_t getLevel() const;
-  uint8_t getDungeonMultiplier() const;
+  Level getLevel() const;
+  DungeonMultiplier getDungeonMultiplier() const;
 
   bool isDefeated() const;
-  uint16_t getHitPoints() const;
-  uint16_t getHitPointsMax() const;
+  HitPoints getHitPoints() const;
+  HitPoints getHitPointsMax() const;
 
-  void healHitPoints(uint16_t amountPointsHealed, bool allowOverheal);
-  void loseHitPoints(uint16_t amountPointsLost);
-  void setHitPointsMax(uint16_t newHitPointsMax);
+  void healHitPoints(HitPoints amountPointsHealed, bool allowOverheal);
+  void loseHitPoints(HitPoints amountPointsLost);
+  void setHitPointsMax(HitPoints newHitPointsMax);
 
-  uint16_t getDamage() const;
-  void setDamage(uint16_t damagePoints);
+  DamagePoints getDamage() const;
+  void set(DamagePoints);
 
-  uint8_t getDeathProtection() const;
-  void setDeathProtection(uint8_t numDeathProtectionLayers);
+  DeathProtection getDeathProtection() const;
+  void set(DeathProtection);
 
 private:
   MonsterType type;
-  uint8_t level;
-  uint8_t deathProtection;
-  uint8_t dungeonMultiplier;
-  uint16_t hp;
-  uint16_t hpMax;
-  uint16_t damage;
+  Level level;
+  DeathProtection deathProtection;
+  DungeonMultiplier dungeonMultiplier;
+  HitPoints hp;
+  HitPoints hpMax;
+  DamagePoints damage;
 };

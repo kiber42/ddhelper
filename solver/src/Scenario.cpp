@@ -56,26 +56,26 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
   {
   case Scenario::AgbaarsAcademySlowingPart2:
     monsters.emplace_back(Monster{MonsterType::Goblin, 1});
-    monsters.emplace_back(Monster{"Djinn level 1", {1, 19, 99, 0}, {}, {MonsterTrait::Retaliate}});
+    monsters.emplace_back(Monster{"Djinn level 1", {Level{1}, 19_HP, 99_damage}, {}, {MonsterTrait::Retaliate}});
     monsters.emplace_back(
-        Monster{"Zombie level 2", {2, 10, 27, 0}, {}, {MonsterTrait::Undead, MonsterTrait::Bloodless}});
+        Monster{"Zombie level 2", {Level{2}, 10_HP, 27_damage}, {}, {MonsterTrait::Undead, MonsterTrait::Bloodless}});
     monsters.emplace_back(
-        Monster{"Eeblis (level 3)", {3, 28, 999, 0}, {}, {MonsterTrait::Retaliate, MonsterTrait::FirstStrike}});
+        Monster{"Eeblis (level 3)", {Level{3}, 28_HP, 999_damage}, {}, {MonsterTrait::Retaliate, MonsterTrait::FirstStrike}});
     break;
   case Scenario::HalflingTrial:
-    monsters.emplace_back(Monster{"Goblin level 2", {2, 17, 8, 0}, {}, {MonsterTrait::FirstStrike}});
+    monsters.emplace_back(Monster{"Goblin level 2", {Level{2}, 17_HP, 8_damage}, {}, {MonsterTrait::FirstStrike}});
     monsters.emplace_back(Monster{MonsterType::Warlock, 2});
-    monsters.emplace_back(Monster{"Meat Man level 2", {2, 30, 4, 0}, {0, 100}, {}});
-    monsters.emplace_back(Monster{"Goblin level 2", {2, 15, 8, 0}, {0, 100}, {MonsterTrait::FirstStrike}});
+    monsters.emplace_back(Monster{"Meat Man level 2", {Level{2}, 30_HP, 4_damage}, {0, 100}, {}});
+    monsters.emplace_back(Monster{"Goblin level 2", {Level{2}, 15_HP, 8_damage}, {0, 100}, {MonsterTrait::FirstStrike}});
     monsters.emplace_back(
-        Monster{"Zombie level 3", {3, 39, 12, 0}, {0, 100}, {MonsterTrait::Bloodless, MonsterTrait::Undead}});
+        Monster{"Zombie level 3", {Level{3}, 39_HP, 12_damage}, {0, 100}, {MonsterTrait::Bloodless, MonsterTrait::Undead}});
     monsters.emplace_back(
-        Monster{"Jörmungandr (level 4)", {4, 58, 21, 0}, {}, {MonsterTrait::FirstStrike, MonsterTrait::Poisonous}});
+        Monster{"Jörmungandr (level 4)", {Level{4}, 58_HP, 21_damage}, {}, {MonsterTrait::FirstStrike, MonsterTrait::Poisonous}});
     break;
   case Scenario::TheThirdAct:
     for (int i = 0; i < 5; ++i)
       monsters.emplace_back(MonsterType::MeatMan, 1);
-    monsters.emplace_back(Monster{"Puryton", {1, 53, 15, 0}, {}, {}});
+    monsters.emplace_back(Monster{"Puryton", {Level{1}, 53_HP, 15_damage}, {}, {}});
     break;
   }
   return monsters;

@@ -2,46 +2,47 @@
 
 #include "engine/Clamp.hpp"
 #include "engine/MonsterTypes.hpp"
+#include "engine/StrongTypes.hpp"
 
 #include <algorithm>
 
 namespace
 {
-  constexpr int hpInitial(int level, int multiplier1, int multiplier2)
+  constexpr HitPoints hpInitial(uint8_t level, uint16_t multiplier1, uint16_t multiplier2)
   {
     // TODO: Result sometimes appears to be 1 too high (at least for "Shifting Passages")
-    return (level * (level + 6) - 1) * multiplier1 / 100 * multiplier2 / 100;
+    return HitPoints{(level * (level + 6) - 1) * multiplier1 / 100 * multiplier2 / 100};
   }
 
-  constexpr int damageInitial(int level, int multiplier1, int multiplier2)
+  constexpr DamagePoints damageInitial(uint8_t level, uint16_t multiplier1, uint16_t multiplier2)
   {
-    return (level * (level + 5) / 2) * multiplier1 / 100 * multiplier2 / 100;
+    return DamagePoints{(level * (level + 5) / 2) * multiplier1 / 100 * multiplier2 / 100};
   }
 } // namespace
 
-MonsterStats::MonsterStats(MonsterType type, uint8_t level, uint8_t dungeonMultiplier)
+MonsterStats::MonsterStats(MonsterType type, Level level, DungeonMultiplier dungeonMultiplier)
   : type(type)
-  , level(clamped<uint8_t>(level, 1, 10))
+  , level(level)
   , deathProtection(getDeathProtectionInitial(type, level))
-  , dungeonMultiplier(clampedTo<uint8_t>(dungeonMultiplier))
-  , hp(hpInitial(level, dungeonMultiplier, getHPMultiplierPercent(type)))
+  , dungeonMultiplier(dungeonMultiplier)
+  , hp(hpInitial(level.get(), dungeonMultiplier.get(), getHPMultiplierPercent(type)))
   , hpMax(hp)
-  , damage(damageInitial(level, dungeonMultiplier, getDamageMultiplierPercent(type)))
+  , damage(damageInitial(level.get(), dungeonMultiplier.get(), getDamageMultiplierPercent(type)))
 {
 }
 
-MonsterStats::MonsterStats(uint8_t level, uint16_t hpMax, uint16_t damage, uint8_t deathProtection)
+MonsterStats::MonsterStats(Level level, HitPoints hpMax, DamagePoints damage, DeathProtection deathProtection)
   : type(MonsterType::Generic)
-  , level(clamped<uint8_t>(level, 1, 10))
+  , level(level)
   , deathProtection(deathProtection)
-  , dungeonMultiplier(100)
+  , dungeonMultiplier(DungeonMultiplier{100})
   , hp(hpMax)
   , hpMax(hp)
   , damage(damage)
 {
 }
 
-uint8_t MonsterStats::getLevel() const
+Level MonsterStats::getLevel() const
 {
   return level;
 }
@@ -51,34 +52,45 @@ MonsterType MonsterStats::getType() const
   return type;
 }
 
-uint8_t MonsterStats::getDungeonMultiplier() const
+DungeonMultiplier MonsterStats::getDungeonMultiplier() const
 {
   return dungeonMultiplier;
 }
 
 bool MonsterStats::isDefeated() const
 {
-  return hp == 0;
+  return hp.get() == 0u;
 }
 
-uint16_t MonsterStats::getHitPoints() const
+HitPoints MonsterStats::getHitPoints() const
 {
   return hp;
 }
 
-uint16_t MonsterStats::getHitPointsMax() const
+HitPoints MonsterStats::getHitPointsMax() const
 {
   return hpMax;
 }
 
-void MonsterStats::healHitPoints(uint16_t amountPointsHealed, bool allowOverheal)
+void MonsterStats::healHitPoints(HitPoints amountPointsHealed, bool allowOverheal)
 {
-  const auto max = allowOverheal ? hpMax * 3 / 2 : hpMax;
-  if (hp < max)
-    hp = std::min(hp + amountPointsHealed, max);
+  hp += amountPointsHealed;
+  if (hp > hpMax)
+  {
+    if (!allowOverheal)
+    {
+      hp = hpMax;
+    }
+    else
+    {
+      const auto overhealMax = HitPoints{hpMax.get() * 3 / 2};
+      if (hp > overhealMax)
+        hp = overhealMax;
+    }
+  }
 }
 
-void MonsterStats::loseHitPoints(uint16_t amountPointsLost)
+void MonsterStats::loseHitPoints(HitPoints amountPointsLost)
 {
   if (amountPointsLost < hp)
   {
@@ -86,37 +98,38 @@ void MonsterStats::loseHitPoints(uint16_t amountPointsLost)
   }
   else
   {
-    if (deathProtection > 0)
+    const auto protection = deathProtection.get();
+    if (protection > 0)
     {
-      hp = 1;
-      --deathProtection;
+      hp = 1_HP;
+      deathProtection = DeathProtection{protection - 1};
     }
     else
-      hp = 0;
+      hp = 0_HP;
   }
 }
 
-void MonsterStats::setHitPointsMax(uint16_t newHitPointsMax)
+void MonsterStats::setHitPointsMax(HitPoints newHitPointsMax)
 {
-  hpMax = newHitPointsMax > 0 ? newHitPointsMax : 1;
+  hpMax = newHitPointsMax > 0_HP ? newHitPointsMax : 1_HP;
 }
 
-uint16_t MonsterStats::getDamage() const
+DamagePoints MonsterStats::getDamage() const
 {
   return damage;
 }
 
-void MonsterStats::setDamage(uint16_t damagePoints)
+void MonsterStats::set(DamagePoints damagePoints)
 {
   damage = damagePoints;
 }
 
-uint8_t MonsterStats::getDeathProtection() const
+DeathProtection MonsterStats::getDeathProtection() const
 {
   return deathProtection;
 }
 
-void MonsterStats::setDeathProtection(uint8_t numDeathProtectionLayers)
+void MonsterStats::set(DeathProtection numDeathProtectionLayers)
 {
   deathProtection = numDeathProtectionLayers;
 }

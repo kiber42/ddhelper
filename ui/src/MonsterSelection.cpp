@@ -159,12 +159,12 @@ namespace ui
 
   Monster CustomMonsterBuilder::get() const
   {
-    const auto level = clamped<uint8_t>(data[0], 1, 10);
-    std::string name = "Level " + std::to_string(level) + " monster";
-    const auto hp = clampedTo<uint8_t>(data[1]);
-    const auto maxHp = clampedTo<uint16_t>(data[2]);
-    const auto damage = clampedTo<uint16_t>(data[3]);
-    const auto deathProtection = clampedTo<uint8_t>(data[6]);
+    const auto level = Level{data[0]};
+    std::string name = "Level " + std::to_string(level.get()) + " monster";
+    const auto hp = HitPoints{data[1]};
+    const auto maxHp = HitPoints{data[2]};
+    const auto damage = DamagePoints{data[3]};
+    const auto deathProtection = DeathProtection{data[6]};
     auto stats = MonsterStats{level, maxHp, damage, deathProtection};
     if (hp < maxHp)
       stats.loseHitPoints(maxHp - hp);
