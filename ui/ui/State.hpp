@@ -15,8 +15,8 @@ namespace ui
   {
     Hero hero{};
     Monsters monsterPool{};
-    std::optional<size_t> activeMonster;
-    MapResources resources{20};
+    std::optional<std::size_t> activeMonster;
+    MapResources resources{};
 
     Monster* monster()
     {
