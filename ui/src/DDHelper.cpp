@@ -58,7 +58,7 @@ namespace ui
   // Return initial state for a specific challenge
   State prepareScenario(Scenario scenario)
   {
-    return {getHeroForScenario(scenario), getMonstersForScenario(scenario), -1,
+    return {getHeroForScenario(scenario), getMonstersForScenario(scenario), std::nullopt,
             MapResources{getResourcesForScenario(scenario)}};
   }
 
@@ -131,7 +131,7 @@ namespace ui
         if (monster && monster->isDefeated())
         {
           state.monsterPool.erase(begin(state.monsterPool) + static_cast<long>(*state.activeMonster));
-          state.activeMonster = poolIndex - 1;
+          state.activeMonster = poolIndex > 0 ? poolIndex - 1 : 0;
         }
         else
           state.activeMonster = poolIndex;
