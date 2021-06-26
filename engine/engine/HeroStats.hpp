@@ -26,7 +26,7 @@ public:
   uint16_t getManaPointsMax() const;
   void setManaPointsMax(uint16_t manaPointsMax);
 
-  void healHitPoints(uint16_t amountPointsHealed, bool allowOverheal);
+  void healHitPoints(unsigned amountPointsHealed, bool allowOverheal);
   void loseHitPointsWithoutDeathProtection(uint16_t amountPointsLost);
   void barelySurvive();
 

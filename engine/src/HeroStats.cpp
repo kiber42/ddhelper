@@ -1,5 +1,7 @@
 #include "engine/HeroStats.hpp"
 
+#include "engine/Clamp.hpp"
+
 #include <algorithm>
 #include <cassert>
 
@@ -83,11 +85,11 @@ void HeroStats::setManaPointsMax(uint16_t manaPointsMax)
     mp = mpMax;
 }
 
-void HeroStats::healHitPoints(uint16_t amountPointsHealed, bool allowOverheal)
+void HeroStats::healHitPoints(unsigned amountPointsHealed, bool allowOverheal)
 {
-  const auto max = allowOverheal ? hpMax * 3 / 2 : hpMax;
+  const unsigned max = allowOverheal ? hpMax * 3 / 2 : hpMax;
   if (hp < max)
-    hp = std::min(hp + amountPointsHealed, max);
+    hp = clampedTo<uint16_t>(std::min(hp + amountPointsHealed, max));
 }
 
 void HeroStats::loseHitPointsWithoutDeathProtection(uint16_t amountPointsLost)
