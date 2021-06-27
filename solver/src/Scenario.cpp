@@ -44,6 +44,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.addGold(100 - hero.gold());
     hero.clearInventory();
     hero.receive(MiscItem::TikkisCharm);
+    hero.addStatus(HeroStatus::Pessimist);
     return hero;
   }
   }
@@ -75,7 +76,7 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
   case Scenario::TheThirdAct:
     for (int i = 0; i < 5; ++i)
       monsters.emplace_back(MonsterType::MeatMan, 1);
-    monsters.emplace_back(Monster{"Puryton", {Level{1}, 53_HP, 15_damage}, {}, {}});
+    monsters.emplace_back(Monster{"Puryton (level 1)", {Level{1}, 53_HP, 15_damage}, {}, {}});
     break;
   }
   return monsters;
@@ -83,12 +84,14 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
 
 SimpleResources getResourcesForScenario(Scenario scenario)
 {
-  ResourceSet resources;
   if (scenario == Scenario::TheThirdAct)
   {
-    resources.shops = {Item{Potion::HealthPotion}, ShopItem::VenomDagger, ShopItem::BadgeOfHonour};
-    resources.altars = {God::TikkiTooki};
-    resources.numWalls = 3;
+    ResourceSet resourceSet;
+    resourceSet.shops = {Item{Potion::HealthPotion}, ShopItem::VenomDagger, ShopItem::BadgeOfHonour};
+    resourceSet.altars = {God::TikkiTooki};
+    SimpleResources resources{std::move(resourceSet), 2};
+    resources.revealTile(); // 2 x 2 - 1 = 3 hidden tiles
+    return resources;
   }
-  return SimpleResources{std::move(resources), 0 /* no hidden tiles */};
+  return SimpleResources{{}, 0 /* no hidden tiles */ };
 }

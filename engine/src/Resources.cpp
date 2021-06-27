@@ -152,8 +152,8 @@ MapResources::MapResources(DungeonSetup dungeonSetup)
 
 MapResources::MapResources(SimpleResources resources)
   : Resources(resources)
-  , visible()
-  , hidden(std::move(resources))
+  , visible(std::move(resources))
+  , hidden()
 {
 }
 
