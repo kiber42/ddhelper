@@ -5,10 +5,9 @@
 
 #include <cstdint>
 
-using HitPoints = NamedType<uint16_t, struct HitPointsParameter, Addable, Subtractable, Comparable>;
+using HitPoints = NamedType<uint16_t, struct HitPointsParameter, Addable, Subtractable, Scalable, Comparable>;
 using DamagePoints = NamedType<uint16_t, struct DamagePointsParameter>;
 using DeathProtection = NamedType<uint8_t, struct DeathProtectionParameter>;
-using DungeonMultiplier = NamedType<uint8_t, struct DungeonMultiplierParameter>;
 
 auto constexpr operator"" _HP(unsigned long long value) { return HitPoints{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _damage(unsigned long long value) { return DamagePoints{clampedTo<uint16_t>(value)}; }

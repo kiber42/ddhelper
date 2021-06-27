@@ -92,14 +92,14 @@ unsigned Monster::getMagicalResistPercent() const
 
 unsigned Monster::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const
 {
-  return defence.predictDamageTaken(attackerDamageOutput, damageType, status.getBurnStackSize());
+  return defence.predictDamageTaken(attackerDamageOutput, damageType, status.getBurnStackSize().get());
 }
 
 void Monster::takeDamage(unsigned attackerDamageOutput, DamageType damageType)
 {
   stats.loseHitPoints(HitPoints{predictDamageTaken(attackerDamageOutput, damageType)});
   status.setSlowed(false);
-  status.setBurn(0);
+  status.set(0_burn);
 }
 
 void Monster::takeFireballDamage(unsigned casterLevel, unsigned damageMultiplier)
@@ -126,11 +126,11 @@ void Monster::takeManaShieldDamage(unsigned casterLevel)
 void Monster::receiveCrushingBlow()
 {
   const auto hp = stats.getHitPoints();
-  const auto crushed = HitPoints{stats.getHitPointsMax().get() * 3u / 4u};
+  const auto crushed = stats.getHitPointsMax() * 3u / 4u;
   if (hp > crushed)
     stats.loseHitPoints(hp - crushed);
   status.setSlowed(false);
-  status.setBurn(0);
+  status.set(0_burn);
 }
 
 void Monster::recover(unsigned nSquares)
@@ -143,15 +143,15 @@ void Monster::recover(unsigned nSquares)
   if (status.isPoisoned())
   {
     const auto poison = status.getPoisonAmount();
-    if (poison >= recoverPoints)
+    if (poison.get() >= recoverPoints)
     {
-      status.setPoison(static_cast<uint16_t>(poison - recoverPoints));
+      status.set(poison - PoisonAmount{recoverPoints});
       recoverPoints = 0;
     }
     else
     {
-      status.setPoison(0);
-      recoverPoints -= poison;
+      status.set(0_poison);
+      recoverPoints -= poison.get();
     }
   }
   if (recoverPoints > 0)
@@ -160,23 +160,24 @@ void Monster::recover(unsigned nSquares)
 
 void Monster::burn(unsigned nMaxStacks)
 {
-  if (status.getBurnStackSize() < clampedTo<uint8_t>(nMaxStacks))
-    status.setBurn(static_cast<uint8_t>(status.getBurnStackSize() + 1));
+  if (status.getBurnStackSize() < BurnStackSize{clampedTo<uint8_t>(nMaxStacks)})
+    status.set(status.getBurnStackSize() + 1_burn);
 }
 
 void Monster::burnMax(unsigned nMaxStacks)
 {
-  status.setBurn(clampedTo<uint8_t>(nMaxStacks));
+  status.set(BurnStackSize{clampedTo<uint8_t>(nMaxStacks)});
 }
 
 void Monster::burnDown()
 {
-  if (status.getBurnStackSize() > 0)
+  if (status.getBurnStackSize() > 0_burn)
   {
-    const auto resist = HitPoints{status.getBurnStackSize() * getMagicalResistPercent() / 100};
-    stats.loseHitPoints(HitPoints{status.getBurnStackSize()} - resist);
+    const auto burnPoints = HitPoints{status.getBurnStackSize().get()};
+    const auto resist = burnPoints * getMagicalResistPercent() / 100;
+    stats.loseHitPoints(burnPoints - resist);
     status.setSlowed(false);
-    status.setBurn(0);
+    status.set(0_burn);
   }
 }
 
@@ -184,7 +185,7 @@ bool Monster::poison(unsigned addedPoisonAmount)
 {
   if (has(MonsterTrait::Undead))
     return false;
-  status.setPoison(clampedTo<uint16_t>(status.getPoisonAmount() + addedPoisonAmount));
+  status.set(status.getPoisonAmount() + PoisonAmount{addedPoisonAmount});
   return true;
 }
 
@@ -208,7 +209,7 @@ void Monster::petrify()
 
 void Monster::die()
 {
-  status.setBurn(false);
+  status.set(0_burn);
   status.setSlowed(false);
   stats.set(DeathProtection{0});
   stats.loseHitPoints(stats.getHitPoints());
@@ -216,7 +217,7 @@ void Monster::die()
 
 void Monster::corrode(unsigned amount)
 {
-  status.setCorroded(getCorroded() + amount);
+  status.set(CorrosionAmount{getCorroded()} + CorrosionAmount{amount});
   defence.setCorrosion(getCorroded());
 }
 
@@ -225,7 +226,7 @@ void Monster::zot()
   if (!status.isZotted())
   {
     status.setZotted();
-    stats.setHitPointsMax(HitPoints{stats.getHitPointsMax().get() / 2});
+    stats.setHitPointsMax(stats.getHitPointsMax() / 2);
   }
 }
 
@@ -270,12 +271,12 @@ bool Monster::isWickedSick() const
 
 unsigned Monster::getBurnStackSize() const
 {
-  return status.getBurnStackSize();
+  return status.getBurnStackSize().get();
 }
 
 unsigned Monster::getPoisonAmount() const
 {
-  return status.getPoisonAmount();
+  return status.getPoisonAmount().get();
 }
 
 unsigned Monster::getDeathProtection() const
@@ -285,7 +286,7 @@ unsigned Monster::getDeathProtection() const
 
 unsigned Monster::getCorroded() const
 {
-  return status.getCorroded();
+  return status.getCorroded().get();
 }
 
 DamageType Monster::damageType() const

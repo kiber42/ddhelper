@@ -4,12 +4,12 @@
 
 bool MonsterStatus::isBurning() const
 {
-  return burnStackSize > 0;
+  return burnStackSize > 0_burn;
 }
 
 bool MonsterStatus::isPoisoned() const
 {
-  return poisonAmount > 0;
+  return poisonAmount > 0_poison;
 }
 
 bool MonsterStatus::isSlowed() const
@@ -27,27 +27,27 @@ bool MonsterStatus::isWickedSick() const
   return status & (1 << static_cast<std::underlying_type_t<Status>>(Status::WickedSick));
 }
 
-uint8_t MonsterStatus::getBurnStackSize() const
+BurnStackSize MonsterStatus::getBurnStackSize() const
 {
   return burnStackSize;
 }
 
-uint16_t MonsterStatus::getPoisonAmount() const
+PoisonAmount MonsterStatus::getPoisonAmount() const
 {
   return poisonAmount;
 }
 
-uint16_t MonsterStatus::getCorroded() const
+CorrosionAmount MonsterStatus::getCorroded() const
 {
   return corroded;
 }
 
-void MonsterStatus::setBurn(uint8_t nStacks)
+void MonsterStatus::set(BurnStackSize nStacks)
 {
   burnStackSize = nStacks;
 }
 
-void MonsterStatus::setPoison(uint16_t newPoisonAmount)
+void MonsterStatus::set(PoisonAmount newPoisonAmount)
 {
   poisonAmount = newPoisonAmount;
 }
@@ -60,7 +60,7 @@ void MonsterStatus::setSlowed(bool newSlowed)
     status &= ~(1 << static_cast<std::underlying_type_t<Status>>(Status::Slowed));
 }
 
-void MonsterStatus::setCorroded(uint16_t numCorrosionStacks)
+void MonsterStatus::set(CorrosionAmount numCorrosionStacks)
 {
   corroded = numCorrosionStacks;
 }

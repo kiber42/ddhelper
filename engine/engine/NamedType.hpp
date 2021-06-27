@@ -1,5 +1,7 @@
 #pragma once
 
+#include <compare>
+
 template <typename T, typename Parameter, template <typename> class... Mixins>
 class NamedType : public Mixins<NamedType<T, Parameter, Mixins...>>...
 {
@@ -42,6 +44,30 @@ struct Subtractable : MixinBase<T, Subtractable>
   constexpr T& operator-=(const T& other)
   {
     this->underlying().get() -= other.get();
+    return this->underlying();
+  }
+};
+
+template <typename T>
+struct Scalable : MixinBase<T, Scalable>
+{
+  template <typename Scalar>
+  [[nodiscard]] T operator*(Scalar other) const { return T(this->underlying().get() * other); }
+
+  template <typename Scalar>
+  [[nodiscard]] T operator/(Scalar other) const { return T(this->underlying().get() / other); }
+
+  template <typename Scalar>
+  constexpr T& operator*=(Scalar other)
+  {
+    this->underlying().get() *= other;
+    return this->underlying();
+  }
+
+  template <typename Scalar>
+  constexpr T& operator/=(Scalar other)
+  {
+    this->underlying().get() /= other;
     return this->underlying();
   }
 };
