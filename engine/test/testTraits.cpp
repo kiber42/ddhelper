@@ -36,7 +36,7 @@ void testChemist()
       Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
       chemist.recover(4u);
       Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
-      AssertThat(chemist.getStatusIntensity(HeroStatus::Might), Equals(3u));
+      AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(3u));
       AssertThat(chemist.getBaseDamage(), Equals(8u));
       AssertThat(chemist.getDamageBonusPercent(), Equals(90));
     });
@@ -52,40 +52,40 @@ void testChemist()
       AssertThat(monster.getMagicalResistPercent(), Equals(0u));
     });
     it("should wear off after one attack", [&] {
-      AssertThat(chemist.hasStatus(HeroStatus::Might), IsFalse());
+      AssertThat(chemist.has(HeroStatus::Might), IsFalse());
       AssertThat(chemist.getBaseDamage(), Equals(5u));
       AssertThat(chemist.getDamageBonusPercent(), Equals(0));
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(2u));
     });
-    it("should silently stack on Might received by other means", [&]{
-      chemist.addStatus(HeroStatus::Might);
+    it("should silently stack on Might received by other means", [&] {
+      chemist.add(HeroStatus::Might);
       chemist.recover(10u);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(2u));
       Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(4u));
       Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(8u));
-      AssertThat(chemist.getStatusIntensity(HeroStatus::Might), Equals(3u));
+      AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(3u));
       AssertThat(chemist.getBaseDamage(), Equals(8u));
       AssertThat(chemist.getDamageBonusPercent(), Equals(90));
     });
-    it("should not allow stacking Might by other means than Bysseps", []{
+    it("should not allow stacking Might by other means than Bysseps", [] {
       Hero chemist(HeroClass::Chemist);
       Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
-      AssertThat(chemist.getStatusIntensity(HeroStatus::Might), Equals(1u));
+      AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
       chemist.followDeity(God::BinlorIronshield, 1000);
       resources.numWalls = 10;
       chemist.request(Boon::StoneForm, noOtherMonsters, resources);
       chemist.wallDestroyed();
-      AssertThat(chemist.getStatusIntensity(HeroStatus::Might), Equals(1u));
+      AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
       Monster monster("", {Level{1}, 16_HP, 1_damage}, {4, 2}, {});
       Combat::attack(chemist, monster, noOtherMonsters);
-      AssertThat(chemist.hasStatus(HeroStatus::Might), IsFalse());
+      AssertThat(chemist.has(HeroStatus::Might), IsFalse());
 
       chemist.wallDestroyed();
-      AssertThat(chemist.getStatusIntensity(HeroStatus::Might), Equals(1u));
+      AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
       Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
-      AssertThat(chemist.getStatusIntensity(HeroStatus::Might), Equals(2u));
+      AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(2u));
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(4u));
     });
   });
@@ -98,10 +98,10 @@ void testTransmuter()
       Hero hero;
       hero.gainLevel(noOtherMonsters);
       const auto baseDamage = hero.getBaseDamage();
-      hero.addTrait(HeroTrait::SpiritSword);
+      hero.add(HeroTrait::SpiritSword);
       hero.addConversionPoints(1000, noOtherMonsters);
       const auto spiritStrength = hero.getLevel() + hero.getManaPointsMax();
-      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(spiritStrength));
+      AssertThat(hero.getIntensity(HeroStatus::SpiritStrength), Equals(spiritStrength));
       AssertThat(hero.getManaPoints(), Equals(0));
       AssertThat(hero.getBaseDamage(), Equals(baseDamage + spiritStrength));
     });
@@ -113,8 +113,7 @@ void testTransmuter()
       hero.addConversionPoints(70, noOtherMonsters);
       AssertThat(hero.getManaPointsMax(), Equals(11));
       AssertThat(hero.getManaPoints(), Equals(0));
-      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength),
-                 Equals(hero.getLevel() + hero.getManaPointsMax()));
+      AssertThat(hero.getIntensity(HeroStatus::SpiritStrength), Equals(hero.getLevel() + hero.getManaPointsMax()));
     });
   });
 }

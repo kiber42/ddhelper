@@ -190,7 +190,7 @@ namespace ui
 
     for (const auto& [status, intensity] : statuses)
       for (int i = 0; i < intensity; ++i)
-        hero.addStatus(status);
+        hero.add(status);
 
     return hero;
   }

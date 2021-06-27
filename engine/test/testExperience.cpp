@@ -51,12 +51,12 @@ void testHeroExperience()
     hero.gainExperienceNoBonuses(10, noOtherMonsters);
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
     it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30u)); });
-    hero.addStatus(HeroDebuff::Poisoned, noOtherMonsters);
-    hero.addStatus(HeroDebuff::ManaBurned, noOtherMonsters);
+    hero.add(HeroDebuff::Poisoned, noOtherMonsters);
+    hero.add(HeroDebuff::ManaBurned, noOtherMonsters);
     hero.gainExperienceNoBonuses(15, noOtherMonsters);
     it("should remove poison and mana burn", [&] {
-      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
-      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::Poisoned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::ManaBurned), IsFalse());
     });
   });
 
@@ -67,30 +67,30 @@ void testHeroExperience()
     hero.gainLevel(noOtherMonsters);
     it("should refill hit points", [&] { AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax())); });
     it("should increase maximum hit points", [&] { AssertThat(hero.getHitPointsMax(), Equals(30u)); });
-    hero.addStatus(HeroDebuff::Poisoned, noOtherMonsters);
-    hero.addStatus(HeroDebuff::ManaBurned, noOtherMonsters);
+    hero.add(HeroDebuff::Poisoned, noOtherMonsters);
+    hero.add(HeroDebuff::ManaBurned, noOtherMonsters);
     hero.gainLevel(noOtherMonsters);
     it("should remove poison and mana burn", [&] {
-      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
-      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::Poisoned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::ManaBurned), IsFalse());
     });
   });
 
   describe("Hero's XP", [] {
     it("should be 2 instead of 1 if the hero has 'Learning' (permanent bonus)", [&] {
       Hero hero;
-      hero.addStatus(HeroStatus::Learning);
+      hero.add(HeroStatus::Learning);
       hero.gainExperienceForKill(1, false, noOtherMonsters);
       AssertThat(hero.getXP(), Equals(2u));
-      AssertThat(hero.hasStatus(HeroStatus::Learning), IsTrue());
+      AssertThat(hero.has(HeroStatus::Learning), IsTrue());
     });
     it("should grow by 1 extra point for each level of 'Learning'", [&] {
       Hero hero;
-      hero.addStatus(HeroStatus::Learning);
-      hero.addStatus(HeroStatus::Learning);
-      hero.addStatus(HeroStatus::Learning);
-      hero.addStatus(HeroStatus::Learning);
-      AssertThat(hero.getStatusIntensity(HeroStatus::Learning), Equals(4u));
+      hero.add(HeroStatus::Learning);
+      hero.add(HeroStatus::Learning);
+      hero.add(HeroStatus::Learning);
+      hero.add(HeroStatus::Learning);
+      AssertThat(hero.getIntensity(HeroStatus::Learning), Equals(4u));
       hero.gainExperienceForKill(1, false, noOtherMonsters);
       AssertThat(hero.getXP(), Equals(0u));
       AssertThat(hero.getLevel(), Equals(2u));
@@ -99,14 +99,14 @@ void testHeroExperience()
        [&] {
          Hero hero;
          hero.gainLevel(noOtherMonsters);
-         hero.addStatus(HeroStatus::ExperienceBoost);
-         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), IsTrue());
+         hero.add(HeroStatus::ExperienceBoost);
+         AssertThat(hero.has(HeroStatus::ExperienceBoost), IsTrue());
          hero.gainExperienceForKill(2, false, noOtherMonsters);
          AssertThat(hero.getXP(), Equals(3u));
-         AssertThat(hero.hasStatus(HeroStatus::ExperienceBoost), IsFalse());
-         hero.addStatus(HeroStatus::ExperienceBoost);
-         hero.addStatus(HeroStatus::ExperienceBoost);
-         AssertThat(hero.getStatusIntensity(HeroStatus::ExperienceBoost), Equals(1u));
+         AssertThat(hero.has(HeroStatus::ExperienceBoost), IsFalse());
+         hero.add(HeroStatus::ExperienceBoost);
+         hero.add(HeroStatus::ExperienceBoost);
+         AssertThat(hero.getIntensity(HeroStatus::ExperienceBoost), Equals(1u));
          hero.gainExperienceForKill(1, false, noOtherMonsters);
          AssertThat(hero.getXP(), Equals(4u));
        });
@@ -114,8 +114,8 @@ void testHeroExperience()
       Hero hero;
       hero.gainLevel(noOtherMonsters);
       hero.gainLevel(noOtherMonsters);
-      hero.addStatus(HeroStatus::ExperienceBoost);
-      hero.addStatus(HeroStatus::Learning);
+      hero.add(HeroStatus::ExperienceBoost);
+      hero.add(HeroStatus::Learning);
       hero.gainExperienceForKill(3, false, noOtherMonsters);
       // 150% * 3 + 1 = 5.5 -> 5 rather than 150% * (3 + 1) = 6
       AssertThat(hero.getXP(), Equals(5u));

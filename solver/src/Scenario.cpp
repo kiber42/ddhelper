@@ -33,7 +33,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.receive(Spell::Burndayraz);
     hero.receive(Spell::Bysseps);
     hero.receive(BlacksmithItem::Shield);
-    hero.addStatus(HeroStatus::Pessimist);
+    hero.add(HeroStatus::Pessimist);
     return hero;
   }
   case Scenario::TheThirdAct:
@@ -44,7 +44,7 @@ Hero getHeroForScenario(Scenario scenario)
     hero.addGold(100 - hero.gold());
     hero.clearInventory();
     hero.receive(MiscItem::TikkisCharm);
-    hero.addStatus(HeroStatus::Pessimist);
+    hero.add(HeroStatus::Pessimist);
     return hero;
   }
   }
@@ -93,5 +93,5 @@ SimpleResources getResourcesForScenario(Scenario scenario)
     resources.revealTile(); // 2 x 2 - 1 = 3 hidden tiles
     return resources;
   }
-  return SimpleResources{{}, 0 /* no hidden tiles */ };
+  return SimpleResources{{}, 0 /* no hidden tiles */};
 }

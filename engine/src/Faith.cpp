@@ -36,13 +36,13 @@ bool Faith::followDeity(God god, Hero& hero, unsigned numRevealedTiles)
 
 bool Faith::canFollow(God god, const Hero& hero) const
 {
-  if (hero.hasTrait(HeroTrait::Damned) || hero.hasTrait(HeroTrait::Scapegoat))
+  if (hero.has(HeroTrait::Damned) || hero.has(HeroTrait::Scapegoat))
     return false;
   if (followedDeity)
   {
     if (followedDeity == god)
       return false;
-    if (hero.hasTrait(HeroTrait::HolyWork))
+    if (hero.has(HeroTrait::HolyWork))
       return false;
     if (piety < 50)
       return false;
@@ -107,7 +107,7 @@ void Faith::losePiety(unsigned pointsLost, Hero& hero, Monsters& allMonsters)
 void Faith::applyRandomJehoraEvent(Hero& hero)
 {
   const auto result = jehora();
-  if (result > 0 && !hero.hasStatus(HeroStatus::Pessimist))
+  if (result > 0 && !hero.has(HeroStatus::Pessimist))
     gainPiety(result);
   else
     jehora.applyRandomPunishment(hero);
@@ -133,7 +133,7 @@ void Faith::apply(PietyChange change, Hero& hero, Monsters& allMonsters)
       if (piety >= 10)
       {
         piety -= 10;
-        hero.addStatus(HeroStatus::Might);
+        hero.add(HeroStatus::Might);
         hero.healHitPoints(hero.getHitPointsMax(), true);
       }
       break;
@@ -206,7 +206,7 @@ int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters,
   case Boon::Tribute:
     return hero.gold() >= 15;
   case Boon::UnstoppableFury:
-    return !hero.hasStatus(HeroStatus::DeathProtection) && hero.has(TaurogItem::Skullpicker) &&
+    return !hero.has(HeroStatus::DeathProtection) && hero.has(TaurogItem::Skullpicker) &&
            hero.has(TaurogItem::Wereward) && hero.has(TaurogItem::Gloat) && hero.has(TaurogItem::Will);
   default:
     return true;
@@ -225,9 +225,9 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   }
   piety = static_cast<unsigned>(newPiety);
   boons.push_back(boon);
-  auto triggerStoneForm = [&]{
-    if ((boon == Boon::StoneForm || hero.has(Boon::StoneForm)) && !hero.hasStatus(HeroStatus::Might))
-      hero.addStatus(HeroStatus::Might);
+  auto triggerStoneForm = [&] {
+    if ((boon == Boon::StoneForm || hero.has(Boon::StoneForm)) && !hero.has(HeroStatus::Might))
+      hero.add(HeroStatus::Might);
   };
   // Apply immediate effects.
   switch (boon)
@@ -238,7 +238,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   case Boon::StoneSkin:
     resources().numWalls -= 3;
     triggerStoneForm();
-    hero.addStatus(HeroStatus::StoneSkin, 3);
+    hero.add(HeroStatus::StoneSkin, 3);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 3);
     break;
   case Boon::StoneForm:
@@ -249,7 +249,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   case Boon::StoneFist:
     resources().numWalls -= 20;
     triggerStoneForm();
-    hero.addStatus(HeroStatus::Knockback, 50);
+    hero.add(HeroStatus::Knockback, 50);
     hero.setMagicalResistPercent(hero.getMagicalResistPercent() + 5);
     break;
   case Boon::StoneHeart:
@@ -264,12 +264,12 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.modifyLevelBy(+1);
     break;
   case Boon::BloodTithe:
-    hero.addStatus(HeroStatus::Sanguine, 5);
+    hero.add(HeroStatus::Sanguine, 5);
     hero.changeHitPointsMax(-5);
     hero.changeBaseDamage(+1);
     break;
   case Boon::BloodHunger:
-    hero.addStatus(HeroStatus::LifeSteal);
+    hero.add(HeroStatus::LifeSteal);
     hero.changePhysicalResistPercentMax(-20);
     hero.changeMagicalResistPercentMax(-20);
     break;
@@ -279,7 +279,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   case Boon::BloodSwell:
     hero.healHitPoints(hero.getHitPointsMax());
-    hero.addStatus(HeroDebuff::Cursed, allMonstersOnFloor);
+    hero.add(HeroDebuff::Cursed, allMonstersOnFloor);
     break;
 
   case Boon::Plantation:
@@ -300,7 +300,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   }
   case Boon::Greenblood:
     resources().numPlants += preparationPenalty ? 6 : 3;
-    hero.reduceStatus(HeroDebuff::Cursed);
+    hero.reduce(HeroDebuff::Cursed);
     for (auto& monster : allMonstersOnFloor)
       monster.corrode();
     break;
@@ -312,7 +312,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   case Boon::VineForm:
     resources().numPlants += preparationPenalty ? 4 : 2;
     hero.changeHitPointsMax(+4);
-    hero.addStatus(HeroStatus::DamageReduction);
+    hero.add(HeroStatus::DamageReduction);
     break;
 
   case Boon::Humility:
@@ -331,11 +331,11 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   }
   case Boon::Cleansing:
-    hero.resetStatus(HeroDebuff::Poisoned);
-    hero.resetStatus(HeroDebuff::ManaBurned);
-    hero.reduceStatus(HeroDebuff::Weakened);
-    hero.reduceStatus(HeroDebuff::Corroded);
-    hero.addStatus(HeroStatus::ConsecratedStrike);
+    hero.reset(HeroDebuff::Poisoned);
+    hero.reset(HeroDebuff::ManaBurned);
+    hero.reduce(HeroDebuff::Weakened);
+    hero.reduce(HeroDebuff::Corroded);
+    hero.add(HeroStatus::ConsecratedStrike);
     hero.receive(MiscItem::PrayerBead);
     break;
   case Boon::Protection:
@@ -365,8 +365,8 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.gainLevel(allMonstersOnFloor);
     hero.refillHealthAndMana(); // for Goatperson
     hero.addConversionPoints(100, allMonstersOnFloor);
-    hero.resetStatus(HeroDebuff::Weakened);
-    hero.resetStatus(HeroDebuff::Corroded);
+    hero.reset(HeroDebuff::Weakened);
+    hero.reset(HeroDebuff::Corroded);
     for (auto& monster : allMonstersOnFloor)
     {
       monster.changePhysicalResist(-20);
@@ -407,14 +407,14 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.changeManaPointsMax(-1);
     break;
   case Boon::UnstoppableFury:
-    hero.addStatus(HeroStatus::DeathProtection);
+    hero.add(HeroStatus::DeathProtection);
     break;
 
   case Boon::Tribute:
     hero.spendGold(15);
     break;
   case Boon::TikkisEdge:
-    hero.addStatus(HeroStatus::Learning);
+    hero.add(HeroStatus::Learning);
     hero.addGold(10);
     break;
   case Boon::Dodging:
@@ -422,7 +422,7 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.addGold(10);
     break;
   case Boon::Poison:
-    hero.addStatus(HeroStatus::Poisonous, 1);
+    hero.add(HeroStatus::Poisonous, 1);
     break;
   case Boon::Reflexes:
     hero.lose(Potion::HealthPotion);
@@ -537,7 +537,7 @@ int Faith::getCosts(Boon boon, const Hero& hero) const
   if (baseCosts == -1)
     return static_cast<int>(getPiety());
   const auto count = static_cast<int>(boonCount(boon));
-  if (hero.hasTrait(HeroTrait::HolyWork))
+  if (hero.has(HeroTrait::HolyWork))
     return baseCosts * 8 / 10 + (increase * 8 / 10) * count;
   return baseCosts + increase * count;
 }
@@ -587,7 +587,7 @@ void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles)
     gainPiety(5 * hero.getLevel());
     break;
   case God::JehoraJeheyu:
-    gainPiety(jehora.initialPietyBonus(hero.getLevel(), hero.hasStatus(HeroStatus::Pessimist)));
+    gainPiety(jehora.initialPietyBonus(hero.getLevel(), hero.has(HeroStatus::Pessimist)));
     hero.receiveFreeSpell(Spell::Weytwut);
     break;
   case God::MysteraAnnur:
@@ -604,7 +604,7 @@ void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles)
 
 void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
 {
-  if (hero.hasTrait(HeroTrait::HolyWork))
+  if (hero.has(HeroTrait::HolyWork))
     return;
   switch (god)
   {
@@ -613,11 +613,11 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
     hero.changeMagicalResistPercent(-50);
     break;
   case God::Dracul:
-    hero.reduceStatus(HeroStatus::LifeSteal);
+    hero.reduce(HeroStatus::LifeSteal);
     hero.changeHitPointsMax(-20);
     break;
   case God::TheEarthmother:
-    hero.addStatus(HeroDebuff::Corroded, allMonsters, 5);
+    hero.add(HeroDebuff::Corroded, allMonsters, 5);
     break;
   case God::GlowingGuardian:
     hero.clearInventory();
@@ -643,9 +643,9 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
       monster.changeMagicResist(10);
     break;
   case God::TikkiTooki:
-    hero.resetStatus(HeroStatus::DodgePermanent);
-    hero.resetStatus(HeroStatus::DodgeTemporary);
-    hero.resetStatus(HeroStatus::Poisonous);
+    hero.reset(HeroStatus::DodgePermanent);
+    hero.reset(HeroStatus::DodgeTemporary);
+    hero.reset(HeroStatus::Poisonous);
     for (auto& monster : allMonsters)
       monster.applyTikkiTookiBoost();
     break;
@@ -977,7 +977,7 @@ PietyChange Faith::deathProtectionTriggered()
 
 void Faith::convertedTaurogItem(Hero& hero, Monsters& allMonsters)
 {
-  if (hero.hasTrait(HeroTrait::HolyWork))
+  if (hero.has(HeroTrait::HolyWork))
     return;
   hero.changeDamageBonusPercent(-10);
   for (auto& monster : allMonsters)

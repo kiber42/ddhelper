@@ -1,9 +1,9 @@
 #include "bandit/bandit.h"
 
 #include "engine/Hero.hpp"
+#include "engine/Magic.hpp"
 #include "engine/Monster.hpp"
 #include "engine/MonsterTypes.hpp"
-#include "engine/Magic.hpp"
 
 using namespace bandit;
 using namespace snowhouse;
@@ -63,7 +63,7 @@ void testBludtupowa()
     });
     it("should be independent of death protection", [] {
       Hero hero;
-      hero.addStatus(HeroStatus::DeathProtection);
+      hero.add(HeroStatus::DeathProtection);
       hero.loseHitPointsOutsideOfFight(hero.getHitPoints() - Magic::healthCostsBludtupowa(hero), noOtherMonsters);
       AssertThat(Magic::isPossible(hero, Spell::Bludtupowa, resources), IsFalse());
     });

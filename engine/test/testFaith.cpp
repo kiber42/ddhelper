@@ -109,7 +109,7 @@ void testFaith()
     describe("[Dislikes]", [] {
       it("shall subtract 3 piety for taking more than one hit from an enemy", [] {
         Hero hero;
-        hero.addStatus(HeroStatus::Learning, 4);
+        hero.add(HeroStatus::Learning, 4);
         hero.getFaith().gainPiety(5);
         hero.followDeity(God::TikkiTooki, 0);
         Monsters meatMen{{MonsterType::MeatMan, 1}, {MonsterType::MeatMan, 1}};
@@ -165,10 +165,10 @@ void testFaith()
         AssertThat(hero.getPiety(), Equals(10u));
         AssertThat(Combat::attack(hero, meatMan, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(7u));
-        hero.addStatus(HeroStatus::DamageReduction, 2);
+        hero.add(HeroStatus::DamageReduction, 2);
         AssertThat(Combat::attack(hero, meatMan, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(4u));
-        hero.addStatus(HeroStatus::DamageReduction, 1);
+        hero.add(HeroStatus::DamageReduction, 1);
         AssertThat(Combat::attack(hero, meatMan, noOtherMonsters), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(4u));
       });

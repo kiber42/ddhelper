@@ -25,7 +25,8 @@ namespace ui
           [](State& state) {
             const auto summary = Combat::attack(state.hero, *state.monster(), state.monsterPool);
             // TODO: Could move this into attack for consistency with Magic::cast ?
-            if ((summary == Summary::Win || summary == Summary::LevelUp) && !state.monster()->has(MonsterTrait::Bloodless))
+            if ((summary == Summary::Win || summary == Summary::LevelUp) &&
+                !state.monster()->has(MonsterTrait::Bloodless))
               ++state.resources.visible.numBloodPools;
             return summary;
           },
@@ -301,7 +302,7 @@ namespace ui
           ImGui::Checkbox("Use Translocation Seal", &useTranslocationSeal);
         else
           useTranslocationSeal = false;
-        const bool allItemsLarge = state.hero.hasTrait(HeroTrait::RegalSize);
+        const bool allItemsLarge = state.hero.has(HeroTrait::RegalSize);
         const auto numFreeSlots =
             state.hero.numFreeSmallInventorySlots() + (useTranslocationSeal ? (allItemsLarge ? 5 : 1) : 0);
         if (numFreeSlots < 5)
@@ -323,7 +324,7 @@ namespace ui
             const std::string historyTitle = "Translocate " + label;
             if (addPopupAction(
                     state, label, historyTitle,
-                    [item, shopIndex=static_cast<long>(shopIndex)](State& state) {
+                    [item, shopIndex = static_cast<long>(shopIndex)](State& state) {
                       if (state.hero.useTranslocationSealOn(item))
                       {
                         auto& shops = state.resources().shops;
@@ -340,7 +341,7 @@ namespace ui
             const std::string historyTitle = "Buy " + label;
             if (addPopupAction(
                     state, label, historyTitle,
-                    [item, shopIndex=static_cast<long>(shopIndex)](State& state) {
+                    [item, shopIndex = static_cast<long>(shopIndex)](State& state) {
                       if (state.hero.buy(item))
                       {
                         auto& shops = state.resources().shops;
@@ -358,8 +359,7 @@ namespace ui
       const std::string title = "Potion Shop (x"s + std::to_string(numPotionShops) + ")";
       if (numPotionShops > 0 && ImGui::BeginMenu(title.c_str()))
       {
-        for (int potionIndex = static_cast<int>(0); potionIndex <= static_cast<int>(Potion::Last);
-             ++potionIndex)
+        for (int potionIndex = static_cast<int>(0); potionIndex <= static_cast<int>(Potion::Last); ++potionIndex)
         {
           const bool isSelected = ++index == selectedPopupItem;
           const auto potion = static_cast<Potion>(potionIndex);
@@ -517,7 +517,7 @@ namespace ui
           const bool isSelected = ++index == selectedPopupItem;
           if (addPopupAction(
                   state, toString(god), "Desecrate "s + toString(god) + "'s altar",
-                  [god, altarIndex=static_cast<long>(altarIndex)](State& state) {
+                  [god, altarIndex = static_cast<long>(altarIndex)](State& state) {
                     state.hero.desecrate(god, state.monsterPool);
                     auto& altars = state.resources().altars;
                     altars.erase(begin(altars) + altarIndex);
@@ -698,7 +698,7 @@ namespace ui
       }
     }
 
-    if (visible.numBloodPools > 0 && state.hero.hasStatus(HeroStatus::Sanguine))
+    if (visible.numBloodPools > 0 && state.hero.has(HeroStatus::Sanguine))
     {
       ImGui::SameLine();
       addActionButton(

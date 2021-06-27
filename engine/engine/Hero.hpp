@@ -81,20 +81,20 @@ public:
   void refillHealthAndMana();
   void addSpiritStrength();
 
-  void addStatus(HeroStatus status, int addedIntensity = 1);
-  void reduceStatus(HeroStatus status);
-  void resetStatus(HeroStatus status);
-  bool hasStatus(HeroStatus status) const;
-  unsigned getStatusIntensity(HeroStatus status) const;
+  void add(HeroStatus status, int addedIntensity = 1);
+  void reduce(HeroStatus status);
+  void reset(HeroStatus status);
+  bool has(HeroStatus status) const;
+  unsigned getIntensity(HeroStatus status) const;
 
-  void addStatus(HeroDebuff debuff, Monsters& allMonsters, int addedIntensity = 1);
-  void reduceStatus(HeroDebuff debuff);
-  void resetStatus(HeroDebuff debuff);
-  bool hasStatus(HeroDebuff debuff) const;
-  unsigned getStatusIntensity(HeroDebuff debuff) const;
+  void add(HeroDebuff debuff, Monsters& allMonsters, int addedIntensity = 1);
+  void reduce(HeroDebuff debuff);
+  void reset(HeroDebuff debuff);
+  bool has(HeroDebuff debuff) const;
+  unsigned getIntensity(HeroDebuff debuff) const;
 
-  void addTrait(HeroTrait trait);
-  bool hasTrait(HeroTrait trait) const;
+  void add(HeroTrait trait);
+  bool has(HeroTrait trait) const;
 
   // Adds XP and triggers any faith and item effects
   void monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters);

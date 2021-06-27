@@ -56,7 +56,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
     return;
   // By design, Jehora's punishments (like poisoning or mana burn) cannot trigger chain reactions
   // (i.e. he will never be upset about them), and none of his punishments affect other monsters.
-  // It is therefore okay to pass an empty vector as second argument to addStatus.
+  // It is therefore okay to pass an empty vector as second argument to add.
   Monsters ignore;
   std::uniform_int_distribution<> punishmentRoll(0, 10);
   unsigned rerolls = 0;
@@ -73,7 +73,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
       case 0:
         if (rerolls >= thresholdPoison)
         {
-          hero.addStatus(HeroDebuff::Poisoned, ignore);
+          hero.add(HeroDebuff::Poisoned, ignore);
           ++thresholdPoison;
           return;
         }
@@ -81,7 +81,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
       case 1:
         if (rerolls >= thresholdManaBurn)
         {
-          hero.addStatus(HeroDebuff::ManaBurned, ignore);
+          hero.add(HeroDebuff::ManaBurned, ignore);
           ++thresholdManaBurn;
           return;
         }
@@ -99,7 +99,7 @@ void Jehora::applyRandomPunishment(Hero& hero)
     case 1:
       if (rerolls >= thresholdWeakened)
       {
-        hero.addStatus(HeroDebuff::Weakened, ignore);
+        hero.add(HeroDebuff::Weakened, ignore);
         ++thresholdWeakened;
         return;
       }
@@ -107,14 +107,14 @@ void Jehora::applyRandomPunishment(Hero& hero)
     case 2:
       if (rerolls >= thresholdCorrosion)
       {
-        hero.addStatus(HeroDebuff::Corroded, ignore);
+        hero.add(HeroDebuff::Corroded, ignore);
         ++thresholdCorrosion;
       }
       break;
     case 3:
       if (rerolls >= thresholdCursed)
       {
-        hero.addStatus(HeroDebuff::Cursed, ignore);
+        hero.add(HeroDebuff::Cursed, ignore);
         ++thresholdCursed;
         return;
       }

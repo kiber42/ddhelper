@@ -150,19 +150,19 @@ void testDefenceBasics()
     describe("Damage reduction", [] {
       it("should reduce incoming damage", [&] {
         Hero hero;
-        hero.addStatus(HeroStatus::DamageReduction);
+        hero.add(HeroStatus::DamageReduction);
         hero.takeDamage(3, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(8u));
-        hero.addStatus(HeroStatus::DamageReduction, 99);
+        hero.add(HeroStatus::DamageReduction, 99);
         hero.takeDamage(90, DamageType::Physical, noOtherMonsters);
         hero.takeDamage(99, DamageType::Magical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(8u));
         hero.takeDamage(104, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(4u));
-        hero.addStatus(HeroStatus::DeathProtection);
+        hero.add(HeroStatus::DeathProtection);
         hero.takeDamage(104, DamageType::Magical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(1u));
-        AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsFalse());
+        AssertThat(hero.has(HeroStatus::DeathProtection), IsFalse());
         hero.takeDamage(101, DamageType::Magical, noOtherMonsters);
         AssertThat(hero.isDefeated(), IsTrue());
       });
@@ -170,20 +170,20 @@ void testDefenceBasics()
     describe("Corroded", [] {
       it("should increase damage taken by 1 per stack size", [] {
         Hero hero;
-        hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
+        hero.add(HeroDebuff::Corroded, noOtherMonsters);
         hero.takeDamage(1, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(8u));
         hero.takeDamage(1, DamageType::Magical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(6u));
-        hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
-        hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
+        hero.add(HeroDebuff::Corroded, noOtherMonsters);
+        hero.add(HeroDebuff::Corroded, noOtherMonsters);
         hero.takeDamage(3, DamageType::Magical, noOtherMonsters);
         AssertThat(hero.isDefeated(), IsTrue());
       });
       it("should only cause extra damage if any damage was taken at all", [] {
         Hero hero;
-        hero.addStatus(HeroDebuff::Corroded, noOtherMonsters);
-        hero.addStatus(HeroStatus::DamageReduction);
+        hero.add(HeroDebuff::Corroded, noOtherMonsters);
+        hero.add(HeroStatus::DamageReduction);
         hero.takeDamage(1, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(10u));
       });
@@ -192,8 +192,8 @@ void testDefenceBasics()
       it("should be applied in this order", [] {
         Hero hero;
         hero.setPhysicalResistPercent(50);
-        hero.addStatus(HeroStatus::DamageReduction, 2);
-        hero.addStatus(HeroDebuff::Corroded, noOtherMonsters, 5);
+        hero.add(HeroStatus::DamageReduction, 2);
+        hero.add(HeroDebuff::Corroded, noOtherMonsters, 5);
         hero.takeDamage(3, DamageType::Physical, noOtherMonsters);
         const unsigned expectedDamage = (3 - 2) - 0 /* 50% of 1, rounded down */ + 5;
         AssertThat(hero.getHitPoints(), Equals(10u - expectedDamage));

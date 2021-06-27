@@ -82,13 +82,13 @@ void testMelee()
       Hero hero;
       auto traits = CustomMonsterTraits::withDeathGaze(100);
       Monster monster("", {Level{1}, 100_HP, 1_damage}, {}, std::move(traits));
-      hero.addStatus(HeroStatus::DeathProtection);
+      hero.add(HeroStatus::DeathProtection);
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
-      AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsTrue());
+      AssertThat(hero.has(HeroStatus::DeathProtection), IsTrue());
       hero.recover(100);
       hero.loseHitPointsOutsideOfFight(1, noOtherMonsters);
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Safe));
-      AssertThat(hero.hasStatus(HeroStatus::DeathProtection), IsFalse());
+      AssertThat(hero.has(HeroStatus::DeathProtection), IsFalse());
       hero.recover(100);
       hero.loseHitPointsOutsideOfFight(1, noOtherMonsters);
       AssertThat(Combat::attack(hero, monster, noOtherMonsters), Equals(Summary::Petrified));

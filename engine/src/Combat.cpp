@@ -38,12 +38,12 @@ namespace Combat
 
     void applyLifeSteal(Hero& hero, const Monster& monster, unsigned monsterHitPointsBefore)
     {
-      if (hero.hasStatus(HeroStatus::LifeSteal) && !monster.has(MonsterTrait::Bloodless))
+      if (hero.has(HeroStatus::LifeSteal) && !monster.has(MonsterTrait::Bloodless))
       {
         const auto multiplier = monster.getLevel() < hero.getLevel() ? 2u : 1u;
         const auto damageDealt = monsterHitPointsBefore - monster.getHitPoints();
         const auto healthStolen =
-            std::min(hero.getStatusIntensity(HeroStatus::LifeSteal) * hero.getLevel() * multiplier, damageDealt);
+            std::min(hero.getIntensity(HeroStatus::LifeSteal) * hero.getLevel() * multiplier, damageDealt);
         if (healthStolen > 0)
         {
           hero.healHitPoints(healthStolen, true);
@@ -54,7 +54,7 @@ namespace Combat
 
     Summary knockBackMonster(Hero& hero, Monster& monster, Monsters& allMonsters, Monster* intoMonster)
     {
-      const auto knockback = hero.getStatusIntensity(HeroStatus::Knockback);
+      const auto knockback = hero.getIntensity(HeroStatus::Knockback);
       if (knockback == 0)
         return Summary::Safe;
       const bool monsterWasSlowed = monster.isSlowed();
@@ -127,33 +127,33 @@ namespace Combat
     bool appliedPoison = false;
 
     const auto monsterDamageInitial = monster.getDamage();
-    const bool reflexes = hero.hasStatus(HeroStatus::Reflexes);
-    const bool swiftHand = hero.hasTrait(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
-    const bool willPetrify = !hero.hasStatus(HeroStatus::DeathGazeImmune) &&
+    const bool reflexes = hero.has(HeroStatus::Reflexes);
+    const bool swiftHand = hero.has(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
+    const bool willPetrify = !hero.has(HeroStatus::DeathGazeImmune) &&
                              (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
 
     auto heroAttacks = [&] {
       const auto monsterHPBefore = monster.getHitPoints();
-      if (hero.hasStatus(HeroStatus::CrushingBlow))
+      if (hero.has(HeroStatus::CrushingBlow))
         monster.receiveCrushingBlow();
-      else if (hero.hasStatus(HeroStatus::BurningStrike))
+      else if (hero.has(HeroStatus::BurningStrike))
       {
         monster.takeBurningStrikeDamage(hero.getDamageOutputVersus(monster), hero.getLevel(), hero.damageType());
-        if (hero.hasStatus(HeroStatus::HeavyFireball))
+        if (hero.has(HeroStatus::HeavyFireball))
           monster.burnMax(static_cast<uint8_t>(2 * hero.getLevel()));
       }
       else
         monster.takeDamage(hero.getDamageOutputVersus(monster), hero.damageType());
       applyLifeSteal(hero, monster, monsterHPBefore);
-      if (!monster.isDefeated() && hero.hasStatus(HeroStatus::Poisonous))
+      if (!monster.isDefeated() && hero.has(HeroStatus::Poisonous))
       {
-        const auto poisonAmount = hero.getStatusIntensity(HeroStatus::Poisonous) * hero.getLevel();
+        const auto poisonAmount = hero.getIntensity(HeroStatus::Poisonous) * hero.getLevel();
         if (monster.poison(poisonAmount))
           appliedPoison = true;
       }
-      if (hero.hasStatus(HeroStatus::CorrosiveStrike))
-        monster.corrode(hero.getStatusIntensity(HeroStatus::CorrosiveStrike));
-      if (hero.hasStatus(HeroStatus::Might))
+      if (hero.has(HeroStatus::CorrosiveStrike))
+        monster.corrode(hero.getIntensity(HeroStatus::CorrosiveStrike));
+      if (hero.has(HeroStatus::Might))
         monster.erodeResitances();
       hero.removeOneTimeAttackEffects();
     };
@@ -162,7 +162,7 @@ namespace Combat
       if (!hero.tryDodge(allMonsters))
       {
         if (monster.has(MonsterTrait::CurseBearer))
-          hero.addStatus(HeroDebuff::Cursed, allMonsters);
+          hero.add(HeroDebuff::Cursed, allMonsters);
         if (willPetrify)
         {
           // Hero either dies or death protection is triggered
@@ -173,7 +173,7 @@ namespace Combat
         {
           heroReceivedHit = hero.takeDamage(monsterDamageInitial, monster.damageType(), allMonsters);
         }
-        if (hero.hasTrait(HeroTrait::ManaShield) && heroReceivedHit && !hero.isDefeated())
+        if (hero.has(HeroTrait::ManaShield) && heroReceivedHit && !hero.isDefeated())
           monster.takeManaShieldDamage(hero.getLevel());
       }
     };
@@ -192,7 +192,7 @@ namespace Combat
         // If the monster is defeated beyond this point (Reflexes or Mana Shield),
         // it was not slowed nor burning (except if attacked with Burning Strike) before the final blow.
         monsterWasSlowed = false;
-        monsterWasBurning = hero.hasStatus(HeroStatus::BurningStrike);
+        monsterWasBurning = hero.has(HeroStatus::BurningStrike);
         monsterAttacks();
         if (reflexes && !hero.isDefeated() && !monster.isDefeated())
           heroAttacks();
@@ -208,13 +208,13 @@ namespace Combat
     if (heroReceivedHit)
     {
       if (monster.has(MonsterTrait::Poisonous))
-        hero.addStatus(HeroDebuff::Poisoned, allMonsters);
+        hero.add(HeroDebuff::Poisoned, allMonsters);
       if (monster.has(MonsterTrait::ManaBurn))
-        hero.addStatus(HeroDebuff::ManaBurned, allMonsters);
+        hero.add(HeroDebuff::ManaBurned, allMonsters);
       if (monster.has(MonsterTrait::Corrosive))
-        hero.addStatus(HeroDebuff::Corroded, allMonsters);
+        hero.add(HeroDebuff::Corroded, allMonsters);
       if (monster.has(MonsterTrait::Weakening))
-        hero.addStatus(HeroDebuff::Weakened, allMonsters);
+        hero.add(HeroDebuff::Weakened, allMonsters);
       hero.collect(hero.getFaith().receivedHit(monster));
     }
 
@@ -235,9 +235,9 @@ namespace Combat
   Summary
   attackWithKnockback(Hero& hero, Monster& primary, Monsters& allMonsters, Knockback knockback, Resources& resources)
   {
-    const bool reflexes = hero.hasStatus(HeroStatus::Reflexes);
+    const bool reflexes = hero.has(HeroStatus::Reflexes);
     auto summary = attack(hero, primary, allMonsters);
-    if (summary == Summary::Safe && hero.hasStatus(HeroStatus::Knockback))
+    if (summary == Summary::Safe && hero.has(HeroStatus::Knockback))
     {
       switch (knockback.targetType)
       {

@@ -40,9 +40,10 @@ namespace GeneticAlgorithm
       return 1000;
     const auto& hero = finalState.hero;
     const auto heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
-    return std::accumulate(
-        begin(finalState.monsters), end(finalState.monsters), static_cast<int>(heroScore),
-        [](const int runningTotal, const Monster& monster) { return runningTotal - static_cast<int>(monster.getHitPoints()); });
+    return std::accumulate(begin(finalState.monsters), end(finalState.monsters), static_cast<int>(heroScore),
+                           [](const int runningTotal, const Monster& monster) {
+                             return runningTotal - static_cast<int>(monster.getHitPoints());
+                           });
   }
 
   void explainScore(const GameState& finalState)
@@ -149,7 +150,7 @@ namespace GeneticAlgorithm
 
   std::optional<Solution> run(GameState state)
   {
-    state.hero.addStatus(HeroStatus::Pessimist);
+    state.hero.add(HeroStatus::Pessimist);
     const unsigned num_generations = 100;
     const unsigned generation_size = 1000;
     // Keep `num_keep` top performers, multiply them to reach original generation size

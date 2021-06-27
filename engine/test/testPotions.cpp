@@ -23,9 +23,9 @@ void testPotions()
     });
     it("removes poison", [] {
       Hero hero;
-      hero.addStatus(HeroDebuff::Poisoned, noOtherMonsters);
+      hero.add(HeroDebuff::Poisoned, noOtherMonsters);
       hero.use(Potion::HealthPotion, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::Poisoned), IsFalse());
     });
     it("does not overheal", [] {
       Hero hero;
@@ -48,29 +48,29 @@ void testPotions()
     });
     it("removes mana burn", [] {
       Hero hero;
-      hero.addStatus(HeroDebuff::ManaBurned, noOtherMonsters);
+      hero.add(HeroDebuff::ManaBurned, noOtherMonsters);
       hero.use(Potion::ManaPotion, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::ManaBurned), IsFalse());
     });
   });
   describe("Fortitude Tonic", [] {
     it("removes poison and weakening", [] {
       Hero hero;
-      hero.addStatus(HeroDebuff::Poisoned, noOtherMonsters);
-      hero.addStatus(HeroDebuff::Weakened, noOtherMonsters, 50);
+      hero.add(HeroDebuff::Poisoned, noOtherMonsters);
+      hero.add(HeroDebuff::Weakened, noOtherMonsters, 50);
       hero.use(Potion::FortitudeTonic, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroDebuff::Poisoned), IsFalse());
-      AssertThat(hero.hasStatus(HeroDebuff::Weakened), IsFalse());
+      AssertThat(hero.has(HeroDebuff::Poisoned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::Weakened), IsFalse());
     });
   });
   describe("Burn Salve", [] {
     it("removes mana burn and corrosion", [] {
       Hero hero;
-      hero.addStatus(HeroDebuff::ManaBurned, noOtherMonsters);
-      hero.addStatus(HeroDebuff::Corroded, noOtherMonsters, 50);
+      hero.add(HeroDebuff::ManaBurned, noOtherMonsters);
+      hero.add(HeroDebuff::Corroded, noOtherMonsters, 50);
       hero.use(Potion::BurnSalve, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroDebuff::ManaBurned), IsFalse());
-      AssertThat(hero.hasStatus(HeroDebuff::Corroded), IsFalse());
+      AssertThat(hero.has(HeroDebuff::ManaBurned), IsFalse());
+      AssertThat(hero.has(HeroDebuff::Corroded), IsFalse());
     });
   });
   describe("Strength Potion", [] {
@@ -81,7 +81,7 @@ void testPotions()
       hero.refillHealthAndMana();
       hero.use(Potion::StrengthPotion, noOtherMonsters);
       AssertThat(hero.getManaPoints(), Equals(0));
-      AssertThat(hero.getStatusIntensity(HeroStatus::SpiritStrength), Equals(123 + hero.getLevel()));
+      AssertThat(hero.getIntensity(HeroStatus::SpiritStrength), Equals(123 + hero.getLevel()));
       AssertThat(hero.getDamageVersusStandard(), Equals(135));
     });
   });
@@ -89,7 +89,7 @@ void testPotions()
     it("adds Schadenfreude status", [] {
       Hero hero;
       hero.use(Potion::Schadenfreude, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroStatus::Schadenfreude), IsTrue());
+      AssertThat(hero.has(HeroStatus::Schadenfreude), IsTrue());
     });
   });
   describe("Quicksilver Potion", [] {
@@ -97,26 +97,26 @@ void testPotions()
       Hero hero;
       hero.use(Potion::QuicksilverPotion, noOtherMonsters);
       AssertThat(hero.getDodgeChancePercent(), Equals(50u));
-      AssertThat(hero.hasStatus(HeroStatus::DodgePermanent), Equals(0u));
+      AssertThat(hero.has(HeroStatus::DodgePermanent), Equals(0u));
     });
     it("adds dodge prediction", [] {
       Hero hero;
       hero.use(Potion::QuicksilverPotion, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroStatus::DodgePrediction), IsTrue());
+      AssertThat(hero.has(HeroStatus::DodgePrediction), IsTrue());
     });
   });
   describe("Reflex Potion", [] {
     it("adds Reflexes status", [] {
       Hero hero;
       hero.use(Potion::ReflexPotion, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroStatus::Reflexes), IsTrue());
+      AssertThat(hero.has(HeroStatus::Reflexes), IsTrue());
     });
   });
   describe("Can Of Whupaz", [] {
     it("adds Crushing Blow status", [] {
       Hero hero;
       hero.use(Potion::CanOfWhupaz, noOtherMonsters);
-      AssertThat(hero.hasStatus(HeroStatus::CrushingBlow), IsTrue());
+      AssertThat(hero.has(HeroStatus::CrushingBlow), IsTrue());
     });
   });
 }

@@ -15,19 +15,19 @@ Conversion::Conversion(DungeonSetup setup)
     {
     case HeroClass::Vampire:
       threshold = 120;
-      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::LifeSteal); };
+      bonus = [](Hero& hero, Monsters&) { hero.add(HeroStatus::LifeSteal); };
       break;
     case HeroClass::HalfDragon:
       threshold = 120;
-      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::Knockback, 20); };
+      bonus = [](Hero& hero, Monsters&) { hero.add(HeroStatus::Knockback, 20); };
       break;
     case HeroClass::Gorgon:
       threshold = 100;
-      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::DeathGaze, 5); };
+      bonus = [](Hero& hero, Monsters&) { hero.add(HeroStatus::DeathGaze, 5); };
       break;
     case HeroClass::RatMonarch:
       threshold = 80;
-      bonus = [](Hero& hero, Monsters&) { hero.addStatus(HeroStatus::CorrosiveStrike); };
+      bonus = [](Hero& hero, Monsters&) { hero.add(HeroStatus::CorrosiveStrike); };
       break;
     case HeroClass::Goatperson:
       threshold = 100;
@@ -52,7 +52,7 @@ Conversion::Conversion(DungeonSetup setup)
     threshold = 70;
     bonus = [](Hero& hero, Monsters&) {
       hero.addManaBonus();
-      if (hero.hasTrait(HeroTrait::SpiritSword))
+      if (hero.has(HeroTrait::SpiritSword))
         hero.recoverManaPoints(1);
     };
     break;
@@ -104,7 +104,7 @@ void Conversion::applyBonus(Hero& hero, Monsters& allMonsters)
   {
     points -= getThreshold();
     bonus(hero, allMonsters);
-    if (hero.hasTrait(HeroTrait::SpiritSword))
+    if (hero.has(HeroTrait::SpiritSword))
       hero.addSpiritStrength();
   }
 }

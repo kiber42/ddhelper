@@ -25,7 +25,7 @@ namespace Magic
     // Note: Attack counts for Crusader's momentum
     void burndayraz(Hero& hero, Monster& monster, Monsters& allMonsters)
     {
-      const bool heavy = hero.hasStatus(HeroStatus::HeavyFireball);
+      const bool heavy = hero.has(HeroStatus::HeavyFireball);
       const bool monsterSlowed = monster.isSlowed();
       const unsigned multiplier =
           4 + hero.has(Boon::Flames) + (heavy ? 4 : 0) + (hero.has(ShopItem::BattlemageRing) ? 1 : 0);
@@ -37,20 +37,20 @@ namespace Magic
       const auto maxBurnStackSize = 2 * hero.getLevel();
       if (heavy)
         monster.burnMax(maxBurnStackSize);
-      else if (hero.hasTrait(HeroTrait::MagicAttunement))
+      else if (hero.has(HeroTrait::MagicAttunement))
         monster.burn(maxBurnStackSize);
 
       // Retaliation
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.has(MonsterTrait::Retaliate)))
       {
         hero.takeDamage(monster.getDamage() / 2, monster.damageType(), allMonsters);
-        if (hero.hasTrait(HeroTrait::ManaShield))
+        if (hero.has(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
       }
 
       // Side effects
       if (hero.has(ShopItem::WitchalokPendant))
-        hero.addStatus(HeroStatus::StoneSkin);
+        hero.add(HeroStatus::StoneSkin);
 
       hero.adjustMomentum(monster.isDefeated());
     }
@@ -59,9 +59,9 @@ namespace Magic
     {
       if (hero.isDefeated())
         return;
-      if (hero.hasTrait(HeroTrait::EssenceTransit))
+      if (hero.has(HeroTrait::EssenceTransit))
         hero.healHitPoints(2 * manaCosts);
-      if (hero.hasTrait(HeroTrait::InnerFocus))
+      if (hero.has(HeroTrait::InnerFocus))
         hero.addConversionPoints(3, allMonsters);
       if (hero.has(ShopItem::DragonSoul))
         hero.applyDragonSoul(manaCosts);
@@ -112,10 +112,10 @@ namespace Magic
   {
     unsigned costs = baseSpellCosts(spell);
     if (spell == Spell::Bysseps)
-      costs <<= hero.getStatusIntensity(HeroStatus::ByssepsStacks);
-    if (hero.hasTrait(HeroTrait::Mageslay))
+      costs <<= hero.getIntensity(HeroStatus::ByssepsStacks);
+    if (hero.has(HeroTrait::Mageslay))
       costs += 2;
-    if (hero.hasTrait(HeroTrait::MagicAffinity))
+    if (hero.has(HeroTrait::MagicAffinity))
       costs -= 1;
     if (hero.has(Boon::MysticBalance))
     {
@@ -129,7 +129,7 @@ namespace Magic
 
   unsigned healthCostsBludtupowa(const Hero& hero)
   {
-    if (hero.hasTrait(HeroTrait::EssenceTransit))
+    if (hero.has(HeroTrait::EssenceTransit))
       return hero.getLevel() * 3 + 4;
     return hero.getLevel() * 3;
   }
@@ -145,16 +145,16 @@ namespace Magic
     case Spell::Bludtupowa:
       return hero.getHitPoints() > healthCostsBludtupowa(hero);
     case Spell::Bysseps:
-      return !hero.hasStatus(HeroStatus::Might) || hero.hasTrait(HeroTrait::Additives);
+      return !hero.has(HeroStatus::Might) || hero.has(HeroTrait::Additives);
     case Spell::Cydstepp:
-      return !hero.hasStatus(HeroStatus::DeathProtection) &&
-             (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.hasTrait(HeroTrait::Defiant));
+      return !hero.has(HeroStatus::DeathProtection) &&
+             (hero.getHitPoints() * 2 >= hero.getHitPointsMax() || hero.has(HeroTrait::Defiant));
     case Spell::Endiswal:
       return resources().numWalls > 0;
     case Spell::Getindare:
-      return !hero.hasStatus(HeroStatus::FirstStrikeTemporary);
+      return !hero.has(HeroStatus::FirstStrikeTemporary);
     case Spell::Halpmeh:
-      return hero.getHitPoints() < hero.getHitPointsMax() || hero.hasStatus(HeroDebuff::Poisoned);
+      return hero.getHitPoints() < hero.getHitPointsMax() || hero.has(HeroDebuff::Poisoned);
     case Spell::Pisorf:
       // TODO: Currently Pisorf is assumed to always push a monster into a (visible) wall
       return resources().numWalls > 0;
@@ -205,25 +205,25 @@ namespace Magic
       break;
     }
     case Spell::Bysseps:
-      hero.addStatus(HeroStatus::Might);
-      hero.addStatus(HeroStatus::ByssepsStacks);
+      hero.add(HeroStatus::Might);
+      hero.add(HeroStatus::ByssepsStacks);
       break;
     case Spell::Cydstepp:
-      hero.addStatus(HeroStatus::DeathProtection);
+      hero.add(HeroStatus::DeathProtection);
       break;
     case Spell::Endiswal:
       --(resources().numWalls);
       hero.wallDestroyed();
-      hero.addStatus(HeroStatus::StoneSkin);
+      hero.add(HeroStatus::StoneSkin);
       break;
     case Spell::Getindare:
       // first strike, +5% dodge chance (until actual dodge)
-      hero.addStatus(HeroStatus::FirstStrikeTemporary);
+      hero.add(HeroStatus::FirstStrikeTemporary);
       hero.addDodgeChancePercent(5, false);
       break;
     case Spell::Halpmeh:
-      hero.healHitPoints(hero.getLevel() * (hero.hasTrait(HeroTrait::HolyHands) ? 5 : 4));
-      hero.resetStatus(HeroDebuff::Poisoned);
+      hero.healHitPoints(hero.getLevel() * (hero.has(HeroTrait::HolyHands) ? 5 : 4));
+      hero.reset(HeroDebuff::Poisoned);
       break;
     case Spell::Imawal:
       hero.recoverManaPoints(2);
@@ -302,7 +302,7 @@ namespace Magic
         --numWalls;
         hero.wallDestroyed();
         monster.takeDamage(hero.getBaseDamage() * 6 / 10, DamageType::Physical);
-        hero.resetStatus(HeroStatus::SpiritStrength);
+        hero.reset(HeroStatus::SpiritStrength);
       }
       break;
     }
@@ -328,9 +328,9 @@ namespace Magic
       if (monster.grantsXP())
         hero.gainExperienceForPetrification(monster.isSlowed(), allMonsters);
       monster.petrify();
-      hero.addStatus(HeroStatus::ExperienceBoost);
+      hero.add(HeroStatus::ExperienceBoost);
       // Remove one curse stack, even for cursed monsters
-      hero.reduceStatus(HeroDebuff::Cursed);
+      hero.reduce(HeroDebuff::Cursed);
       hero.applyCollectedPiety(allMonsters);
       ++(resources().numGoldPiles);
       return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
