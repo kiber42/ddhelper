@@ -52,10 +52,16 @@ template <typename T>
 struct Scalable : MixinBase<T, Scalable>
 {
   template <typename Scalar>
-  [[nodiscard]] T operator*(Scalar other) const { return T(this->underlying().get() * other); }
+  [[nodiscard]] T operator*(Scalar other) const
+  {
+    return T(this->underlying().get() * other);
+  }
 
   template <typename Scalar>
-  [[nodiscard]] T operator/(Scalar other) const { return T(this->underlying().get() / other); }
+  [[nodiscard]] T operator/(Scalar other) const
+  {
+    return T(this->underlying().get() / other);
+  }
 
   template <typename Scalar>
   constexpr T& operator*=(Scalar other)

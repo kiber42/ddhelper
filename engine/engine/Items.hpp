@@ -224,7 +224,7 @@ constexpr const char* toString(Item item)
   return items.at(item).name.data();
 }
 
-template<class ItemSubtype>
+template <class ItemSubtype>
 constexpr const char* toString(ItemSubtype item)
 {
   return toString(Item{item});

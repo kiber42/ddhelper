@@ -1,7 +1,7 @@
 #pragma once
 
-#include "engine/GodsAndBoons.hpp"
 #include "engine/GlowingGuardian.hpp"
+#include "engine/GodsAndBoons.hpp"
 #include "engine/Items.hpp"
 #include "engine/Jehora.hpp"
 #include "engine/Monster.hpp"
