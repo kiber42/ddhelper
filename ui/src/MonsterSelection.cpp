@@ -119,6 +119,15 @@ namespace ui
       }
     };
 
+    auto inputPercent = [](auto label, auto& value) {
+      int percentage = value.percent();
+      if (ImGui::InputInt(label, &percentage))
+      {
+        percentage = std::min(std::max(percentage, 0), 100);
+        value = static_cast<typename std::remove_reference<decltype(value)>::type>(percentage);
+      }
+    };
+
     auto checkbox = [&](auto label, MonsterTrait trait) {
       bool checked = has(trait);
       if (ImGui::Checkbox(label, &checked))
@@ -135,9 +144,9 @@ namespace ui
     inputInt("Physical Resist", data[4], 0, 100);
     inputInt("Magical Resist", data[5], 0, 100);
     inputInt("Death Protection", data[6], 0, 50);
-    inputInt("Death Gaze %", deathGazePercent, 0, 100);
-    inputInt("Life Steal %", lifeStealPercent, 0, 100);
-    inputInt("Berserk at %", berserkPercent, 0, 100);
+    inputPercent("Death Gaze %", deathGaze_);
+    inputPercent("Life Steal %", lifeSteal_);
+    inputPercent("Berserk at %", berserk_);
     bool rightColumn = false;
     for (MonsterTrait trait :
          {MonsterTrait::FirstStrike, MonsterTrait::MagicalAttack, MonsterTrait::Retaliate, MonsterTrait::Poisonous,

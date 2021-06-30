@@ -17,6 +17,25 @@ private:
   T value;
 };
 
+template <typename T, typename Parameter, template <typename> class... Mixins>
+class Percentage : public Mixins<Percentage<T, Parameter, Mixins...>>...
+{
+public:
+  constexpr explicit Percentage(T const& value)
+    : value(value)
+  {
+  }
+  [[nodiscard]] constexpr T& percent() { return value; }
+  [[nodiscard]] constexpr const T& percent() const { return value; }
+
+protected:
+  [[nodiscard]] constexpr T& get() { return value; }
+  [[nodiscard]] constexpr const T& get() const { return value; }
+
+private:
+  T value;
+};
+
 template <typename T, template <typename> class crtpType>
 struct MixinBase
 {

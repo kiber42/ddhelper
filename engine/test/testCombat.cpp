@@ -65,7 +65,7 @@ void testMelee()
       static MonsterTraits withDeathGaze(unsigned char percent)
       {
         CustomMonsterTraits traits;
-        traits.deathGazePercent = percent;
+        traits.deathGaze_ = DeathGaze{percent};
         return static_cast<MonsterTraits>(traits);
       }
     };

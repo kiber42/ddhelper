@@ -17,7 +17,7 @@ MonsterTraits::MonsterTraits(MonsterType type)
     break;
   case MonsterType::Gorgon:
     add(MonsterTrait::FirstStrike);
-    deathGazePercent = 50;
+    deathGaze_ = 50_deathgaze;
     break;
   case MonsterType::Serpent:
     add(MonsterTrait::Poisonous);
@@ -42,7 +42,7 @@ MonsterTraits::MonsterTraits(MonsterType type)
     add(MonsterTrait::MagicalAttack);
     break;
   case MonsterType::Berserker:
-    berserkPercent = 50;
+    berserk_ = 50_berserk;
     break;
   case MonsterType::BurnViper:
     add(MonsterTrait::ManaBurn);
@@ -71,7 +71,7 @@ MonsterTraits::MonsterTraits(MonsterType type)
     add(MonsterTrait::Retaliate);
     break;
   case MonsterType::DoomArmour:
-    berserkPercent = 50;
+    berserk_ = 50_berserk;
     break;
   case MonsterType::Druid:
     add(MonsterTrait::MagicalAttack);
@@ -95,8 +95,8 @@ MonsterTraits::MonsterTraits(MonsterType type)
     add(MonsterTrait::Weakening);
     break;
   case MonsterType::Minotaur:
-    berserkPercent = 50;
-    knockbackPercent = 50;
+    berserk_ = 50_berserk;
+    knockback_ = 50_knockback;
     break;
   case MonsterType::MuckWalker:
     add(MonsterTrait::Bloodless);
@@ -109,7 +109,7 @@ MonsterTraits::MonsterTraits(MonsterType type)
   case MonsterType::RockTroll:
     add(MonsterTrait::Cowardly);
     add(MonsterTrait::FastRegen);
-    knockbackPercent = 50;
+    knockback_ = 50_knockback;
     break;
   case MonsterType::Rusalka:
     add(MonsterTrait::Corrosive);
@@ -120,7 +120,7 @@ MonsterTraits::MonsterTraits(MonsterType type)
   case MonsterType::Shade:
     add(MonsterTrait::Blinks);
     add(MonsterTrait::Undead);
-    lifeStealPercent = 40;
+    lifeSteal_ = 40_lifesteal;
     break;
   case MonsterType::SlimeBlob:
     add(MonsterTrait::CurseBearer);
@@ -137,7 +137,7 @@ MonsterTraits::MonsterTraits(MonsterType type)
     add(MonsterTrait::Cowardly);
     break;
   case MonsterType::Vampire:
-    lifeStealPercent = 40;
+    lifeSteal_ = 40_lifesteal;
     add(MonsterTrait::MagicalAttack);
     break;
   case MonsterType::Goat:

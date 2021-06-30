@@ -77,7 +77,7 @@ unsigned Monster::getHitPointsMax() const
 unsigned Monster::getDamage() const
 {
   const auto standardDamage = stats.getDamage().get();
-  const auto berserkLimit = traits.getBerserkPercent() * getHitPointsMax();
+  const auto berserkLimit = traits.berserk().percent() * getHitPointsMax();
   if (berserkLimit > 0 && getHitPoints() <= berserkLimit)
     return standardDamage * 3 / 2;
   return standardDamage;
@@ -304,12 +304,12 @@ bool Monster::has(MonsterTrait trait) const
 
 unsigned Monster::getDeathGazePercent() const
 {
-  return traits.getDeathGazePercent();
+  return traits.deathGaze().percent();
 }
 
 unsigned Monster::getLifeStealPercent() const
 {
-  return traits.getLifeStealPercent();
+  return traits.lifeSteal().percent();
 }
 
 void Monster::changePhysicalResist(int deltaPercent)

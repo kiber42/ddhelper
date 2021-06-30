@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MonsterTypes.hpp"
+#include "StrongTypes.hpp"
 
 #include <cstdint>
 #include <type_traits>
@@ -69,6 +70,9 @@ constexpr const char* toString(MonsterTrait monsterTrait)
   }
 }
 
+using Berserk = Percentage<uint8_t, struct BerserkParameter, Addable, Comparable>;
+auto constexpr operator"" _berserk(unsigned long long value) { return Berserk{clampedTo<uint8_t>(value)}; }
+
 struct MonsterTraits
 {
   MonsterTraits() = default;
@@ -77,10 +81,10 @@ struct MonsterTraits
 
   inline bool has(MonsterTrait trait) const { return traits & flag(trait); }
 
-  uint8_t getDeathGazePercent() const { return deathGazePercent; }
-  uint8_t getLifeStealPercent() const { return lifeStealPercent; }
-  uint8_t getBerserkPercent() const { return berserkPercent; }
-  uint8_t getKnockbackPercent() const { return knockbackPercent; }
+  DeathGaze deathGaze() const { return deathGaze_; }
+  LifeSteal lifeSteal() const { return lifeSteal_; }
+  Berserk berserk() const { return berserk_; }
+  Knockback knockback() const { return knockback_; }
 
   void applyTikkiTookiBoost()
   {
@@ -99,12 +103,12 @@ protected:
   inline void add(MonsterTrait trait) { traits |= flag(trait); }
   inline void toggle(MonsterTrait trait) { traits ^= flag(trait); }
 
-  uint8_t deathGazePercent{0};
+  DeathGaze deathGaze_{0_deathgaze};
   // TODO: lifesteal not considered by engine
-  uint8_t lifeStealPercent{0};
-  uint8_t berserkPercent{0};
+  LifeSteal lifeSteal_{0_lifesteal};
+  Berserk berserk_{0_berserk};
   // TODO: knockback not considered by engine
-  uint8_t knockbackPercent{0};
+  Knockback knockback_{0_knockback};
 
 private:
   uint32_t traits{0};
