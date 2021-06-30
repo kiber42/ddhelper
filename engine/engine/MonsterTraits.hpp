@@ -21,6 +21,8 @@ enum class MonsterTrait : uint8_t
   Retaliate,
   Undead,
   Weakening,
+  WickedSick,
+  Zotted,
 
   Revives, // TODO
   Spawns,  // TODO
@@ -56,6 +58,10 @@ constexpr const char* toString(MonsterTrait monsterTrait)
     return "Undead";
   case MonsterTrait::Weakening:
     return "Weakening";
+  case MonsterTrait::WickedSick:
+    return "Wicked Sick";
+  case MonsterTrait::Zotted:
+    return "Zotted";
   case MonsterTrait::Revives:
     return "Revives";
   case MonsterTrait::Spawns:
@@ -69,10 +75,7 @@ struct MonsterTraits
   MonsterTraits(MonsterType);
   MonsterTraits(std::initializer_list<MonsterTrait> traits);
 
-  inline bool has(MonsterTrait trait) const
-  {
-    return traits & (1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait));
-  }
+  inline bool has(MonsterTrait trait) const { return traits & flag(trait); }
 
   uint8_t getDeathGazePercent() const { return deathGazePercent; }
   uint8_t getLifeStealPercent() const { return lifeStealPercent; }
@@ -85,9 +88,16 @@ struct MonsterTraits
     add(MonsterTrait::Weakening);
   }
 
+  void addWickedSick() { add(MonsterTrait::WickedSick); }
+  void addZotted() { add(MonsterTrait::Zotted); }
+
 protected:
-  inline void add(MonsterTrait trait) { traits |= 1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait); }
-  inline void toggle(MonsterTrait trait) { traits ^= 1 << static_cast<std::underlying_type_t<MonsterTrait>>(trait); }
+  constexpr static uint32_t flag(MonsterTrait trait)
+  {
+    return 1u << static_cast<std::underlying_type_t<MonsterTrait>>(trait);
+  }
+  inline void add(MonsterTrait trait) { traits |= flag(trait); }
+  inline void toggle(MonsterTrait trait) { traits ^= flag(trait); }
 
   uint8_t deathGazePercent{0};
   // TODO: lifesteal not considered by engine
@@ -97,5 +107,5 @@ protected:
   uint8_t knockbackPercent{0};
 
 private:
-  uint16_t traits{0};
+  uint32_t traits{0};
 };

@@ -226,9 +226,9 @@ void Monster::corrode(unsigned amount)
 
 void Monster::zot()
 {
-  if (!status.isZotted())
+  if (!isZotted())
   {
-    status.setZotted();
+    traits.addZotted();
     stats.setHitPointsMax(stats.getHitPointsMax() / 2);
   }
 }
@@ -236,11 +236,11 @@ void Monster::zot()
 void Monster::makeWickedSick()
 {
   auto level = Level{getLevel()};
-  if (!status.isWickedSick() && level.increase())
+  if (!isWickedSick() && level.increase())
   {
     const auto type = stats.getType();
     const bool hasStandardName = name == makeMonsterName(type, level);
-    status.setWickedSick();
+    traits.addWickedSick();
     stats = MonsterStats(stats.getType(), level, stats.getDungeonMultiplier());
     if (hasStandardName)
       name = makeMonsterName(type, level);
@@ -264,12 +264,12 @@ bool Monster::isSlowed() const
 
 bool Monster::isZotted() const
 {
-  return status.isZotted();
+  return traits.has(MonsterTrait::Zotted);
 }
 
 bool Monster::isWickedSick() const
 {
-  return status.isWickedSick();
+  return traits.has(MonsterTrait::WickedSick);
 }
 
 unsigned Monster::getBurnStackSize() const

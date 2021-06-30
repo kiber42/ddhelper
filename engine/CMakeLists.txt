@@ -20,7 +20,6 @@ add_library(
   src/Magic.cpp
   src/Monster.cpp
   src/MonsterStats.cpp
-  src/MonsterStatus.cpp
   src/MonsterTraits.cpp
   src/Outcome.cpp
   src/PietyChange.cpp
