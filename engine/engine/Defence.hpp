@@ -1,5 +1,8 @@
 #pragma once
 
+#include "engine/Clamp.hpp"
+#include "engine/StrongTypes.hpp"
+
 #include <cstdint>
 
 enum class MonsterType : uint8_t;
@@ -12,37 +15,65 @@ enum class DamageType : uint8_t
   Typeless
 };
 
+using PhysicalResist = Percentage<uint8_t, struct PhysicalResistParam, Addable, Subtractable, Comparable>;
+using MagicalResist = Percentage<uint8_t, struct MagicalResistParam, Addable, Subtractable, Comparable>;
+
+auto constexpr operator"" _physicalresist(unsigned long long value)
+{
+  return PhysicalResist{clampedTo<uint8_t>(value)};
+}
+auto constexpr operator"" _magicalresist(unsigned long long value)
+{
+  return MagicalResist{clampedTo<uint8_t>(value)};
+}
+
 class Defence
 {
 public:
   Defence(MonsterType type);
-  Defence(uint8_t physicalResistPercent = 0,
-          uint8_t magicalResistPercent = 0,
-          uint8_t physicalResistPercentMax = 100,
-          uint8_t magicalResistPercentMax = 100);
 
-  uint8_t getPhysicalResistPercent(bool raw = false) const;
-  uint8_t getMagicalResistPercent(bool raw = false) const;
-  void setPhysicalResistPercent(uint8_t physicalResistPercent);
-  void setMagicalResistPercent(uint8_t magicalResistPercent);
+  Defence() = default;
+  Defence(PhysicalResist);
+  Defence(MagicalResist);
 
-  uint8_t getPhysicalResistPercentMax() const;
-  uint8_t getMagicalResistPercentMax() const;
-  void setPhysicalResistPercentMax(uint8_t newMax);
-  void setMagicalResistPercentMax(uint8_t newMax);
+  Defence(PhysicalResist physicalResist,
+          MagicalResist magicalResist,
+          PhysicalResist physicalResistMax = 100_physicalresist,
+          MagicalResist magicalResistMax = 100_magicalresist);
 
-  unsigned predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const;
+  // Retrieve effective resist, accounting for maximum and stone skin modifier
+  PhysicalResist getPhysicalResist() const;
+  MagicalResist getMagicalResist() const;
 
-  void setCorrosion(uint8_t numCorrosionLayers);
-  void setStoneSkin(uint8_t stoneSkinLayers);
+  // Retrieve resist without capping at maximum or applying stone skin modifier
+  PhysicalResist getPhysicalResistRaw() const { return physicalResist; }
+  MagicalResist getMagicalResistRaw() const { return magicalResist; }
+
+  PhysicalResist getPhysicalResistMax() const { return physicalResistMax; }
+  MagicalResist getMagicalResistMax() const { return magicalResistMax; }
+
+  void set(PhysicalResist newResist) { physicalResist = newResist; }
+  void set(MagicalResist newResist) { magicalResist = newResist; }
+  void setMax(PhysicalResist newMax) { physicalResistMax = newMax; }
+  void setMax(MagicalResist newMax) { magicalResistMax = newMax; }
+
+  void changePhysicalResistPercent(int deltaPercent);
+  void changeMagicalResistPercent(int deltaPercent);
+  void changePhysicalResistPercentMax(int deltaPercent);
+  void changeMagicalResistPercentMax(int deltaPercent);
+
+  DamagePoints predictDamageTaken(DamagePoints attackerDamageOutput, DamageType, BurnStackSize) const;
+
+  void set(CorrosionAmount);
+  void set(StoneSkinLayers);
   void setCursed(bool isCursed);
 
 private:
-  uint8_t physicalResistPercent;
-  uint8_t magicalResistPercent;
-  uint8_t physicalResistPercentMax;
-  uint8_t magicalResistPercentMax;
-  uint8_t numCorrosionLayers;
-  uint8_t numStoneSkinLayers;
-  bool isCursed;
+  PhysicalResist physicalResist{0_physicalresist};
+  MagicalResist magicalResist{0_magicalresist};
+  PhysicalResist physicalResistMax{100_physicalresist};
+  MagicalResist magicalResistMax{100_magicalresist};
+  CorrosionAmount numCorrosionLayers{0_corrosion};
+  StoneSkinLayers numStoneSkinLayers{0_stoneskin};
+  bool isCursed{false};
 };

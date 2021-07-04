@@ -66,11 +66,13 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
   case Scenario::HalflingTrial:
     monsters.emplace_back(Monster{"Goblin level 2", {Level{2}, 17_HP, 8_damage}, {}, {MonsterTrait::FirstStrike}});
     monsters.emplace_back(Monster{MonsterType::Warlock, 2});
-    monsters.emplace_back(Monster{"Meat Man level 2", {Level{2}, 30_HP, 4_damage}, {0, 100}, {}});
+    monsters.emplace_back(Monster{"Meat Man level 2", {Level{2}, 30_HP, 4_damage}, {100_magicalresist}, {}});
     monsters.emplace_back(
-        Monster{"Goblin level 2", {Level{2}, 15_HP, 8_damage}, {0, 100}, {MonsterTrait::FirstStrike}});
-    monsters.emplace_back(Monster{
-        "Zombie level 3", {Level{3}, 39_HP, 12_damage}, {0, 100}, {MonsterTrait::Bloodless, MonsterTrait::Undead}});
+        Monster{"Goblin level 2", {Level{2}, 15_HP, 8_damage}, {100_magicalresist}, {MonsterTrait::FirstStrike}});
+    monsters.emplace_back(Monster{"Zombie level 3",
+                                  {Level{3}, 39_HP, 12_damage},
+                                  {100_magicalresist},
+                                  {MonsterTrait::Bloodless, MonsterTrait::Undead}});
     monsters.emplace_back(Monster{"Jörmungandr (level 4)",
                                   {Level{4}, 58_HP, 21_damage},
                                   {},

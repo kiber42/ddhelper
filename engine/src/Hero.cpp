@@ -20,7 +20,7 @@ Hero::Hero(const DungeonSetup& setup)
                                          : (toString(setup.heroRace) + std::string(" ") + toString(setup.heroClass)))
   , traits(startingTraits(setup.heroClass))
   , stats()
-  , defence(0, 0, 65, 65)
+  , defence(0_physicalresist, 0_magicalresist, 65_physicalresist, 65_magicalresist)
   , experience()
   , inventory(setup)
   , conversion(setup)
@@ -41,7 +41,7 @@ Hero::Hero(const DungeonSetup& setup)
   if (has(HeroTrait::Mageslay))
     changeDamageBonusPercent(+20);
   if (has(HeroTrait::Spellkill))
-    defence.setMagicalResistPercent(50);
+    defence.set(50_magicalresist);
   if (has(HeroTrait::ArcaneKnowledge))
     stats.setManaPointsMax(stats.getManaPointsMax() + 5);
   if (has(HeroTrait::Insane))
@@ -68,11 +68,11 @@ Hero::Hero(const DungeonSetup& setup)
   }
   if (has(HeroTrait::DiamondBody))
   {
-    defence.setPhysicalResistPercent(50);
-    defence.setPhysicalResistPercentMax(75);
+    defence.set(50_physicalresist);
+    defence.setMax(75_physicalresist);
   }
   if (has(HeroTrait::HolyShield))
-    defence.setPhysicalResistPercent(25);
+    defence.set(25_physicalresist);
   if (has(HeroTrait::Scars))
   {
     add(HeroStatus::PoisonImmune);
@@ -338,32 +338,32 @@ void Hero::modifyFutureHealthBonus(int amount)
 
 int Hero::getPhysicalResistPercent() const
 {
-  return defence.getPhysicalResistPercent();
+  return defence.getPhysicalResist().percent();
 }
 
 int Hero::getMagicalResistPercent() const
 {
-  return defence.getMagicalResistPercent();
+  return defence.getMagicalResist().percent();
 }
 
 void Hero::setPhysicalResistPercent(int physicalResistPercent)
 {
-  defence.setPhysicalResistPercent(clampedTo<uint8_t>(physicalResistPercent));
+  defence.set(PhysicalResist{physicalResistPercent});
 }
 
 void Hero::setMagicalResistPercent(int magicalResistPercent)
 {
-  defence.setMagicalResistPercent(clampedTo<uint8_t>(magicalResistPercent));
+  defence.set(MagicalResist{magicalResistPercent});
 }
 
 void Hero::changePhysicalResistPercent(int deltaPercent)
 {
-  setPhysicalResistPercent(defence.getPhysicalResistPercent(true) + deltaPercent);
+  defence.changePhysicalResistPercent(deltaPercent);
 }
 
 void Hero::changeMagicalResistPercent(int deltaPercent)
 {
-  setMagicalResistPercent(defence.getMagicalResistPercent(true) + deltaPercent);
+  defence.changeMagicalResistPercent(deltaPercent);
 }
 
 bool Hero::doesMagicalDamage() const
@@ -400,7 +400,7 @@ unsigned Hero::predictDamageTaken(unsigned attackerDamageOutput, DamageType dama
 {
   const auto reduction = getIntensity(HeroStatus::DamageReduction);
   if (reduction < attackerDamageOutput)
-    return defence.predictDamageTaken(attackerDamageOutput - reduction, damageType, 0);
+    return defence.predictDamageTaken(DamagePoints{attackerDamageOutput - reduction}, damageType, 0_burn).get();
   else
     return 0;
 }
@@ -562,7 +562,7 @@ void Hero::setStatusIntensity(HeroStatus status, unsigned newIntensity)
     rerollDodgeNext();
 
   if (status == HeroStatus::StoneSkin)
-    defence.setStoneSkin(clampedTo<uint8_t>(newIntensity));
+    defence.set(StoneSkinLayers{newIntensity});
 }
 
 unsigned Hero::getIntensity(HeroStatus status) const
@@ -616,7 +616,7 @@ void Hero::add(HeroDebuff debuff, Monsters& allMonsters, int addedIntensity)
   if (debuff == HeroDebuff::Poisoned)
     applyOrCollect(faith.becamePoisoned(), allMonsters);
   else if (debuff == HeroDebuff::Corroded)
-    defence.setCorrosion(clampedTo<uint8_t>(intensity));
+    defence.set(CorrosionAmount{intensity});
   else if (debuff == HeroDebuff::Cursed)
     defence.setCursed(true);
 }
@@ -638,7 +638,7 @@ void Hero::reduce(HeroDebuff debuff)
   debuffs[debuff] = newIntensity;
 
   if (debuff == HeroDebuff::Corroded)
-    defence.setCorrosion(clampedTo<uint8_t>(newIntensity));
+    defence.set(CorrosionAmount{newIntensity});
 }
 
 void Hero::reset(HeroDebuff debuff)
@@ -646,7 +646,7 @@ void Hero::reset(HeroDebuff debuff)
   if (debuffs.erase(debuff))
   {
     if (debuff == HeroDebuff::Corroded)
-      defence.setCorrosion(0);
+      defence.set(0_corrosion);
     else if (debuff == HeroDebuff::Cursed)
       defence.setCursed(false);
   }
@@ -1079,12 +1079,12 @@ void Hero::changeManaPointsMax(int deltaPoints)
 
 void Hero::changePhysicalResistPercentMax(int deltaPoints)
 {
-  defence.setPhysicalResistPercentMax(clampedTo<uint8_t>(defence.getPhysicalResistPercentMax() + deltaPoints));
+  defence.changePhysicalResistPercentMax(deltaPoints);
 }
 
 void Hero::changeMagicalResistPercentMax(int deltaPoints)
 {
-  defence.setMagicalResistPercentMax(clampedTo<uint8_t>(defence.getMagicalResistPercentMax() + deltaPoints));
+  defence.changeMagicalResistPercentMax(deltaPoints);
 }
 
 void Hero::modifyLevelBy(int delta)

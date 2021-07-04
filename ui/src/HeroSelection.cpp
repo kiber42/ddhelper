@@ -175,9 +175,8 @@ namespace ui
     const auto mp = clampedTo<uint16_t>(data[3]);
     const auto maxMp = clampedTo<uint16_t>(data[4]);
     const auto damage = clampedTo<uint16_t>(data[5]);
-    const auto physicalResistance = clampedTo<uint8_t>(data[6]);
-    const auto magicalResistance = clampedTo<uint8_t>(data[7]);
-    Hero hero(HeroStats{maxHp, maxMp, damage}, Defence{physicalResistance, magicalResistance}, Experience{level});
+    const auto defence = Defence{PhysicalResist{data[6]}, MagicalResist{data[7]}};
+    Hero hero(HeroStats{maxHp, maxMp, damage}, defence, Experience{level});
     Monsters ignore;
     hero.clearInventory();
 

@@ -85,17 +85,17 @@ unsigned Monster::getDamage() const
 
 unsigned Monster::getPhysicalResistPercent() const
 {
-  return defence.getPhysicalResistPercent();
+  return defence.getPhysicalResist().percent();
 }
 
 unsigned Monster::getMagicalResistPercent() const
 {
-  return defence.getMagicalResistPercent();
+  return defence.getMagicalResist().percent();
 }
 
 unsigned Monster::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const
 {
-  return defence.predictDamageTaken(attackerDamageOutput, damageType, status.getBurnStackSize().get());
+  return defence.predictDamageTaken(DamagePoints{attackerDamageOutput}, damageType, status.getBurnStackSize()).get();
 }
 
 void Monster::takeDamage(unsigned attackerDamageOutput, DamageType damageType)
@@ -199,10 +199,10 @@ void Monster::slow()
 
 void Monster::erodeResitances()
 {
-  const auto physicalResist = defence.getPhysicalResistPercent();
-  const auto magicalResist = defence.getMagicalResistPercent();
-  defence.setPhysicalResistPercent(physicalResist > 3 ? physicalResist - 3 : 0);
-  defence.setMagicalResistPercent(magicalResist > 3 ? magicalResist - 3 : 0);
+  const auto physicalResist = defence.getPhysicalResist();
+  const auto magicalResist = defence.getMagicalResist();
+  defence.set(physicalResist > 3_physicalresist ? physicalResist - 3_physicalresist : 0_physicalresist);
+  defence.set(magicalResist > 3_magicalresist ? magicalResist - 3_magicalresist : 0_magicalresist);
 }
 
 void Monster::petrify()
@@ -220,8 +220,9 @@ void Monster::die()
 
 void Monster::corrode(unsigned amount)
 {
-  status.set(CorrosionAmount{getCorroded()} + CorrosionAmount{amount});
-  defence.setCorrosion(getCorroded());
+  const auto newCorrosion = status.getCorroded() + CorrosionAmount{amount};
+  status.set(newCorrosion);
+  defence.set(newCorrosion);
 }
 
 void Monster::zot()
@@ -314,12 +315,12 @@ unsigned Monster::getLifeStealPercent() const
 
 void Monster::changePhysicalResist(int deltaPercent)
 {
-  defence.setPhysicalResistPercent(defence.getPhysicalResistPercent() + deltaPercent);
+  defence.changePhysicalResistPercent(deltaPercent);
 }
 
 void Monster::changeMagicResist(int deltaPercent)
 {
-  defence.setMagicalResistPercent(defence.getMagicalResistPercent() + deltaPercent);
+  defence.changeMagicalResistPercent(deltaPercent);
 }
 
 void Monster::applyTikkiTookiBoost()

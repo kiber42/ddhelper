@@ -29,7 +29,7 @@ void testStatusEffects()
         AssertThat(hero.doesMagicalDamage(), IsTrue());
       });
       it("should wear off", [&] {
-        Monster monster("", {Level{1}, 5_HP, 1_damage}, Defence{100, 0}, {});
+        Monster monster("", {Level{1}, 5_HP, 1_damage}, {100_physicalresist}, {});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.isDefeated(), IsTrue());
         AssertThat(hero.doesMagicalDamage(), IsFalse());
@@ -65,12 +65,12 @@ void testStatusEffects()
         AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax() * 3u / 4u));
       });
       it("should ignore physical immunity", [&] {
-        Monster monster("", {Level{1}, 100_HP, 1_damage}, Defence{100, 100}, {});
+        Monster monster("", {Level{1}, 100_HP, 1_damage}, {100_physicalresist, 100_magicalresist}, {});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getHitPoints(), Equals(75u));
       });
       it("should ignore magical immunity", [&] {
-        Monster monster("", {Level{1}, 100_HP, 1_damage}, Defence{100, 100}, {});
+        Monster monster("", {Level{1}, 100_HP, 1_damage}, {100_physicalresist, 100_magicalresist}, {});
         hero.add(HeroStatus::MagicalAttack);
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getHitPoints(), Equals(75u));
@@ -413,7 +413,7 @@ void testStatusEffects()
         AssertThat(hero.getDamageBonusPercent(), Equals(30));
       });
       it("should lower enemies resistances by 3%", [&] {
-        Monster monster("", {Level{1}, 10_HP, 1_damage}, Defence{50, 75}, {});
+        Monster monster("", {Level{1}, 10_HP, 1_damage}, {50_physicalresist, 75_magicalresist}, {});
         Combat::attack(hero, monster, noOtherMonsters);
         AssertThat(monster.getPhysicalResistPercent(), Equals(47u));
         AssertThat(monster.getMagicalResistPercent(), Equals(72u));

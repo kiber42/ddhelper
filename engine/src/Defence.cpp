@@ -5,116 +5,108 @@
 #include <algorithm>
 
 Defence::Defence(MonsterType type)
-  : Defence(getPhysicalResistancePercent(type), getMagicalResistancePercent(type), 100, 100)
+  : physicalResist{PhysicalResist{getPhysicalResistancePercent(type)}}
+  , magicalResist{MagicalResist{getMagicalResistancePercent(type)}}
 {
 }
 
-Defence::Defence(uint8_t physicalResistPercent,
-                 uint8_t magicalResistPercent,
-                 uint8_t physicalResistPercentMax,
-                 uint8_t magicalResistPercentMax)
-  : physicalResistPercent(physicalResistPercent)
-  , magicalResistPercent(magicalResistPercent)
-  , physicalResistPercentMax(physicalResistPercentMax)
-  , magicalResistPercentMax(magicalResistPercentMax)
-  , numCorrosionLayers(0)
-  , numStoneSkinLayers(0)
-  , isCursed(false)
+Defence::Defence(PhysicalResist physicalResist)
+  : physicalResist{physicalResist}
 {
 }
 
-uint8_t Defence::getPhysicalResistPercent(bool raw) const
+Defence::Defence(MagicalResist magicalResist)
+  : magicalResist(magicalResist)
 {
-  if (raw)
-    return physicalResistPercent;
-  const auto withStoneSkin = physicalResistPercent + 20 * numStoneSkinLayers;
-  if (withStoneSkin > physicalResistPercentMax)
-    return physicalResistPercentMax;
+}
+
+Defence::Defence(PhysicalResist physicalResist,
+                 MagicalResist magicalResist,
+                 PhysicalResist physicalResistMax,
+                 MagicalResist magicalResistMax)
+  : physicalResist(physicalResist)
+  , magicalResist(magicalResist)
+  , physicalResistMax(physicalResistMax)
+  , magicalResistMax(magicalResistMax)
+{
+}
+
+PhysicalResist Defence::getPhysicalResist() const
+{
+  const unsigned withStoneSkin = physicalResist.percent() + 20 * numStoneSkinLayers.get();
+  if (withStoneSkin > physicalResistMax.percent())
+    return physicalResistMax;
   else
-    return static_cast<uint8_t>(withStoneSkin);
+    return PhysicalResist{withStoneSkin};
 }
 
-uint8_t Defence::getMagicalResistPercent(bool raw) const
+MagicalResist Defence::getMagicalResist() const
 {
-  if (raw)
-    return magicalResistPercent;
-  return std::min(magicalResistPercent, magicalResistPercentMax);
+  return std::min(magicalResist, magicalResistMax);
 }
 
-void Defence::setPhysicalResistPercent(uint8_t newPhysicalResistPercent)
+void Defence::changePhysicalResistPercent(int deltaPercent)
 {
-  physicalResistPercent = newPhysicalResistPercent;
+  set(PhysicalResist{getPhysicalResist().percent() + deltaPercent});
 }
 
-void Defence::setMagicalResistPercent(uint8_t newMagicalResistPercent)
+void Defence::changeMagicalResistPercent(int deltaPercent)
 {
-  magicalResistPercent = newMagicalResistPercent;
+  set(MagicalResist{getMagicalResist().percent() + deltaPercent});
 }
 
-uint8_t Defence::getPhysicalResistPercentMax() const
+void Defence::changePhysicalResistPercentMax(int deltaPercent)
 {
-  return physicalResistPercentMax;
+  setMax(PhysicalResist{getPhysicalResistMax().percent() + deltaPercent});
 }
 
-uint8_t Defence::getMagicalResistPercentMax() const
+void Defence::changeMagicalResistPercentMax(int deltaPercent)
 {
-  return magicalResistPercentMax;
+  setMax(MagicalResist{getMagicalResistMax().percent() + deltaPercent});
 }
 
-void Defence::setPhysicalResistPercentMax(uint8_t newMax)
+DamagePoints
+Defence::predictDamageTaken(DamagePoints attackerDamageOutput, DamageType damageType, BurnStackSize burnStackSize) const
 {
-  physicalResistPercentMax = newMax;
-  if (physicalResistPercent > physicalResistPercentMax)
-    physicalResistPercent = physicalResistPercentMax;
-}
-
-void Defence::setMagicalResistPercentMax(uint8_t newMax)
-{
-  magicalResistPercentMax = newMax;
-  if (magicalResistPercent > magicalResistPercentMax)
-    magicalResistPercent = magicalResistPercentMax;
-}
-
-unsigned Defence::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType, uint8_t burnStackSize) const
-{
-  unsigned damage = attackerDamageOutput + burnStackSize;
-  if (damage == 0 || damageType == DamageType::Typeless)
+  auto damage = attackerDamageOutput + DamagePoints{burnStackSize.get()};
+  if (damage == 0_damage || damageType == DamageType::Typeless)
     return damage;
   if (!isCursed)
   {
-    const auto resist = [&, damageType]() -> unsigned {
+    const auto resistPercent = [&, damageType]() -> unsigned {
       switch (damageType)
       {
       case DamageType::Physical:
-        return getPhysicalResistPercent();
+        return getPhysicalResist().percent();
       case DamageType::Piercing:
       {
-        const auto physicalResist = getPhysicalResistPercent();
-        const uint8_t pierced = 35;
+        const auto physicalResist = getPhysicalResist();
+        const auto pierced = 35_physicalresist;
         if (physicalResist <= pierced)
           return 0;
-        return physicalResist - pierced;
+        return (physicalResist - pierced).percent();
       }
       case DamageType::Magical:
-        return getMagicalResistPercent();
+        return getMagicalResist().percent();
       case DamageType::Typeless:
         return 0;
       }
     }();
-    const unsigned resistedPoints = (attackerDamageOutput * resist + burnStackSize * magicalResistPercent) / 100;
+    const auto resistedPoints =
+        (attackerDamageOutput * resistPercent + DamagePoints{burnStackSize.get() * getMagicalResist().percent()}) / 100;
     damage -= resistedPoints;
   }
-  if (damage > 0)
-    damage += numCorrosionLayers;
+  if (damage > 0_damage)
+    damage += DamagePoints{numCorrosionLayers.get()};
   return damage;
 }
 
-void Defence::setCorrosion(uint8_t corrosion)
+void Defence::set(CorrosionAmount corrosionLayers)
 {
-  numCorrosionLayers = corrosion;
+  numCorrosionLayers = corrosionLayers;
 }
 
-void Defence::setStoneSkin(uint8_t stoneSkinLayers)
+void Defence::set(StoneSkinLayers stoneSkinLayers)
 {
   numStoneSkinLayers = stoneSkinLayers;
 }
