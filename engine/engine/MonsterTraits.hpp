@@ -27,6 +27,7 @@ enum class MonsterTrait : uint8_t
 
   Revives, // TODO
   Spawns,  // TODO
+  Last = Spawns
 };
 
 constexpr const char* toString(MonsterTrait monsterTrait)
@@ -98,6 +99,7 @@ struct MonsterTraits
 protected:
   constexpr static uint32_t flag(MonsterTrait trait)
   {
+    static_assert((1u << static_cast<std::underlying_type_t<MonsterTrait>>(MonsterTrait::Last)) < UINT32_MAX);
     return 1u << static_cast<std::underlying_type_t<MonsterTrait>>(trait);
   }
   inline void add(MonsterTrait trait) { traits |= flag(trait); }
