@@ -89,6 +89,12 @@ Hero::Hero(const DungeonSetup& setup)
     add(HeroStatus::Sanguine, 5);
     add(HeroStatus::LifeSteal, 1);
   }
+  if (has(HeroTrait::DragonBreath))
+    add(HeroStatus::MagicalAttack);
+  if (has(HeroTrait::DragonTail))
+    add(HeroStatus::Knockback, 20);
+  if (has(HeroTrait::DragonStature))
+    stats.setHitPointsMax(stats.getHitPointsMax() * 2);
   if (has(HeroTrait::RegalHygiene))
     add(HeroStatus::CorrosiveStrike);
 

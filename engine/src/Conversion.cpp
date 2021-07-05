@@ -18,7 +18,7 @@ Conversion::Conversion(DungeonSetup setup)
       bonus = [](Hero& hero, Monsters&) { hero.add(HeroStatus::LifeSteal); };
       break;
     case HeroClass::HalfDragon:
-      threshold = 120;
+      threshold = 100;
       bonus = [](Hero& hero, Monsters&) { hero.add(HeroStatus::Knockback, 20); };
       break;
     case HeroClass::Gorgon:

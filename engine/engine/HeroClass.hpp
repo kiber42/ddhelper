@@ -162,7 +162,7 @@ constexpr std::array<HeroTrait, 3> startingTraitsHelper(HeroClass theClass)
   case HeroClass::Vampire:
     return {{HeroTrait::Undead, HeroTrait::Damned, HeroTrait::EternalThirst}};
   case HeroClass::HalfDragon:
-    // return {{HeroTrait::DragonBreath, HeroTrait::DragonTail, HeroTrait::DragonStature}};
+    return {{HeroTrait::DragonBreath, HeroTrait::DragonTail, HeroTrait::DragonStature}};
   case HeroClass::Gorgon:
     // return {{HeroTrait::AzureBody, HeroTrait::SapphireLocks, HeroTrait::AmethystStare}};
   case HeroClass::RatMonarch:

@@ -19,7 +19,7 @@ enum class HeroTrait
   DiamondBody,
   Discipline,
   DragonBreath,
-  DragonStature,
+  DragonStature, // Partially implemented, missing: Doubled sight range
   DragonTail,
   DungeonLore,
   EssenceTransit,
