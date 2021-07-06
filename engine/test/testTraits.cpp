@@ -13,6 +13,10 @@ namespace
 {
   Monsters noOtherMonsters;
   SimpleResources resources;
+
+  auto attack(Hero& hero, Monster& monster) { return Combat::attack(hero, monster, noOtherMonsters, resources); }
+
+  void cast(Hero& hero, Spell spell) { Magic::cast(hero, spell, noOtherMonsters, resources); }
 } // namespace
 
 void testRaces()
@@ -32,10 +36,10 @@ void testChemist()
   describe("Additives", [] {
     Hero chemist(HeroClass::Chemist);
     it("should allow to stack Might from Bysseps and make Might increase base damage", [&] {
-      Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
-      Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
+      cast(chemist, Spell::Bysseps);
+      cast(chemist, Spell::Bysseps);
       chemist.recover(4u);
-      Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
+      cast(chemist, Spell::Bysseps);
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(3u));
       AssertThat(chemist.getBaseDamage(), Equals(8u));
       AssertThat(chemist.getDamageBonusPercent(), Equals(90));
@@ -46,7 +50,7 @@ void testChemist()
     });
     it("should not stack erode effect", [&] {
       Monster monster("", {Level{1}, 16_HP, 1_damage}, {4_physicalresist, 2_magicalresist}, {});
-      AssertThat(Combat::attack(chemist, monster, noOtherMonsters, resources), Equals(Summary::Safe));
+      AssertThat(attack(chemist, monster), Equals(Summary::Safe));
       AssertThat(monster.getHitPoints(), Equals(1u));
       AssertThat(monster.getPhysicalResistPercent(), Equals(1u));
       AssertThat(monster.getMagicalResistPercent(), Equals(0u));
@@ -61,9 +65,9 @@ void testChemist()
       chemist.add(HeroStatus::Might);
       chemist.recover(10u);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(2u));
-      Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
+      cast(chemist, Spell::Bysseps);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(4u));
-      Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
+      cast(chemist, Spell::Bysseps);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(8u));
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(3u));
       AssertThat(chemist.getBaseDamage(), Equals(8u));
@@ -71,7 +75,7 @@ void testChemist()
     });
     it("should not allow stacking Might by other means than Bysseps", [] {
       Hero chemist(HeroClass::Chemist);
-      Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
+      cast(chemist, Spell::Bysseps);
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
       chemist.followDeity(God::BinlorIronshield, 1000);
       resources.numWalls = 10;
@@ -79,12 +83,12 @@ void testChemist()
       chemist.wallDestroyed();
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
       Monster monster("", {Level{1}, 16_HP, 1_damage}, {4_physicalresist, 2_magicalresist}, {});
-      Combat::attack(chemist, monster, noOtherMonsters, resources);
+      attack(chemist, monster);
       AssertThat(chemist.has(HeroStatus::Might), IsFalse());
 
       chemist.wallDestroyed();
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
-      Magic::cast(chemist, Spell::Bysseps, noOtherMonsters, resources);
+      cast(chemist, Spell::Bysseps);
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(2u));
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(4u));
     });

@@ -16,6 +16,20 @@ namespace
 {
   Monsters noOtherMonsters;
   SimpleResources resources;
+
+  auto attack(Hero& hero, Monster& monster) { return Combat::attack(hero, monster, noOtherMonsters, resources); }
+
+  auto attack(Hero& hero, Monster& monster, Monsters& monsters, Resources& resources)
+  {
+    return Combat::attack(hero, monster, monsters, resources);
+  }
+
+  void cast(Hero& hero, Spell spell) { Magic::cast(hero, spell, noOtherMonsters, resources); }
+
+  auto cast(Hero& hero, Monster& monster, Spell spell)
+  {
+    return Magic::cast(hero, monster, spell, noOtherMonsters, resources);
+  }
 } // namespace
 
 void testFaith()
@@ -27,14 +41,14 @@ void testFaith()
         hero.followDeity(God::GlowingGuardian, 0);
         const auto initialPiety = hero.getPiety();
         Monster manaBurnMonster("", {Level{1}, 10_HP, 1_damage}, {}, {MonsterTrait::ManaBurn});
-        AssertThat(Combat::attack(hero, manaBurnMonster, noOtherMonsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, manaBurnMonster), Equals(Summary::Safe));
         AssertThat(hero.getPiety() - initialPiety, Equals(2u));
-        AssertThat(Combat::attack(hero, manaBurnMonster, noOtherMonsters, resources), Equals(Summary::Win));
+        AssertThat(attack(hero, manaBurnMonster), Equals(Summary::Win));
         AssertThat(hero.getPiety() - initialPiety, Equals(2u));
         Monster poisonMonster("", {Level{1}, 10_HP, 1_damage}, {}, {MonsterTrait::Poisonous});
-        AssertThat(Combat::attack(hero, poisonMonster, noOtherMonsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, poisonMonster), Equals(Summary::Safe));
         AssertThat(hero.getPiety() - initialPiety, Equals(4u));
-        AssertThat(Combat::attack(hero, poisonMonster, noOtherMonsters, resources), Equals(Summary::Win));
+        AssertThat(attack(hero, poisonMonster), Equals(Summary::Win));
         AssertThat(hero.getPiety() - initialPiety, Equals(4u));
       });
     });
@@ -46,12 +60,12 @@ void testFaith()
       hero.recoverManaPoints(4);
       hero.followDeity(God::MysteraAnnur, 0);
       Monster meatMan(MonsterType::MeatMan, 1);
-      AssertThat(Magic::cast(hero, meatMan, Spell::Burndayraz, noOtherMonsters, resources), Equals(Summary::Safe));
+      AssertThat(cast(hero, meatMan, Spell::Burndayraz), Equals(Summary::Safe));
       AssertThat(hero.getPiety(), Equals(3u));
-      Magic::cast(hero, Spell::Getindare, noOtherMonsters, resources);
+      cast(hero, Spell::Getindare);
       AssertThat(hero.getManaPoints(), Equals(5u));
       AssertThat(hero.getPiety(), Equals(4u));
-      Magic::cast(hero, meatMan, Spell::Apheelsik, noOtherMonsters, resources);
+      cast(hero, meatMan, Spell::Apheelsik);
       AssertThat(hero.getPiety(), Equals(7u));
       AssertThat(hero.getManaPoints(), Equals(0u));
     });
@@ -61,31 +75,31 @@ void testFaith()
 
       Hero hero{setup};
       hero.followDeity(God::MysteraAnnur, 0);
-      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(0u));
-      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(1u));
-      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(2u));
-      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(3u));
-      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(4u));
-      Magic::cast(hero, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(4u));
 
       setup.heroClass = HeroClass::Wizard;
       Hero wizard{setup};
       wizard.followDeity(God::MysteraAnnur, 0);
-      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(wizard, Spell::Lemmisi);
       AssertThat(wizard.getPiety(), Equals(0u));
-      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(wizard, Spell::Lemmisi);
       AssertThat(wizard.getPiety(), Equals(0u));
-      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(wizard, Spell::Lemmisi);
       AssertThat(wizard.getPiety(), Equals(1u));
-      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(wizard, Spell::Lemmisi);
       AssertThat(wizard.getPiety(), Equals(1u));
-      Magic::cast(wizard, Spell::Lemmisi, noOtherMonsters, resources);
+      cast(wizard, Spell::Lemmisi);
       AssertThat(wizard.getPiety(), Equals(2u));
     });
   });
@@ -96,12 +110,12 @@ void testFaith()
         hero.gainLevel(noOtherMonsters);
         hero.followDeity(God::TikkiTooki, 0);
         Monster monster(MonsterType::MeatMan, 1);
-        AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Safe));
-        AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Win));
+        AssertThat(attack(hero, monster), Equals(Summary::Safe));
+        AssertThat(attack(hero, monster), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5u));
         hero.gainExperienceNoBonuses(7, noOtherMonsters);
         Monster monster2(2, 1, 1);
-        AssertThat(Combat::attack(hero, monster2, noOtherMonsters, resources), Equals(Summary::LevelUp));
+        AssertThat(attack(hero, monster2), Equals(Summary::LevelUp));
         AssertThat(hero.getLevel(), Equals(3u));
         AssertThat(hero.getPiety(), Equals(5u));
       });
@@ -113,17 +127,17 @@ void testFaith()
         hero.getFaith().gainPiety(5);
         hero.followDeity(God::TikkiTooki, 0);
         Monsters meatMen{{MonsterType::MeatMan, 1}, {MonsterType::MeatMan, 1}};
-        AssertThat(Combat::attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
-        AssertThat(Combat::attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(2u));
-        AssertThat(Combat::attack(hero, meatMen[0], meatMen, resources), Equals(Summary::LevelUp));
+        AssertThat(attack(hero, meatMen[0], meatMen, resources), Equals(Summary::LevelUp));
         AssertThat(hero.getPiety(), Equals(0u));
         AssertThat(meatMen[1].has(MonsterTrait::FirstStrike), IsTrue());
         AssertThat(meatMen[1].has(MonsterTrait::Weakening), IsTrue());
 
-        AssertThat(Combat::attack(hero, meatMen[1], meatMen, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMen[1], meatMen, resources), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(0u));
-        AssertThat(Combat::attack(hero, meatMen[1], meatMen, resources), Equals(Summary::Win));
+        AssertThat(attack(hero, meatMen[1], meatMen, resources), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5u));
       });
       it("shall subtract 3 piety for taking any hit if his altar was prepared", [] {
@@ -135,11 +149,11 @@ void testFaith()
         Monsters monsters{{MonsterType::MeatMan, 1}, {MonsterType::Wraith, 1}};
         Monster& meatMan = monsters[0];
         Monster& wraith = monsters[1];
-        AssertThat(Combat::attack(hero, meatMan, monsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMan, monsters, resources), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(7u));
-        AssertThat(Combat::attack(hero, meatMan, monsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMan, monsters, resources), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(4u));
-        AssertThat(Combat::attack(hero, wraith, monsters, resources), Equals(Summary::Win));
+        AssertThat(attack(hero, wraith, monsters, resources), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(1u));
       });
       it("shall accept tribute", [] {
@@ -161,15 +175,15 @@ void testFaith()
         hero.request(Boon::Tribute, noOtherMonsters, resources);
         AssertThat(hero.getPiety(), Equals(10u));
         Monster meatMan(1, 100, 3);
-        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMan), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(10u));
-        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMan), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(7u));
         hero.add(HeroStatus::DamageReduction, 2);
-        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMan), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(4u));
         hero.add(HeroStatus::DamageReduction, 1);
-        AssertThat(Combat::attack(hero, meatMan, noOtherMonsters, resources), Equals(Summary::Safe));
+        AssertThat(attack(hero, meatMan), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(4u));
       });
     });

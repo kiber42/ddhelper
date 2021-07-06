@@ -12,6 +12,13 @@ namespace
 {
   Monsters noOtherMonsters;
   SimpleResources resources;
+
+  void cast(Hero& hero, Spell spell) { Magic::cast(hero, spell, noOtherMonsters, resources); }
+
+  auto cast(Hero& hero, Monster& monster, Spell spell)
+  {
+    return Magic::cast(hero, monster, spell, noOtherMonsters, resources);
+  }
 } // namespace
 
 void testBludtupowa()
@@ -28,24 +35,23 @@ void testBludtupowa()
     it("should convert health to MP", [] {
       Hero hero;
       hero.loseManaPoints(10);
-      Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
+      cast(hero, Spell::Bludtupowa);
       AssertThat(hero.getHitPoints(), Equals(7u));
       AssertThat(hero.getManaPoints(), Equals(3u));
-      Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
+      cast(hero, Spell::Bludtupowa);
       AssertThat(hero.getHitPoints(), Equals(4u));
       AssertThat(hero.getManaPoints(), Equals(6u));
     });
     it("should uncover tiles", [] {
       Hero hero;
-      SimpleResources resources;
       resources.numHiddenTiles = 4;
-      Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
+      cast(hero, Spell::Bludtupowa);
       AssertThat(resources.numHiddenTiles, Equals(1u));
       hero.loseManaPoints(10);
-      Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
+      cast(hero, Spell::Bludtupowa);
       AssertThat(hero.getHitPoints(), Equals(4u));
       AssertThat(hero.getManaPoints(), Equals(1u));
-      Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
+      cast(hero, Spell::Bludtupowa);
       AssertThat(hero.getHitPoints(), Equals(1u));
       AssertThat(hero.getManaPoints(), Equals(1u));
     });
@@ -72,7 +78,7 @@ void testBludtupowa()
       AssertThat(Magic::healthCostsBludtupowa(hero), Equals(7u));
       hero.gainLevel(noOtherMonsters);
       AssertThat(Magic::healthCostsBludtupowa(hero), Equals(10u));
-      Magic::cast(hero, Spell::Bludtupowa, noOtherMonsters, resources);
+      cast(hero, Spell::Bludtupowa);
       AssertThat(hero.getHitPoints(), Equals(10));
     });
   });
@@ -87,9 +93,9 @@ void testBurndayraz()
     it("shall deal damage equal to burn stack size", [] {
       Hero hero;
       Monster monster{MonsterType::MeatMan, 2};
-      Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources);
+      cast(hero, monster, Spell::Burndayraz);
       hero.recoverManaPoints(6);
-      Magic::cast(hero, monster, Spell::Burndayraz, noOtherMonsters, resources);
+      cast(hero, monster, Spell::Burndayraz);
       AssertThat(monster.isBurning(), IsTrue());
       AssertThat(monster.getBurnStackSize(), Equals(2u));
       monster.recover(100);

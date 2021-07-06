@@ -13,7 +13,14 @@ namespace
 {
   Monsters noOtherMonsters;
   SimpleResources resources;
-}
+
+  auto attack(Hero& hero, Monster& monster) { return Combat::attack(hero, monster, noOtherMonsters, resources); }
+
+  auto attack(Hero& hero, Monster& monster, Monsters& monsters, Resources& resources)
+  {
+    return Combat::attack(hero, monster, monsters, resources);
+  }
+} // namespace
 
 void testCombatInitiative()
 {
@@ -36,9 +43,9 @@ void testMelee()
     Hero hero;
     Monster monster(3, 15, 5);
     it("should correctly predict safe outcome (simple case)",
-       [&] { AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Safe)); });
+       [&] { AssertThat(attack(hero, monster), Equals(Summary::Safe)); });
     it("should correctly predict death outcome (simple case)",
-       [&] { AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Death)); });
+       [&] { AssertThat(attack(hero, monster), Equals(Summary::Death)); });
     it("should correctly predict win outcome (one shot, monster has lower level)", [&] {
       Hero hero;
       hero.gainExperienceNoBonuses(30, noOtherMonsters);
@@ -46,14 +53,14 @@ void testMelee()
       AssertThat(hero.getXP(), Equals(0u));
       hero.loseHitPointsOutsideOfFight(hero.getHitPointsMax() - 1, noOtherMonsters);
       monster.recover(100);
-      AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Win));
+      AssertThat(attack(hero, monster), Equals(Summary::Win));
     });
     it("should correctly predict hitpoint loss (simple case)", [] {
       Hero hero;
       Monster monster(3, 15, 9);
       AssertThat(hero.getHitPoints(), Equals(10u));
       AssertThat(monster.getHitPoints(), Equals(15u));
-      Combat::attack(hero, monster, noOtherMonsters, resources);
+      attack(hero, monster);
       AssertThat(hero.getHitPoints(), Equals(10u - monster.getDamage()));
       AssertThat(monster.getHitPoints(), Equals(15u - hero.getDamageOutputVersus(monster)));
     });
@@ -73,32 +80,32 @@ void testMelee()
     it("should petrify hero with low health (<50%)", [] {
       Hero hero;
       Monster gorgon(MonsterType::Gorgon, 1);
-      AssertThat(Combat::attack(hero, gorgon, noOtherMonsters, resources), Equals(Summary::Win));
+      AssertThat(attack(hero, gorgon), Equals(Summary::Win));
       hero.loseHitPointsOutsideOfFight(3, noOtherMonsters);
       AssertThat(hero.getHitPoints(), Equals(4));
       Monster gorgon2(MonsterType::Gorgon, 1);
-      AssertThat(Combat::attack(hero, gorgon2, noOtherMonsters, resources), Equals(Summary::Petrified));
+      AssertThat(attack(hero, gorgon2), Equals(Summary::Petrified));
     });
     it("should be available with 100% intensity", [] {
       Hero hero;
       auto traits = CustomMonsterTraits::withDeathGaze(100);
       Monster monster("", {Level{1}, 100_HP, 1_damage}, {}, std::move(traits));
       hero.add(HeroStatus::DeathProtection);
-      AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Safe));
+      AssertThat(attack(hero, monster), Equals(Summary::Safe));
       AssertThat(hero.has(HeroStatus::DeathProtection), IsTrue());
       hero.recover(100);
       hero.loseHitPointsOutsideOfFight(1, noOtherMonsters);
-      AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Safe));
+      AssertThat(attack(hero, monster), Equals(Summary::Safe));
       AssertThat(hero.has(HeroStatus::DeathProtection), IsFalse());
       hero.recover(100);
       hero.loseHitPointsOutsideOfFight(1, noOtherMonsters);
-      AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Petrified));
+      AssertThat(attack(hero, monster), Equals(Summary::Petrified));
     });
     it("should be available with 101% intensity", [] {
       Hero hero;
       MonsterTraits traits = CustomMonsterTraits::withDeathGaze(101);
       Monster monster("", {Level{1}, 10_HP, 1_damage}, {}, std::move(traits));
-      AssertThat(Combat::attack(hero, monster, noOtherMonsters, resources), Equals(Summary::Petrified));
+      AssertThat(attack(hero, monster), Equals(Summary::Petrified));
     });
   });
 }
@@ -115,7 +122,7 @@ void testCombatWithTwoMonsters()
     it("should occur on physical attack to other monster", [&] {
       AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.getHitPoints(), Equals(6u));
-      AssertThat(Combat::attack(hero, nextTarget, allMonsters, resources), Equals(Summary::Safe));
+      AssertThat(attack(hero, nextTarget, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.isBurning(), IsFalse());
       AssertThat(burning.getHitPoints(), Equals(5u));
     });
@@ -125,7 +132,7 @@ void testCombatWithTwoMonsters()
       AssertThat(burning.getHitPoints(), Equals(1u));
       hero.followDeity(God::GlowingGuardian, 0);
       AssertThat(hero.getPiety(), Equals(5u));
-      AssertThat(Combat::attack(hero, nextTarget, allMonsters, resources), Equals(Summary::Safe));
+      AssertThat(attack(hero, nextTarget, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.isDefeated(), IsTrue());
       AssertThat(burning.isBurning(), IsFalse());
       AssertThat(burning.getHitPoints(), Equals(0u));
