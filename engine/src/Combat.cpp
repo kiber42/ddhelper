@@ -129,6 +129,7 @@ namespace Combat
     const auto monsterDamageInitial = monster.getDamage();
     const bool reflexes = hero.has(HeroStatus::Reflexes);
     const bool swiftHand = hero.has(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
+    const bool heroUsesDeathGaze = hero.getIntensity(HeroStatus::DeathGaze) * monster.getHitPointsMax() > monster.getHitPoints() * 100;
     const bool willPetrify = !hero.has(HeroStatus::DeathGazeImmune) &&
                              (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
 
@@ -178,32 +179,38 @@ namespace Combat
       }
     };
 
+    auto regularAttackSequence = [&] {
+      if (hero.hasInitiativeVersus(monster))
+      {
+        heroAttacks();
+        if (!monster.isDefeated())
+        {
+          // If the monster is defeated beyond this point (Reflexes or Mana Shield),
+          // it was not slowed nor burning (except if attacked with Burning Strike) before the final blow.
+          monsterWasSlowed = false;
+          monsterWasBurning = hero.has(HeroStatus::BurningStrike);
+          monsterAttacks();
+          if (reflexes && !hero.isDefeated() && !monster.isDefeated())
+            heroAttacks();
+        }
+      }
+      else
+      {
+        monsterAttacks();
+        if (!hero.isDefeated())
+          heroAttacks();
+      }
+    };
+
     hero.startPietyCollection();
 
     if (swiftHand)
-    {
       monster.die();
-    }
-    else if (hero.hasInitiativeVersus(monster))
-    {
-      heroAttacks();
-      if (!monster.isDefeated())
-      {
-        // If the monster is defeated beyond this point (Reflexes or Mana Shield),
-        // it was not slowed nor burning (except if attacked with Burning Strike) before the final blow.
-        monsterWasSlowed = false;
-        monsterWasBurning = hero.has(HeroStatus::BurningStrike);
-        monsterAttacks();
-        if (reflexes && !hero.isDefeated() && !monster.isDefeated())
-          heroAttacks();
-      }
-    }
-    else
-    {
-      monsterAttacks();
-      if (!hero.isDefeated())
-        heroAttacks();
-    }
+    else if (heroUsesDeathGaze)
+      monster.takeDamage(hero.getBaseDamage(), DamageType::Typeless);
+
+    if (!monster.isDefeated())
+      regularAttackSequence();
 
     if (heroReceivedHit)
     {

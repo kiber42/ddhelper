@@ -90,8 +90,9 @@ namespace ui
     };
 
     constexpr std::array statusesWithIntensity = {
-        HeroStatus::CorrosiveStrike, HeroStatus::DamageReduction, HeroStatus::DodgePermanent, HeroStatus::Learning,
-        HeroStatus::LifeSteal,       HeroStatus::Momentum,        HeroStatus::Poisonous,      HeroStatus::Sanguine,
+        HeroStatus::CorrosiveStrike, HeroStatus::DamageReduction, HeroStatus::DeathGaze,
+        HeroStatus::DodgePermanent,  HeroStatus::Learning,        HeroStatus::LifeSteal,
+        HeroStatus::Momentum,        HeroStatus::Poisonous,       HeroStatus::Sanguine,
     };
 
     constexpr std::array statusesWithoutIntensity = {

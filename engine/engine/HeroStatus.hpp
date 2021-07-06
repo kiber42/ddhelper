@@ -8,7 +8,7 @@ enum class HeroStatus
   CrushingBlow,
   CurseImmune,
   DamageReduction,
-  DeathGaze, // TODO
+  DeathGaze,
   DeathGazeImmune,
   DeathProtection,
   DodgePermanent,
