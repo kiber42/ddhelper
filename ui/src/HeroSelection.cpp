@@ -110,8 +110,9 @@ namespace ui
     ImGui::DragIntRange2("HP / max", &data[1], &data[2], 0.5f, 0, 300, "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
     ImGui::DragIntRange2("MP / max", &data[3], &data[4], 0.1f, 0, 30, "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
     inputInt("Attack", data[5], 0, 300);
-    inputInt("Physical Resist", data[6], 0, 100);
-    inputInt("Magical Resist", data[7], 0, 100);
+    inputInt("Damage Bonus", data[6], -100, 300);
+    inputInt("Physical Resist", data[7], 0, 100);
+    inputInt("Magical Resist", data[8], 0, 100);
     for (HeroStatus status : statusesWithIntensity)
     {
       if (auto statusIter = statuses.find(status); statusIter != statuses.end())
@@ -176,8 +177,10 @@ namespace ui
     const auto mp = clampedTo<uint16_t>(data[3]);
     const auto maxMp = clampedTo<uint16_t>(data[4]);
     const auto damage = clampedTo<uint16_t>(data[5]);
-    const auto defence = Defence{PhysicalResist{data[6]}, MagicalResist{data[7]}};
+    const auto damageBonus = data[6];
+    const auto defence = Defence{PhysicalResist{data[7]}, MagicalResist{data[8]}};
     Hero hero(HeroStats{maxHp, maxMp, damage}, defence, Experience{level});
+    hero.changeDamageBonusPercent(damageBonus - hero.getDamageBonusPercent());
     Monsters ignore;
     hero.clearInventory();
 

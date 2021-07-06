@@ -32,7 +32,7 @@ namespace ui
     Hero get() const;
 
   private:
-    std::array<int, 8> data;
+    std::array<int, 9> data;
     std::map<HeroStatus, int> statuses;
     std::optional<HeroStatus> comboSelection;
   };
