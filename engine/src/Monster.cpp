@@ -205,9 +205,10 @@ void Monster::erodeResitances()
   defence.set(magicalResist > 3_magicalresist ? magicalResist - 3_magicalresist : 0_magicalresist);
 }
 
-void Monster::petrify()
+void Monster::petrify(Resources& resources)
 {
   die();
+  ++resources().numWalls;
 }
 
 void Monster::die()

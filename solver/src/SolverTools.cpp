@@ -198,7 +198,7 @@ namespace solver
       return state;
     auto& hero = state.hero;
     auto& monster = state.monsters.front();
-    std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, state.monsters); },
+    std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, state.monsters, state.resources); },
                           [&](Cast cast) { Magic::cast(hero, monster, cast.spell, state.monsters, state.resources); },
                           [&](Uncover uncover) {
                             hero.recover(uncover.numTiles);

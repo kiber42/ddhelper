@@ -22,15 +22,7 @@ namespace ui
     {
       addActionButton(
           state, "Attack", false, "Attack "s + state.monster()->getName(),
-          [](State& state) {
-            const auto summary = Combat::attack(state.hero, *state.monster(), state.monsterPool);
-            // TODO: Could move this into attack for consistency with Magic::cast ?
-            if ((summary == Summary::Win || summary == Summary::LevelUp) &&
-                !state.monster()->has(MonsterTrait::Bloodless))
-              ++state.resources.visible.numBloodPools;
-            return summary;
-          },
-          result);
+          [](State& state) { return Combat::attack(state.hero, *state.monster(), state.monsterPool, state.resources); }, result);
     }
     else
       disabledButton("Attack", "No target");

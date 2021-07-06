@@ -684,7 +684,7 @@ bool Hero::has(HeroTrait trait) const
   return std::find(begin(traits), end(traits), trait) != end(traits);
 }
 
-void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
+void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters, Resources& resources)
 {
   assert(monster.isDefeated());
   add(HeroDebuff::Cursed, allMonsters, monster.has(MonsterTrait::CurseBearer) ? 1 : -1);
@@ -699,6 +699,10 @@ void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool mon
   }
   if (has(ShopItem::StoneSigil))
     faith.gainPiety(1);
+  if (!monster.has(MonsterTrait::Bloodless))
+    ++resources().numBloodPools;
+  if (has(HeroTrait::SapphireLocks))
+    ++resources().numWalls;
 }
 
 void Hero::adjustMomentum(bool increase)

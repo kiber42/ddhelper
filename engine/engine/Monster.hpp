@@ -4,6 +4,7 @@
 #include "engine/MonsterStats.hpp"
 #include "engine/MonsterStatus.hpp"
 #include "engine/MonsterTraits.hpp"
+#include "engine/Resources.hpp"
 
 #include <string>
 #include <vector>
@@ -41,7 +42,7 @@ public:
   bool poison(unsigned addedPoisonAmount);
   void slow();
   void erodeResitances();
-  void petrify();
+  void petrify(Resources& resources);
   void die();
   void corrode(unsigned amount = 1);
   void zot();

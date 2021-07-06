@@ -8,7 +8,7 @@
 namespace Combat
 {
   // Perform melee attack on monster, evaluate effects on all monsters
-  Summary attack(Hero&, Monster&, Monsters&);
+  Summary attack(Hero&, Monster&, Monsters&, Resources&);
 
   struct Knockback
   {
@@ -51,6 +51,7 @@ namespace Combat
                            bool monsterWasSlowed,
                            bool monsterWasBurning,
                            bool triggerBurndown,
-                           Monsters& allMonsters);
+                           Monsters& allMonsters,
+                           Resources& resources);
   } // namespace detail
 } // namespace Combat

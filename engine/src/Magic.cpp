@@ -327,7 +327,7 @@ namespace Magic
       const bool levelBefore = hero.getLevel() + hero.getPrestige();
       if (monster.grantsXP())
         hero.gainExperienceForPetrification(monster.isSlowed(), allMonsters);
-      monster.petrify();
+      monster.petrify(resources);
       hero.add(HeroStatus::ExperienceBoost);
       // Remove one curse stack, even for cursed monsters
       hero.reduce(HeroDebuff::Cursed);
@@ -336,11 +336,8 @@ namespace Magic
       return hero.getLevel() + hero.getPrestige() > levelBefore ? Summary::LevelUp : Summary::Safe;
     }
 
-    if (monster.isDefeated() && !monster.has(MonsterTrait::Bloodless))
-      ++(resources().numBloodPools);
-
     const bool triggerBurnDown = spell == Spell::Burndayraz || spell == Spell::Pisorf;
     return Combat::detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, triggerBurnDown,
-                                          allMonsters);
+                                          allMonsters, resources);
   }
 } // namespace Magic

@@ -97,7 +97,7 @@ public:
   bool has(HeroTrait trait) const;
 
   // Adds XP and triggers any faith and item effects
-  void monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters);
+  void monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters, Resources& resources);
   void adjustMomentum(bool increase);
   void removeOneTimeAttackEffects();
 

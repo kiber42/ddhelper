@@ -11,7 +11,7 @@ namespace Combat
   {
     // Determines outcome summary and awards experience if applicable.
     Summary summaryAndExperience(
-        Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters)
+        Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters, Resources& resources)
     {
       assert(!hero.isDefeated());
 
@@ -19,21 +19,21 @@ namespace Combat
         return Summary::Safe;
 
       const auto levelBefore = hero.getLevel() + hero.getPrestige();
-      hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning, allMonsters);
+      hero.monsterKilled(monster, monsterWasSlowed, monsterWasBurning, allMonsters, resources);
       if (hero.getLevel() + hero.getPrestige() > levelBefore)
         return Summary::LevelUp;
       return Summary::Win;
     }
 
     // Evaluate effect of burn down after another monster has been attacked
-    void attackedOther(Hero& hero, Monster& monster, Monsters& allMonsters)
+    void attackedOther(Hero& hero, Monster& monster, Monsters& allMonsters, Resources& resources)
     {
       if (!monster.isBurning())
         return;
       const bool monsterWasSlowed = monster.isSlowed();
       monster.burnDown();
       if (monster.isDefeated())
-        hero.monsterKilled(monster, monsterWasSlowed, true, allMonsters);
+        hero.monsterKilled(monster, monsterWasSlowed, true, allMonsters, resources);
     }
 
     void applyLifeSteal(Hero& hero, const Monster& monster, unsigned monsterHitPointsBefore)
@@ -52,7 +52,7 @@ namespace Combat
       }
     }
 
-    Summary knockBackMonster(Hero& hero, Monster& monster, Monsters& allMonsters, Monster* intoMonster)
+    Summary knockBackMonster(Hero& hero, Monster& monster, Monsters& allMonsters, Monster* intoMonster, Resources& resources)
     {
       const auto knockback = hero.getIntensity(HeroStatus::Knockback);
       if (knockback == 0)
@@ -70,7 +70,7 @@ namespace Combat
         if (maxSecondaryDamage > 0)
           intoMonster->takeDamage(std::min(effectiveDamage, maxSecondaryDamage), DamageType::Typeless);
       }
-      return summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters);
+      return summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters, resources);
     }
   } // namespace
 
@@ -81,12 +81,14 @@ namespace Combat
                            bool monsterWasSlowed,
                            bool monsterWasBurning,
                            bool triggerBurndown,
-                           Monsters& allMonsters)
+                           Monsters& allMonsters,
+                           Resources& resources
+                           )
     {
       if (hero.isDefeated())
         return Summary::Death;
 
-      auto summary = summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters);
+      auto summary = summaryAndExperience(hero, monster, monsterWasSlowed, monsterWasBurning, allMonsters, resources);
 
       if (triggerBurndown)
       {
@@ -94,7 +96,7 @@ namespace Combat
         for (auto& otherMonster : allMonsters)
         {
           if (otherMonster != monster)
-            attackedOther(hero, otherMonster, allMonsters);
+            attackedOther(hero, otherMonster, allMonsters, resources);
         }
         if (hero.getLevel() + hero.getPrestige() > levelBefore)
           summary = Summary::LevelUp;
@@ -107,7 +109,7 @@ namespace Combat
   } // namespace detail
 
   // Perform melee attack on monster, evaluate effects on all monsters
-  Summary attack(Hero& hero, Monster& monster, Monsters& allMonsters)
+  Summary attack(Hero& hero, Monster& monster, Monsters& allMonsters, Resources& resources)
   {
     if (hero.isDefeated())
     {
@@ -236,14 +238,14 @@ namespace Combat
     if (willPetrify && hero.isDefeated())
       return Summary::Petrified;
 
-    return detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, true, allMonsters);
+    return detail::finalizeAttack(hero, monster, monsterWasSlowed, monsterWasBurning, true, allMonsters, resources);
   }
 
   Summary
   attackWithKnockback(Hero& hero, Monster& primary, Monsters& allMonsters, Knockback knockback, Resources& resources)
   {
     const bool reflexes = hero.has(HeroStatus::Reflexes);
-    auto summary = attack(hero, primary, allMonsters);
+    auto summary = attack(hero, primary, allMonsters, resources);
     if (summary == Summary::Safe && hero.has(HeroStatus::Knockback))
     {
       switch (knockback.targetType)
@@ -252,20 +254,20 @@ namespace Combat
       case Knockback::TargetType::Indestructible:
         break;
       case Knockback::TargetType::Monster:
-        summary = knockBackMonster(hero, primary, allMonsters, knockback.monster);
+        summary = knockBackMonster(hero, primary, allMonsters, knockback.monster, resources);
         if (reflexes && summary == Summary::Safe)
-          summary = knockBackMonster(hero, primary, allMonsters, knockback.monster);
+          summary = knockBackMonster(hero, primary, allMonsters, knockback.monster, resources);
         break;
       case Knockback::TargetType::Wall:
         if (!primary.has(MonsterTrait::Cowardly))
         {
           auto& resourceSet = resources();
           assert(resourceSet.numWalls > 0);
-          summary = knockBackMonster(hero, primary, allMonsters, nullptr);
+          summary = knockBackMonster(hero, primary, allMonsters, nullptr, resources);
           --resourceSet.numWalls;
           if (reflexes && summary == Summary::Safe && resourceSet.numWalls > 0)
           {
-            summary = knockBackMonster(hero, primary, allMonsters, nullptr);
+            summary = knockBackMonster(hero, primary, allMonsters, nullptr, resources);
             --resourceSet.numWalls;
           }
         }
