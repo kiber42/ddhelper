@@ -95,6 +95,16 @@ Hero::Hero(const DungeonSetup& setup)
     add(HeroStatus::Knockback, 20);
   if (has(HeroTrait::DragonStature))
     stats.setHitPointsMax(stats.getHitPointsMax() * 2);
+  if (has(HeroTrait::AzureBody))
+  {
+    defence.set(25_physicalresist);
+    add(HeroStatus::DeathGazeImmune);
+    changeDamageBonusPercent(-50);
+  }
+  if (has(HeroTrait::SapphireLocks))
+    add(HeroStatus::Poisonous, 5);
+  if (has(HeroTrait::AmethystStare))
+    add(HeroStatus::DeathGaze, 10);
   if (has(HeroTrait::RegalHygiene))
     add(HeroStatus::CorrosiveStrike);
 

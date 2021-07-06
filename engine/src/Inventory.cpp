@@ -58,6 +58,8 @@ Inventory::Inventory(const DungeonSetup& setup)
     add(Spell::Halpmeh);
   if (hasStartingTrait(setup.heroClass, HeroTrait::DungeonLore))
     add(Spell::Lemmisi);
+  if (hasStartingTrait(setup.heroClass, HeroTrait::SapphireLocks))
+    add(Spell::Endiswal);
 }
 
 void Inventory::add(ItemOrSpell itemOrSpell)

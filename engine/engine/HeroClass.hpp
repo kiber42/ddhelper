@@ -164,7 +164,7 @@ constexpr std::array<HeroTrait, 3> startingTraitsHelper(HeroClass theClass)
   case HeroClass::HalfDragon:
     return {{HeroTrait::DragonBreath, HeroTrait::DragonTail, HeroTrait::DragonStature}};
   case HeroClass::Gorgon:
-    // return {{HeroTrait::AzureBody, HeroTrait::SapphireLocks, HeroTrait::AmethystStare}};
+    return {{HeroTrait::AzureBody, HeroTrait::SapphireLocks, HeroTrait::AmethystStare}};
   case HeroClass::RatMonarch:
     return {{HeroTrait::RegalHygiene, HeroTrait::RegalPerks, HeroTrait::RegalSize}};
   case HeroClass::Goatperson:
