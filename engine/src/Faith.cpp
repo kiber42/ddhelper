@@ -651,14 +651,17 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
   }
 }
 
-void Faith::desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgnosticCollar)
+bool Faith::desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgnosticCollar)
 {
+  if (hero.has(HeroTrait::Scapegoat))
+    return false;
   if (!hasAgnosticCollar)
     punish(altar, hero, allMonsters);
   if (numDesecrated < 3)
     gainPiety((3 - numDesecrated) * 10);
   ++numDesecrated;
   indulgence += 3;
+  return true;
 }
 
 PietyChange Faith::monsterKilled(const Monster& monster, unsigned heroLevel, bool monsterWasBurning)

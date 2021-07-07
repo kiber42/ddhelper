@@ -50,7 +50,7 @@ public:
   bool enter(Pact pact);
   bool enteredConsensus() const;
 
-  void desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgnosticCollar);
+  [[nodiscard]] bool desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgnosticCollar);
 
   // The following methods address the gods' likes and dislikes.
   PietyChange monsterKilled(const Monster& monster, unsigned heroLevel, bool monsterWasBurning);

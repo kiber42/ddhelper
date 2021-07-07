@@ -510,9 +510,11 @@ namespace ui
           if (addPopupAction(
                   state, toString(god), "Desecrate "s + toString(god) + "'s altar",
                   [god, altarIndex = static_cast<long>(altarIndex)](State& state) {
-                    state.hero.desecrate(god, state.monsterPool);
-                    auto& altars = state.resources().altars;
-                    altars.erase(begin(altars) + altarIndex);
+                    if (state.hero.desecrate(god, state.monsterPool))
+                    {
+                      auto& altars = state.resources().altars;
+                      altars.erase(begin(altars) + altarIndex);
+                    }
                     return Summary::Safe;
                   },
                   isSelected, result))

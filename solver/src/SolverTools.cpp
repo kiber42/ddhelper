@@ -140,7 +140,7 @@ namespace solver
         }
         break;
       case 10:
-        if (state.hero.getFollowedDeity() && !state.resources.altars.empty())
+        if (state.hero.getFollowedDeity() && !state.resources.altars.empty() && !state.hero.has(HeroTrait::Scapegoat))
         {
           const auto altar = otherAltar();
           if (altar)
@@ -218,8 +218,8 @@ namespace solver
                           [&](Follow follow) { hero.followDeity(follow.deity, state.resources.numRevealedTiles); },
                           [&](Request request) { hero.request(request.boonOrPact, state.monsters, state.resources); },
                           [&hero, &monsters = state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
-                            altars.erase(std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}));
-                            hero.desecrate(desecrate.altar, monsters);
+                            if (hero.desecrate(desecrate.altar, monsters))
+                              altars.erase(std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}));
                           }},
                step);
     state.monsters.erase(std::remove_if(begin(state.monsters), end(state.monsters),

@@ -141,7 +141,7 @@ public:
 
   bool followDeity(God god, unsigned numRevealedTiles);
   bool request(BoonOrPact boon, Monsters& allMonsters, Resources& resources);
-  void desecrate(God altar, Monsters& allMonsters);
+  [[nodiscard]] bool desecrate(God altar, Monsters& allMonsters);
 
   // Functions to group all piety events belonging to one action.
   // Make sure each call to startPietyCollection is followed by a call to applyCollectedPiety

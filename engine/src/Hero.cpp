@@ -1037,9 +1037,9 @@ bool Hero::request(BoonOrPact boonOrPact, Monsters& allMonsters, Resources& reso
   return faith.enter(std::get<Pact>(boonOrPact));
 }
 
-void Hero::desecrate(God altar, Monsters& allMonsters)
+bool Hero::desecrate(God altar, Monsters& allMonsters)
 {
-  faith.desecrate(altar, *this, allMonsters, has(ShopItem::AgnosticCollar));
+  return faith.desecrate(altar, *this, allMonsters, has(ShopItem::AgnosticCollar));
 }
 
 void Hero::startPietyCollection()
