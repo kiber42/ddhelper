@@ -30,7 +30,6 @@ bool Faith::followDeity(God god, Hero& hero, unsigned numRevealedTiles)
   else
     initialBoon(god, hero, numRevealedTiles);
   followedDeity = god;
-  preparationPenalty = preparedAltar == god;
   return true;
 }
 
@@ -299,18 +298,18 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   }
   case Boon::Greenblood:
-    resources().numPlants += preparationPenalty ? 6 : 3;
+    resources().numPlants += preparationPenaltyApplies() ? 6 : 3;
     hero.reduce(HeroDebuff::Cursed);
     for (auto& monster : allMonstersOnFloor)
       monster.corrode();
     break;
   case Boon::Entanglement:
-    resources().numPlants += preparationPenalty ? 10 : 5;
+    resources().numPlants += preparationPenaltyApplies() ? 10 : 5;
     for (auto& monster : allMonstersOnFloor)
       monster.slow();
     break;
   case Boon::VineForm:
-    resources().numPlants += preparationPenalty ? 4 : 2;
+    resources().numPlants += preparationPenaltyApplies() ? 4 : 2;
     hero.changeHitPointsMax(+4);
     hero.add(HeroStatus::DamageReduction);
     break;
@@ -758,7 +757,7 @@ PietyChange Faith::spellCast(Spell spell, unsigned manaCost)
   {
     const auto numManaPointsSpentBefore = numManaPointsSpent;
     numManaPointsSpent += manaCost;
-    if (preparationPenalty)
+    if (preparationPenaltyApplies())
     {
       // 2 piety are awarded for 5 mana points spent.
       int reward = numManaPointsSpent / 5 * 2;
@@ -817,8 +816,8 @@ PietyChange Faith::levelGained()
       if (deity == God::GlowingGuardian)
       {
         ++numConsecutiveLevelUpsWithGlowingGuardian;
-        const auto piety = preparationPenalty ? 2u * (numConsecutiveLevelUpsWithGlowingGuardian - 1u)
-                                              : 3u * numConsecutiveLevelUpsWithGlowingGuardian;
+        const auto piety = preparationPenaltyApplies() ? 2u * (numConsecutiveLevelUpsWithGlowingGuardian - 1u)
+                                                       : 3u * numConsecutiveLevelUpsWithGlowingGuardian;
         return static_cast<int>(piety);
       }
       return {};
@@ -952,7 +951,7 @@ PietyChange Faith::receivedHit(const Monster& monster)
   if (followedDeity == God::TikkiTooki)
   {
     auto& monsterHistory = history[monster.getID()];
-    if (preparationPenalty || monsterHistory.hitHero)
+    if (preparationPenaltyApplies() || monsterHistory.hitHero)
       result += PietyChange{-3};
     monsterHistory.hitHero = true;
   }

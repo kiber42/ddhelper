@@ -86,13 +86,14 @@ public:
   // Instantly triggers special Taurog punishment
   void convertedTaurogItem(Hero& hero, Monsters& allMonsters);
 
+  bool preparationPenaltyApplies() const { return preparedAltar == followedDeity; }
+
 private:
   void initialBoon(God god, Hero& hero, unsigned numRevealedTiles);
   void punish(God god, Hero& hero, Monsters& allMonsters);
 
   std::optional<God> followedDeity;
   std::optional<God> preparedAltar;
-  bool preparationPenalty{false};
   std::optional<Pact> pact;
   std::vector<Boon> boons;
   unsigned piety{0};
