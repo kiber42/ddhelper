@@ -537,7 +537,8 @@ void Hero::add(HeroStatus status, int addedIntensity)
 
 void Hero::reduce(HeroStatus status)
 {
-  setStatusIntensity(status, statuses[status] - 1);
+  if (has(status))
+    setStatusIntensity(status, statuses[status] - 1);
 }
 
 void Hero::reset(HeroStatus status)
@@ -563,8 +564,7 @@ void Hero::setStatusIntensity(HeroStatus status, unsigned newIntensity)
 
   if (status == HeroStatus::Momentum)
   {
-    const auto delta =
-        static_cast<int>(newIntensity > oldIntensity ? newIntensity - oldIntensity : oldIntensity - newIntensity);
+    const auto delta = static_cast<int>(newIntensity) - static_cast<int>(oldIntensity);
     changeDamageBonusPercent(delta);
   }
 
@@ -700,7 +700,8 @@ bool Hero::has(HeroTrait trait) const
   return std::find(begin(traits), end(traits), trait) != end(traits);
 }
 
-void Hero::monsterKilled(const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters, Resources& resources)
+void Hero::monsterKilled(
+    const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters, Resources& resources)
 {
   assert(monster.isDefeated());
   add(HeroDebuff::Cursed, allMonsters, monster.has(MonsterTrait::CurseBearer) ? 1 : -1);
@@ -1098,12 +1099,15 @@ void Hero::setManaPointsMax(unsigned manaPointsMax)
 
 void Hero::changeHitPointsMax(int deltaPoints)
 {
-  stats.setHitPointsMax(static_cast<unsigned>(static_cast<int>(stats.getHitPointsMax()) + deltaPoints));
+  // TODO: Add tests for protection against underflow in all applicable change* methods
+  auto newPoints = std::max(1, static_cast<int>(stats.getHitPointsMax()) + deltaPoints);
+  stats.setHitPointsMax(static_cast<unsigned>(newPoints));
 }
 
 void Hero::changeManaPointsMax(int deltaPoints)
 {
-  stats.setManaPointsMax(static_cast<unsigned>(static_cast<int>(stats.getManaPointsMax()) + deltaPoints));
+  auto newPoints = std::max(0, static_cast<int>(stats.getHitPointsMax()) + deltaPoints);
+  stats.setManaPointsMax(newPoints);
 }
 
 void Hero::changePhysicalResistPercentMax(int deltaPoints)
