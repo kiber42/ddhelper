@@ -73,7 +73,7 @@ void testFaith()
       DungeonSetup setup;
       setup.altar = God::MysteraAnnur;
 
-      Hero hero{setup};
+      Hero hero{setup, {}};
       hero.followDeity(God::MysteraAnnur, 0);
       cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(0u));
@@ -89,7 +89,7 @@ void testFaith()
       AssertThat(hero.getPiety(), Equals(4u));
 
       setup.heroClass = HeroClass::Wizard;
-      Hero wizard{setup};
+      Hero wizard{setup, {}};
       wizard.followDeity(God::MysteraAnnur, 0);
       cast(wizard, Spell::Lemmisi);
       AssertThat(wizard.getPiety(), Equals(0u));
@@ -143,7 +143,7 @@ void testFaith()
       it("shall subtract 3 piety for taking any hit if his altar was prepared", [] {
         DungeonSetup setup;
         setup.altar = God::TikkiTooki;
-        Hero hero{setup};
+        Hero hero{setup, {}};
         hero.getFaith().gainPiety(10);
         hero.followDeity(God::TikkiTooki, 0);
         Monsters monsters{{MonsterType::MeatMan, 1}, {MonsterType::Wraith, 1}};

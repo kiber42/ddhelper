@@ -33,9 +33,33 @@ bool Faith::followDeity(God god, Hero& hero, unsigned numRevealedTiles)
   return true;
 }
 
+void Faith::makeGoatperson(std::vector<God> altars)
+{
+  altarsForGoatperson = altars;
+  selectNextDeityForGoatperson();
+}
+
+void Faith::selectNextDeityForGoatperson()
+{
+  assert(altarsForGoatperson);
+  if (altarsForGoatperson->empty())
+    return;
+  if (followedDeity && altarsForGoatperson->size() == 1)
+  {
+    assert(*followedDeity == (*altarsForGoatperson)[0]);
+    return;
+  }
+  std::uniform_int_distribution<size_t> randomIndex(0u, altarsForGoatperson->size());
+  God lastDeity = *followedDeity;
+  do
+  {
+    followedDeity = (*altarsForGoatperson)[randomIndex(generator)];
+  } while (lastDeity == *followedDeity);
+}
+
 bool Faith::canFollow(God god, const Hero& hero) const
 {
-  if (hero.has(HeroTrait::Damned) || hero.has(HeroTrait::Scapegoat))
+  if (altarsForGoatperson || hero.has(HeroTrait::Damned))
     return false;
   if (followedDeity)
   {
@@ -653,7 +677,7 @@ void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
 
 bool Faith::desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgnosticCollar)
 {
-  if (hero.has(HeroTrait::Scapegoat))
+  if (altarsForGoatperson)
     return false;
   if (!hasAgnosticCollar)
     punish(altar, hero, allMonsters);

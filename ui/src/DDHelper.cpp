@@ -81,8 +81,9 @@ namespace ui
     std::optional<MapResources> resources;
     if (heroSelection.run())
     {
-      hero.emplace(heroSelection.get());
-      resources.emplace(heroSelection.getResources());
+      auto [selectedHero, selectedResources] = heroSelection.getHeroAndResources();
+      hero.emplace(selectedHero);
+      resources.emplace(selectedResources);
     }
     if (hero)
     {

@@ -10,12 +10,12 @@
 #include <cassert>
 #include <utility>
 
-Hero::Hero(HeroClass heroClass, HeroRace heroRace)
-  : Hero(DungeonSetup{heroClass, heroRace})
+Hero::Hero(HeroClass heroClass, HeroRace heroRace, const std::vector<God>& altarsForGoatperson)
+  : Hero(DungeonSetup{heroClass, heroRace}, altarsForGoatperson)
 {
 }
 
-Hero::Hero(const DungeonSetup& setup)
+Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperson)
   : name(isMonsterClass(setup.heroClass) ? toString(setup.heroRace)
                                          : (toString(setup.heroRace) + std::string(" ") + toString(setup.heroClass)))
   , traits(startingTraits(setup.heroClass))
@@ -107,6 +107,12 @@ Hero::Hero(const DungeonSetup& setup)
     add(HeroStatus::DeathGaze, 10);
   if (has(HeroTrait::RegalHygiene))
     add(HeroStatus::CorrosiveStrike);
+
+  if (has(HeroTrait::Scapegoat))
+  {
+    assert(!altarsForGoatperson.empty());
+    faith.makeGoatperson(altarsForGoatperson);
+  }
 
   // TODO: Move gold pile size to MapResources? (+ remove this trait)
   if (setup.modifiers.count(ThievesModifier::BlackMarket))
@@ -819,6 +825,9 @@ void Hero::levelUpRefresh(Monsters& allMonsters)
       break;
     }
   }
+
+  if (has(HeroTrait::Scapegoat))
+    faith.selectNextDeityForGoatperson();
 
   if (!has(HeroTrait::Prototype))
   {

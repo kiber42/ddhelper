@@ -28,6 +28,9 @@ public:
   std::optional<God> getFollowedDeity() const;
   bool canFollow(God god, const Hero& hero) const;
 
+  void makeGoatperson(std::vector<God> altars);
+  void selectNextDeityForGoatperson();
+
   unsigned getPiety() const;
   unsigned getMaxPiety() const;
   bool has(Boon) const;
@@ -100,6 +103,7 @@ private:
   unsigned indulgence{0};
   unsigned numDesecrated{0};
   bool consensus{false};
+  std::optional<std::vector<God>> altarsForGoatperson;
 
   // counts that may affect awarded piety
   unsigned numMonstersKilled{0};
@@ -119,4 +123,5 @@ private:
 
   GlowingGuardian glowingGuardian;
   Jehora jehora;
+  std::mt19937 generator{std::random_device{}()};
 };

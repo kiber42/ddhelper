@@ -157,6 +157,23 @@ MapResources::MapResources(SimpleResources resources)
 {
 }
 
+std::vector<God> MapResources::getAllAltars() const
+{
+  std::vector<God> allAltars;
+  allAltars.reserve(visible.altars.size() + hidden.altars.size());
+  for (auto altar : visible.altars)
+  {
+    if (auto god = std::get_if<God>(&altar))
+      allAltars.push_back(*god);
+  }
+  for (auto altar : hidden.altars)
+  {
+    if (auto god = std::get_if<God>(&altar))
+      allAltars.push_back(*god);
+  }
+  return allAltars;
+}
+
 void MapResources::revealTile()
 {
   if (numHiddenTiles <= 0)

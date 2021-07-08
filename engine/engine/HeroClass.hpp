@@ -123,6 +123,8 @@ constexpr bool isMonsterClass(HeroClass theClass)
          theClass == HeroClass::RatMonarch || theClass == HeroClass::Goatperson;
 }
 
+// Do not call this directly unless you know that the class is not Guard.
+// Use hasStartingTrait or startingTraits instead.
 constexpr std::array<HeroTrait, 3> startingTraitsHelper(HeroClass theClass)
 {
   switch (theClass)
@@ -168,14 +170,12 @@ constexpr std::array<HeroTrait, 3> startingTraitsHelper(HeroClass theClass)
   case HeroClass::RatMonarch:
     return {{HeroTrait::RegalHygiene, HeroTrait::RegalPerks, HeroTrait::RegalSize}};
   case HeroClass::Goatperson:
-    // return {{HeroTrait::Scapegoat, HeroTrait::Prototype, HeroTrait::Herbivore}};
-    break;
+    return {{HeroTrait::Scapegoat, HeroTrait::Prototype, HeroTrait::Herbivore}};
   case HeroClass::Guard:
     // Tutorial class without traits, also used for unit tests
     break;
   }
-  using namespace std::string_literals;
-  throw std::runtime_error("Traits for "s + toString(theClass) + " not implemented");
+  throw std::runtime_error("Unsupported class");
 }
 
 constexpr bool hasStartingTrait(HeroClass theClass, HeroTrait trait)

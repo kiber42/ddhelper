@@ -24,8 +24,8 @@ class Monster;
 class Hero
 {
 public:
-  explicit Hero(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human);
-  explicit Hero(const DungeonSetup& dungeonSetup);
+  explicit Hero(HeroClass = HeroClass::Guard, HeroRace = HeroRace::Human, const std::vector<God>& altarsForGoatperson = {});
+  explicit Hero(const DungeonSetup& dungeonSetup, const std::vector<God>& altarsForGoatperson);
   Hero(HeroStats, Defence, Experience);
 
   std::string getName() const;

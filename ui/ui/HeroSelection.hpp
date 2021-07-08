@@ -16,8 +16,7 @@ namespace ui
   public:
     bool run();
 
-    Hero get() const;
-    MapResources getResources() const;
+    std::pair<Hero, MapResources> getHeroAndResources() const;
 
   private:
     DungeonSetup setup{HeroClass::Fighter, HeroRace::Human};

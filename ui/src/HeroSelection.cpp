@@ -65,16 +65,15 @@ namespace ui
     return clicked;
   }
 
-  Hero HeroSelection::get() const
+  std::pair<Hero, MapResources> HeroSelection::getHeroAndResources() const
   {
-    Hero hero{setup};
+    MapResources resources{setup};
+    Hero hero{setup, resources.getAllAltars()};
     Monsters ignore;
     for (int i = 1; i < level; ++i)
       hero.gainLevel(ignore);
-    return hero;
+    return {std::move(hero), std::move(resources)};
   }
-
-  MapResources HeroSelection::getResources() const { return MapResources{setup}; }
 
   CustomHeroBuilder::CustomHeroBuilder()
     : data{1, 10, 10, 10, 10, 5, 0, 0}

@@ -89,6 +89,8 @@ struct MapResources : public Resources
   ResourceSet& operator()() override { return visible; }
   const ResourceSet& operator()() const override { return visible; }
 
+  std::vector<God> getAllAltars() const;
+
   void revealTile() override;
 
   ResourceSet visible;
