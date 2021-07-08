@@ -105,6 +105,7 @@ namespace ui
     {
       std::string title = monster->getName() + " enters"s;
       applyUndoable(std::move(title), [newMonster = std::move(*monster)](State& state) {
+        state.removeDefeatedMonsters();
         state.activeMonster = state.monsterPool.size();
         state.monsterPool.emplace_back(newMonster);
         return Summary::None;
@@ -128,14 +129,8 @@ namespace ui
     {
       std::string title = poolMonster->getName() + " enters from pool"s;
       applyUndoable(std::move(title), [poolIndex = std::distance(begin(state.monsterPool), poolMonster)](State& state) {
-        const auto monster = state.monster();
-        if (monster && monster->isDefeated())
-        {
-          state.monsterPool.erase(begin(state.monsterPool) + static_cast<long>(*state.activeMonster));
-          state.activeMonster = poolIndex > 0 ? poolIndex - 1 : 0;
-        }
-        else
-          state.activeMonster = poolIndex;
+        state.activeMonster = poolIndex;
+        state.removeDefeatedMonsters();
         return Summary::None;
       });
     }

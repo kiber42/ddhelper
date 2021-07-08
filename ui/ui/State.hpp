@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <functional>
+#include <optional>
 #include <utility>
 
 namespace ui
@@ -32,6 +33,22 @@ namespace ui
         return nullptr;
       assert(*activeMonster < monsterPool.size());
       return &monsterPool[*activeMonster];
+    }
+
+    void removeDefeatedMonsters()
+    {
+      size_t index = 0;
+      while (index < monsterPool.size())
+      {
+        if (monsterPool[index].isDefeated())
+        {
+          monsterPool.erase(std::next(begin(monsterPool), index));
+          if (activeMonster && *activeMonster > index)
+            activeMonster = *activeMonster - 1;
+        }
+        else
+          ++index;
+      }
     }
   };
 
