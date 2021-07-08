@@ -22,7 +22,8 @@ namespace ui
     {
       addActionButton(
           state, "Attack", false, "Attack "s + state.monster()->getName(),
-          [](State& state) { return Combat::attack(state.hero, *state.monster(), state.monsterPool, state.resources); }, result);
+          [](State& state) { return Combat::attack(state.hero, *state.monster(), state.monsterPool, state.resources); },
+          result);
     }
     else
       disabledButton("Attack", "No target");
@@ -395,10 +396,19 @@ namespace ui
       }
       return std::tuple{std::move(altars), canMakePact};
     }();
-    if (altars.empty() && !canMakePact)
+    const bool scapegoat = state.hero.has(HeroTrait::Scapegoat);
+    if (!canMakePact)
     {
-      disabledButton("Faith", "No altars");
-      return;
+      if (scapegoat && std::find(begin(altars), end(altars), *state.hero.getFollowedDeity()) == end(altars))
+      {
+        disabledButton("Faith", "Altar of followed deity not available");
+        return;
+      }
+      if (altars.empty())
+      {
+        disabledButton("Faith", "No altars");
+        return;
+      }
     }
     ImGui::Button("Faith");
     if (ImGui::IsItemActive())
@@ -436,7 +446,7 @@ namespace ui
         }
       }
       const bool haveAvailableAltars =
-          !altars.empty() &&
+          !scapegoat && !altars.empty() &&
           (!following || altars.size() > static_cast<unsigned>(std::count(begin(altars), end(altars), *following)));
       if (haveAvailableAltars)
       {
@@ -469,11 +479,36 @@ namespace ui
           else
             ImGui::TextColored(colorUnavailable, "%s", label.c_str());
         }
-      }
 
+        if (following)
+        {
+          ImGui::Separator();
+          ImGui::TextUnformatted("Desecrate");
+          ImGui::Separator();
+          for (size_t altarIndex = 0; altarIndex < altars.size(); ++altarIndex)
+          {
+            const God god = altars[altarIndex];
+            if (following == god)
+              continue;
+            const bool isSelected = ++index == selectedPopupItem;
+            if (addPopupAction(
+                    state, toString(god), "Desecrate "s + toString(god) + "'s altar",
+                    [god, altarIndex = static_cast<long>(altarIndex)](State& state) {
+                      if (state.hero.desecrate(god, state.monsterPool))
+                      {
+                        auto& altars = state.resources().altars;
+                        altars.erase(begin(altars) + altarIndex);
+                      }
+                      return Summary::Safe;
+                    },
+                    isSelected, result))
+              selectedPopupItem = index;
+          }
+        }
+      }
       if (canMakePact)
       {
-        if (following || haveAvailableAltars)
+        if (haveAvailableAltars)
           ImGui::Separator();
         ImGui::TextUnformatted("Pactmaker");
         ImGui::Separator();
@@ -489,32 +524,6 @@ namespace ui
                   state, label, historyTitle,
                   [pact](State& state) {
                     state.hero.request(pact, state.monsterPool, state.resources);
-                    return Summary::Safe;
-                  },
-                  isSelected, result))
-            selectedPopupItem = index;
-        }
-      }
-
-      if (following && haveAvailableAltars)
-      {
-        ImGui::Separator();
-        ImGui::TextUnformatted("Desecrate");
-        ImGui::Separator();
-        for (size_t altarIndex = 0; altarIndex < altars.size(); ++altarIndex)
-        {
-          const God god = altars[altarIndex];
-          if (following == god)
-            continue;
-          const bool isSelected = ++index == selectedPopupItem;
-          if (addPopupAction(
-                  state, toString(god), "Desecrate "s + toString(god) + "'s altar",
-                  [god, altarIndex = static_cast<long>(altarIndex)](State& state) {
-                    if (state.hero.desecrate(god, state.monsterPool))
-                    {
-                      auto& altars = state.resources().altars;
-                      altars.erase(begin(altars) + altarIndex);
-                    }
                     return Summary::Safe;
                   },
                   isSelected, result))
