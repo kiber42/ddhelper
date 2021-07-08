@@ -16,7 +16,7 @@ Hero::Hero(HeroClass heroClass, HeroRace heroRace, const std::vector<God>& altar
 }
 
 Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperson)
-  : name(isMonsterClass(setup.heroClass) ? toString(setup.heroRace)
+  : name(isMonsterClass(setup.heroClass) ? toString(setup.heroClass)
                                          : (toString(setup.heroRace) + std::string(" ") + toString(setup.heroClass)))
   , traits(startingTraits(setup.heroClass))
   , stats()
