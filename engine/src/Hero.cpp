@@ -713,9 +713,9 @@ void Hero::monsterKilled(
       ++inventory.gold;
     if (has(ShopItem::BlueBead) && !has(HeroDebuff::ManaBurned))
       recoverManaPoints(1);
+    if (has(ShopItem::StoneSigil))
+      faith.gainPiety(1);
   }
-  if (has(ShopItem::StoneSigil))
-    faith.gainPiety(1);
   if (!monster.has(MonsterTrait::Bloodless))
     ++resources().numBloodPools;
   if (has(HeroTrait::SapphireLocks))
