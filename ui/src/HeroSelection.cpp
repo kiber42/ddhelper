@@ -69,9 +69,14 @@ namespace ui
   {
     MapResources resources{setup};
     Hero hero{setup, resources.getAllAltars()};
+    // Take hero to requested level; Goatperson requires special care
     Monsters ignore;
+    auto& faith = hero.getFaith();
+    faith.gainPiety(100);
     for (int i = 1; i < level; ++i)
       hero.gainLevel(ignore);
+    faith.losePiety(faith.getPiety(), hero, ignore);
+    hero.healHitPoints(hero.getHitPointsMax());
     return {std::move(hero), std::move(resources)};
   }
 
