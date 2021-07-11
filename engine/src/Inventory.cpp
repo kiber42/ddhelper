@@ -32,6 +32,12 @@ Inventory::Inventory(const DungeonSetup& setup)
   , allItemsLarge(hasStartingTrait(setup.heroClass, HeroTrait::RegalSize))
   , negotiator(hasStartingTrait(setup.heroClass, HeroTrait::Negotiator))
 {
+  if (hasStartingTrait(setup.heroClass, HeroTrait::Herbivore))
+  {
+    add(MiscItem::Food);
+    numFood = 90;
+  }
+
   for (const auto& item : setup.startingEquipment)
   {
     if (auto potion = std::get_if<Potion>(&item);

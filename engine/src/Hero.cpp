@@ -118,8 +118,6 @@ Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperso
     assert(!altarsForGoatperson.empty());
     faith.makeGoatperson(altarsForGoatperson);
   }
-  if (has(HeroTrait::Herbivore))
-    inventory.addFood(90);
 
   // TODO: Move gold pile size to MapResources? (+ remove this trait)
   if (setup.modifiers.count(ThievesModifier::BlackMarket))
