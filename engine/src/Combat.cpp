@@ -132,7 +132,7 @@ namespace Combat
     const bool reflexes = hero.has(HeroStatus::Reflexes);
     const bool swiftHand = hero.has(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
     const bool heroUsesDeathGaze = hero.getIntensity(HeroStatus::DeathGaze) * monster.getHitPointsMax() > monster.getHitPoints() * 100;
-    const bool willPetrify = !hero.has(HeroStatus::DeathGazeImmune) &&
+    const bool willPetrify = !monster.isSlowed() && !hero.has(HeroStatus::DeathGazeImmune) &&
                              (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
 
     auto heroAttacks = [&] {
