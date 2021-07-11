@@ -139,8 +139,8 @@ void testInventory()
     });
     auto foodCount = [](const auto& inv) {
       const auto counts = inv.getItemCounts();
-      auto foodIt = std::find_if(begin(counts), end(counts),
-                                 [](const auto& entry) { return entry.first == Item{MiscItem::Food}; });
+      const auto foodIt = std::find_if(begin(counts), end(counts),
+                                       [](const auto& entry) { return entry.first == Item{MiscItem::Food}; });
       if (foodIt == end(counts))
         return 0;
       return foodIt->second;
@@ -204,6 +204,28 @@ void testInventory()
       inv.add(MiscItem::Food);
       AssertThat(foodCount(inv), Equals(1));
       AssertThat(inv.getFoodCount(), Equals(1u));
+    });
+    it("shall be grouped correctly", [] {
+      Inventory inv{DungeonSetup{}};
+      inv.remove(MiscItem::Food);
+      inv.add(MiscItem::Food);
+      inv.addFood(123u);
+      inv.remove(MiscItem::Food);
+      AssertThat(inv.tryConsumeFood(23u), Equals(0u));
+      const auto counts = inv.getItemsGrouped();
+      const auto foodIt = std::find_if(begin(counts), end(counts), [](const auto& entry) {
+        return entry.first.itemOrSpell == ItemOrSpell{MiscItem::Food};
+      });
+      AssertThat(foodIt, !Equals(end(counts)));
+      AssertThat(foodIt->second, Equals(100));
+    });
+    it("shall be available initially for Herbivore", [] {
+      Hero hero(HeroClass::Goatperson, HeroRace::Dwarf, {God::BinlorIronshield});
+      const auto counts = hero.getItemCounts();
+      const auto foodIt = std::find_if(begin(counts), end(counts),
+                                       [](const auto& entry) { return entry.first == Item{MiscItem::Food}; });
+      AssertThat(foodIt, !Equals(end(counts)));
+      AssertThat(foodIt->second, Equals(90));
     });
   });
 }
