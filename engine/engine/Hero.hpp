@@ -188,6 +188,7 @@ public:
   void use(BossReward item);
   constexpr void use(Item item, Monsters& allMonsters);
   void use(Item item, Monster& monster, Monsters& allMonsters);
+  unsigned getFoodCount() const;
 
   bool useCompressionSealOn(ItemOrSpell itemOrSpell);
   bool useTransmutationSealOn(ItemOrSpell itemOrSpell, Monsters& allMonsters);

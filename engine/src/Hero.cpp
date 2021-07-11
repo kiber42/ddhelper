@@ -1440,6 +1440,11 @@ void Hero::use(Item item, Monster& monster, Monsters& allMonsters)
   }
 }
 
+unsigned Hero::getFoodCount() const
+{
+  return inventory.getFoodCount();
+}
+
 bool Hero::useCompressionSealOn(ItemOrSpell itemOrSpell)
 {
   if (has(AlchemistSeal::CompressionSeal) && inventory.compress(itemOrSpell))
@@ -1696,6 +1701,8 @@ std::vector<std::string> describe(const Hero& hero)
           std::to_string(hero.getDamageBonusPercent()) + "%)",
       std::to_string(hero.getPiety()) + " piety",
       std::to_string(hero.gold()) + " gold"};
+  if (hero.has(HeroTrait::Herbivore))
+    description.emplace_back(std::to_string(hero.getFoodCount()) + " food");
   if (hero.getPhysicalResistPercent() > 0)
     description.emplace_back(std::to_string(hero.getPhysicalResistPercent()) + "% physical resist");
   if (hero.getMagicalResistPercent() > 0)

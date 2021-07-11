@@ -223,8 +223,10 @@ namespace ui
           const auto item = std::get<Item>(itemEntry.itemOrSpell);
           if (itemEntry.conversionPoints >= 0)
           {
-            const std::string label = toString(item) + " ("s + std::to_string(itemEntry.conversionPoints) + " CP)";
+            std::string label = toString(item) + " ("s + std::to_string(itemEntry.conversionPoints) + " CP)";
             const std::string historyTitle = "Convert " + label;
+            if (count > 1)
+              label += " (x"s + std::to_string(count) + ')';
             if (addPopupAction(
                     state, label, historyTitle,
                     [item](State& state) {

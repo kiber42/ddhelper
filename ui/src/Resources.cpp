@@ -125,8 +125,13 @@ namespace ui
       addActionButton(
           state, "Reveal All", false, "Reveal Full Map",
           [](State& state) {
-            while (state.resources.numHiddenTiles > 0)
+            Monsters ignore;
+            unsigned int numTiles = state.hero.has(HeroTrait::Herbivore) ? state.hero.getFoodCount() : state.resources.numHiddenTiles;
+            while (numTiles-- > 0)
+            {
               state.resources.revealTile();
+              state.hero.recover(1, ignore);
+            }
             return Summary::None;
           },
           result);
