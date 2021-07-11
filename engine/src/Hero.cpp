@@ -10,8 +10,13 @@
 #include <cassert>
 #include <utility>
 
-Hero::Hero(HeroClass heroClass, HeroRace heroRace, const std::vector<God>& altarsForGoatperson)
-  : Hero(DungeonSetup{heroClass, heroRace}, altarsForGoatperson)
+Hero::Hero(HeroClass heroClass, HeroRace heroRace)
+  : Hero(DungeonSetup{heroClass, heroRace}, {})
+{
+}
+
+Hero::Hero(HeroClass monsterClass, const std::vector<God>& altarsForGoatperson)
+  : Hero(DungeonSetup{monsterClass}, altarsForGoatperson)
 {
 }
 

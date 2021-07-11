@@ -220,7 +220,7 @@ void testInventory()
       AssertThat(foodIt->second, Equals(100));
     });
     it("shall be available initially for Herbivore", [] {
-      Hero hero(HeroClass::Goatperson, HeroRace::Dwarf, {God::BinlorIronshield});
+      Hero hero(HeroClass::Goatperson, {God::BinlorIronshield});
       const auto counts = hero.getItemCounts();
       const auto foodIt = std::find_if(begin(counts), end(counts),
                                        [](const auto& entry) { return entry.first == Item{MiscItem::Food}; });
