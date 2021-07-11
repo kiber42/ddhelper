@@ -80,6 +80,11 @@ public:
   // Replace prayer beads by enchanted prayer beads, return number of beads enchanted
   unsigned enchantPrayerBeads();
 
+  void addFood(unsigned amount);
+  [[nodiscard]] unsigned getFoodCount() const;
+  // Try to consume requested amount of food.  Returns 0 on success.  Otherwise, all food is consumed and the missing amount is returned.
+  [[nodiscard]] unsigned tryConsumeFood(unsigned amount);
+
   struct Entry
   {
     ItemOrSpell itemOrSpell;
@@ -112,6 +117,7 @@ private:
   bool allItemsLarge{false};
   bool negotiator{false};
 
+  unsigned numFood{0};
   unsigned fireHeartCharge{0};
   unsigned crystalBallCharge{10};
   unsigned crystalBallCosts{4};

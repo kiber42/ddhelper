@@ -18,6 +18,10 @@ namespace
       conversionPoints += 50;
     return conversionPoints;
   }
+
+  constexpr unsigned LargeItemSize = 5;
+  constexpr auto FoodItem = Item{MiscItem::Food};
+  constexpr auto FoodItemOrSpell = ItemOrSpell{MiscItem::Food};
 } // namespace
 
 Inventory::Inventory(const DungeonSetup& setup)
@@ -64,6 +68,13 @@ Inventory::Inventory(const DungeonSetup& setup)
 
 void Inventory::add(ItemOrSpell itemOrSpell)
 {
+  if (itemOrSpell == FoodItemOrSpell)
+  {
+    // Allow at most one food item in inventory
+    ++numFood;
+    if (numFood > 1)
+      return;
+  }
   const auto [smallItem, price, conversionPoints] = [&, item = std::get_if<Item>(&itemOrSpell)] {
     if (item)
       return std::tuple{isSmall(*item) && !allItemsLarge, buyingPrice(*item), initialConversionPoints(*item)};
@@ -75,6 +86,13 @@ void Inventory::add(ItemOrSpell itemOrSpell)
 
 void Inventory::addFree(Item item)
 {
+  if (item == FoodItem)
+  {
+    // Allow at most one food item in inventory
+    ++numFood;
+    if (numFood > 1)
+      return;
+  }
   entries.emplace_back(Entry{ItemOrSpell{item}, isSmall(item) && !allItemsLarge, 0, initialConversionPoints(item)});
 }
 
@@ -106,6 +124,11 @@ std::optional<unsigned> Inventory::getConversionPoints(ItemOrSpell itemOrSpell) 
 
 std::optional<std::pair<int, bool>> Inventory::removeImpl(ItemOrSpell itemOrSpell, bool forConversion, bool forSale)
 {
+  if (itemOrSpell == FoodItemOrSpell && numFood > 1)
+  {
+    --numFood;
+    return {{3, true}};
+  }
   std::vector<Entry>::iterator toRemove = end(entries);
   for (auto it = begin(entries); it != end(entries); ++it)
   {
@@ -178,11 +201,6 @@ int Inventory::sellingPrice(ItemOrSpell itemOrSpell) const
   return highestPrice;
 }
 
-namespace
-{
-  constexpr unsigned LargeItemSize = 5;
-}
-
 unsigned Inventory::numFreeSmallSlots() const
 {
   unsigned roomTaken = getSpells().size() * (spellsSmall ? 1 : LargeItemSize);
@@ -239,6 +257,11 @@ bool Inventory::translocate(Item shopItem)
 void Inventory::clear()
 {
   entries.clear();
+  numFood = 0;
+  fireHeartCharge = 0;
+  crystalBallCharge = 10;
+  crystalBallCosts = 4;
+  triswordDamage = 2;
 }
 
 void Inventory::chargeFireHeart()
@@ -313,6 +336,40 @@ unsigned Inventory::enchantPrayerBeads()
   return count;
 }
 
+void Inventory::addFood(unsigned amount)
+{
+  if (numFood == 0 && amount > 0)
+  {
+    // Add only one item of Food to inventory, keep track of amount in numFood variable
+    add(FoodItemOrSpell);
+    --amount;
+  }
+  numFood += amount;
+}
+
+unsigned Inventory::getFoodCount() const
+{
+  return numFood;
+}
+
+unsigned Inventory::tryConsumeFood(unsigned amount)
+{
+  if (numFood < amount)
+  {
+    amount -= numFood;
+    numFood = 0;
+    remove(FoodItemOrSpell);
+    return amount;
+  }
+  if (amount > 0)
+  {
+    numFood -= amount;
+    if (numFood == 0)
+      remove(FoodItemOrSpell);
+  }
+  return 0;
+}
+
 auto Inventory::getItemsAndSpells() const -> const std::vector<Entry>&
 {
   return entries;
@@ -326,7 +383,13 @@ auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, int>>
     const auto item = std::get_if<Item>(&entry.itemOrSpell);
     if (!item)
       continue;
-    // Only potions can be grouped (TODO: Food for Goatsperson not implemented yet)
+    // Food for Goatperson is handled separately
+    if (*item == FoodItem)
+    {
+      itemsGrouped.emplace_back(entry, numFood);
+      continue;
+    }
+    // Only potions can be grouped
     if (!std::holds_alternative<Potion>(*item))
     {
       itemsGrouped.emplace_back(entry, 1);
@@ -390,7 +453,15 @@ namespace
 
 std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
 {
-  return getEntryCountsOrdered<Item>(entries);
+  auto counts = getEntryCountsOrdered<Item>(entries);
+  if (numFood > 1)
+  {
+    std::for_each(begin(counts), end(counts), [numFood=numFood](auto& itemCount) {
+      if (itemCount.first == FoodItem)
+        itemCount.second = numFood;
+    });
+  }
+  return counts;
 }
 
 std::vector<std::pair<Spell, int>> Inventory::getSpellCounts() const

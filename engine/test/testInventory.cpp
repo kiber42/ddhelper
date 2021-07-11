@@ -125,4 +125,85 @@ void testInventory()
       AssertThat(hero.hasRoomFor(Potion::HealthPotion), IsTrue());
     });
   });
+  describe("Food", [] {
+    it("shall be treated as a small inventory item", [] {
+      Inventory inv{DungeonSetup{}};
+      inv.add(MiscItem::Food);
+      AssertThat(inv.numFreeSmallSlots(), Equals(27u));
+    });
+    it("shall be groupable", [] {
+      Inventory inv{DungeonSetup{}};
+      inv.add(MiscItem::Food);
+      inv.add(MiscItem::Food);
+      AssertThat(inv.numFreeSmallSlots(), Equals(27u));
+    });
+    auto foodCount = [](const auto& inv) {
+      const auto counts = inv.getItemCounts();
+      auto foodIt = std::find_if(begin(counts), end(counts),
+                                 [](const auto& entry) { return entry.first == Item{MiscItem::Food}; });
+      if (foodIt == end(counts))
+        return 0;
+      return foodIt->second;
+    };
+    it("shall be counted correctly when adding, removing, clearing", [foodCount] {
+      Inventory inv{DungeonSetup{}};
+      AssertThat(foodCount(inv), Equals(0));
+      inv.remove(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(0));
+      inv.add(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(1));
+      inv.add(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(2));
+      inv.remove(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(1));
+      inv.clear();
+      AssertThat(foodCount(inv), Equals(0));
+      inv.remove(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(0));
+      inv.add(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(1));
+      inv.addFree(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(2));
+      inv.clear();
+      AssertThat(foodCount(inv), Equals(0));
+      inv.addFree(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(1));
+    });
+    it("shall have helper functions for adding, removing, counting", [foodCount] {
+      Inventory inv{DungeonSetup{}};
+      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(inv.getFoodCount(), Equals(0u));
+
+      AssertThat(inv.tryConsumeFood(1u), Equals(1u));
+      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(inv.getFoodCount(), Equals(0u));
+      inv.addFood(1u);
+      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(inv.getFoodCount(), Equals(1u));
+      inv.addFood(1u);
+      AssertThat(foodCount(inv), Equals(2));
+      AssertThat(inv.getFoodCount(), Equals(2u));
+      AssertThat(inv.tryConsumeFood(1u), Equals(0u));
+      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(inv.getFoodCount(), Equals(1u));
+
+      inv.clear();
+      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(inv.getFoodCount(), Equals(0u));
+
+      inv.addFood(123u);
+      AssertThat(foodCount(inv), Equals(123));
+      AssertThat(inv.getFoodCount(), Equals(123u));
+      inv.remove(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(122));
+      AssertThat(inv.getFoodCount(), Equals(122u));
+      inv.add(MiscItem::Food);
+      AssertThat(inv.tryConsumeFood(125u), Equals(2u));
+      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(inv.getFoodCount(), Equals(0u));
+      inv.add(MiscItem::Food);
+      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(inv.getFoodCount(), Equals(1u));
+    });
+  });
 }
