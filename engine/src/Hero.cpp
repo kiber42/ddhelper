@@ -113,6 +113,8 @@ Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperso
     assert(!altarsForGoatperson.empty());
     faith.makeGoatperson(altarsForGoatperson);
   }
+  if (has(HeroTrait::Herbivore))
+    inventory.addFood(90);
 
   // TODO: Move gold pile size to MapResources? (+ remove this trait)
   if (setup.modifiers.count(ThievesModifier::BlackMarket))
@@ -451,14 +453,22 @@ bool Hero::takeDamage(unsigned attackerDamageOutput, DamageType damageType, Mons
   return damagePoints > 0;
 }
 
-void Hero::recover(unsigned nSquares)
+void Hero::recover(unsigned nSquares, Monsters& allMonsters)
 {
-  const bool exhausted = has(HeroStatus::Exhausted);
   const bool manaform = has(HeroStatus::Manaform);
-  if (!manaform && !has(HeroDebuff::Poisoned))
-    stats.healHitPoints(nSquares * recoveryMultiplier(), false);
-  if (!exhausted && !has(HeroDebuff::ManaBurned) && !has(HeroStatus::Healthform))
-    stats.recoverManaPoints(nSquares * (manaform ? 2u : 1u));
+  const bool healthform = has(HeroStatus::Healthform);
+  const bool recoverHealth = !manaform && !has(HeroDebuff::Poisoned);
+  const bool recoverMana = !healthform && !has(HeroStatus::Exhausted) && !has(HeroDebuff::ManaBurned);
+  const auto nFoodMissing = has(HeroTrait::Herbivore) ? inventory.tryConsumeFood(nSquares) : 0u;
+  const auto nRecover = nSquares - nFoodMissing;
+  if (recoverHealth)
+    stats.healHitPoints(nRecover * recoveryMultiplier(), false);
+  if (recoverMana)
+    stats.recoverManaPoints(nRecover * (manaform ? 2u : 1u));
+  // Lose health when uncovering without food; this may kill the hero. However, death protection will trigger at most
+  // once even if multiple tiles are uncovered after running out of food and health.
+  if (nFoodMissing > 0)
+    loseHitPointsOutsideOfFight(getLevel() * nFoodMissing, allMonsters);
 }
 
 unsigned Hero::recoveryMultiplier() const
@@ -477,8 +487,6 @@ unsigned Hero::recoveryMultiplier() const
 
 unsigned Hero::numSquaresForFullRecovery() const
 {
-  // TODO: For Goatperson, never return a number larger than the amount of food in inventory!
-
   auto numHP = 0u;
   if (!has(HeroDebuff::Poisoned))
   {
@@ -486,9 +494,14 @@ unsigned Hero::numSquaresForFullRecovery() const
     numHP = (getHitPointsMax() - getHitPoints() + (multiplier - 1) /* always round up */) / multiplier;
   }
   const auto numMP = has(HeroDebuff::ManaBurned) ? 0u : getManaPointsMax() - getManaPoints();
-  if (has(HeroTrait::Damned))
-    return numHP + numMP;
-  return std::max(numHP, numMP);
+  const auto numSquares = has(HeroTrait::Damned) ? numHP + numMP : std::max(numHP, numHP);
+  if (has(HeroTrait::Herbivore))
+  {
+    const auto foodCount = inventory.getFoodCount();
+    if (foodCount < numSquares)
+      return foodCount;
+  }
+  return numSquares;
 }
 
 void Hero::healHitPoints(unsigned amountPointsHealed, bool mayOverheal)
@@ -708,11 +721,16 @@ void Hero::monsterKilled(
   applyOrCollect(faith.monsterKilled(monster, getLevel(), monsterWasBurning), allMonsters);
   if (monster.grantsXP())
   {
-    gainExperienceForKill(monster.getLevel(), monsterWasSlowed, allMonsters);
+    const auto monsterLevel = monster.getLevel();
+    gainExperienceForKill(monsterLevel, monsterWasSlowed, allMonsters);
     if (has(ShopItem::GlovesOfMidas))
       ++inventory.gold;
+    if (monsterLevel == 10)
+      inventory.gold += 25;
     if (has(ShopItem::BlueBead) && !has(HeroDebuff::ManaBurned))
       recoverManaPoints(1);
+    if (has(HeroTrait::Herbivore))
+      inventory.addFood(9);
     if (has(ShopItem::StoneSigil))
       faith.gainPiety(1);
   }

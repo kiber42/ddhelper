@@ -38,7 +38,7 @@ void testChemist()
     it("should allow to stack Might from Bysseps and make Might increase base damage", [&] {
       cast(chemist, Spell::Bysseps);
       cast(chemist, Spell::Bysseps);
-      chemist.recover(4u);
+      chemist.recover(4u, noOtherMonsters);
       cast(chemist, Spell::Bysseps);
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(3u));
       AssertThat(chemist.getBaseDamage(), Equals(8u));
@@ -63,7 +63,7 @@ void testChemist()
     });
     it("should silently stack on Might received by other means", [&] {
       chemist.add(HeroStatus::Might);
-      chemist.recover(10u);
+      chemist.recover(10u, noOtherMonsters);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(2u));
       cast(chemist, Spell::Bysseps);
       AssertThat(Magic::spellCosts(Spell::Bysseps, chemist), Equals(4u));

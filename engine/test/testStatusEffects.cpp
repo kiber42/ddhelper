@@ -235,16 +235,16 @@ void testStatusEffects()
       });
       it("should limit health recovery", [&] {
         AssertThat(hero.getHitPoints(), Equals(27u));
-        hero.recover(1);
+        hero.recover(1, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(28u));
       });
       it("should prevent mana recovery", [&] {
         hero.loseManaPoints(1);
         AssertThat(hero.getManaPoints(), Equals(9u));
-        hero.recover(2);
+        hero.recover(2, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(9u));
         AssertThat(hero.has(HeroStatus::Exhausted), IsFalse());
-        hero.recover(1);
+        hero.recover(1, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(10u));
       });
     });
@@ -336,7 +336,7 @@ void testStatusEffects()
         hero.loseHitPointsOutsideOfFight(10 - goblin.getDamage(), noOtherMonsters);
         goblin.slow();
         AssertThat(attack(hero, goblin), Equals(Summary::Safe));
-        hero.recover(10);
+        hero.recover(10, noOtherMonsters);
         goblin.recover(10);
         hero.loseHitPointsOutsideOfFight(10 - goblin.getDamage(), noOtherMonsters);
         AssertThat(attack(hero, goblin), Equals(Summary::Death));
@@ -385,7 +385,7 @@ void testStatusEffects()
         Hero hero;
         hero.add(HeroDebuff::ManaBurned, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(0u));
-        hero.recover(10);
+        hero.recover(10, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(0u));
       });
       it("should allow other means of mana recovery", [] {
@@ -492,10 +492,10 @@ void testStatusEffects()
       it("should prevent health recovery", [] {
         Hero hero;
         hero.loseHitPointsOutsideOfFight(9, noOtherMonsters);
-        hero.recover(1);
+        hero.recover(1, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(2u));
         hero.add(HeroDebuff::Poisoned, noOtherMonsters);
-        hero.recover(10);
+        hero.recover(10, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(2u));
       });
     });
@@ -609,7 +609,7 @@ void testStatusEffects()
         AssertThat(hero.getIntensity(HeroStatus::SpiritStrength), Equals(11u));
         hero.addConversionPoints(100, noOtherMonsters);
         AssertThat(hero.getIntensity(HeroStatus::SpiritStrength), Equals(11u));
-        hero.recover(10);
+        hero.recover(10, noOtherMonsters);
         hero.use(Potion::StrengthPotion, noOtherMonsters);
         AssertThat(hero.getIntensity(HeroStatus::SpiritStrength), Equals(11u));
         hero.use(Potion::StrengthPotion, noOtherMonsters);

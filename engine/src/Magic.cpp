@@ -232,7 +232,7 @@ namespace Magic
     {
       const auto uncoveredTiles = std::min(3u, resources.numHiddenTiles);
       resources.numHiddenTiles -= uncoveredTiles;
-      hero.recover(uncoveredTiles);
+      hero.recover(uncoveredTiles, allMonsters);
       for (auto& monster : allMonsters)
         monster.recover(uncoveredTiles);
       break;
@@ -286,7 +286,7 @@ namespace Magic
     {
       const auto uncoveredTiles = std::min(resources.numHiddenTiles, 3u);
       resources.revealTiles(uncoveredTiles);
-      hero.recover(uncoveredTiles);
+      hero.recover(uncoveredTiles, allMonsters);
       monster.recover(uncoveredTiles);
       break;
     }

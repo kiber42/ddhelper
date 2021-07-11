@@ -93,11 +93,11 @@ void testMelee()
       hero.add(HeroStatus::DeathProtection);
       AssertThat(attack(hero, monster), Equals(Summary::Safe));
       AssertThat(hero.has(HeroStatus::DeathProtection), IsTrue());
-      hero.recover(100);
+      hero.recover(100, noOtherMonsters);
       hero.loseHitPointsOutsideOfFight(1, noOtherMonsters);
       AssertThat(attack(hero, monster), Equals(Summary::Safe));
       AssertThat(hero.has(HeroStatus::DeathProtection), IsFalse());
-      hero.recover(100);
+      hero.recover(100, noOtherMonsters);
       hero.loseHitPointsOutsideOfFight(1, noOtherMonsters);
       AssertThat(attack(hero, monster), Equals(Summary::Petrified));
     });

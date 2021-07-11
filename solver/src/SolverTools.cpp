@@ -201,7 +201,7 @@ namespace solver
     std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, state.monsters, state.resources); },
                           [&](Cast cast) { Magic::cast(hero, monster, cast.spell, state.monsters, state.resources); },
                           [&](Uncover uncover) {
-                            hero.recover(uncover.numTiles);
+                            hero.recover(uncover.numTiles, state.monsters);
                             monster.recover(uncover.numTiles);
                             state.resources.numHiddenTiles -= uncover.numTiles;
                           },

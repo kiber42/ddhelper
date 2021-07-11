@@ -70,7 +70,7 @@ public:
   unsigned predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const;
   // Returns false if damage was fully absorbed by damage reduction / resistances
   bool takeDamage(unsigned attackerDamageOutput, DamageType damageType, Monsters& allMonsters);
-  void recover(unsigned nSquares);
+  void recover(unsigned nSquares, Monsters& allMonsters);
   unsigned recoveryMultiplier() const;
   unsigned numSquaresForFullRecovery() const;
 

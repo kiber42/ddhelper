@@ -540,7 +540,7 @@ namespace ui
   void Arena::runUncoverTiles(const State& state)
   {
     auto uncoverForAll = [](State& state, unsigned numSquares) {
-      state.hero.recover(numSquares);
+      state.hero.recover(numSquares, state.monsterPool);
       for (auto& monster : state.monsterPool)
         monster.recover(numSquares);
       return Summary::None;
