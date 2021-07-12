@@ -324,7 +324,7 @@ namespace Magic
 
     if (spell == Spell::Imawal)
     {
-      const bool levelBefore = hero.getLevel() + hero.getPrestige();
+      const auto levelBefore = hero.getLevel() + hero.getPrestige();
       if (monster.grantsXP())
         hero.gainExperienceForPetrification(monster.isSlowed(), allMonsters);
       monster.petrify(resources);
