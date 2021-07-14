@@ -257,17 +257,12 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     if ((boon == Boon::StoneForm || hero.has(Boon::StoneForm)) && !hero.has(HeroStatus::Might))
       hero.add(HeroStatus::Might);
   };
-  auto receive = [&](auto itemOrSpell) {
-    if (!hero.receive(itemOrSpell))
-      resources().onGround.push_back(itemOrSpell);
-  };
 
   // Apply immediate effects.
   switch (boon)
   {
   case Boon::StoneSoup:
-    if (!hero.receiveFreeSpell(Spell::Endiswal))
-      resources().freeSpells.push_back(Spell::Endiswal);
+    resources().freeSpells.push_back(Spell::Endiswal);
     break;
   case Boon::StoneSkin:
     resources().numWalls -= 3;
@@ -422,22 +417,22 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
 
   case Boon::TaurogsBlade:
-    receive(TaurogItem::Skullpicker);
+    resources().onGround.push_back(TaurogItem::Skullpicker);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsShield:
-    receive(TaurogItem::Wereward);
+    resources().onGround.push_back(TaurogItem::Wereward);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsHelm:
-    receive(TaurogItem::Gloat);
+    resources().onGround.push_back(TaurogItem::Gloat);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsArmour:
-    receive(TaurogItem::Will);
+    resources().onGround.push_back(TaurogItem::Will);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
@@ -461,8 +456,8 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   case Boon::Reflexes:
     hero.lose(Potion::HealthPotion);
-    receive(Potion::ReflexPotion);
-    receive(Potion::QuicksilverPotion);
+    resources().onGround.push_back(Potion::ReflexPotion);
+    resources().onGround.push_back(Potion::QuicksilverPotion);
     break;
 
   // No immediate effects
@@ -605,14 +600,10 @@ bool Faith::enteredConsensus() const
 
 void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles, Resources& resources)
 {
-  auto receiveFreeSpell = [&](Spell spell) {
-    if (!hero.receiveFreeSpell(spell))
-      resources().freeSpells.push_back(spell);
-  };
   switch (god)
   {
   case God::BinlorIronshield:
-    receiveFreeSpell(Spell::Pisorf);
+    resources().freeSpells.push_back(Spell::Pisorf);
     gainPiety(numRevealedTiles / 10u);
     break;
   case God::Dracul:
@@ -620,14 +611,14 @@ void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles, Resource
     break;
   case God::TheEarthmother:
     gainPiety(5);
-    receiveFreeSpell(Spell::Imawal);
+    resources().freeSpells.push_back(Spell::Imawal);
     break;
   case God::GlowingGuardian:
     gainPiety(5 * hero.getLevel());
     break;
   case God::JehoraJeheyu:
     gainPiety(jehora.initialPietyBonus(hero.getLevel(), hero.has(HeroStatus::Pessimist)));
-    receiveFreeSpell(Spell::Weytwut);
+    resources().freeSpells.push_back(Spell::Weytwut);
     break;
   case God::MysteraAnnur:
     gainPiety(numSpellsCast);
@@ -636,7 +627,7 @@ void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles, Resource
     gainPiety(2 * numMonstersKilled);
     break;
   case God::TikkiTooki:
-    receiveFreeSpell(Spell::Getindare);
+    resources().freeSpells.push_back(Spell::Getindare);
     break;
   }
 }
