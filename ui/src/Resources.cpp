@@ -52,6 +52,7 @@ namespace ui
               ++resources.numRevealedTiles;
               --(resources.hidden.*item);
               ++(resources.visible.*item);
+              state.heroAndMonsterRecovery(1);
               return Summary::None;
             },
             result);
@@ -87,6 +88,7 @@ namespace ui
               ++resources.numRevealedTiles;
               (resources.visible.*item).emplace_back((resources.hidden.*item).back());
               (resources.hidden.*item).pop_back();
+              state.heroAndMonsterRecovery(1);
               return Summary::None;
             },
             result);
@@ -135,7 +137,7 @@ namespace ui
             while (numTiles-- > 0)
             {
               state.resources.revealTile();
-              state.hero.recover(1, ignore);
+              state.heroAndMonsterRecovery(1);
             }
             return Summary::None;
           },

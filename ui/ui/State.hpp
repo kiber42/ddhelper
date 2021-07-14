@@ -50,6 +50,13 @@ namespace ui
           ++index;
       }
     }
+
+    void heroAndMonsterRecovery(unsigned numTiles)
+    {
+      hero.recover(numTiles, monsterPool);
+      for (auto& monster : monsterPool)
+        monster.recover(numTiles);
+    }
   };
 
   using GameAction = std::function<Summary(State&)>;
