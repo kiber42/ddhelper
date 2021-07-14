@@ -1131,7 +1131,7 @@ void Hero::changeHitPointsMax(int deltaPoints)
 
 void Hero::changeManaPointsMax(int deltaPoints)
 {
-  auto newPoints = std::max(0, static_cast<int>(stats.getHitPointsMax()) + deltaPoints);
+  auto newPoints = std::max(0, static_cast<int>(stats.getManaPointsMax()) + deltaPoints);
   stats.setManaPointsMax(newPoints);
 }
 
