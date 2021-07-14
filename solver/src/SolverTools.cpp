@@ -212,10 +212,12 @@ namespace solver
                           [&](Use use) { hero.use(use.item, state.monsters); },
                           [&](Convert convert) { hero.convert(convert.itemOrSpell, state.monsters); },
                           [&hero, &spells = state.resources.spells](Find find) {
-                            spells.erase(std::find(begin(spells), end(spells), find.spell));
-                            hero.receive(find.spell);
+                            if (hero.receive(find.spell))
+                              spells.erase(std::find(begin(spells), end(spells), find.spell));
                           },
-                          [&](Follow follow) { hero.followDeity(follow.deity, state.resources.numRevealedTiles); },
+                          [&](Follow follow) {
+                            hero.followDeity(follow.deity, state.resources.numRevealedTiles, state.resources);
+                          },
                           [&](Request request) { hero.request(request.boonOrPact, state.monsters, state.resources); },
                           [&hero, &monsters = state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
                             if (hero.desecrate(desecrate.altar, monsters))

@@ -62,11 +62,15 @@ Conversion::Conversion(DungeonSetup setup)
     break;
   case HeroRace::Halfling:
     threshold = 80;
-    bonus = [](Hero& hero, Monsters&) { hero.receive(Potion::HealthPotion); };
+    bonus = [](Hero& hero, Monsters&) {
+      (void)hero.receive(Potion::HealthPotion); /* TODO: Handle inventory full case */
+    };
     break;
   case HeroRace::Gnome:
     threshold = 90;
-    bonus = [](Hero& hero, Monsters&) { hero.receive(Potion::ManaPotion); };
+    bonus = [](Hero& hero, Monsters&) {
+      (void)hero.receive(Potion::ManaPotion); /* TODO: Handle inventory full case */
+    };
     break;
   case HeroRace::Orc:
     threshold = 80;

@@ -109,6 +109,7 @@ enum class MiscItem
   ShopScroll,
   PatchesTheTeddy,
   Food,
+  FoodStack,
   // Subdungeon Items, Lockerable
   Gorgward,
   // God Items
@@ -145,7 +146,7 @@ struct Map
 using namespace std::string_view_literals;
 using Item = std::variant<BlacksmithItem, Potion, AlchemistSeal, ShopItem, BossReward, MiscItem, TaurogItem>;
 
-static constexpr Map<Item, ItemProperties, 73> items{
+static constexpr Map<Item, ItemProperties, 74> items{
     std::make_pair(BlacksmithItem::PerseveranceBadge, ItemProperties{"Perseverance Badge"sv, 15, 20, true}),
     {BlacksmithItem::SlayerWand, {"Slayer Wand"sv, 5, 10, false}},
     {BlacksmithItem::ReallyBigSword, {"Really Big Sword"sv, 12, 35, false}},
@@ -211,6 +212,7 @@ static constexpr Map<Item, ItemProperties, 73> items{
     {MiscItem::ShopScroll, {"Shop Scroll"sv, 10, 20, false}},
     {MiscItem::PatchesTheTeddy, {"Patches the Teddy"sv, 0, 10, false}},
     {MiscItem::Food, {"Food"sv, 0, 3, true}},
+    {MiscItem::FoodStack, {"Food Stack"sv, 0, 27, true}},
     {MiscItem::Gorgward, {"Gorgward"sv, 18, 50, true}},
     {MiscItem::PrayerBead, {"Prayer Bead"sv, -1, -1, true}},
     {MiscItem::EnchantedPrayerBead, {"Enchanted Prayer Bead"sv, -1, -1, true}},

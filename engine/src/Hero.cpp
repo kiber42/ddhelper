@@ -733,7 +733,10 @@ void Hero::monsterKilled(
     if (has(ShopItem::BlueBead) && !has(HeroDebuff::ManaBurned))
       recoverManaPoints(1);
     if (has(HeroTrait::Herbivore))
-      inventory.addFood(9);
+    {
+      if (!inventory.addFood(9))
+        resources().onGround.push_back(MiscItem::FoodStack);
+    }
     if (has(ShopItem::StoneSigil))
       faith.gainPiety(1);
   }
@@ -1017,7 +1020,8 @@ bool Hero::buy(Item item)
     return false;
   if (has(HeroTrait::RegalPerks))
     healHitPoints(getHitPointsMax() / 2, true);
-  receive(item);
+  if (!receive(item))
+    assert(false);
   return true;
 }
 
@@ -1056,9 +1060,9 @@ int Hero::getBoonCosts(Boon boon) const
   return faith.getCosts(boon, *this);
 }
 
-bool Hero::followDeity(God god, unsigned numRevealedTiles)
+bool Hero::followDeity(God god, unsigned numRevealedTiles, Resources& resources)
 {
-  return faith.followDeity(god, *this, numRevealedTiles);
+  return faith.followDeity(god, *this, numRevealedTiles, resources);
 }
 
 bool Hero::request(BoonOrPact boonOrPact, Monsters& allMonsters, Resources& resources)
@@ -1160,9 +1164,9 @@ bool Hero::lose(Item item)
   return itemLost;
 }
 
-void Hero::receiveFreeSpell(Spell spell)
+bool Hero::receiveFreeSpell(Spell spell)
 {
-  inventory.addFree(spell);
+  return inventory.addFree(spell);
 }
 
 void Hero::receiveEnlightenment(Monsters& allMonsters)
@@ -1234,11 +1238,13 @@ bool Hero::canAfford(Item item) const
   return price >= 0 && gold() >= static_cast<unsigned>(price);
 }
 
-void Hero::receive(ItemOrSpell itemOrSpell)
+bool Hero::receive(ItemOrSpell itemOrSpell)
 {
-  inventory.add(itemOrSpell);
+  if (!inventory.add(itemOrSpell))
+    return false;
   if (const auto item = std::get_if<Item>(&itemOrSpell))
     changeStatsFromItem(*item, true);
+  return true;
 }
 
 void Hero::convert(ItemOrSpell itemOrSpell, Monsters& allMonsters)
@@ -1378,17 +1384,19 @@ void Hero::use(ShopItem item, Monsters& allMonsters)
 
   // Elite Items
   case ShopItem::KegOfHealth:
-    inventory.add(Potion::HealthPotion);
-    inventory.add(Potion::HealthPotion);
-    inventory.add(Potion::HealthPotion);
-    consumed = true;
+  {
+    [[maybe_unused]] const bool ok = inventory.remove(ShopItem::KegOfHealth) && inventory.add(Potion::HealthPotion) &&
+                                     inventory.add(Potion::HealthPotion) && inventory.add(Potion::HealthPotion);
+    assert(ok);
     break;
+  }
   case ShopItem::KegOfMana:
-    inventory.add(Potion::ManaPotion);
-    inventory.add(Potion::ManaPotion);
-    inventory.add(Potion::ManaPotion);
-    consumed = true;
+  {
+    [[maybe_unused]] const bool ok = inventory.remove(ShopItem::KegOfMana) && inventory.add(Potion::ManaPotion) &&
+                                     inventory.add(Potion::ManaPotion) && inventory.add(Potion::ManaPotion);
+    assert(ok);
     break;
+  }
   case ShopItem::AmuletOfYendor:
     gainExperienceNoBonuses(50, allMonsters);
     consumed = true;

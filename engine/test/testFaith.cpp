@@ -38,7 +38,7 @@ void testFaith()
     describe("[Likes]", [] {
       it("shall award 2 piety for suffering poisoned or mana burned", [] {
         Hero hero;
-        hero.followDeity(God::GlowingGuardian, 0);
+        hero.followDeity(God::GlowingGuardian, 0, resources);
         const auto initialPiety = hero.getPiety();
         Monster manaBurnMonster("", {Level{1}, 10_HP, 1_damage}, {}, {MonsterTrait::ManaBurn});
         AssertThat(attack(hero, manaBurnMonster), Equals(Summary::Safe));
@@ -58,7 +58,7 @@ void testFaith()
       Hero hero;
       hero.setManaPointsMax(14);
       hero.recoverManaPoints(4);
-      hero.followDeity(God::MysteraAnnur, 0);
+      hero.followDeity(God::MysteraAnnur, 0, resources);
       Monster meatMan(MonsterType::MeatMan, 1);
       AssertThat(cast(hero, meatMan, Spell::Burndayraz), Equals(Summary::Safe));
       AssertThat(hero.getPiety(), Equals(3u));
@@ -74,7 +74,7 @@ void testFaith()
       setup.altar = God::MysteraAnnur;
 
       Hero hero{setup, {}};
-      hero.followDeity(God::MysteraAnnur, 0);
+      hero.followDeity(God::MysteraAnnur, 0, resources);
       cast(hero, Spell::Lemmisi);
       AssertThat(hero.getPiety(), Equals(0u));
       cast(hero, Spell::Lemmisi);
@@ -90,7 +90,7 @@ void testFaith()
 
       setup.heroClass = HeroClass::Wizard;
       Hero wizard{setup, {}};
-      wizard.followDeity(God::MysteraAnnur, 0);
+      wizard.followDeity(God::MysteraAnnur, 0, resources);
       cast(wizard, Spell::Lemmisi);
       AssertThat(wizard.getPiety(), Equals(0u));
       cast(wizard, Spell::Lemmisi);
@@ -108,7 +108,7 @@ void testFaith()
       it("shall award 5 piety for killing an XP-valuable enemy of lower level", [] {
         Hero hero;
         hero.gainLevel(noOtherMonsters);
-        hero.followDeity(God::TikkiTooki, 0);
+        hero.followDeity(God::TikkiTooki, 0, resources);
         Monster monster(MonsterType::MeatMan, 1);
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
         AssertThat(attack(hero, monster), Equals(Summary::Win));
@@ -125,7 +125,7 @@ void testFaith()
         Hero hero;
         hero.add(HeroStatus::Learning, 4);
         hero.getFaith().gainPiety(5);
-        hero.followDeity(God::TikkiTooki, 0);
+        hero.followDeity(God::TikkiTooki, 0, resources);
         Monsters meatMen{{MonsterType::MeatMan, 1}, {MonsterType::MeatMan, 1}};
         AssertThat(attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
         AssertThat(attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
@@ -145,7 +145,7 @@ void testFaith()
         setup.altar = God::TikkiTooki;
         Hero hero{setup, {}};
         hero.getFaith().gainPiety(10);
-        hero.followDeity(God::TikkiTooki, 0);
+        hero.followDeity(God::TikkiTooki, 0, resources);
         Monsters monsters{{MonsterType::MeatMan, 1}, {MonsterType::Wraith, 1}};
         Monster& meatMan = monsters[0];
         Monster& wraith = monsters[1];
@@ -158,7 +158,7 @@ void testFaith()
       });
       it("shall accept tribute", [] {
         Hero hero;
-        hero.followDeity(God::TikkiTooki, 0);
+        hero.followDeity(God::TikkiTooki, 0, resources);
         hero.addGold(150 - hero.gold());
         AssertThat(hero.getPiety(), Equals(0u));
         AssertThat(hero.gold(), Equals(150u));
@@ -171,7 +171,7 @@ void testFaith()
       });
       it("shall ignore hits that do not cause damage", [] {
         Hero hero;
-        hero.followDeity(God::TikkiTooki, 0);
+        hero.followDeity(God::TikkiTooki, 0, resources);
         hero.request(Boon::Tribute, noOtherMonsters, resources);
         AssertThat(hero.getPiety(), Equals(10u));
         Monster meatMan(1, 100, 3);

@@ -77,7 +77,7 @@ void testChemist()
       Hero chemist(HeroClass::Chemist);
       cast(chemist, Spell::Bysseps);
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
-      chemist.followDeity(God::BinlorIronshield, 1000);
+      chemist.followDeity(God::BinlorIronshield, 1000, resources);
       resources.numWalls = 10;
       chemist.request(Boon::StoneForm, noOtherMonsters, resources);
       chemist.wallDestroyed();

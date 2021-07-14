@@ -142,7 +142,7 @@ public:
   unsigned receivedBoonCount(Boon boon) const;
   int getBoonCosts(Boon boon) const;
 
-  bool followDeity(God god, unsigned numRevealedTiles);
+  bool followDeity(God god, unsigned numRevealedTiles, Resources& resources);
   bool request(BoonOrPact boon, Monsters& allMonsters, Resources& resources);
   [[nodiscard]] bool desecrate(God altar, Monsters& allMonsters);
 
@@ -162,7 +162,7 @@ public:
   void modifyLevelBy(int delta);
   void addConversionPoints(unsigned points, Monsters& allMonsters);
   bool lose(Item item);
-  void receiveFreeSpell(Spell spell);
+  [[nodiscard]] bool receiveFreeSpell(Spell spell);
   void receiveEnlightenment(Monsters& allMonsters);
   void clearInventory();
 
@@ -176,7 +176,7 @@ public:
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;
   unsigned numFreeSmallInventorySlots() const;
   bool canAfford(Item item) const;
-  void receive(ItemOrSpell itemOrSpell);
+  [[nodiscard]] bool receive(ItemOrSpell itemOrSpell);
   void convert(ItemOrSpell itemOrSpell, Monsters& allMonsters);
   bool canConvert(ItemOrSpell itemOrSpell) const;
   bool canUse(ShopItem item) const;

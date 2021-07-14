@@ -24,7 +24,7 @@ class Faith
 public:
   explicit Faith(std::optional<GodOrPactmaker> preparedAltar = {});
 
-  bool followDeity(God god, Hero& hero, unsigned numRevealedTiles);
+  bool followDeity(God god, Hero& hero, unsigned numRevealedTiles, Resources& resources);
   std::optional<God> getFollowedDeity() const;
   bool canFollow(God god, const Hero& hero) const;
 
@@ -92,7 +92,7 @@ public:
   bool preparationPenaltyApplies() const { return preparedAltar == followedDeity; }
 
 private:
-  void initialBoon(God god, Hero& hero, unsigned numRevealedTiles);
+  void initialBoon(God god, Hero& hero, unsigned numRevealedTiles, Resources& resources);
   void punish(God god, Hero& hero, Monsters& allMonsters);
 
   std::optional<God> followedDeity;

@@ -471,7 +471,8 @@ namespace ui
             if (addPopupAction(
                     state, toString(deity), label,
                     [deity](State& state) {
-                      return state.hero.getFaith().followDeity(deity, state.hero, state.resources.numRevealedTiles)
+                      return state.hero.getFaith().followDeity(deity, state.hero, state.resources.numRevealedTiles,
+                                                               state.resources)
                                  ? Summary::None
                                  : Summary::NotPossible;
                     },
@@ -578,11 +579,15 @@ namespace ui
   void Arena::runPickupResource(const State& state)
   {
     const auto& visible = state.resources.visible;
-    if (visible.numHealthPotions > 0 || visible.numManaPotions > 0 || visible.numAttackBoosters > 0 ||
-        visible.numManaBoosters > 0 || visible.numHealthBoosters > 0 || visible.numGoldPiles > 0 ||
-        !visible.spells.empty())
+    if (visible.numHealthPotions == 0 && visible.numManaPotions == 0 && visible.numAttackBoosters == 0 &&
+        visible.numManaBoosters == 0 && visible.numHealthBoosters == 0 && visible.numGoldPiles == 0 &&
+        visible.spells.empty() && visible.freeSpells.empty() && visible.onGround.empty())
     {
-      ImGui::Button("Pick Up");
+      disabledButton("Pick up", "Nothing here!");
+    }
+    else
+    {
+      ImGui::Button("Pick up");
       if (ImGui::IsItemActive())
       {
         ImGui::OpenPopup("PickupPopup");
@@ -599,8 +604,8 @@ namespace ui
             {
               std::string historyTitle = "Pick up "s + toString(item);
               auto action = [number, item](State& state) {
-                state.hero.receive(item);
-                --(state.resources.visible.*number);
+                if (state.hero.receive(item))
+                  --(state.resources.visible.*number);
                 return Summary::None;
               };
               if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
@@ -626,6 +631,44 @@ namespace ui
               selectedPopupItem = index;
           }
         };
+        auto addPickupSpellAction = [&, this](Spell spell, bool isFree) {
+          const bool isSelected = ++index == selectedPopupItem;
+          std::string label = toString(spell);
+          if (isFree)
+            label += " (free)";
+          if (addPopupAction(
+                  state, label, "Pick up " + label,
+                  [spell, isFree](State& state) {
+                    const bool success = isFree ? state.hero.receiveFreeSpell(spell) : state.hero.receive(spell);
+                    if (success)
+                    {
+                      auto& spells = isFree ? state.resources().freeSpells : state.resources().spells;
+                      auto spellIt = std::find(begin(spells), end(spells), spell);
+                      if (spellIt != end(spells))
+                        spells.erase(spellIt);
+                    }
+                    return Summary::None;
+                  },
+                  isSelected, result))
+            selectedPopupItem = index;
+        };
+        auto addPickupItemAction = [&, this](Item item) {
+          const bool isSelected = ++index == selectedPopupItem;
+          if (addPopupAction(
+                  state, toString(item), "Pick up "s + toString(item),
+                  [item](State& state) {
+                    if (state.hero.receive(item))
+                    {
+                      auto& items = state.resources().onGround;
+                      auto itemIt = std::find(begin(items), end(items), item);
+                      if (itemIt != end(items))
+                        items.erase(itemIt);
+                    }
+                    return Summary::None;
+                  },
+                  isSelected, result))
+            selectedPopupItem = index;
+        };
         addGenericPickupAction("Attack Booster", &ResourceSet::numAttackBoosters, &Hero::addAttackBonus);
         addGenericPickupAction("Health Booster", &ResourceSet::numHealthBoosters, &Hero::addHealthBonus);
         addGenericPickupAction("Mana Booster", &ResourceSet::numManaBoosters, &Hero::addManaBonus);
@@ -638,7 +681,8 @@ namespace ui
         addPotionPickupAction(&ResourceSet::numHealthPotions, Potion::HealthPotion);
         addPotionPickupAction(&ResourceSet::numManaPotions, Potion::ManaPotion);
 
-        const bool cannotTakeSpell = !state.hero.hasRoomFor(Spell::Burndayraz) && !visible.spells.empty();
+        const bool cannotTakeSpell =
+            !state.hero.hasRoomFor(Spell::Burndayraz) && (!visible.spells.empty() || !visible.freeSpells.empty());
         if (cannotTakeSpell)
         {
           if (!cannotTakePotion)
@@ -646,31 +690,39 @@ namespace ui
         }
         else if (!visible.spells.empty() && ImGui::BeginMenu("Spells"))
         {
+          // Iterate over copies, as entries might be erased
           auto spells = visible.spells;
-          std::sort(begin(spells), end(spells));
           for (Spell spell : spells)
-          {
-            const bool isSelected = ++index == selectedPopupItem;
-            if (addPopupAction(
-                    state, toString(spell), "Pick Up "s + toString(spell),
-                    [spell](State& state) {
-                      state.hero.receive(spell);
-                      auto& spells = state.resources().spells;
-                      spells.erase(std::remove(begin(spells), end(spells), spell), end(spells));
-                      return Summary::None;
-                    },
-                    isSelected, result))
-              selectedPopupItem = index;
-          }
+            addPickupSpellAction(spell, false);
+          spells = visible.freeSpells;
+          for (Spell spell : spells)
+            addPickupSpellAction(spell, true);
           ImGui::EndMenu();
+        }
+        if (!visible.onGround.empty())
+        {
+          const bool noRoomForItems = std::none_of(begin(visible.onGround), end(visible.onGround),
+                                                   [&hero = state.hero](Item item) { return hero.hasRoomFor(item); });
+          if (noRoomForItems)
+          {
+            ImGui::TextColored(colorUnavailable, "No room for items");
+          }
+          else if (ImGui::BeginMenu("Items"))
+          {
+            auto items = visible.onGround;
+            for (Item item : items)
+            {
+              if (state.hero.hasRoomFor(item))
+                addPickupItemAction(item);
+            }
+            ImGui::EndMenu();
+          }
         }
         if (!ImGui::IsAnyMouseDown() && selectedPopupItem != -1)
           ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
       }
     }
-    else
-      disabledButton("Pick Up", "Nothing here!");
   }
 
   void Arena::runMiscActions(const State& state)

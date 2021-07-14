@@ -20,30 +20,31 @@ Hero getHeroForScenario(Scenario scenario)
     hero.loseHitPointsOutsideOfFight(3, ignore);
     hero.clearInventory();
     for (int i = 0; i < 8; ++i)
-      hero.receive(Potion::ManaPotion);
-    hero.receiveFreeSpell(Spell::Burndayraz);
-    hero.receiveFreeSpell(Spell::Weytwut);
+      (void)hero.receive(Potion::ManaPotion);
+    (void)hero.receiveFreeSpell(Spell::Burndayraz);
+    (void)hero.receiveFreeSpell(Spell::Weytwut);
     return hero;
   }
   case Scenario::HalflingTrial:
   {
     Hero hero(HeroClass::Fighter, HeroRace::Halfling);
     hero.clearInventory();
-    hero.receive(Spell::Getindare);
-    hero.receive(Spell::Burndayraz);
-    hero.receive(Spell::Bysseps);
-    hero.receive(BlacksmithItem::Shield);
+    (void)hero.receive(Spell::Getindare);
+    (void)hero.receive(Spell::Burndayraz);
+    (void)hero.receive(Spell::Bysseps);
+    (void)hero.receive(BlacksmithItem::Shield);
     hero.add(HeroStatus::Pessimist);
     return hero;
   }
   case Scenario::TheThirdAct:
   {
     Hero hero;
-    hero.followDeity(God::TikkiTooki, 0);
+    SimpleResources ignore;
+    hero.followDeity(God::TikkiTooki, 0, ignore);
     hero.getFaith().gainPiety(22);
     hero.addGold(100 - hero.gold());
     hero.clearInventory();
-    hero.receive(MiscItem::TikkisCharm);
+    (void)hero.receive(MiscItem::TikkisCharm);
     hero.add(HeroStatus::Pessimist);
     return hero;
   }

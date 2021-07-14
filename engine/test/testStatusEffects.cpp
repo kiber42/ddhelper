@@ -445,7 +445,7 @@ void testStatusEffects()
         AssertThat(resist25.getHitPointsMax() - resist25.getHitPoints(), Equals(damage - resisted));
         resist25.recover(100);
 
-        hero.receive(BlacksmithItem::ReallyBigSword);
+        AssertThat(hero.receive(BlacksmithItem::ReallyBigSword), IsTrue());
         AssertThat(hero.has(HeroStatus::PiercePhysical), IsTrue());
         AssertThat(attack(hero, resist25), Equals(Summary::Safe));
         AssertThat(resist25.getHitPointsMax() - resist25.getHitPoints(), Equals(damage));
@@ -468,7 +468,7 @@ void testStatusEffects()
         hero.gainLevel(noOtherMonsters);
         hero.gainLevel(noOtherMonsters);
         hero.add(HeroStatus::ConsecratedStrike);
-        hero.receive(BlacksmithItem::ReallyBigSword);
+        AssertThat(hero.receive(BlacksmithItem::ReallyBigSword), IsTrue());
         Monster troll(MonsterType::FrozenTroll, 3);
         AssertThat(troll.getPhysicalResistPercent(), Equals(50u));
         AssertThat(troll.getMagicalResistPercent(), Equals(50u));

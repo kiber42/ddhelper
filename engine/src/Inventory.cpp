@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 #include <numeric>
 
 namespace
@@ -32,54 +33,59 @@ Inventory::Inventory(const DungeonSetup& setup)
   , allItemsLarge(hasStartingTrait(setup.heroClass, HeroTrait::RegalSize))
   , negotiator(hasStartingTrait(setup.heroClass, HeroTrait::Negotiator))
 {
+  bool allItemsFit = true;
+
   if (hasStartingTrait(setup.heroClass, HeroTrait::Herbivore))
   {
-    add(MiscItem::Food);
+    allItemsFit &= add(MiscItem::Food);
     numFood = 90;
   }
 
   for (const auto& item : setup.startingEquipment)
   {
-    if (auto potion = std::get_if<Potion>(&item);
-        potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion))
-      addFree(item);
-    else
-      add(item);
+    const auto potion = std::get_if<Potion>(&item);
+    const bool isFreePotion = potion && (*potion == Potion::HealthPotion || *potion == Potion::ManaPotion);
+    allItemsFit &= isFreePotion ? addFree(item) : add(item);
   }
 
   if (hasStartingTrait(setup.heroClass, HeroTrait::Macguyver))
   {
-    addFree(AlchemistSeal::CompressionSeal);
-    addFree(AlchemistSeal::CompressionSeal);
-    addFree(AlchemistSeal::TransmutationSeal);
-    addFree(AlchemistSeal::TransmutationSeal);
-    addFree(AlchemistSeal::TranslocationSeal);
+    allItemsFit &= addFree(AlchemistSeal::CompressionSeal) & addFree(AlchemistSeal::CompressionSeal) &
+                   addFree(AlchemistSeal::TransmutationSeal) & addFree(AlchemistSeal::TransmutationSeal) &
+                   addFree(AlchemistSeal::TranslocationSeal);
   }
 
   if (hasStartingTrait(setup.heroClass, HeroTrait::Defiant))
-    add(Spell::Cydstepp);
+    allItemsFit &= add(Spell::Cydstepp);
   if (hasStartingTrait(setup.heroClass, HeroTrait::MagicAttunement) || setup.modifiers.count(MageModifier::FlameMagnet))
-    add(Spell::Burndayraz);
+    allItemsFit &= add(Spell::Burndayraz);
   if (hasStartingTrait(setup.heroClass, HeroTrait::Insane))
-    add(Spell::Bludtupowa);
+    allItemsFit &= add(Spell::Bludtupowa);
   if (hasStartingTrait(setup.heroClass, HeroTrait::PoisonedBlade))
-    add(Spell::Apheelsik);
+    allItemsFit &= add(Spell::Apheelsik);
   if (hasStartingTrait(setup.heroClass, HeroTrait::HolyHands))
-    add(Spell::Halpmeh);
+    allItemsFit &= add(Spell::Halpmeh);
   if (hasStartingTrait(setup.heroClass, HeroTrait::DungeonLore))
-    add(Spell::Lemmisi);
+    allItemsFit &= add(Spell::Lemmisi);
   if (hasStartingTrait(setup.heroClass, HeroTrait::SapphireLocks))
-    add(Spell::Endiswal);
+    allItemsFit &= add(Spell::Endiswal);
+
+  if (!allItemsFit)
+    std::cerr << "Not all starting items could be added to inventory." << std::endl;
 }
 
-void Inventory::add(ItemOrSpell itemOrSpell)
+bool Inventory::add(ItemOrSpell itemOrSpell)
 {
+  if (itemOrSpell == ItemOrSpell{MiscItem::FoodStack})
+    return addFood(9);
+  if (!hasRoomFor(itemOrSpell))
+    return false;
   if (itemOrSpell == FoodItemOrSpell)
   {
     // Allow at most one food item in inventory
     ++numFood;
     if (numFood > 1)
-      return;
+      return true;
   }
   const auto [smallItem, price, conversionPoints] = [&, item = std::get_if<Item>(&itemOrSpell)] {
     if (item)
@@ -88,23 +94,30 @@ void Inventory::add(ItemOrSpell itemOrSpell)
       return std::tuple{spellsSmall && !allItemsLarge, 0, spellConversionPoints};
   }();
   entries.emplace_back(Entry{itemOrSpell, smallItem, price, conversionPoints});
+  return true;
 }
 
-void Inventory::addFree(Item item)
+bool Inventory::addFree(Item item)
 {
+  if (!hasRoomFor(item))
+    return false;
   if (item == FoodItem)
   {
     // Allow at most one food item in inventory
     ++numFood;
     if (numFood > 1)
-      return;
+      return true;
   }
   entries.emplace_back(Entry{ItemOrSpell{item}, isSmall(item) && !allItemsLarge, 0, initialConversionPoints(item)});
+  return true;
 }
 
-void Inventory::addFree(Spell spell)
+bool Inventory::addFree(Spell spell)
 {
+  if (!hasRoomFor(spell))
+    return false;
   entries.emplace_back(Entry{spell, spellsSmall && !allItemsLarge, 0, 0});
+  return true;
 }
 
 bool Inventory::has(ItemOrSpell itemOrSpell) const
@@ -220,8 +233,14 @@ bool Inventory::hasRoomFor(ItemOrSpell itemOrSpell) const
   bool smallItem;
   if (const auto item = std::get_if<Item>(&itemOrSpell))
   {
-    if (auto potion = std::get_if<Potion>(&*item); potion && has(*potion))
+    // Potions and food can be grouped in inventory, return true if such an item is already present
+    if (const auto potion = std::get_if<Potion>(&*item); potion && has(*potion))
       return true;
+    if (numFood > 0 && *item == FoodItem)
+    {
+      assert(has(FoodItemOrSpell));
+      return true;
+    }
     smallItem = isSmall(*item) && !allItemsLarge;
   }
   else
@@ -342,15 +361,17 @@ unsigned Inventory::enchantPrayerBeads()
   return count;
 }
 
-void Inventory::addFood(unsigned amount)
+bool Inventory::addFood(unsigned amount)
 {
   if (numFood == 0 && amount > 0)
   {
     // Add only one item of Food to inventory, keep track of amount in numFood variable
-    add(FoodItemOrSpell);
+    if (!add(FoodItemOrSpell))
+      return false;
     --amount;
   }
   numFood += amount;
+  return true;
 }
 
 unsigned Inventory::getFoodCount() const
@@ -462,7 +483,7 @@ std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
   auto counts = getEntryCountsOrdered<Item>(entries);
   if (numFood > 1)
   {
-    std::for_each(begin(counts), end(counts), [numFood=numFood](auto& itemCount) {
+    std::for_each(begin(counts), end(counts), [numFood = numFood](auto& itemCount) {
       if (itemCount.first == FoodItem)
         itemCount.second = numFood;
     });

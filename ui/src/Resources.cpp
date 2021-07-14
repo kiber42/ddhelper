@@ -107,6 +107,10 @@ namespace ui
     runSpawnSpell(state);
     showStrings("Altars:", resources.visible.altars);
     runSpawnAltar(state);
+    if (!resources.visible.freeSpells.empty())
+      showStrings("Free spells:", resources.visible.freeSpells);
+    if (!resources.visible.onGround.empty())
+      showStrings("Items on ground:", resources.visible.onGround);
 
     runCheat(state);
 
@@ -126,7 +130,8 @@ namespace ui
           state, "Reveal All", false, "Reveal Full Map",
           [](State& state) {
             Monsters ignore;
-            unsigned int numTiles = state.hero.has(HeroTrait::Herbivore) ? state.hero.getFoodCount() : state.resources.numHiddenTiles;
+            unsigned int numTiles =
+                state.hero.has(HeroTrait::Herbivore) ? state.hero.getFoodCount() : state.resources.numHiddenTiles;
             while (numTiles-- > 0)
             {
               state.resources.revealTile();

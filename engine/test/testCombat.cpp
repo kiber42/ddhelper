@@ -130,7 +130,7 @@ void testCombatWithTwoMonsters()
       hero.recoverManaPoints(2);
       AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.getHitPoints(), Equals(1u));
-      hero.followDeity(God::GlowingGuardian, 0);
+      hero.followDeity(God::GlowingGuardian, 0, resources);
       AssertThat(hero.getPiety(), Equals(5u));
       AssertThat(attack(hero, nextTarget, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.isDefeated(), IsTrue());

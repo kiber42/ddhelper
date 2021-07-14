@@ -24,6 +24,8 @@ struct ResourceSet
   std::vector<Item> shops;
   std::vector<Spell> spells;
   std::vector<GodOrPactmaker> altars;
+  std::vector<Item> onGround;
+  std::vector<Spell> freeSpells;
   unsigned numWalls{0};
   unsigned numPlants{0};
   unsigned numBloodPools{0};

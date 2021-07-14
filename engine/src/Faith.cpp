@@ -18,7 +18,7 @@ Faith::Faith(std::optional<GodOrPactmaker> preparedAltar0)
   }
 }
 
-bool Faith::followDeity(God god, Hero& hero, unsigned numRevealedTiles)
+bool Faith::followDeity(God god, Hero& hero, unsigned numRevealedTiles, Resources& resources)
 {
   if (!canFollow(god, hero))
     return false;
@@ -28,7 +28,7 @@ bool Faith::followDeity(God god, Hero& hero, unsigned numRevealedTiles)
     numConsecutiveLevelUpsWithGlowingGuardian = 0;
   }
   else
-    initialBoon(god, hero, numRevealedTiles);
+    initialBoon(god, hero, numRevealedTiles, resources);
   followedDeity = god;
   return true;
 }
@@ -207,15 +207,19 @@ int Faith::isAvailable(Boon boon, const Hero& hero, const Monsters& allMonsters,
   switch (boon)
   {
   case Boon::Absolution:
-    return glowingGuardian.canUseAbsolution(hero.getLevel(), allMonsters);
+    return hero.hasRoomFor(MiscItem::PrayerBead) && glowingGuardian.canUseAbsolution(hero.getLevel(), allMonsters);
   case Boon::BloodCurse:
     return hero.getLevel() < 10;
   case Boon::BoostHealth:
     return hero.has(Potion::HealthPotion);
   case Boon::BoostMana:
     return hero.has(Potion::ManaPotion);
+  case Boon::Cleansing:
+    return hero.hasRoomFor(MiscItem::PrayerBead);
   case Boon::Humility:
     return hero.getLevel() > 1;
+  case Boon::Protection:
+    return hero.hasRoomFor(MiscItem::PrayerBead);
   case Boon::Reflexes:
     return hero.has(Potion::HealthPotion);
   case Boon::StoneFist:
@@ -248,15 +252,22 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
   }
   piety = static_cast<unsigned>(newPiety);
   boons.push_back(boon);
+
   auto triggerStoneForm = [&] {
     if ((boon == Boon::StoneForm || hero.has(Boon::StoneForm)) && !hero.has(HeroStatus::Might))
       hero.add(HeroStatus::Might);
   };
+  auto receive = [&](auto itemOrSpell) {
+    if (!hero.receive(itemOrSpell))
+      resources().onGround.push_back(itemOrSpell);
+  };
+
   // Apply immediate effects.
   switch (boon)
   {
   case Boon::StoneSoup:
-    hero.receiveFreeSpell(Spell::Endiswal);
+    if (!hero.receiveFreeSpell(Spell::Endiswal))
+      resources().freeSpells.push_back(Spell::Endiswal);
     break;
   case Boon::StoneSkin:
     resources().numWalls -= 3;
@@ -343,14 +354,13 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   case Boon::Absolution:
   {
-    // Precondition: Removes one monster of <= hero's level (except undead, bosses, other dungeon levels)
+    // Removes one monster of <= hero's level (except undead, bosses, other dungeon levels)
     auto monsterIt = glowingGuardian.pickMonsterForAbsolution(hero.getLevel(), allMonstersOnFloor);
-    if (monsterIt != end(allMonstersOnFloor))
-    {
-      allMonstersOnFloor.erase(monsterIt);
-      hero.changeHitPointsMax(4);
-      hero.receive(MiscItem::PrayerBead);
-    }
+    assert(monsterIt != end(allMonstersOnFloor));
+    allMonstersOnFloor.erase(monsterIt);
+    hero.changeHitPointsMax(4);
+    if (!hero.receive(MiscItem::PrayerBead))
+      assert(false);
     break;
   }
   case Boon::Cleansing:
@@ -359,12 +369,14 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     hero.reduce(HeroDebuff::Weakened);
     hero.reduce(HeroDebuff::Corroded);
     hero.add(HeroStatus::ConsecratedStrike);
-    hero.receive(MiscItem::PrayerBead);
+    if (!hero.receive(MiscItem::PrayerBead))
+      assert(false);
     break;
   case Boon::Protection:
     hero.healHitPoints(hero.getHitPointsMax() * 35 / 100);
     hero.recoverManaPoints(hero.getManaPointsMax() * 35 / 100);
-    hero.receive(MiscItem::PrayerBead);
+    if (!hero.receive(MiscItem::PrayerBead))
+      assert(false);
     break;
   case Boon::Enlightenment:
   {
@@ -410,22 +422,22 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
 
   case Boon::TaurogsBlade:
-    hero.receive(TaurogItem::Skullpicker);
+    receive(TaurogItem::Skullpicker);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsShield:
-    hero.receive(TaurogItem::Wereward);
+    receive(TaurogItem::Wereward);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsHelm:
-    hero.receive(TaurogItem::Gloat);
+    receive(TaurogItem::Gloat);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
   case Boon::TaurogsArmour:
-    hero.receive(TaurogItem::Will);
+    receive(TaurogItem::Will);
     hero.changeDamageBonusPercent(+5);
     hero.changeManaPointsMax(-1);
     break;
@@ -449,8 +461,8 @@ bool Faith::request(Boon boon, Hero& hero, Monsters& allMonstersOnFloor, Resourc
     break;
   case Boon::Reflexes:
     hero.lose(Potion::HealthPotion);
-    hero.receive(Potion::ReflexPotion);
-    hero.receive(Potion::QuicksilverPotion);
+    receive(Potion::ReflexPotion);
+    receive(Potion::QuicksilverPotion);
     break;
 
   // No immediate effects
@@ -591,12 +603,16 @@ bool Faith::enteredConsensus() const
   return consensus;
 }
 
-void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles)
+void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles, Resources& resources)
 {
+  auto receiveFreeSpell = [&](Spell spell) {
+    if (!hero.receiveFreeSpell(spell))
+      resources().freeSpells.push_back(spell);
+  };
   switch (god)
   {
   case God::BinlorIronshield:
-    hero.receiveFreeSpell(Spell::Pisorf);
+    receiveFreeSpell(Spell::Pisorf);
     gainPiety(numRevealedTiles / 10u);
     break;
   case God::Dracul:
@@ -604,14 +620,14 @@ void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles)
     break;
   case God::TheEarthmother:
     gainPiety(5);
-    hero.receiveFreeSpell(Spell::Imawal);
+    receiveFreeSpell(Spell::Imawal);
     break;
   case God::GlowingGuardian:
     gainPiety(5 * hero.getLevel());
     break;
   case God::JehoraJeheyu:
     gainPiety(jehora.initialPietyBonus(hero.getLevel(), hero.has(HeroStatus::Pessimist)));
-    hero.receiveFreeSpell(Spell::Weytwut);
+    receiveFreeSpell(Spell::Weytwut);
     break;
   case God::MysteraAnnur:
     gainPiety(numSpellsCast);
@@ -620,7 +636,7 @@ void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles)
     gainPiety(2 * numMonstersKilled);
     break;
   case God::TikkiTooki:
-    hero.receiveFreeSpell(Spell::Getindare);
+    receiveFreeSpell(Spell::Getindare);
     break;
   }
 }

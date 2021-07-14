@@ -16,12 +16,12 @@ class Inventory
 public:
   explicit Inventory(const DungeonSetup&);
 
-  // Add item or spell to inventory (currently this does not check space requirements)
-  void add(ItemOrSpell);
-  // Add item to inventory, set its selling price to 0 (conversion points are unchanged)
-  void addFree(Item);
-  // Add spell to inventory, set its conversion value to 0 (price is always 0)
-  void addFree(Spell);
+  // Try to add item or spell to inventory, return false if there is not enough room
+  [[nodiscard]] bool add(ItemOrSpell);
+  // Try to add item to inventory, set its selling price to 0 (conversion points are unchanged)
+  [[nodiscard]] bool addFree(Item);
+  // Try to add spell to inventory, set its conversion value to 0 (price is always 0)
+  [[nodiscard]] bool addFree(Spell);
 
   bool has(ItemOrSpell) const;
 
@@ -60,7 +60,7 @@ public:
   // Add item obtained using a Translocation Seal, i.e. with half its usual conversion points (rounded down)
   bool translocate(Item);
 
-  // Remove all items and spells from inventory
+  // Remove all items and spells from inventory, reset all special item statuses
   void clear();
 
   // Helper functions for inventory items with special behaviours
@@ -80,7 +80,7 @@ public:
   // Replace prayer beads by enchanted prayer beads, return number of beads enchanted
   unsigned enchantPrayerBeads();
 
-  void addFood(unsigned amount);
+  [[nodiscard]] bool addFood(unsigned amount);
   [[nodiscard]] unsigned getFoodCount() const;
   // Try to consume requested amount of food.  Returns 0 on success.  Otherwise, all food is consumed and the missing amount is returned.
   [[nodiscard]] unsigned tryConsumeFood(unsigned amount);
