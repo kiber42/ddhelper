@@ -599,21 +599,16 @@ namespace ui
         auto addPotionPickupAction = [&, this](auto number, ItemOrSpell item) {
           if (visible.*number > 0)
           {
-            std::string label = toString(item) + " (x"s + std::to_string(visible.*number) + ")";
-            if (state.hero.hasRoomFor(item))
-            {
-              std::string historyTitle = "Pick up "s + toString(item);
-              auto action = [number, item](State& state) {
-                if (state.hero.receive(item))
-                  --(state.resources.visible.*number);
-                return Summary::None;
-              };
-              if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
-                                 ++index == selectedPopupItem, result))
-                selectedPopupItem = index;
-            }
-            else
-              ImGui::TextColored(colorUnavailable, "%s", label.c_str());
+            const std::string label = toString(item) + " (x"s + std::to_string(visible.*number) + ")";
+            const std::string historyTitle = "Pick up "s + toString(item);
+            auto action = [number, item](State& state) {
+              if (state.hero.receive(item))
+                --(state.resources.visible.*number);
+              return Summary::None;
+            };
+            if (addPopupAction(state, std::move(label), std::move(historyTitle), std::move(action),
+                               ++index == selectedPopupItem, result))
+              selectedPopupItem = index;
           }
         };
         auto addGenericPickupAction = [&, this](auto name, auto number, auto heroAction) {
@@ -674,12 +669,24 @@ namespace ui
         addGenericPickupAction("Mana Booster", &ResourceSet::numManaBoosters, &Hero::addManaBonus);
         addGenericPickupAction("Gold Pile", &ResourceSet::numGoldPiles, &Hero::collectGoldPile);
 
-        const bool cannotTakePotion = (!state.hero.hasRoomFor(Potion::HealthPotion) && visible.numHealthPotions > 0) ||
-                                      (!state.hero.hasRoomFor(Potion::ManaPotion) && visible.numManaPotions > 0);
+        bool cannotTakePotion = false;
+        if (visible.numHealthPotions > 0)
+        {
+          if (state.hero.hasRoomFor(Potion::HealthPotion))
+            addPotionPickupAction(&ResourceSet::numHealthPotions, Potion::HealthPotion);
+          else
+            cannotTakePotion = true;
+        }
+        if (visible.numManaPotions > 0)
+        {
+          if (state.hero.hasRoomFor(Potion::ManaPotion))
+            addPotionPickupAction(&ResourceSet::numManaPotions, Potion::ManaPotion);
+          else
+            cannotTakePotion = true;
+        }
+
         if (cannotTakePotion)
           ImGui::TextColored(colorUnavailable, "No room in inventory");
-        addPotionPickupAction(&ResourceSet::numHealthPotions, Potion::HealthPotion);
-        addPotionPickupAction(&ResourceSet::numManaPotions, Potion::ManaPotion);
 
         const bool cannotTakeSpell =
             !state.hero.hasRoomFor(Spell::Burndayraz) && (!visible.spells.empty() || !visible.freeSpells.empty());
@@ -705,7 +712,8 @@ namespace ui
                                                    [&hero = state.hero](Item item) { return hero.hasRoomFor(item); });
           if (noRoomForItems)
           {
-            ImGui::TextColored(colorUnavailable, "No room for items");
+            if (!cannotTakePotion)
+              ImGui::TextColored(colorUnavailable, "No room for items");
           }
           else if (ImGui::BeginMenu("Items"))
           {
