@@ -542,21 +542,15 @@ namespace ui
 
   void Arena::runUncoverTiles(const State& state)
   {
-    auto uncoverForAll = [](State& state, unsigned numSquares) {
-      state.hero.recover(numSquares, state.monsterPool);
-      for (auto& monster : state.monsterPool)
-        monster.recover(numSquares);
-      return Summary::None;
-    };
-
     const auto numHidden = state.resources.numHiddenTiles;
     if (numHidden > 0)
     {
       addActionButton(
           state, "Reveal Tile",
-          [uncoverForAll](State& state) {
+          [](State& state) {
             state.resources.revealTile();
-            return uncoverForAll(state, 1);
+            state.heroAndMonsterRecovery(1);
+            return state.hero.isDefeated() ? Summary::Death : Summary::Safe;
           },
           result);
 
@@ -567,9 +561,10 @@ namespace ui
         const std::string label = "Reveal " + std::to_string(numSquares) + " Tiles";
         addActionButton(
             state, label,
-            [uncoverForAll, numSquares](State& state) {
+            [numSquares](State& state) {
               state.resources.revealTiles(numSquares);
-              return uncoverForAll(state, numSquares);
+              state.heroAndMonsterRecovery(numSquares);
+              return Summary::Safe;
             },
             result);
       }
@@ -579,9 +574,10 @@ namespace ui
   void Arena::runPickupResource(const State& state)
   {
     const auto& visible = state.resources.visible;
+    const bool haveSpells = !visible.spells.empty() || !visible.freeSpells.empty();
     if (visible.numHealthPotions == 0 && visible.numManaPotions == 0 && visible.numAttackBoosters == 0 &&
-        visible.numManaBoosters == 0 && visible.numHealthBoosters == 0 && visible.numGoldPiles == 0 &&
-        visible.spells.empty() && visible.freeSpells.empty() && visible.onGround.empty())
+        visible.numManaBoosters == 0 && visible.numHealthBoosters == 0 && visible.numGoldPiles == 0 && !haveSpells &&
+        visible.onGround.empty())
     {
       disabledButton("Pick up", "Nothing here!");
     }
@@ -688,14 +684,13 @@ namespace ui
         if (cannotTakePotion)
           ImGui::TextColored(colorUnavailable, "No room in inventory");
 
-        const bool cannotTakeSpell =
-            !state.hero.hasRoomFor(Spell::Burndayraz) && (!visible.spells.empty() || !visible.freeSpells.empty());
+        const bool cannotTakeSpell = haveSpells && !state.hero.hasRoomFor(Spell::Burndayraz);
         if (cannotTakeSpell)
         {
           if (!cannotTakePotion)
             ImGui::TextColored(colorUnavailable, "No room for spells");
         }
-        else if (!visible.spells.empty() && ImGui::BeginMenu("Spells"))
+        else if (haveSpells && ImGui::BeginMenu("Spells"))
         {
           // Iterate over copies, as entries might be erased
           auto spells = visible.spells;
