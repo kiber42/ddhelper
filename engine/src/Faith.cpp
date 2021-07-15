@@ -600,36 +600,29 @@ bool Faith::enteredConsensus() const
 
 void Faith::initialBoon(God god, Hero& hero, unsigned numRevealedTiles, Resources& resources)
 {
+  const auto [pietyGain, freeSpell] = [&] () -> std::pair<unsigned, std::optional<Spell>> {
   switch (god)
   {
   case God::BinlorIronshield:
-    resources().freeSpells.push_back(Spell::Pisorf);
-    gainPiety(numRevealedTiles / 10u);
-    break;
+    return {numRevealedTiles / 10u, Spell::Pisorf};
   case God::Dracul:
-    gainPiety(2 * numMonstersKilled);
-    break;
+    return {2 * numMonstersKilled, {}};
   case God::TheEarthmother:
-    gainPiety(5);
-    resources().freeSpells.push_back(Spell::Imawal);
-    break;
+    return {5, Spell::Imawal};
   case God::GlowingGuardian:
-    gainPiety(5 * hero.getLevel());
-    break;
+    return {5 * hero.getLevel(), {}};
   case God::JehoraJeheyu:
-    gainPiety(jehora.initialPietyBonus(hero.getLevel(), hero.has(HeroStatus::Pessimist)));
-    resources().freeSpells.push_back(Spell::Weytwut);
-    break;
+    return {jehora.initialPietyBonus(hero.getLevel(), hero.has(HeroStatus::Pessimist)), Spell::Weytwut};
   case God::MysteraAnnur:
-    gainPiety(numSpellsCast);
-    break;
+    return {numSpellsCast, {}};
   case God::Taurog:
-    gainPiety(2 * numMonstersKilled);
-    break;
+    return {2 * numMonstersKilled, {}};
   case God::TikkiTooki:
-    resources().freeSpells.push_back(Spell::Getindare);
-    break;
-  }
+    return {0, Spell::Getindare};
+  }}();
+  gainPiety(pietyGain);
+  if (freeSpell)
+    resources().freeSpells.push_back(*freeSpell);
 }
 
 void Faith::punish(God god, Hero& hero, Monsters& allMonsters)
