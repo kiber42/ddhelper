@@ -93,6 +93,7 @@ struct MonsterTraits
     add(MonsterTrait::Weakening);
   }
 
+  void addCorrosive() { add(MonsterTrait::Corrosive); }
   void addWickedSick() { add(MonsterTrait::WickedSick); }
   void addZotted() { add(MonsterTrait::Zotted); }
 

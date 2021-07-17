@@ -226,13 +226,9 @@ void Monster::corrode(unsigned amount)
   defence.set(newCorrosion);
 }
 
-void Monster::zot()
+void Monster::makeCorrosive()
 {
-  if (!isZotted())
-  {
-    traits.addZotted();
-    stats.setHitPointsMax(stats.getHitPointsMax() / 2);
-  }
+  traits.addCorrosive();
 }
 
 void Monster::makeWickedSick()
@@ -246,6 +242,15 @@ void Monster::makeWickedSick()
     stats = MonsterStats(stats.getType(), level, stats.getDungeonMultiplier());
     if (hasStandardName)
       name = makeMonsterName(type, level);
+  }
+}
+
+void Monster::zot()
+{
+  if (!isZotted())
+  {
+    traits.addZotted();
+    stats.setHitPointsMax(stats.getHitPointsMax() / 2);
   }
 }
 

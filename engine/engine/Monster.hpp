@@ -45,8 +45,9 @@ public:
   void petrify(Resources& resources);
   void die();
   void corrode(unsigned amount = 1);
-  void zot();
+  void makeCorrosive();
   void makeWickedSick();
+  void zot();
 
   bool isBurning() const;
   bool isPoisoned() const;
