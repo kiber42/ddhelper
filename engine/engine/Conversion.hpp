@@ -9,7 +9,7 @@ class Hero;
 class Conversion
 {
 public:
-  Conversion(DungeonSetup);
+  Conversion(const DungeonSetup&);
   int getPoints() const;
   int getThreshold() const;
 

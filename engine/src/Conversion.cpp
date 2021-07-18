@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-Conversion::Conversion(DungeonSetup setup)
+Conversion::Conversion(const DungeonSetup& setup)
   : points(0)
   , threshold(100)
 {

@@ -13,7 +13,7 @@
 struct ResourceSet
 {
   ResourceSet() = default;
-  explicit ResourceSet(DungeonSetup);
+  explicit ResourceSet(const DungeonSetup&);
 
   bool pactmakerAvailable() const;
 
@@ -85,7 +85,7 @@ struct MapResources : public Resources
 {
   MapResources(ResourceSet visible, ResourceSet hidden, unsigned char mapSize = DefaultMapSize);
   explicit MapResources(unsigned char mapSize = DefaultMapSize);
-  explicit MapResources(DungeonSetup dungeonSetup);
+  explicit MapResources(const DungeonSetup& dungeonSetup);
   explicit MapResources(SimpleResources resources);
 
   ResourceSet& operator()() override { return visible; }

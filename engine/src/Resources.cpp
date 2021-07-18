@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cassert>
 
-ResourceSet::ResourceSet(DungeonSetup setup)
+ResourceSet::ResourceSet(const DungeonSetup& setup)
   : numWalls{setup.mapSize * setup.mapSize * 4 * (setup.altar == GodOrPactmaker{God::BinlorIronshield} ? 7u : 10u) /
              100}
   , numHealthPotions{3}
@@ -145,7 +145,7 @@ MapResources::MapResources(unsigned char mapSize)
 {
 }
 
-MapResources::MapResources(DungeonSetup dungeonSetup)
+MapResources::MapResources(const DungeonSetup& dungeonSetup)
   : MapResources(ResourceSet{}, ResourceSet{dungeonSetup}, dungeonSetup.mapSize)
 {
 }
