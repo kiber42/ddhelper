@@ -32,6 +32,7 @@ public:
   Hero(HeroStats, Defence, Experience);
 
   std::string getName() const;
+  void setName(std::string newName);
 
   unsigned getXP() const;
   unsigned getLevel() const;

@@ -125,6 +125,11 @@ void Resources::revealTiles(unsigned n)
     revealTile();
 }
 
+bool Resources::uses(Ruleset ruleset_) const
+{
+  return ruleset == ruleset_;
+}
+
 SimpleResources::SimpleResources(ResourceSet visible, unsigned char mapSize)
   : Resources(mapSize)
   , ResourceSet(std::move(visible))

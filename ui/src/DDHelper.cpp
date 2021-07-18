@@ -41,16 +41,23 @@ namespace ui
     std::optional<Scenario> selection;
     ImGui::Begin("Scenario");
     ImGui::SetWindowPos(ImVec2{260, 545}, ImGuiCond_FirstUseEver);
-    ImGui::SetWindowSize(ImVec2{170, 170}, ImGuiCond_FirstUseEver);
+    ImGui::SetWindowSize(ImVec2{250, 170}, ImGuiCond_FirstUseEver);
     ImGui::TextUnformatted("Agbaar's Academy");
-    if (ImGui::Button("Slowing Part 2"))
+    ImGui::SameLine(140);
+    if (ImGui::SmallButton("Slowing Part 2"))
       selection = Scenario::AgbaarsAcademySlowingPart2;
     ImGui::TextUnformatted("Hello, halflings!");
-    if (ImGui::Button("Halfling Trial"))
+    ImGui::SameLine(140);
+    if (ImGui::SmallButton("Halfling Trial"))
       selection = Scenario::HalflingTrial;
     ImGui::TextUnformatted("A Godly Giggle");
-    if (ImGui::Button("The Third Act"))
+    ImGui::SameLine(140);
+    if (ImGui::SmallButton("The Third Act"))
       selection = Scenario::TheThirdAct;
+    ImGui::TextUnformatted("The Monster Machine");
+    ImGui::SameLine(140);
+    if (ImGui::SmallButton("2.1"))
+      selection = Scenario::TheMonsterMachine1;
     ImGui::End();
     return selection;
   }
@@ -58,8 +65,12 @@ namespace ui
   // Return initial state for a specific challenge
   State prepareScenario(Scenario scenario)
   {
-    return {getHeroForScenario(scenario), getMonstersForScenario(scenario), std::nullopt,
-            MapResources{getResourcesForScenario(scenario), InitiallyRevealed{}}};
+    if (scenario != Scenario::TheMonsterMachine1)
+      return {getHeroForScenario(scenario), getMonstersForScenario(scenario), std::nullopt,
+              MapResources{getResourcesForScenario(scenario), InitiallyRevealed{}}};
+    else
+      return {getHeroForScenario(scenario), getMonstersForScenario(scenario), std::nullopt,
+              MapResources{getResourcesForScenario(scenario)}};
   }
 
   void DDHelperApp::populateFrame()

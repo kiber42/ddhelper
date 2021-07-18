@@ -24,14 +24,11 @@ Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperso
   : name(isMonsterClass(setup.heroClass) ? toString(setup.heroClass)
                                          : (toString(setup.heroRace) + std::string(" ") + toString(setup.heroClass)))
   , traits(startingTraits(setup.heroClass))
-  , stats()
   , defence(0_physicalresist, 0_magicalresist, 65_physicalresist, 65_magicalresist)
   , experience()
   , inventory(setup)
   , conversion(setup)
   , faith(setup.altar)
-  , statuses()
-  , collectedPiety()
   , generator(std::random_device{}())
 {
   if (has(HeroTrait::Veteran))
@@ -122,6 +119,9 @@ Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperso
   // TODO: Move gold pile size to MapResources? (+ remove this trait)
   if (setup.modifiers.count(ThievesModifier::BlackMarket))
     add(HeroTrait::BlackMarket);
+
+  for (auto& item : setup.startingEquipment)
+    changeStatsFromItem(item, true);
 }
 
 Hero::Hero(HeroStats stats, Defence defence, Experience experience)
@@ -142,6 +142,11 @@ Hero::Hero(HeroStats stats, Defence defence, Experience experience)
 std::string Hero::getName() const
 {
   return name;
+}
+
+void Hero::setName(std::string newName)
+{
+  name = newName;
 }
 
 unsigned Hero::getXP() const
@@ -744,6 +749,30 @@ void Hero::monsterKilled(
     ++resources().numBloodPools;
   if (has(HeroTrait::SapphireLocks))
     ++resources().numWalls;
+  if (resources.uses(Ruleset::MonsterMachine1))
+  {
+    auto boss = std::find_if(rbegin(allMonsters), rend(allMonsters),
+                             [](const auto& monster) { return monster.getLevel() == 10; });
+    if (boss != rend(allMonsters))
+      boss->corrode();
+    const auto reward = [rewardIndex = std::uniform_int_distribution<>(0, 3)(generator),
+                         corrodeReward = !monster.has(MonsterTrait::Bloodless)]() -> Item {
+      switch (rewardIndex)
+      {
+      default:
+        assert(false);
+      case 0:
+        return corrodeReward ? MiscItem::WispGemCorroded : MiscItem::WispGem;
+      case 1:
+        return corrodeReward ? MiscItem::WallCruncherCorroded : MiscItem::WallCruncher;
+      case 2:
+        return corrodeReward ? MiscItem::CharmCorroded : MiscItem::Charm;
+      case 3:
+        return corrodeReward ? Potion::CourageJuiceCorroded : Potion::CourageJuice;
+      }
+    }();
+    resources().onGround.emplace_back(reward);
+  }
 }
 
 void Hero::adjustMomentum(bool increase)

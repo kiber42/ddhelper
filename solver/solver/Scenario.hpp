@@ -12,6 +12,7 @@ enum class Scenario
   AgbaarsAcademySlowingPart2,
   HalflingTrial,
   TheThirdAct,
+  TheMonsterMachine1,
 };
 
 Hero getHeroForScenario(Scenario scenario);

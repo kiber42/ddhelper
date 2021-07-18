@@ -43,6 +43,12 @@ private:
   void addRandomResources(int numShops, int numSpells, int numAltars);
 };
 
+enum class Ruleset
+{
+  Default,
+  MonsterMachine1
+};
+
 struct Resources
 {
   explicit Resources(unsigned char mapSize);
@@ -54,8 +60,11 @@ struct Resources
   virtual void revealTile() = 0;
   void revealTiles(unsigned n);
 
+  bool uses(Ruleset) const;
+
   unsigned numHiddenTiles{0};
   unsigned numRevealedTiles{0};
+  Ruleset ruleset{Ruleset::Default};
 };
 
 // simplified Resources management, everything is considered visible

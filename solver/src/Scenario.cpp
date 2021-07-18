@@ -7,6 +7,25 @@
 #include "engine/MonsterTypes.hpp"
 #include "engine/Spells.hpp"
 
+DungeonSetup getSetupForScenario(Scenario scenario)
+{
+  if (scenario == Scenario::TheMonsterMachine1)
+  {
+    return {HeroClass::Monk,
+            HeroRace::Human,
+            BlacksmithItem::Sword,
+            AlchemistSeal::CompressionSeal,
+            BossReward::DragonShield,
+            std::set{Potion::HealthPotion, Potion::ManaPotion, Potion::BurnSalve, Potion::CanOfWhupaz},
+            {},
+            MageModifier::ExtraHealthBoosters,
+            BazaarModifier::Apothecary,
+            {}};
+  }
+  assert(false);
+  return DungeonSetup{};
+}
+
 Hero getHeroForScenario(Scenario scenario)
 {
   switch (scenario)
@@ -48,6 +67,10 @@ Hero getHeroForScenario(Scenario scenario)
     hero.add(HeroStatus::Pessimist);
     return hero;
   }
+  case Scenario::TheMonsterMachine1:
+    auto accoLite = Hero{getSetupForScenario(scenario), {}};;
+    accoLite.setName("Acco Lite");
+    return accoLite;
   }
 }
 
@@ -84,6 +107,30 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
       monsters.emplace_back(MonsterType::MeatMan, 1);
     monsters.emplace_back(Monster{"Puryton (level 1)", {Level{1}, 53_HP, 15_damage}, {}, {}});
     break;
+  case Scenario::TheMonsterMachine1:
+  {
+    constexpr std::array types = {
+        MonsterType::Bandit,  MonsterType::DragonSpawn, MonsterType::Goat,    MonsterType::Goblin, MonsterType::Golem,
+        MonsterType::GooBlob, MonsterType::Gorgon,      MonsterType::MeatMan, MonsterType::Naga,   MonsterType::Serpent,
+        MonsterType::Warlock, MonsterType::Wraith,      MonsterType::Zombie};
+    auto typeIndex = std::uniform_int_distribution<size_t>{0u, types.size() - 1u};
+    auto generator = std::mt19937{std::random_device{}()};
+    auto level = Level{1};
+    for (auto count : {10, 5, 4, 4, 4, 3, 3, 3, 2})
+    {
+      for (int i = 0; i < count; ++i)
+      {
+        auto monster = Monster{types[typeIndex(generator)], level.get(), 130u};
+        monster.makeCorrosive();
+        monsters.emplace_back(std::move(monster));
+      }
+      level.increase();
+    }
+    monsters.emplace_back(Monster{
+        "Chzar", MonsterStats{Level{10}, 1200_HP, 50_damage}, {}, {MonsterTrait::Retaliate, MonsterTrait::Corrosive}});
+    // Level also has 44 Mysterious Murkshades (Corrosive!)
+    break;
+  }
   }
   return monsters;
 }
@@ -92,11 +139,30 @@ SimpleResources getResourcesForScenario(Scenario scenario)
 {
   if (scenario == Scenario::TheThirdAct)
   {
-    ResourceSet resourceSet;
+    auto resourceSet = ResourceSet{};
     resourceSet.shops = {Item{Potion::HealthPotion}, ShopItem::VenomDagger, ShopItem::BadgeOfHonour};
     resourceSet.altars = {God::TikkiTooki};
-    SimpleResources resources{std::move(resourceSet), 2};
+    auto resources = SimpleResources{std::move(resourceSet), 2};
     resources.revealTile(); // 2 x 2 - 1 = 3 hidden tiles
+    return resources;
+  }
+  else if (scenario == Scenario::TheMonsterMachine1)
+  {
+    auto setup = getSetupForScenario(scenario);
+    auto resources = SimpleResources{ResourceSet{setup}, 20};
+    resources.ruleset = Ruleset::MonsterMachine1;
+    // Ensure Wonafyt is present and is found early
+    auto& spells = resources().spells;
+    assert(spells.size() >= 2);
+    if (auto spellIter = std::find(begin(spells), end(spells), Spell::Wonafyt); spellIter != end(spells))
+    {
+      // Swap Wonafyt to front
+      *spellIter = spells.front();
+    }
+    else if (spells.front() == Spell::Burndayraz)
+      // Overwrite first spell that is not Burndayraz
+      spells[1] = Spell::Burndayraz;
+    spells.front() = Spell::Wonafyt;
     return resources;
   }
   return SimpleResources{{}, 0 /* no hidden tiles */};
