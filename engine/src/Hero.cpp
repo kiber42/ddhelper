@@ -1705,8 +1705,8 @@ std::vector<std::string> describe(const Hero& hero)
       std::to_string(hero.getManaPoints()) + "/" + std::to_string(hero.getManaPointsMax()) + " MP",
       std::to_string(hero.getXP()) + "/" + std::to_string(hero.getXPforNextLevel()) + " XP",
       std::to_string(hero.getConversionPoints()) + "/" + std::to_string(hero.getConversionThreshold()) + " CP",
-      std::to_string(hero.getDamageVersusStandard()) + " damage (" + std::to_string(hero.getBaseDamage()) + "+" +
-          std::to_string(hero.getDamageBonusPercent()) + "%)",
+      std::to_string(hero.getDamageVersusStandard()) + " damage (" + std::to_string(hero.getBaseDamage()) +
+          (hero.getDamageBonusPercent() >= 0 ? "+" : "") + std::to_string(hero.getDamageBonusPercent()) + "%)",
       std::to_string(hero.getPiety()) + " piety",
       std::to_string(hero.gold()) + " gold"};
   if (hero.has(HeroTrait::Herbivore))
