@@ -35,7 +35,10 @@ enum class Potion
   QuicksilverPotion,
   ReflexPotion,
   CanOfWhupaz,
-  Last = CanOfWhupaz
+  LastInShop = CanOfWhupaz,
+  CourageJuice, // Available only in very few dungeons
+  CourageJuiceCorroded, // Workaround: Often dropped by corrosive monsters
+  Last = CourageJuiceCorroded
 };
 
 enum class AlchemistSeal
@@ -117,7 +120,15 @@ enum class MiscItem
   EnchantedPrayerBead,
   // Puzzle Items
   TikkisCharm,
-  Last = TikkisCharm
+  // Items available only in specific dungeon(s)
+  WispGem,
+  WallCruncher,
+  Charm, // MonsterMachine: small item; +1 HP; + 1DAM
+  // Workaround: These items are often dropped by corrosive monsters, stepping on tile will corrode.
+  WispGemCorroded,
+  WallCruncherCorroded,
+  CharmCorroded,
+  Last = Charm
 };
 
 enum class TaurogItem
@@ -146,7 +157,7 @@ struct Map
 using namespace std::string_view_literals;
 using Item = std::variant<BlacksmithItem, Potion, AlchemistSeal, ShopItem, BossReward, MiscItem, TaurogItem>;
 
-static constexpr Map<Item, ItemProperties, 74> items{
+static constexpr Map<Item, ItemProperties, 82> items{
     std::make_pair(BlacksmithItem::PerseveranceBadge, ItemProperties{"Perseverance Badge"sv, 15, 20, true}),
     {BlacksmithItem::SlayerWand, {"Slayer Wand"sv, 5, 10, false}},
     {BlacksmithItem::ReallyBigSword, {"Really Big Sword"sv, 12, 35, false}},
@@ -162,6 +173,8 @@ static constexpr Map<Item, ItemProperties, 74> items{
     {Potion::QuicksilverPotion, {"Quicksilver Potion"sv, 15, 10, true}},
     {Potion::ReflexPotion, {"Reflex Potion"sv, 15, 10, true}},
     {Potion::CanOfWhupaz, {"Can of Whupaz"sv, 20, 10, true}},
+    {Potion::CourageJuice, {"\"Courage Juice\""sv, 15, 10, true}},
+    {Potion::CourageJuiceCorroded, {"\"Courage Juice\" (corroded tile)"sv, 15, 10, true}},
     {AlchemistSeal::CompressionSeal, {"Compression Seal"sv, 16, 5, true}},
     {AlchemistSeal::TransmutationSeal, {"Transmutation Seal"sv, 36, 5, true}},
     {AlchemistSeal::TranslocationSeal, {"Translocation Seal"sv, 43, 5, true}},
@@ -217,6 +230,12 @@ static constexpr Map<Item, ItemProperties, 74> items{
     {MiscItem::PrayerBead, {"Prayer Bead"sv, -1, -1, true}},
     {MiscItem::EnchantedPrayerBead, {"Enchanted Prayer Bead"sv, -1, -1, true}},
     {MiscItem::TikkisCharm, {"Tikki's Charm"sv, 1, 5, true}},
+    {MiscItem::WispGem, {"Wisp Gem"sv, 1, 10, true}},
+    {MiscItem::WallCruncher, {"Wall Cruncher"sv, 1, 25, true}},
+    {MiscItem::Charm, {"Charm"sv, 1, 1, true}},
+    {MiscItem::WispGemCorroded, {"Wisp Gem (corroded tile)"sv, 1, 10, true}},
+    {MiscItem::WallCruncherCorroded, {"Wall Cruncher (corroded tile)"sv, 1, 25, true}},
+    {MiscItem::CharmCorroded, {"Charm (corroded tile)"sv, 1, 1, true}},
     {TaurogItem::Skullpicker, {"Skullpicker"sv, 0, 60, false}},
     {TaurogItem::Wereward, {"Wereward"sv, 0, 60, false}},
     {TaurogItem::Gloat, {"Gloat"sv, 0, 60, false}},

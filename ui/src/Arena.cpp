@@ -354,7 +354,7 @@ namespace ui
       const std::string title = "Potion Shop (x"s + std::to_string(numPotionShops) + ")";
       if (numPotionShops > 0 && ImGui::BeginMenu(title.c_str()))
       {
-        for (int potionIndex = static_cast<int>(0); potionIndex <= static_cast<int>(Potion::Last); ++potionIndex)
+        for (int potionIndex = static_cast<int>(0); potionIndex <= static_cast<int>(Potion::LastInShop); ++potionIndex)
         {
           const bool isSelected = ++index == selectedPopupItem;
           const auto potion = static_cast<Potion>(potionIndex);

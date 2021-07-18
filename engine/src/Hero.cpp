@@ -1240,6 +1240,26 @@ bool Hero::canAfford(Item item) const
 
 bool Hero::receive(ItemOrSpell itemOrSpell)
 {
+  // TODO: Remove this workaround for "corroded" items (=items placed on a tile with a corrosive patch)
+  const bool wasCorroded = [&itemOrSpell] {
+    if (itemOrSpell == ItemOrSpell{MiscItem::WispGemCorroded})
+      itemOrSpell = MiscItem::WispGem;
+    else if (itemOrSpell == ItemOrSpell{MiscItem::WallCruncherCorroded})
+      itemOrSpell = MiscItem::WallCruncher;
+    else if (itemOrSpell == ItemOrSpell{MiscItem::CharmCorroded})
+      itemOrSpell = MiscItem::Charm;
+    else if (itemOrSpell == ItemOrSpell{Potion::CourageJuiceCorroded})
+      itemOrSpell = Potion::CourageJuice;
+    else
+      return false;
+    return true;
+  }();
+  if (wasCorroded)
+  {
+    std::vector<Monster> ignore;
+    add(HeroDebuff::Corroded, ignore);
+  }
+
   if (!inventory.add(itemOrSpell))
     return false;
   if (const auto item = std::get_if<Item>(&itemOrSpell))
@@ -1346,6 +1366,13 @@ void Hero::use(Potion potion, Monsters& allMonsters)
     break;
   case Potion::CanOfWhupaz:
     add(HeroStatus::CrushingBlow);
+    break;
+  case Potion::CourageJuice:
+  case Potion::CourageJuiceCorroded:
+    add(HeroStatus::Might);
+    add(HeroStatus::FirstStrikeTemporary);
+    add(HeroStatus::ExperienceBoost);
+    stats.loseHitPointsWithoutDeathProtection(stats.getHitPoints() - 1);
     break;
   }
   if (has(ShopItem::Trisword))
@@ -1641,6 +1668,15 @@ void Hero::changeStatsImpl(MiscItem item, bool itemReceived)
       add(HeroStatus::DeathGazeImmune);
     else if (!has(HeroTrait::AzureBody))
       reset(HeroStatus::DeathGazeImmune);
+  }
+  else if (item == MiscItem::Charm)
+  {
+    stats.setBaseDamage(stats.getBaseDamage() + (itemReceived ? +1 : -1));
+    stats.setHitPointsMax(stats.getHitPointsMax() + (itemReceived ? +1 : -1));
+  }
+  else if (item == MiscItem::WispGem)
+  {
+    stats.setDamageBonusPercent(stats.getDamageBonusPercent() + (itemReceived ? +5 : -5));
   }
 }
 
