@@ -1304,7 +1304,7 @@ bool Hero::canUse(ShopItem item) const
 
 bool Hero::canUse(BossReward item) const
 {
-  return item != BossReward::NamtarsWard || (!has(HeroStatus::DeathProtection) && !namtarsWardUsedThisLevel);
+  return item == BossReward::NamtarsWard && !has(HeroStatus::DeathProtection) && !namtarsWardUsedThisLevel;
 }
 
 void Hero::use(Potion potion, Monsters& allMonsters)
