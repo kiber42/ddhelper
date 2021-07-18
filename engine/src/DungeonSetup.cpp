@@ -14,7 +14,7 @@ DungeonSetup::DungeonSetup(HeroClass heroClass,
                            HeroRace heroRace,
                            std::optional<BlacksmithItem> blacksmithItem,
                            std::optional<AlchemistSeal> alchemistSeal,
-                           std::optional<ShopItem> backpack,
+                           std::optional<LockerableItem> backpack,
                            std::set<Potion> potions,
                            std::optional<GodOrPactmaker> altar,
                            std::optional<MageModifier> mageModifier,
@@ -31,7 +31,12 @@ DungeonSetup::DungeonSetup(HeroClass heroClass,
   if (alchemistSeal)
     startingEquipment.insert(*alchemistSeal);
   if (backpack)
-    startingEquipment.insert(*backpack);
+  {
+    if (auto item = std::get_if<ShopItem>(&*backpack))
+      startingEquipment.insert(*item);
+    else
+      startingEquipment.insert(std::get<BossReward>(*backpack));
+  }
   if (!potions.empty())
   {
     assert(potions.size() <= 4);

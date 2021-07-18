@@ -155,6 +155,7 @@ struct Map
 };
 
 using namespace std::string_view_literals;
+using LockerableItem = std::variant<ShopItem, BossReward>;
 using Item = std::variant<BlacksmithItem, Potion, AlchemistSeal, ShopItem, BossReward, MiscItem, TaurogItem>;
 
 static constexpr Map<Item, ItemProperties, 82> items{

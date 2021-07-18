@@ -51,7 +51,7 @@ struct DungeonSetup
                HeroRace heroRace,
                std::optional<BlacksmithItem> blacksmithItem,
                std::optional<AlchemistSeal> alchemistSeal,
-               std::optional<ShopItem> backpack,
+               std::optional<LockerableItem> backpack,
                std::set<Potion> potions,
                std::optional<GodOrPactmaker> altar,
                std::optional<MageModifier> mageModifier,
