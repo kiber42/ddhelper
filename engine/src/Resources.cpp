@@ -193,21 +193,21 @@ void MapResources::revealTile()
   // This ignores some situations, e.g. petrified enemies which are both a wall and a gold pile.
   // The helper functions return the available amount of a hidden resources of a given type and a method to reveal it.
   auto countAndReveal = [&](auto resourceAmount) {
-    return std::pair{hidden.*resourceAmount, [&from = hidden.*resourceAmount, &to = visible.*resourceAmount](unsigned) {
+    return std::pair{hidden.*resourceAmount, [&from = hidden.*resourceAmount, &to = visible.*resourceAmount]() {
                        assert(from > 0);
                        ++to;
                        --from;
                      }};
   };
   auto countAndRevealVector = [&](auto group) {
-    return std::pair{(hidden.*group).size(), [&from = hidden.*group, &to = visible.*group](unsigned index) {
-                       assert(index < from.size());
-                       auto resource = begin(from) + index;
+    return std::pair{(hidden.*group).size(), [&from = hidden.*group, &to = visible.*group]() {
+                       assert(!from.empty());
+                       auto resource = begin(from);
                        to.emplace_back(std::move(*resource));
                        from.erase(resource);
                      }};
   };
-  std::array<std::pair<unsigned, std::function<void(unsigned)>>, 12> resourceCountsAndReveals{
+  std::array<std::pair<unsigned, std::function<void()>>, 12> resourceCountsAndReveals{
       countAndReveal(&ResourceSet::numWalls),         countAndReveal(&ResourceSet::numGoldPiles),
       countAndRevealVector(&ResourceSet::shops),      countAndRevealVector(&ResourceSet::spells),
       countAndRevealVector(&ResourceSet::altars),     countAndReveal(&ResourceSet::numAttackBoosters),
@@ -227,7 +227,7 @@ void MapResources::revealTile()
   {
     if (n < count)
     {
-      reveal(n);
+      reveal();
       break;
     }
     n -= count;

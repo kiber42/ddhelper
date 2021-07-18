@@ -86,8 +86,9 @@ namespace ui
               auto& resources = state.resources;
               --resources.numHiddenTiles;
               ++resources.numRevealedTiles;
-              (resources.visible.*item).emplace_back((resources.hidden.*item).back());
-              (resources.hidden.*item).pop_back();
+              auto& hiddenItems = resources.hidden.*item;
+              (resources.visible.*item).emplace_back(hiddenItems.front());
+              hiddenItems.erase(begin(hiddenItems));
               state.heroAndMonsterRecovery(1);
               return Summary::None;
             },
