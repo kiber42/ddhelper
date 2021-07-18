@@ -497,7 +497,7 @@ unsigned Hero::numSquaresForFullRecovery() const
     numHP = (getHitPointsMax() - getHitPoints() + (multiplier - 1) /* always round up */) / multiplier;
   }
   const auto numMP = has(HeroDebuff::ManaBurned) ? 0u : getManaPointsMax() - getManaPoints();
-  const auto numSquares = has(HeroTrait::Damned) ? numHP + numMP : std::max(numHP, numHP);
+  const auto numSquares = has(HeroTrait::Damned) ? numHP + numMP : std::max(numHP, numMP);
   if (has(HeroTrait::Herbivore))
   {
     const auto foodCount = inventory.getFoodCount();
