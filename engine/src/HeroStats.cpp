@@ -135,7 +135,10 @@ uint16_t HeroStats::getBaseDamage() const
 
 void HeroStats::setBaseDamage(uint16_t damagePoints)
 {
-  baseDamage = damagePoints;
+  if (damagePoints > 0)
+    baseDamage = damagePoints;
+  else
+    baseDamage = 1;
 }
 
 int16_t HeroStats::getDamageBonusPercent() const
