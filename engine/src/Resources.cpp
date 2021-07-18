@@ -152,6 +152,14 @@ MapResources::MapResources(const DungeonSetup& dungeonSetup)
 
 MapResources::MapResources(SimpleResources resources)
   : Resources(resources)
+  , visible()
+  , hidden(std::move(resources))
+{
+  revealTiles(9);
+}
+
+MapResources::MapResources(SimpleResources resources, InitiallyRevealed)
+  : Resources(resources)
   , visible(std::move(resources))
   , hidden()
 {

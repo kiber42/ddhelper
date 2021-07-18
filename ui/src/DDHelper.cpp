@@ -59,7 +59,7 @@ namespace ui
   State prepareScenario(Scenario scenario)
   {
     return {getHeroForScenario(scenario), getMonstersForScenario(scenario), std::nullopt,
-            MapResources{getResourcesForScenario(scenario)}};
+            MapResources{getResourcesForScenario(scenario), InitiallyRevealed{}}};
   }
 
   void DDHelperApp::populateFrame()

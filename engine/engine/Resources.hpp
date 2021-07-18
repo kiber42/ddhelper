@@ -80,6 +80,10 @@ struct SimpleResources
   unsigned char mapSize;
 };
 
+struct InitiallyRevealed
+{
+};
+
 // simple emulation of a map that can be revealed tile by tile
 struct MapResources : public Resources
 {
@@ -87,6 +91,7 @@ struct MapResources : public Resources
   explicit MapResources(unsigned char mapSize = DefaultMapSize);
   explicit MapResources(const DungeonSetup& dungeonSetup);
   explicit MapResources(SimpleResources resources);
+  MapResources(SimpleResources resources, InitiallyRevealed);
 
   ResourceSet& operator()() override { return visible; }
   const ResourceSet& operator()() const override { return visible; }
