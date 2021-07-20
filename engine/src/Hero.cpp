@@ -45,11 +45,11 @@ Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperso
   if (has(HeroTrait::Spellkill))
     defence.set(50_magicalresist);
   if (has(HeroTrait::ArcaneKnowledge))
-    stats.setManaPointsMax(stats.getManaPointsMax() + 5);
+    stats.setManaPointsMax(stats.getManaPointsMax() + 5_MP);
   if (has(HeroTrait::Insane))
   {
     setStatusIntensity(HeroStatus::Sanguine, 20);
-    stats.setManaPointsMax(stats.getManaPointsMax() - 3);
+    stats.setManaPointsMax(stats.getManaPointsMax() - 3_MP);
   }
   if (has(HeroTrait::Dexterous))
     add(HeroStatus::FirstStrikePermanent);
@@ -59,13 +59,13 @@ Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperso
     changeDamageBonusPercent(-20);
   if (has(HeroTrait::GoodHealth))
   {
-    stats.addHealthBonus(1);
-    stats.addHealthBonus(1);
-    stats.addHealthBonus(1);
+    stats.addHealthBonus(Level{1});
+    stats.addHealthBonus(Level{1});
+    stats.addHealthBonus(Level{1});
   }
   if (has(HeroTrait::HandToHand))
   {
-    stats.setBaseDamage(3);
+    stats.setBaseDamage(3_damage);
     changeDamageBonusPercent(-30);
   }
   if (has(HeroTrait::DiamondBody))
@@ -226,22 +226,22 @@ bool Hero::isDefeated() const
 
 uint16_t Hero::getHitPoints() const
 {
-  return stats.getHitPoints();
+  return stats.getHitPoints().get();
 }
 
 uint16_t Hero::getHitPointsMax() const
 {
-  return stats.getHitPointsMax();
+  return stats.getHitPointsMax().get();
 }
 
 uint16_t Hero::getManaPoints() const
 {
-  return stats.getManaPoints();
+  return stats.getManaPoints().get();
 }
 
 uint16_t Hero::getManaPointsMax() const
 {
-  return stats.getManaPointsMax();
+  return stats.getManaPointsMax().get();
 }
 
 void Hero::drinkHealthPotion()
@@ -250,10 +250,10 @@ void Hero::drinkHealthPotion()
   uint16_t percentHealed = has(HeroTrait::GoodDrink) ? 100 : 40;
   if (hasNagaCauldron)
     percentHealed += nagaCauldronBonus();
-  stats.healHitPoints(getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
+  stats.healHitPoints(stats.getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
   reset(HeroDebuff::Poisoned);
   if (has(HeroTrait::Survivor))
-    stats.recoverManaPoints(getManaPointsMax() * 2 / 10);
+    stats.recoverManaPoints(stats.getManaPointsMax() / 5);
   if (has(HeroTrait::Colourants))
   {
     add(HeroStatus::Healthform);
@@ -272,12 +272,12 @@ void Hero::drinkManaPotion()
   }
   if (hasNagaCauldron)
     percentRestored += nagaCauldronBonus();
-  stats.recoverManaPoints(getManaPointsMax() * percentRestored / 100);
+  stats.recoverManaPoints(stats.getManaPointsMax() * percentRestored / 100);
   reset(HeroDebuff::ManaBurned);
   if (has(HeroTrait::Courageous))
     add(HeroStatus::Might);
   if (has(HeroTrait::Survivor))
-    stats.healHitPoints(getHitPointsMax() * 2 / 10, false);
+    stats.healHitPoints(stats.getHitPointsMax() / 5, false);
   if (has(HeroTrait::Colourants))
   {
     add(HeroStatus::Manaform);
@@ -294,22 +294,36 @@ unsigned Hero::nagaCauldronBonus() const
 
 uint16_t Hero::getBaseDamage() const
 {
-  auto damage = stats.getBaseDamage() + getIntensity(HeroStatus::SpiritStrength);
+  auto damage = stats.getBaseDamage() + DamagePoints{getIntensity(HeroStatus::SpiritStrength)};
   if (has(HeroTrait::Additives))
-    damage += getIntensity(HeroStatus::Might);
-  const auto weakened = getIntensity(HeroDebuff::Weakened);
-  return damage > weakened ? clampedTo<uint16_t>(damage - weakened) : 0u;
+    damage += DamagePoints{getIntensity(HeroStatus::Might)};
+  const auto weakened = DamagePoints{getIntensity(HeroDebuff::Weakened)};
+  return damage > weakened ? (damage - weakened).get() : 1u;
+}
+
+namespace
+{
+  template<class NumericType>
+  constexpr NumericType changeHelper(NumericType current, int delta, NumericType min)
+  {
+    assert(current >= min);
+    if (delta > 0)
+      return current + NumericType{delta};
+    if (const auto decrease = NumericType{-delta}; decrease < current)
+      return current - decrease;
+    return min;
+  }
 }
 
 void Hero::changeBaseDamage(int deltaDamagePoints)
 {
-  const auto newDamage = static_cast<int>(stats.getBaseDamage()) + deltaDamagePoints;
-  stats.setBaseDamage(newDamage > 0 ? static_cast<unsigned>(newDamage) : 0u);
+  const auto newDamage = changeHelper(stats.getBaseDamage(), deltaDamagePoints, 1_damage);
+  stats.setBaseDamage(newDamage);
 }
 
 int Hero::getDamageBonusPercent() const
 {
-  auto bonus = stats.getDamageBonusPercent();
+  auto bonus = stats.getDamageBonus().percent();
   bonus += 30 * getIntensity(HeroStatus::Might);
   if (has(HeroTrait::Determined) && stats.getHitPoints() * 2 < stats.getHitPointsMax())
     bonus += 30;
@@ -318,7 +332,7 @@ int Hero::getDamageBonusPercent() const
 
 void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
 {
-  stats.setDamageBonusPercent(static_cast<int>(stats.getDamageBonusPercent()) + deltaDamageBonusPercent);
+  stats.setDamageBonus(DamageBonus{stats.getDamageBonus().percent() + deltaDamageBonusPercent});
 }
 
 uint16_t Hero::getDamageVersusStandard() const
@@ -352,18 +366,18 @@ void Hero::addAttackBonus()
 
 void Hero::addHealthBonus()
 {
-  stats.addHealthBonus(experience.getUnmodifiedLevel());
+  stats.addHealthBonus(Level{getLevel()});
 }
 
 void Hero::addManaBonus()
 {
-  stats.setManaPointsMax(stats.getManaPointsMax() + 1);
+  stats.setManaPointsMax(stats.getManaPointsMax() + 1_MP);
 }
 
 void Hero::modifyFutureHealthBonus(int amount)
 {
   for (int i = 0; i < amount; ++i)
-    stats.addHealthBonus(0);
+    stats.addFutureHealthBonus();
   for (int i = 0; i < -amount; ++i)
     stats.reduceHealthBonus();
 }
@@ -439,8 +453,8 @@ unsigned Hero::predictDamageTaken(unsigned attackerDamageOutput, DamageType dama
 
 void Hero::loseHitPoints(unsigned amountPointsLost, Monsters& allMonsters)
 {
-  stats.loseHitPointsWithoutDeathProtection(amountPointsLost);
-  if (stats.getHitPoints() == 0 && has(HeroStatus::DeathProtection))
+  stats.loseHitPointsWithoutDeathProtection(HitPoints{amountPointsLost});
+  if (stats.getHitPoints() == 0_HP && has(HeroStatus::DeathProtection))
   {
     stats.barelySurvive();
     reset(HeroStatus::DeathProtection);
@@ -470,9 +484,9 @@ void Hero::recover(unsigned nSquares, Monsters& allMonsters)
   const auto nFoodMissing = has(HeroTrait::Herbivore) ? inventory.tryConsumeFood(nSquares) : 0u;
   const auto nRecover = nSquares - nFoodMissing;
   if (recoverHealth)
-    stats.healHitPoints(nRecover * recoveryMultiplier(), false);
+    stats.healHitPoints(HitPoints{nRecover * recoveryMultiplier()}, false);
   if (recoverMana)
-    stats.recoverManaPoints(nRecover * (manaform ? 2u : 1u));
+    stats.recoverManaPoints(ManaPoints{nRecover * (manaform ? 2u : 1u)});
   // Lose health when uncovering without food; this may kill the hero. However, death protection will trigger at most
   // once even if multiple tiles are uncovered after running out of food and health.
   if (nFoodMissing > 0)
@@ -514,7 +528,7 @@ unsigned Hero::numSquaresForFullRecovery() const
 
 void Hero::healHitPoints(unsigned amountPointsHealed, bool mayOverheal)
 {
-  stats.healHitPoints(amountPointsHealed, mayOverheal);
+  stats.healHitPoints(HitPoints{amountPointsHealed}, mayOverheal);
 }
 
 void Hero::loseHitPointsOutsideOfFight(unsigned amountPointsLost, Monsters& allMonsters)
@@ -524,12 +538,12 @@ void Hero::loseHitPointsOutsideOfFight(unsigned amountPointsLost, Monsters& allM
 
 void Hero::recoverManaPoints(unsigned amountPointsRecovered)
 {
-  stats.recoverManaPoints(amountPointsRecovered);
+  stats.recoverManaPoints(ManaPoints{amountPointsRecovered});
 }
 
 void Hero::loseManaPoints(unsigned amountPointsLost)
 {
-  stats.loseManaPoints(amountPointsLost);
+  stats.loseManaPoints(ManaPoints{amountPointsLost});
 }
 
 void Hero::refillHealthAndMana()
@@ -806,9 +820,9 @@ void Hero::removeOneTimeAttackEffects()
 
 void Hero::levelGainedUpdate(unsigned newLevel, Monsters& allMonsters)
 {
-  const int newHpMax = static_cast<int>(stats.getHitPointsMax()) + 10 + stats.getHealthBonus();
-  assert(newHpMax > 0);
-  stats.setHitPointsMax(static_cast<unsigned>(newHpMax));
+  assert(stats.getHealthBonus() >= -10);
+  const auto newHpMax = stats.getHitPointsMax() + HitPoints{10 + stats.getHealthBonus()};
+  stats.setHitPointsMax(newHpMax);
   const int addedBaseDamage = [&] {
     if (has(HeroTrait::HandToHand))
       return 3;
@@ -1143,25 +1157,25 @@ void Hero::applyOrCollectPietyGain(unsigned pointsGained)
 
 void Hero::setHitPointsMax(unsigned hitPointsMax)
 {
-  stats.setHitPointsMax(hitPointsMax);
+  stats.setHitPointsMax(HitPoints{hitPointsMax});
 }
 
 void Hero::setManaPointsMax(unsigned manaPointsMax)
 {
-  stats.setManaPointsMax(manaPointsMax);
+  stats.setManaPointsMax(ManaPoints{manaPointsMax});
 }
 
 void Hero::changeHitPointsMax(int deltaPoints)
 {
   // TODO: Add tests for protection against underflow in all applicable change* methods
-  auto newPoints = std::max(1, static_cast<int>(stats.getHitPointsMax()) + deltaPoints);
-  stats.setHitPointsMax(static_cast<unsigned>(newPoints));
+  const auto newMax = changeHelper(stats.getHitPointsMax(), deltaPoints, 1_HP);
+  stats.setHitPointsMax(newMax);
 }
 
 void Hero::changeManaPointsMax(int deltaPoints)
 {
-  auto newPoints = std::max(0, static_cast<int>(stats.getManaPointsMax()) + deltaPoints);
-  stats.setManaPointsMax(newPoints);
+  const auto newMax = changeHelper(stats.getManaPointsMax(), deltaPoints, 0_MP);
+  stats.setManaPointsMax(newMax);
 }
 
 void Hero::changePhysicalResistPercentMax(int deltaPoints)
@@ -1401,7 +1415,7 @@ void Hero::use(Potion potion, Monsters& allMonsters)
     add(HeroStatus::Might);
     add(HeroStatus::FirstStrikeTemporary);
     add(HeroStatus::ExperienceBoost);
-    stats.loseHitPointsWithoutDeathProtection(stats.getHitPoints() - 1);
+    stats.loseHitPointsWithoutDeathProtection(stats.getHitPoints() - 1_HP);
     break;
   }
   if (has(ShopItem::Trisword))
@@ -1700,12 +1714,12 @@ void Hero::changeStatsImpl(MiscItem item, bool itemReceived)
   }
   else if (item == MiscItem::Charm)
   {
-    stats.setBaseDamage(stats.getBaseDamage() + (itemReceived ? +1 : -1));
-    stats.setHitPointsMax(stats.getHitPointsMax() + (itemReceived ? +1 : -1));
+    stats.setBaseDamage(itemReceived ? stats.getBaseDamage() + 1_damage : stats.getBaseDamage() - 1_damage);
+    stats.setHitPointsMax(itemReceived ? stats.getHitPointsMax() + 1_HP : stats.getHitPointsMax() - 1_HP);
   }
   else if (item == MiscItem::WispGem)
   {
-    stats.setDamageBonusPercent(stats.getDamageBonusPercent() + (itemReceived ? +5 : -5));
+    stats.setDamageBonus(stats.getDamageBonus() + DamageBonus{itemReceived ? +5 : -5});
   }
 }
 

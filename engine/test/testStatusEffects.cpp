@@ -501,7 +501,7 @@ void testStatusEffects()
     });
     describe("Poisonous", [] {
       it("should poison the monster (1 point per hero level)", [] {
-        Hero hero({100, 0, 1}, {}, Experience{5});
+        Hero hero({100_HP, 0_MP, 1_damage}, {}, Experience{5});
         hero.add(HeroStatus::Poisonous, 3);
         Monster monster(MonsterType::GooBlob, 4);
         AssertThat(attack(hero, monster), Equals(Summary::Safe));

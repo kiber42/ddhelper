@@ -6,7 +6,9 @@
 #include <cstdint>
 
 using HitPoints = NamedType<uint16_t, struct HitPointsParameter, Addable, Subtractable, Scalable, Comparable>;
+using ManaPoints = NamedType<uint16_t, struct ManaPointsParameter, Addable, Subtractable, Scalable, Comparable>;
 using DamagePoints = NamedType<uint16_t, struct DamagePointsParameter, Addable, Subtractable, Scalable, Comparable>;
+using DamageBonus = Percentage<int16_t, struct DamageBonusParameter, Negation, Addable, Subtractable, Scalable, Comparable>;
 using DeathProtection = NamedType<uint8_t, struct DeathProtectionParameter>;
 using DeathGaze = Percentage<uint8_t, struct DeathGazeParameter, Addable, Comparable>;
 using LifeSteal = Percentage<uint8_t, struct LifeStealParameter, Addable, Comparable>;
@@ -17,7 +19,9 @@ using PoisonAmount = NamedType<uint16_t, struct PoisonAmountParameter, Addable, 
 using CorrosionAmount = NamedType<uint16_t, struct CorrosionAmountParameter, Addable, Comparable>;
 
 auto constexpr operator"" _HP(unsigned long long value) { return HitPoints{clampedTo<uint16_t>(value)}; }
+auto constexpr operator"" _MP(unsigned long long value) { return ManaPoints{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _damage(unsigned long long value) { return DamagePoints{clampedTo<uint16_t>(value)}; }
+auto constexpr operator"" _bonus(unsigned long long value) { return DamageBonus{clampedTo<int16_t>(value)}; }
 auto constexpr operator"" _dprot(unsigned long long value) { return DeathProtection{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _deathgaze(unsigned long long value) { return DeathGaze{clampedTo<uint8_t>(value)}; }
 auto constexpr operator"" _lifesteal(unsigned long long value) { return LifeSteal{clampedTo<uint8_t>(value)}; }

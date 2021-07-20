@@ -74,6 +74,12 @@ struct Addable : MixinBase<T, Addable>
 };
 
 template <typename T>
+struct Negation : MixinBase<T, Negation>
+{
+  [[nodiscard]] constexpr T operator-() const { return T(- this->underlying()._get()); }
+};
+
+template <typename T>
 struct Subtractable : MixinBase<T, Subtractable>
 {
   [[nodiscard]] T operator-(const T& other) const { return T(this->underlying()._get() - other._get()); }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "StrongTypes.hpp"
+
 #include <cstdint>
 
 class HeroStats
@@ -15,43 +17,45 @@ public:
   HeroStats();
   HeroStats(IsDangerous);
   HeroStats(RegalSize);
-  HeroStats(uint16_t hpMax, uint16_t mpMax, uint16_t baseDamage);
+  HeroStats(HitPoints hpMax, ManaPoints mpMax, DamagePoints baseDamage);
 
   bool isDefeated() const;
-  uint16_t getHitPoints() const;
-  uint16_t getHitPointsMax() const;
-  void setHitPointsMax(uint16_t hitPointsMax);
+  HitPoints getHitPoints() const;
+  HitPoints getHitPointsMax() const;
+  void setHitPointsMax(HitPoints hitPointsMax);
 
-  uint16_t getManaPoints() const;
-  uint16_t getManaPointsMax() const;
-  void setManaPointsMax(uint16_t manaPointsMax);
+  ManaPoints getManaPoints() const;
+  ManaPoints getManaPointsMax() const;
+  void setManaPointsMax(ManaPoints manaPointsMax);
 
-  void healHitPoints(unsigned amountPointsHealed, bool allowOverheal);
-  void loseHitPointsWithoutDeathProtection(uint16_t amountPointsLost);
+  void healHitPoints(HitPoints amountPointsHealed, bool allowOverheal);
+  void loseHitPointsWithoutDeathProtection(HitPoints amountPointsLost);
   void barelySurvive();
 
-  void recoverManaPoints(uint16_t amountPointsRecovered);
-  void loseManaPoints(uint16_t amountPointsLost);
+  void recoverManaPoints(ManaPoints amountPointsRecovered);
+  void loseManaPoints(ManaPoints amountPointsLost);
   void refresh();
 
-  uint16_t getBaseDamage() const;
-  void setBaseDamage(uint16_t damagePoints);
+  DamagePoints getBaseDamage() const;
+  void setBaseDamage(DamagePoints damagePoints);
 
-  int16_t getDamageBonusPercent() const;
-  void setDamageBonusPercent(int16_t newDamageBonus);
+  DamageBonus getDamageBonus() const;
+  void setDamageBonus(DamageBonus newDamageBonus);
 
   int getHealthBonus() const;
   // Increase health bonus and also apply it for earlier level-ups
-  void addHealthBonus(uint8_t unmodifiedLevel);
+  void addHealthBonus(Level heroLevel);
+  // Increase health bonus, but do not apply it retroactively
+  void addFutureHealthBonus();
   // Decrease future health bonuses (do not reduce previous bonuses)
   void reduceHealthBonus();
 
 private:
-  uint16_t hp;
-  uint16_t hpMax;
-  uint16_t mp;
-  uint16_t mpMax;
-  uint16_t baseDamage;
-  int16_t damageBonusPercent;
+  HitPoints hp;
+  HitPoints hpMax;
+  ManaPoints mp;
+  ManaPoints mpMax;
+  DamagePoints baseDamage;
+  DamageBonus damageBonusPercent;
   int8_t healthBonus;
 };

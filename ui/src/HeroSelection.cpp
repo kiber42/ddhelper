@@ -176,24 +176,24 @@ namespace ui
   Hero CustomHeroBuilder::get() const
   {
     const auto level = clamped<uint8_t>(data[0], 1, 10);
-    const auto hp = clampedTo<uint16_t>(data[1]);
-    const auto maxHp = clampedTo<uint16_t>(data[2]);
-    const auto mp = clampedTo<uint16_t>(data[3]);
-    const auto maxMp = clampedTo<uint16_t>(data[4]);
-    const auto damage = clampedTo<uint16_t>(data[5]);
-    const auto damageBonus = data[6];
+    const auto hp = HitPoints{data[1]};
+    const auto maxHp = HitPoints{data[2]};
+    const auto mp = ManaPoints{data[3]};
+    const auto maxMp = ManaPoints{data[4]};
+    const auto damage = DamagePoints{data[5]};
+    const auto damageBonus = DamageBonus{data[6]};
     const auto defence = Defence{PhysicalResist{data[7]}, MagicalResist{data[8]}};
     Hero hero(HeroStats{maxHp, maxMp, damage}, defence, Experience{level});
-    hero.changeDamageBonusPercent(damageBonus - hero.getDamageBonusPercent());
+    hero.changeDamageBonusPercent(damageBonus.percent() - hero.getDamageBonusPercent());
     Monsters ignore;
     hero.clearInventory();
 
     if (hp < maxHp)
-      hero.loseHitPointsOutsideOfFight(maxHp - hp, ignore);
+      hero.loseHitPointsOutsideOfFight((maxHp - hp).get(), ignore);
     else
-      hero.healHitPoints(hp - maxHp, true);
+      hero.healHitPoints((hp - maxHp).get(), true);
     if (mp < maxMp)
-      hero.loseManaPoints(maxMp - mp);
+      hero.loseManaPoints((maxMp - mp).get());
 
     for (const auto& [status, intensity] : statuses)
       for (int i = 0; i < intensity; ++i)

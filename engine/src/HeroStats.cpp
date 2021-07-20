@@ -6,7 +6,7 @@
 #include <cassert>
 
 HeroStats::HeroStats()
-  : HeroStats(10, 10, 5)
+  : HeroStats(10_HP, 10_MP, 5_damage)
 {
 }
 
@@ -32,7 +32,7 @@ HeroStats::HeroStats(RegalSize)
 {
 }
 
-HeroStats::HeroStats(uint16_t hpMax, uint16_t mpMax, uint16_t baseDamage)
+HeroStats::HeroStats(HitPoints hpMax, ManaPoints mpMax, DamagePoints baseDamage)
   : hp(hpMax)
   , hpMax(hpMax)
   , mp(mpMax)
@@ -45,80 +45,80 @@ HeroStats::HeroStats(uint16_t hpMax, uint16_t mpMax, uint16_t baseDamage)
 
 bool HeroStats::isDefeated() const
 {
-  return hp == 0;
+  return hp == 0_HP;
 }
 
-uint16_t HeroStats::getHitPoints() const
+HitPoints HeroStats::getHitPoints() const
 {
   return hp;
 }
 
-uint16_t HeroStats::getHitPointsMax() const
+HitPoints HeroStats::getHitPointsMax() const
 {
   return hpMax;
 }
 
-void HeroStats::setHitPointsMax(uint16_t hitPointsMax)
+void HeroStats::setHitPointsMax(HitPoints hitPointsMax)
 {
-  if (hitPointsMax < 1)
-    hitPointsMax = 1;
+  if (hitPointsMax < 1_HP)
+    hitPointsMax = 1_HP;
   const bool isReduction = hitPointsMax < hpMax;
   hpMax = hitPointsMax;
   if (isReduction && hp > hpMax)
     hp = hpMax;
 }
 
-uint16_t HeroStats::getManaPoints() const
+ManaPoints HeroStats::getManaPoints() const
 {
   return mp;
 }
 
-uint16_t HeroStats::getManaPointsMax() const
+ManaPoints HeroStats::getManaPointsMax() const
 {
   return mpMax;
 }
 
-void HeroStats::setManaPointsMax(uint16_t manaPointsMax)
+void HeroStats::setManaPointsMax(ManaPoints manaPointsMax)
 {
   mpMax = manaPointsMax;
   if (mp > mpMax)
     mp = mpMax;
 }
 
-void HeroStats::healHitPoints(unsigned amountPointsHealed, bool allowOverheal)
+void HeroStats::healHitPoints(HitPoints amountPointsHealed, bool allowOverheal)
 {
-  const unsigned max = allowOverheal ? hpMax * 3 / 2 : hpMax;
+  const auto max = allowOverheal ? hpMax * 3 / 2 : hpMax;
   if (hp < max)
-    hp = clampedTo<uint16_t>(std::min(hp + amountPointsHealed, max));
+    hp = std::min(hp + amountPointsHealed, max);
 }
 
-void HeroStats::loseHitPointsWithoutDeathProtection(uint16_t amountPointsLost)
+void HeroStats::loseHitPointsWithoutDeathProtection(HitPoints amountPointsLost)
 {
   if (amountPointsLost < hp)
     hp -= amountPointsLost;
   else
-    hp = 0;
+    hp = 0_HP;
 }
 
 void HeroStats::barelySurvive()
 {
-  assert(hp == 0);
-  hp = 1;
+  assert(hp == 0_HP);
+  hp = 1_HP;
 }
 
-void HeroStats::recoverManaPoints(uint16_t amountPointsRecovered)
+void HeroStats::recoverManaPoints(ManaPoints amountPointsRecovered)
 {
   mp += amountPointsRecovered;
   if (mp > mpMax)
     mp = mpMax;
 }
 
-void HeroStats::loseManaPoints(uint16_t amountPointsLost)
+void HeroStats::loseManaPoints(ManaPoints amountPointsLost)
 {
   if (amountPointsLost < mp)
     mp -= amountPointsLost;
   else
-    mp = 0;
+    mp = 0_MP;
 }
 
 void HeroStats::refresh()
@@ -128,25 +128,25 @@ void HeroStats::refresh()
   mp = mpMax;
 }
 
-uint16_t HeroStats::getBaseDamage() const
+DamagePoints HeroStats::getBaseDamage() const
 {
   return baseDamage;
 }
 
-void HeroStats::setBaseDamage(uint16_t damagePoints)
+void HeroStats::setBaseDamage(DamagePoints damagePoints)
 {
-  if (damagePoints > 0)
+  if (damagePoints > 0_damage)
     baseDamage = damagePoints;
   else
-    baseDamage = 1;
+    baseDamage = 1_damage;
 }
 
-int16_t HeroStats::getDamageBonusPercent() const
+DamageBonus HeroStats::getDamageBonus() const
 {
   return damageBonusPercent;
 }
 
-void HeroStats::setDamageBonusPercent(int16_t newDamageBonus)
+void HeroStats::setDamageBonus(DamageBonus newDamageBonus)
 {
   damageBonusPercent = newDamageBonus;
 }
@@ -156,10 +156,15 @@ int HeroStats::getHealthBonus() const
   return healthBonus;
 }
 
-void HeroStats::addHealthBonus(uint8_t unmodifiedLevel)
+void HeroStats::addHealthBonus(Level currentLevel)
 {
   ++healthBonus;
-  hpMax += unmodifiedLevel;
+  hpMax += HitPoints{currentLevel.get()};
+}
+
+void HeroStats::addFutureHealthBonus()
+{
+  ++healthBonus;
 }
 
 void HeroStats::reduceHealthBonus()
