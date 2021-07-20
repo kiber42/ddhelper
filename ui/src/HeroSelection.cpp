@@ -184,7 +184,7 @@ namespace ui
     const auto damageBonus = DamageBonus{data[6]};
     const auto defence = Defence{PhysicalResist{data[7]}, MagicalResist{data[8]}};
     Hero hero(HeroStats{maxHp, maxMp, damage}, defence, Experience{level});
-    hero.changeDamageBonusPercent(damageBonus.percent() - hero.getDamageBonusPercent());
+    hero.changeDamageBonusPercent(damageBonus.in_percent() - hero.getDamageBonusPercent());
     Monsters ignore;
     hero.clearInventory();
 

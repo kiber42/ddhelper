@@ -77,7 +77,7 @@ unsigned Monster::getHitPointsMax() const
 unsigned Monster::getDamage() const
 {
   const auto standardDamage = stats.getDamage().get();
-  const auto berserkLimit = traits.berserk().percent() * getHitPointsMax();
+  const auto berserkLimit = traits.berserk().in_percent() * getHitPointsMax();
   if (berserkLimit > 0 && getHitPoints() <= berserkLimit)
     return standardDamage * 3 / 2;
   return standardDamage;
@@ -85,12 +85,12 @@ unsigned Monster::getDamage() const
 
 unsigned Monster::getPhysicalResistPercent() const
 {
-  return defence.getPhysicalResist().percent();
+  return defence.getPhysicalResist().in_percent();
 }
 
 unsigned Monster::getMagicalResistPercent() const
 {
-  return defence.getMagicalResist().percent();
+  return defence.getMagicalResist().in_percent();
 }
 
 unsigned Monster::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const
@@ -129,7 +129,7 @@ void Monster::takeManaShieldDamage(unsigned casterLevel)
 void Monster::receiveCrushingBlow()
 {
   const auto hp = stats.getHitPoints();
-  const auto crushed = stats.getHitPointsMax() * 3u / 4u;
+  const auto crushed = stats.getHitPointsMax().percentage(75);
   if (hp > crushed)
     stats.loseHitPoints(hp - crushed);
   status.setSlowed(false);
@@ -177,7 +177,7 @@ void Monster::burnDown()
   if (status.getBurnStackSize() > 0_burn)
   {
     const auto burnPoints = HitPoints{status.getBurnStackSize().get()};
-    const auto resist = burnPoints * getMagicalResistPercent() / 100;
+    const auto resist = burnPoints.percentage(getMagicalResistPercent());
     stats.loseHitPoints(burnPoints - resist);
     status.setSlowed(false);
     status.set(0_burn);
@@ -311,12 +311,12 @@ bool Monster::has(MonsterTrait trait) const
 
 unsigned Monster::getDeathGazePercent() const
 {
-  return traits.deathGaze().percent();
+  return traits.deathGaze().in_percent();
 }
 
 unsigned Monster::getLifeStealPercent() const
 {
-  return traits.lifeSteal().percent();
+  return traits.lifeSteal().in_percent();
 }
 
 void Monster::changePhysicalResist(int deltaPercent)

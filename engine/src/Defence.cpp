@@ -33,8 +33,8 @@ Defence::Defence(PhysicalResist physicalResist,
 
 PhysicalResist Defence::getPhysicalResist() const
 {
-  const unsigned withStoneSkin = physicalResist.percent() + 20 * numStoneSkinLayers.get();
-  if (withStoneSkin > physicalResistMax.percent())
+  const unsigned withStoneSkin = physicalResist.in_percent() + 20 * numStoneSkinLayers.get();
+  if (withStoneSkin > physicalResistMax.in_percent())
     return physicalResistMax;
   else
     return PhysicalResist{withStoneSkin};
@@ -47,22 +47,22 @@ MagicalResist Defence::getMagicalResist() const
 
 void Defence::changePhysicalResistPercent(int deltaPercent)
 {
-  set(PhysicalResist{getPhysicalResist().percent() + deltaPercent});
+  set(PhysicalResist{getPhysicalResist().in_percent() + deltaPercent});
 }
 
 void Defence::changeMagicalResistPercent(int deltaPercent)
 {
-  set(MagicalResist{getMagicalResist().percent() + deltaPercent});
+  set(MagicalResist{getMagicalResist().in_percent() + deltaPercent});
 }
 
 void Defence::changePhysicalResistPercentMax(int deltaPercent)
 {
-  setMax(PhysicalResist{getPhysicalResistMax().percent() + deltaPercent});
+  setMax(PhysicalResist{getPhysicalResistMax().in_percent() + deltaPercent});
 }
 
 void Defence::changeMagicalResistPercentMax(int deltaPercent)
 {
-  setMax(MagicalResist{getMagicalResistMax().percent() + deltaPercent});
+  setMax(MagicalResist{getMagicalResistMax().in_percent() + deltaPercent});
 }
 
 DamagePoints
@@ -77,23 +77,24 @@ Defence::predictDamageTaken(DamagePoints attackerDamageOutput, DamageType damage
       switch (damageType)
       {
       case DamageType::Physical:
-        return getPhysicalResist().percent();
+        return getPhysicalResist().in_percent();
       case DamageType::Piercing:
       {
         const auto physicalResist = getPhysicalResist();
         const auto pierced = 35_physicalresist;
         if (physicalResist <= pierced)
           return 0;
-        return (physicalResist - pierced).percent();
+        return (physicalResist - pierced).in_percent();
       }
       case DamageType::Magical:
-        return getMagicalResist().percent();
+        return getMagicalResist().in_percent();
       case DamageType::Typeless:
         return 0;
       }
     }();
     const auto resistedPoints =
-        (attackerDamageOutput * resistPercent + DamagePoints{burnStackSize.get() * getMagicalResist().percent()}) / 100;
+        (attackerDamageOutput * resistPercent + DamagePoints{burnStackSize.get() * getMagicalResist().in_percent()}) /
+        100;
     damage -= resistedPoints;
   }
   if (damage > 0_damage)

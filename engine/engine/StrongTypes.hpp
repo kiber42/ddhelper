@@ -5,10 +5,10 @@
 
 #include <cstdint>
 
-using HitPoints = NamedType<uint16_t, struct HitPointsParameter, Addable, Subtractable, Scalable, Comparable>;
-using ManaPoints = NamedType<uint16_t, struct ManaPointsParameter, Addable, Subtractable, Scalable, Comparable>;
+using HitPoints = NamedType<uint16_t, struct HitPointsParameter, Addable, Subtractable, Scalable, PercentOf, Comparable>;
+using ManaPoints = NamedType<uint8_t, struct ManaPointsParameter, Addable, Subtractable, PercentOf, Comparable>;
 using DamagePoints = NamedType<uint16_t, struct DamagePointsParameter, Addable, Subtractable, Scalable, Comparable>;
-using DamageBonus = Percentage<int16_t, struct DamageBonusParameter, Negation, Addable, Subtractable, Scalable, Comparable>;
+using DamageBonus = Percentage<int16_t, struct DamageBonusParameter, Negation, Addable, Subtractable, Comparable>;
 using DeathProtection = NamedType<uint8_t, struct DeathProtectionParameter>;
 using DeathGaze = Percentage<uint8_t, struct DeathGazeParameter, Addable, Comparable>;
 using LifeSteal = Percentage<uint8_t, struct LifeStealParameter, Addable, Comparable>;

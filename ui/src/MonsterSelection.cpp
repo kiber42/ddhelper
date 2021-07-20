@@ -120,7 +120,7 @@ namespace ui
     };
 
     auto inputPercent = [](auto label, auto& value) {
-      int percentage = value.percent();
+      int percentage = value.in_percent();
       if (ImGui::InputInt(label, &percentage))
       {
         percentage = std::min(std::max(percentage, 0), 100);

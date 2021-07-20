@@ -13,7 +13,7 @@ public:
   {
   }
 
-  template<typename Integral>
+  template <typename Integral>
   constexpr explicit NamedType(Integral value)
     : value(clampedTo<T>(value))
   {
@@ -38,14 +38,14 @@ public:
   {
   }
 
-  template<typename Integral>
+  template <typename Integral>
   constexpr explicit Percentage(Integral value)
     : value(clampedTo<T>(value))
   {
   }
 
-  [[nodiscard]] constexpr T& percent() { return value; }
-  [[nodiscard]] constexpr const T& percent() const { return value; }
+  [[nodiscard]] constexpr T& in_percent() { return value; }
+  [[nodiscard]] constexpr const T& in_percent() const { return value; }
 
   [[nodiscard]] constexpr T& _get() { return value; }
   [[nodiscard]] constexpr const T& _get() const { return value; }
@@ -76,7 +76,7 @@ struct Addable : MixinBase<T, Addable>
 template <typename T>
 struct Negation : MixinBase<T, Negation>
 {
-  [[nodiscard]] constexpr T operator-() const { return T(- this->underlying()._get()); }
+  [[nodiscard]] constexpr T operator-() const { return T(-this->underlying()._get()); }
 };
 
 template <typename T>
@@ -118,6 +118,16 @@ struct Scalable : MixinBase<T, Scalable>
   {
     this->underlying()._get() /= other;
     return this->underlying();
+  }
+};
+
+template <typename T>
+struct PercentOf : MixinBase<T, PercentOf>
+{
+  constexpr T percentage(unsigned percent) const
+  {
+    using value_type = std::remove_reference_t<decltype(this->underlying()._get())>;
+    return T(clampedTo<value_type>(this->underlying()._get() * percent / 100));
   }
 };
 

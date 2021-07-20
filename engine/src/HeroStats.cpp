@@ -87,7 +87,7 @@ void HeroStats::setManaPointsMax(ManaPoints manaPointsMax)
 
 void HeroStats::healHitPoints(HitPoints amountPointsHealed, bool allowOverheal)
 {
-  const auto max = allowOverheal ? hpMax * 3 / 2 : hpMax;
+  const auto max = allowOverheal ? hpMax.percentage(150) : hpMax;
   if (hp < max)
     hp = std::min(hp + amountPointsHealed, max);
 }

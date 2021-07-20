@@ -250,10 +250,10 @@ void Hero::drinkHealthPotion()
   uint16_t percentHealed = has(HeroTrait::GoodDrink) ? 100 : 40;
   if (hasNagaCauldron)
     percentHealed += nagaCauldronBonus();
-  stats.healHitPoints(stats.getHitPointsMax() * percentHealed / 100, hasNagaCauldron);
+  stats.healHitPoints(stats.getHitPointsMax().percentage(percentHealed), hasNagaCauldron);
   reset(HeroDebuff::Poisoned);
   if (has(HeroTrait::Survivor))
-    stats.recoverManaPoints(stats.getManaPointsMax() / 5);
+    stats.recoverManaPoints(stats.getManaPointsMax().percentage(20));
   if (has(HeroTrait::Colourants))
   {
     add(HeroStatus::Healthform);
@@ -272,12 +272,12 @@ void Hero::drinkManaPotion()
   }
   if (hasNagaCauldron)
     percentRestored += nagaCauldronBonus();
-  stats.recoverManaPoints(stats.getManaPointsMax() * percentRestored / 100);
+  stats.recoverManaPoints(stats.getManaPointsMax().percentage(percentRestored));
   reset(HeroDebuff::ManaBurned);
   if (has(HeroTrait::Courageous))
     add(HeroStatus::Might);
   if (has(HeroTrait::Survivor))
-    stats.healHitPoints(stats.getHitPointsMax() / 5, false);
+    stats.healHitPoints(stats.getHitPointsMax().percentage(20), false);
   if (has(HeroTrait::Colourants))
   {
     add(HeroStatus::Manaform);
@@ -303,7 +303,7 @@ uint16_t Hero::getBaseDamage() const
 
 namespace
 {
-  template<class NumericType>
+  template <class NumericType>
   constexpr NumericType changeHelper(NumericType current, int delta, NumericType min)
   {
     assert(current >= min);
@@ -313,7 +313,7 @@ namespace
       return current - decrease;
     return min;
   }
-}
+} // namespace
 
 void Hero::changeBaseDamage(int deltaDamagePoints)
 {
@@ -323,7 +323,7 @@ void Hero::changeBaseDamage(int deltaDamagePoints)
 
 int Hero::getDamageBonusPercent() const
 {
-  auto bonus = stats.getDamageBonus().percent();
+  auto bonus = stats.getDamageBonus().in_percent();
   bonus += 30 * getIntensity(HeroStatus::Might);
   if (has(HeroTrait::Determined) && stats.getHitPoints() * 2 < stats.getHitPointsMax())
     bonus += 30;
@@ -332,7 +332,7 @@ int Hero::getDamageBonusPercent() const
 
 void Hero::changeDamageBonusPercent(int deltaDamageBonusPercent)
 {
-  stats.setDamageBonus(DamageBonus{stats.getDamageBonus().percent() + deltaDamageBonusPercent});
+  stats.setDamageBonus(DamageBonus{stats.getDamageBonus().in_percent() + deltaDamageBonusPercent});
 }
 
 uint16_t Hero::getDamageVersusStandard() const
@@ -384,12 +384,12 @@ void Hero::modifyFutureHealthBonus(int amount)
 
 int Hero::getPhysicalResistPercent() const
 {
-  return defence.getPhysicalResist().percent();
+  return defence.getPhysicalResist().in_percent();
 }
 
 int Hero::getMagicalResistPercent() const
 {
-  return defence.getMagicalResist().percent();
+  return defence.getMagicalResist().in_percent();
 }
 
 void Hero::setPhysicalResistPercent(int physicalResistPercent)

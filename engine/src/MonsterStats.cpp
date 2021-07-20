@@ -83,7 +83,7 @@ void MonsterStats::healHitPoints(HitPoints amountPointsHealed, bool allowOverhea
     }
     else
     {
-      const auto overhealMax = hpMax * 3 / 2;
+      const auto overhealMax = hpMax.percentage(150);
       if (hp > overhealMax)
         hp = overhealMax;
     }
