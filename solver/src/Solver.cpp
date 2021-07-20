@@ -81,7 +81,8 @@ namespace GeneticAlgorithm
     // 3) insert random valid step at random position
     const double probability_insert = 0.015;
 
-    int num_mutations = std::poisson_distribution<>(candidate.size() * probability_erasure)(generator);
+    int num_mutations =
+        std::poisson_distribution<>(static_cast<double>(candidate.size()) * probability_erasure)(generator);
     while (--num_mutations >= 0 && !candidate.empty())
     {
       const int pos = std::uniform_int_distribution<>(0, static_cast<int>(candidate.size()) - 1)(generator);
@@ -89,7 +90,8 @@ namespace GeneticAlgorithm
     }
     if (!candidate.empty())
     {
-      num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_any)(generator);
+      num_mutations =
+          std::poisson_distribution<>(static_cast<double>(candidate.size()) * probability_swap_any)(generator);
       while (--num_mutations >= 0)
       {
         const size_t posA = std::uniform_int_distribution<size_t>(0, candidate.size() - 1)(generator);
@@ -100,7 +102,8 @@ namespace GeneticAlgorithm
     }
     if (candidate.size() >= 2)
     {
-      num_mutations = std::poisson_distribution<>(candidate.size() * probability_swap_neighbor)(generator);
+      num_mutations =
+          std::poisson_distribution<>(static_cast<double>(candidate.size()) * probability_swap_neighbor)(generator);
       while (--num_mutations >= 0)
       {
         const size_t pos = std::uniform_int_distribution<size_t>(0, candidate.size() - 2)(generator);
@@ -110,7 +113,7 @@ namespace GeneticAlgorithm
 
     auto rand = std::uniform_real_distribution<double>();
     Solution cleanedSolution;
-    cleanedSolution.reserve(static_cast<size_t>(candidate.size() * (1 + 3 * probability_insert)));
+    cleanedSolution.reserve(static_cast<size_t>(static_cast<double>(candidate.size()) * (1 + 3 * probability_insert)));
     for (auto& step : candidate)
     {
       if (!isValid(step, state))
