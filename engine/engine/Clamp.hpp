@@ -6,7 +6,7 @@
 template <typename Short, typename Long>
 constexpr Short clamped(Long unclamped, Short min, Short max)
 {
-  return unclamped < min ? min : (unclamped > max ? max : unclamped);
+  return unclamped < min ? min : (unclamped > max ? max : static_cast<Short>(unclamped));
 }
 
 template <typename Short, typename Long>
@@ -28,9 +28,17 @@ constexpr Short clampedTo(Long unclamped)
   }
   else
   {
-    return unclamped > std::numeric_limits<Short>::max()
-               ? std::numeric_limits<Short>::max()
-               : (unclamped < std::numeric_limits<Short>::min() ? std::numeric_limits<Short>::min()
-                                                                : static_cast<Short>(unclamped));
+    if constexpr (std::is_unsigned<Long>::value)
+    {
+      return unclamped > std::numeric_limits<Short>::max() ? std::numeric_limits<Short>::max()
+                                                           : static_cast<Short>(unclamped);
+    }
+    else
+    {
+      return unclamped > std::numeric_limits<Short>::max()
+                 ? std::numeric_limits<Short>::max()
+                 : (unclamped < std::numeric_limits<Short>::min() ? std::numeric_limits<Short>::min()
+                                                                  : static_cast<Short>(unclamped));
+    }
   }
 }

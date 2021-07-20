@@ -96,13 +96,13 @@ public:
   // List all items and spell entries in inventory without any modification
   const std::vector<Entry>& getItemsAndSpells() const;
   // Return list of all items in inventory, group items that can be grouped
-  std::vector<std::pair<Entry, int>> getItemsGrouped() const;
+  std::vector<std::pair<Entry, unsigned>> getItemsGrouped() const;
   // Return list of all spells in inventory
   std::vector<Entry> getSpells() const;
   // For each type of item in inventory, return how many there are
-  std::vector<std::pair<Item, int>> getItemCounts() const;
+  std::vector<std::pair<Item, unsigned>> getItemCounts() const;
   // For each type of spell in inventory, return how many there are
-  std::vector<std::pair<Spell, int>> getSpellCounts() const;
+  std::vector<std::pair<Spell, unsigned>> getSpellCounts() const;
 
   unsigned gold{20};
 

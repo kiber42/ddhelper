@@ -169,9 +169,9 @@ public:
 
   // Inventory management
   const std::vector<Inventory::Entry>& getItemsAndSpells() const;
-  std::vector<std::pair<Item, int>> getItemCounts() const;
-  std::vector<std::pair<Spell, int>> getSpellCounts() const;
-  std::vector<std::pair<Inventory::Entry, int>> getItemsGrouped() const;
+  std::vector<std::pair<Item, unsigned>> getItemCounts() const;
+  std::vector<std::pair<Spell, unsigned>> getSpellCounts() const;
+  std::vector<std::pair<Inventory::Entry, unsigned>> getItemsGrouped() const;
   std::vector<Inventory::Entry> getSpells() const;
   bool has(ItemOrSpell itemOrSpell) const;
   bool hasRoomFor(ItemOrSpell itemOrSpell) const;

@@ -40,7 +40,7 @@ namespace solver
 
     auto randomElement = [](auto& vec) {
       assert(!vec.empty());
-      return vec[std::uniform_int_distribution<unsigned>(0, vec.size() - 1)(generator)];
+      return vec[std::uniform_int_distribution<std::size_t>(0, vec.size() - 1u)(generator)];
     };
 
     while (true)
@@ -256,8 +256,8 @@ namespace solver
     for (const auto& step : solution)
     {
       std::cout << toString(step) << '\n';
-      auto heroBefore = state.hero;
-      const unsigned poolSize = state.monsters.size();
+      const auto heroBefore = state.hero;
+      const auto poolSize = state.monsters.size();
       state = apply(step, std::move(state));
       print_description(describe_diff(heroBefore, state.hero));
       if (isCombat(step))

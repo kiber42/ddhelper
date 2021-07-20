@@ -99,7 +99,7 @@ void testInventory()
       const auto spellCounts = hero.getSpellCounts();
       AssertThat(spellCounts.size(), Equals((unsigned)Spell::Last + 1));
       AssertThat(spellCounts.back().first, Equals(Spell::Wonafyt));
-      AssertThat(spellCounts.back().second, Equals(3));
+      AssertThat(spellCounts.back().second, Equals(3u));
       AssertThat(hero.hasRoomFor(ShopItem::KegOfMana), IsTrue());
       AssertThat(hero.receive(ShopItem::KegOfMana), IsTrue());
       AssertThat(hero.hasRoomFor(ShopItem::WickedGuitar), IsTrue());
@@ -142,67 +142,67 @@ void testInventory()
       const auto foodIt = std::find_if(begin(counts), end(counts),
                                        [](const auto& entry) { return entry.first == Item{MiscItem::Food}; });
       if (foodIt == end(counts))
-        return 0;
+        return 0u;
       return foodIt->second;
     };
     it("shall be counted correctly when adding, removing, clearing", [foodCount] {
       Inventory inv{DungeonSetup{}};
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       inv.remove(MiscItem::Food);
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       AssertThat(inv.add(MiscItem::Food), IsTrue());
-      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(foodCount(inv), Equals(1u));
       AssertThat(inv.add(MiscItem::Food), IsTrue());
-      AssertThat(foodCount(inv), Equals(2));
+      AssertThat(foodCount(inv), Equals(2u));
       inv.remove(MiscItem::Food);
-      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(foodCount(inv), Equals(1u));
       inv.clear();
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       inv.remove(MiscItem::Food);
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       AssertThat(inv.add(MiscItem::Food), IsTrue());
-      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(foodCount(inv), Equals(1u));
       AssertThat(inv.addFree(MiscItem::Food), IsTrue());
-      AssertThat(foodCount(inv), Equals(2));
+      AssertThat(foodCount(inv), Equals(2u));
       inv.clear();
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       AssertThat(inv.addFree(MiscItem::Food), IsTrue());
-      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(foodCount(inv), Equals(1u));
     });
     it("shall have helper functions for adding, removing, counting", [foodCount] {
       Inventory inv{DungeonSetup{}};
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       AssertThat(inv.getFoodCount(), Equals(0u));
 
       AssertThat(inv.tryConsumeFood(1u), Equals(1u));
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       AssertThat(inv.getFoodCount(), Equals(0u));
       AssertThat(inv.addFood(1u), IsTrue());
-      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(foodCount(inv), Equals(1u));
       AssertThat(inv.getFoodCount(), Equals(1u));
       AssertThat(inv.addFood(1u), IsTrue());
-      AssertThat(foodCount(inv), Equals(2));
+      AssertThat(foodCount(inv), Equals(2u));
       AssertThat(inv.getFoodCount(), Equals(2u));
       AssertThat(inv.tryConsumeFood(1u), Equals(0u));
-      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(foodCount(inv), Equals(1u));
       AssertThat(inv.getFoodCount(), Equals(1u));
 
       inv.clear();
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       AssertThat(inv.getFoodCount(), Equals(0u));
 
       AssertThat(inv.addFood(123u), IsTrue());
-      AssertThat(foodCount(inv), Equals(123));
+      AssertThat(foodCount(inv), Equals(123u));
       AssertThat(inv.getFoodCount(), Equals(123u));
       inv.remove(MiscItem::Food);
-      AssertThat(foodCount(inv), Equals(122));
+      AssertThat(foodCount(inv), Equals(122u));
       AssertThat(inv.getFoodCount(), Equals(122u));
       AssertThat(inv.add(MiscItem::Food), IsTrue());
       AssertThat(inv.tryConsumeFood(125u), Equals(2u));
-      AssertThat(foodCount(inv), Equals(0));
+      AssertThat(foodCount(inv), Equals(0u));
       AssertThat(inv.getFoodCount(), Equals(0u));
       AssertThat(inv.add(MiscItem::Food), IsTrue());
-      AssertThat(foodCount(inv), Equals(1));
+      AssertThat(foodCount(inv), Equals(1u));
       AssertThat(inv.getFoodCount(), Equals(1u));
     });
     it("shall be grouped correctly", [] {
@@ -217,7 +217,7 @@ void testInventory()
         return entry.first.itemOrSpell == ItemOrSpell{MiscItem::Food};
       });
       AssertThat(foodIt, !Equals(end(counts)));
-      AssertThat(foodIt->second, Equals(100));
+      AssertThat(foodIt->second, Equals(100u));
     });
     it("shall be available initially for Herbivore", [] {
       Hero hero(HeroClass::Goatperson, {God::BinlorIronshield});
@@ -225,7 +225,7 @@ void testInventory()
       const auto foodIt = std::find_if(begin(counts), end(counts),
                                        [](const auto& entry) { return entry.first == Item{MiscItem::Food}; });
       AssertThat(foodIt, !Equals(end(counts)));
-      AssertThat(foodIt->second, Equals(90));
+      AssertThat(foodIt->second, Equals(90u));
     });
   });
 }

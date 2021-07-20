@@ -222,10 +222,16 @@ int Inventory::sellingPrice(ItemOrSpell itemOrSpell) const
 
 unsigned Inventory::numFreeSmallSlots() const
 {
-  unsigned roomTaken = getSpells().size() * (spellsSmall ? 1 : LargeItemSize);
+  const auto numSmallSlots = numSlots * LargeItemSize;
+  auto roomTaken = getSpells().size() * (spellsSmall ? 1 : LargeItemSize);
   for (const auto& [entry, _] : getItemsGrouped())
     roomTaken += entry.isSmall ? 1 : LargeItemSize;
-  return numSlots * LargeItemSize - roomTaken;
+  if (roomTaken > numSmallSlots)
+  {
+    assert(false);
+    return 0u;
+  }
+  return numSmallSlots - static_cast<unsigned>(roomTaken);
 }
 
 bool Inventory::hasRoomFor(ItemOrSpell itemOrSpell) const
@@ -402,9 +408,9 @@ auto Inventory::getItemsAndSpells() const -> const std::vector<Entry>&
   return entries;
 }
 
-auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, int>>
+auto Inventory::getItemsGrouped() const -> std::vector<std::pair<Entry, unsigned>>
 {
-  std::vector<std::pair<Entry, int>> itemsGrouped;
+  std::vector<std::pair<Entry, unsigned>> itemsGrouped;
   for (const auto& entry : entries)
   {
     const auto item = std::get_if<Item>(&entry.itemOrSpell);
@@ -450,9 +456,9 @@ auto Inventory::getSpells() const -> std::vector<Entry>
 namespace
 {
   template <class T>
-  std::vector<std::pair<T, int>> getEntryCountsOrdered(const std::vector<Inventory::Entry>& entries)
+  std::vector<std::pair<T, unsigned>> getEntryCountsOrdered(const std::vector<Inventory::Entry>& entries)
   {
-    std::map<T, int> counts;
+    std::map<T, unsigned> counts;
     std::vector<T> filteredEntries;
     for (const auto& entry : entries)
     {
@@ -462,7 +468,7 @@ namespace
         ++counts[*filtered];
       }
     }
-    std::vector<std::pair<T, int>> result;
+    std::vector<std::pair<T, unsigned>> result;
     result.reserve(counts.size());
     for (const auto& entry : filteredEntries)
     {
@@ -478,7 +484,7 @@ namespace
   }
 } // namespace
 
-std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
+std::vector<std::pair<Item, unsigned>> Inventory::getItemCounts() const
 {
   auto counts = getEntryCountsOrdered<Item>(entries);
   if (numFood > 1)
@@ -491,7 +497,7 @@ std::vector<std::pair<Item, int>> Inventory::getItemCounts() const
   return counts;
 }
 
-std::vector<std::pair<Spell, int>> Inventory::getSpellCounts() const
+std::vector<std::pair<Spell, unsigned>> Inventory::getSpellCounts() const
 {
   return getEntryCountsOrdered<Spell>(entries);
 }

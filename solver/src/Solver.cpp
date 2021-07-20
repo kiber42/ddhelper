@@ -205,7 +205,7 @@ namespace GeneticAlgorithm
           solutionA.resize(maxSize);
         else
           solutionB.resize(maxSize);
-        const int cutPosition = std::uniform_int_distribution<>(0, maxSize)(generator);
+        const auto cutPosition = std::uniform_int_distribution<long>(0, static_cast<long>(maxSize))(generator);
         // Replace from start up to random cut position, so vector sizes do not need to be changed
         std::vector<Step> tempSegment{begin(solutionA), begin(solutionA) + cutPosition};
         std::copy(begin(solutionB), begin(solutionB) + cutPosition, begin(solutionA));

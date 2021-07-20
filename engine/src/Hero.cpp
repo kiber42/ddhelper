@@ -1239,17 +1239,17 @@ const std::vector<Inventory::Entry>& Hero::getItemsAndSpells() const
   return inventory.getItemsAndSpells();
 }
 
-std::vector<std::pair<Item, int>> Hero::getItemCounts() const
+std::vector<std::pair<Item, unsigned>> Hero::getItemCounts() const
 {
   return inventory.getItemCounts();
 }
 
-std::vector<std::pair<Spell, int>> Hero::getSpellCounts() const
+std::vector<std::pair<Spell, unsigned>> Hero::getSpellCounts() const
 {
   return inventory.getSpellCounts();
 }
 
-std::vector<std::pair<Inventory::Entry, int>> Hero::getItemsGrouped() const
+std::vector<std::pair<Inventory::Entry, unsigned>> Hero::getItemsGrouped() const
 {
   return inventory.getItemsGrouped();
 }

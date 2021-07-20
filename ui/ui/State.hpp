@@ -37,17 +37,21 @@ namespace ui
 
     void removeDefeatedMonsters()
     {
-      size_t index = 0;
-      while (index < monsterPool.size())
+      size_t index = 0u;
+      auto monsterIt = begin(monsterPool);
+      while (monsterIt != end(monsterPool))
       {
-        if (monsterPool[index].isDefeated())
+        if (monsterIt->isDefeated())
         {
-          monsterPool.erase(std::next(begin(monsterPool), index));
+          monsterIt = monsterPool.erase(monsterIt);
           if (activeMonster && *activeMonster > index)
             activeMonster = *activeMonster - 1;
         }
         else
+        {
+          ++monsterIt;
           ++index;
+        }
       }
     }
 
