@@ -2,5 +2,5 @@
 
 int main()
 {
-  return captureTest();
+  return EXIT_SUCCESS;
 }

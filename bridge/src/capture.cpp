@@ -1,88 +1,122 @@
-#include <opencv2/opencv.hpp>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/extensions/XShm.h>
+#include "bridge/capture.hpp"
 
 #include <sys/ipc.h>
-#include <sys/shm.h>
 
-std::optional<Window> findWindowByName(Display* display, Window top, const std::string& name)
+namespace
 {
-  char* window_name;
-  if (XFetchName(display, top, &window_name) && name == window_name)
-    return top;
+  std::optional<Window> findWindowByName(Display* display, Window top, const std::string& name)
+  {
+    char* window_name;
+    if (XFetchName(display, top, &window_name) && name == window_name)
+      return top;
 
-  Window dummy;
-  Window* children;
-  unsigned int numChildren;
-  if (!XQueryTree(display, top, &dummy, &dummy, &children, &numChildren))
+    Window dummy;
+    Window* children;
+    unsigned int numChildren;
+    if (!XQueryTree(display, top, &dummy, &dummy, &children, &numChildren))
+      return {};
+
+    auto cleaner = [](Window* children) { XFree(children); };
+    std::unique_ptr<Window, decltype(cleaner)> cleanup(children);
+    for (unsigned i = 0; i < numChildren; ++i)
+    {
+      if (auto window = findWindowByName(display, children[i], name))
+        return window;
+    }
     return {};
-
-  auto cleaner = [](Window* children) { XFree(children); };
-  std::unique_ptr<Window, decltype(cleaner)> cleanup(children);
-  for (unsigned i = 0; i < numChildren; ++i)
-  {
-    if (auto window = findWindowByName(display, children[i], name))
-      return window;
   }
-  return {};
+
+  std::optional<Window> findWindowByName(Display* display, const std::string& name)
+  {
+    for (int i = 0; i < ScreenCount(display); ++i)
+    {
+      if (auto window = findWindowByName(display, RootWindow(display, i), name))
+        return window;
+    }
+    return {};
+  }
+} // namespace
+
+ImageCapture::~ImageCapture()
+{
+  clear();
 }
 
-std::optional<Window> findWindowByName(Display* display, const std::string& name)
+bool ImageCapture::init()
 {
-  for (int i = 0; i < ScreenCount(display); ++i)
+  if (isInitialized())
   {
-    if (auto window = findWindowByName(display, RootWindow(display, i), name))
-      return window;
+    XWindowAttributes updated;
+    if (!XGetWindowAttributes(display.get(), *window, &updated) || attributes.screen != updated.screen ||
+        attributes.width != updated.width || attributes.height != updated.height)
+    {
+      clear();
+      return init();
+    }
+    return true;
   }
-  return {};
-}
 
-int captureTest()
-{
-  auto display = XOpenDisplay(NULL);
-  auto window = findWindowByName(display, "Desktop Dungeons");
+  display.reset(XOpenDisplay(NULL));
+  window = findWindowByName(display.get(), "Desktop Dungeons");
   if (!window)
-    return -1;
+    return false;
 
-  XWindowAttributes window_attributes;
-  XGetWindowAttributes(display, *window, &window_attributes);
+  XGetWindowAttributes(display.get(), *window, &attributes);
+  shminfo.reset(new XShmSegmentInfo);
+  ximage.reset(XShmCreateImage(display.get(), DefaultVisualOfScreen(attributes.screen),
+                               DefaultDepthOfScreen(attributes.screen), ZPixmap, nullptr, shminfo.get(),
+                               attributes.width, attributes.height));
+  if (!ximage)
+    return false;
 
-  Screen* screen = window_attributes.screen;
-  const uint width = window_attributes.width;
-  const uint height = window_attributes.height;
-
-  XShmSegmentInfo shminfo;
-  XImage* ximg = XShmCreateImage(display, DefaultVisualOfScreen(screen), DefaultDepthOfScreen(screen), ZPixmap, NULL,
-                                 &shminfo, width, height);
-
-  shminfo.shmid = shmget(IPC_PRIVATE, ximg->bytes_per_line * ximg->height, IPC_CREAT | 0777);
-  shminfo.shmaddr = ximg->data = (char*)shmat(shminfo.shmid, 0, 0);
-  shminfo.readOnly = 0;
-  if (shminfo.shmid < 0)
+  shminfo->shmid = shmget(IPC_PRIVATE, ximage->bytes_per_line * ximage->height, IPC_CREAT | 0777);
+  if (shminfo->shmid < 0)
   {
-    puts("Fatal shminfo error!");
-    return EXIT_FAILURE;
+    shminfo.reset();
+    return false;
+  }
+  shminfo->shmaddr = ximage->data = static_cast<char*>(shmat(shminfo->shmid, 0, 0));
+  shminfo->readOnly = 0;
+
+  if (!XShmAttach(display.get(), shminfo.get()))
+  {
+    shminfo.reset();
+    return false;
   }
 
-  if (!XShmAttach(display, &shminfo))
-  {
-    puts("Could not attach to window.");
-    return EXIT_FAILURE;
-  }
+  return true;
+}
 
-  while (XShmGetImage(display, *window, ximg, 0, 0, 0x00ffffff))
-  {
-    auto img = cv::Mat(height, width, CV_8UC4, ximg->data);
-    cv::imshow("img", img);
-    cv::waitKey(100);
-  }
+void ImageCapture::clear()
+{
+  if (display && shminfo)
+    XShmDetach(display.get(), shminfo.get());
+  ximage.reset();
+  shminfo.reset();
+  display.reset();
+  window = 0;
+}
 
-  XShmDetach(display, &shminfo);
-  XDestroyImage(ximg);
-  shmdt(shminfo.shmaddr);
-  XCloseDisplay(display);
+bool ImageCapture::isInitialized() const
+{
+  // shminfo is initialized last and can therefore to check whether initialization is complete
+  return shminfo != nullptr;
+}
 
-  return EXIT_SUCCESS;
+const XImage* ImageCapture::acquire()
+{
+  if (init() && XShmGetImage(display.get(), *window, ximage.get(), 0, 0, 0x00ffffff))
+    return ximage.get();
+  return nullptr;
+}
+
+const XImage* ImageCapture::current() const
+{
+  return ximage.get();
+}
+
+bool ImageCapture::isAttached() const
+{
+  thread_local XWindowAttributes updated;
+  return isInitialized() && XGetWindowAttributes(display.get(), *window, &updated);
 }

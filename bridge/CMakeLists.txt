@@ -21,4 +21,12 @@ target_link_libraries(ddbridge PUBLIC "-lopencv_core" "-lopencv_highgui" "-lX11"
 add_executable(
   bridge
   src/bridge.cpp)
+target_include_directories(bridge PUBLIC .)
 target_link_libraries(bridge ddbridge)
+
+add_executable(
+  captureTest
+  src/captureTest.cpp)
+
+target_include_directories(captureTest PUBLIC .)
+target_link_libraries(captureTest ddbridge)
