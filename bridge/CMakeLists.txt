@@ -23,6 +23,7 @@ add_executable(
   src/bridge.cpp)
 target_include_directories(bridge PUBLIC .)
 target_link_libraries(bridge ddbridge)
+target_link_libraries(bridge ddhelperengine)
 
 add_executable(
   captureTest

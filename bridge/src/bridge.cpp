@@ -1,100 +1,89 @@
 // Include OpenCV before any X11 headers
 #include <opencv2/opencv.hpp>
 
+#include "engine/StrongTypes.hpp"
+
 #include "bridge/capture.hpp"
 
+#include <array>
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <string_view>
 #include <vector>
 
+namespace
+{
+  // On Linux/X11, the window contents are shifted one pixel up: the topmost row is missing, and a black row of pixels
+  // appears at the bottom of the window
+  constexpr int y_offset = -1;
+
+  // Identify monster by color of pixel at (11, 4)
+  const std::map<uint32_t, std::string> monsterFromPixel = {
+      // Basic Monsters
+      {0xCC7F54, "Bandit"},  {0x4BB56C, "Dragon Spawn"}, {0x544130, "Goat"},   {0xE65918, "Goblin"},
+      {0x7C6E57, "Golem"},   {0x373E01, "Goo Blob"},     {0x0BA837, "Gorgon"}, {0xFF6666, "Meat Man"},
+      {0xBA863E, "Serpent"}, {0xC74E73, "Warlock"},      {0x090D3F, "Wraith"}, {0x378A85, "Zombie"},
+  };
+
+  // Red and green components of 3 specific pixels on a tile (3, 18), (4, 22) (3, 24)
+  static constexpr std::array<uint64_t, 10> levelFromPixels = {
+      0x00FF00FF0000, 0x00FF000000FF, 0x000000FF0000, 0xFFFF0000FFFF, 0xFFFFFFFF0000,
+      0xFFFFFFFFFFFF, 0x0000FF800000, 0xFF80FF80FF80, 0xFF80FF800000, 0xFF00FF000000,
+  };
+} // namespace
+
 auto getTile(const cv::Mat& dungeon, int x, int y)
 {
-  if (y > 0)
-    return dungeon(cv::Rect(x * 30, y * 30 - 1, 30, 30));
-  auto partialTile = dungeon(cv::Rect(x * 30, 0, 30, 29));
-  cv::Mat tile = cv::Mat::zeros(cv::Size(30, 30), CV_8UC4);
-  partialTile.rowRange(0, 29).copyTo(tile.rowRange(1, 30));
-  return tile;
+  if constexpr (y_offset == 0)
+  {
+    return dungeon(cv::Rect(x * 30, y * 30, 30, 30));
+  }
+  else
+  {
+    static_assert(y_offset < 0 && y_offset > -30);
+    if (y > 0)
+      return dungeon(cv::Rect(x * 30, y * 30 + y_offset, 30, 30));
+    auto partialTile = dungeon(cv::Rect(x * 30, 0, 30, 30 + y_offset));
+    cv::Mat tile = cv::Mat::zeros(cv::Size(30, 30), CV_8UC4);
+    partialTile.rowRange(0, 30 + y_offset).copyTo(tile.rowRange(-y_offset, 30));
+    return tile;
+  }
+}
+
+int32_t getTileHash(const cv::Mat& tile)
+{
+  return tile.at<int32_t>(4, 11) & 0xFFFFFF;
+}
+
+std::optional<Level> getMonsterLevel(cv::Mat& dungeon, int x, int y)
+{
+  // Level number (if any) is a 16x16 sprite overlayed in the lower left corner of a 30x30 tile.
+  const int start_y = y * 30 + y_offset + 18;
+  const int start_x = x * 30 + 3;
+  // Several suitable combinations of 3 pixels exist that suffice to tell them apart, we use (3, 18), (4, 22) (3, 24)
+  const auto pixel1 = dungeon.at<uint32_t>(start_y, start_x) & 0xFFFFFF;
+  const auto pixel2 = dungeon.at<uint32_t>(start_y + 4, start_x + 1) & 0xFFFFFF;
+  const auto pixel3 = dungeon.at<uint32_t>(start_y + 6, start_x) & 0xFFFFFF;
+  // Level labels have no blue component
+  if ((pixel1 & 0xFF) == 0 && (pixel2 & 0xFF) == 0 && (pixel3 & 0xFF) == 0)
+  {
+    const uint64_t hash = (static_cast<uint64_t>(pixel1) << 24) + (static_cast<uint64_t>(pixel2) << 8) +
+                          (static_cast<uint64_t>(pixel3) >> 8);
+    const auto iter = std::find(begin(levelFromPixels), end(levelFromPixels), hash);
+    if (iter != end(levelFromPixels))
+    {
+      const auto index = std::distance(begin(levelFromPixels), iter);
+      return Level{index + 1};
+    }
+  }
+  return {};
 }
 
 auto getTileCropped(const cv::Mat& dungeon, int x, int y)
 {
   return dungeon(cv::Rect(x * 30 + 1, y * 30, 22, 25));
 }
-
-std::size_t getTileHash(const cv::Mat& tile)
-{
-  const auto hash = std::hash<std::string_view>();
-  const auto size = static_cast<int>(tile.channels() * tile.total());
-  const cv::Mat flattened = tile.isContinuous() ? tile.reshape(1, size) : tile.clone().reshape(1, size);
-  auto start = reinterpret_cast<const char*>(flattened.data);
-  const std::string_view data(start, size);
-  return hash(data);
-}
-
-const std::map<std::size_t, std::string> tileName = {
-    {12171726562143104985ull, "     "}, // unrevealed tile
-    { 9173380990794071178ull, "ur ms"}, // unrevealed monster
-    {15573335119931461304ull, "attck"}, // attack booster
-    {  791283006467486013ull, "_____"}, // empty tile
-    { 9141210660063553429ull, "_____"}, // empty tile
-    { 2331902878712028713ull, "_____"}, // empty tile
-    {16740581902444378552ull, "_____"}, // empty tile
-    {15895078020171200905ull, "_____"}, // empty tile
-    { 9835723397204991232ull, "_____"}, // empty tile
-    {11362091924657848982ull, "_____"}, // empty tile
-    {12347129595014082498ull, "_____"}, // empty tile
-    {17767323230370704233ull, "_____"}, // empty tile
-    {16997596562712833847ull, "HERO1"}, // Human Fighter (male) level 1
-    { 8714229552769317059ull, "HERO1"}, // Human Fighter (male) level 1
-    {12051280772885469698ull, "HERO1"}, // Human Fighter (male) level 1
-    { 3839866967667015288ull, "HERO1"}, // Human Fighter (male) level 1
-    {11052318805234942455ull, "HERO1"}, // Human Fighter (male) level 1
-    { 3018641671536505710ull, "HERO1"}, // Human Fighter (male) level 1
-    {14636700972353946929ull, "HERO1"}, // Human Fighter (male) level 1
-    {16050501458243163274ull, "HERO1"}, // Human Fighter (male) level 1
-    { 2997121012634161362ull, "HERO1"}, // Human Fighter (male) level 1
-    { 2127649111672635980ull, "H shp"}, // Human Fighter (male) level 1 on regular shop
-    {14277029564032197858ull, "mana+"}, // mana booster
-    {17630348201889708526ull, "laddr"}, // ladder
-    {12737238288011505541ull, "wall "}, // wall, NW corner
-    { 3155065951784691632ull, "wall "}, // wall, N edge
-    {17991808385274740339ull, "wall "}, // wall, N edge
-    {11634847330714352923ull, "wall "}, // wall, NE corner
-    { 2297961571120147521ull, "wall "}, // wall E edge
-    { 2289393347464944253ull, "wall "}, // wall E edge
-    {11643363257577987010ull, "wall "}, // wall E edge
-    {17910414140143923424ull, "wall "}, // wall E edge
-    {16062608555017525063ull, "wall "}, // wall W edge
-    { 7654736843175325693ull, "wall "}, // wall W edge
-    {15358100886186825766ull, "wall "}, // wall W edge
-    {13515795412378215403ull, "wall "}, // wall W edge
-    {18083812515344936243ull, "wall "}, // wall W edge
-    {12155507682267015243ull, "wall "}, // wall S edge
-    {12586797759138074376ull, "wall "}, // wall SE corner
-    {14584233861971122521ull, "wall "}, // wall SE corner
-    { 4394708166481901527ull, "wall "}, // wall SW corner
-    { 9995732377330130570ull, "wall "}, // wall NE corner
-    { 7508802750427637019ull, "gold "}, // gold pile
-    { 1049221031221769068ull, "shop "}, // regular shop
-    {14746801269410754160ull, "h pot"}, // health potion
-    { 7611154429272924676ull, "wall "}, // wall inner corner SW
-    { 2031433610599097615ull, "wall "}, // wall inner corner NE
-    { 1188637556663082676ull, "wall "}, // wall inner corner NE
-    { 8756565251768472314ull, "wall "}, // wall single end S
-    { 8724638554463298136ull, "wall "}, // wall single end N
-    { 5566645017322722726ull, "wall "}, // wall single end W
-    {15480795221730993915ull, "wall "}, // wall single corner connecting S and W
-
-    {16073343456878459014ull, "DrSp1"}, // Dragon Spawn level 1
-    { 2860958847580806170ull, "Srpt1"}, // Serpent level 1
-    { 8293133935876979174ull, "Wlck1"}, // Warlock level 1
-    { 7991578473569262129ull, "Wlck2"}, // Warlock level 2
-    { 3082185347476175328ull, "Golm3"}, // Golem level 3
-
-    {  635487067432940066ull, "blood"}, // Blood pool
-};
 
 int main()
 {
@@ -108,24 +97,20 @@ int main()
       cv::waitKey(1000);
       continue;
     }
-    printf("Processing image...");
+    printf("Processing image...\n");
     auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
     for (int index = 0; index < 400; ++index)
     {
-      if (index % 20 == 0)
-        printf("\n");
-      auto tile = getTileCropped(image, index % 20, index / 20);
-      auto hash = getTileHash(tile);
-      if (auto name = tileName.find(hash); name != end(tileName))
+      auto level = getMonsterLevel(image, index % 20, index / 20);
+      if (level)
       {
-        printf("%s, ", name->second.data());
-      }
-      else
-      {
-        printf("%lu", hash);
-        auto tile = getTile(image, index % 20, index / 20);
-        cv::imshow("dungeon", tile);
-        break;
+        auto tile = getTileCropped(image, index % 20, index / 20);
+        auto hash = getTileHash(tile);
+        if (auto name = monsterFromPixel.find(hash); name != end(monsterFromPixel))
+          printf("%s level %i\t", name->second.data(), level->get());
+        else
+          printf("unknown monster level %i, hash 0x%06X\n", level->get(), hash);
+        continue;
       }
     }
     puts("");
