@@ -1,7 +1,7 @@
 // Include OpenCV before any X11
 #include <opencv2/opencv.hpp>
 
-#include "bridge/capture.hpp"
+#include "bridge/ImageCapture.hpp"
 
 bool captureTest()
 {

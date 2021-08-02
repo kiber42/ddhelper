@@ -12,7 +12,7 @@ add_compile_options(-Wno-float-conversion)
 
 add_library(
   ddbridge STATIC
-  src/capture.cpp
+  src/ImageCapture.cpp
   src/GameWindow.cpp
 )
 target_include_directories(ddbridge PUBLIC .)

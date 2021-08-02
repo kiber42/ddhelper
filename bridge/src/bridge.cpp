@@ -3,7 +3,7 @@
 
 #include "engine/StrongTypes.hpp"
 
-#include "bridge/capture.hpp"
+#include "bridge/ImageCapture.hpp"
 
 #include <array>
 #include <cstdint>
