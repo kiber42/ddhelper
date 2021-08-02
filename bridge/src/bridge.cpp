@@ -3,7 +3,9 @@
 
 #include "engine/StrongTypes.hpp"
 
+#include "bridge/GameWindow.hpp"
 #include "bridge/ImageCapture.hpp"
+#include "bridge/Mouse.hpp"
 
 #include <array>
 #include <cstdint>
@@ -24,6 +26,8 @@ namespace
       {0xCC7F54, "Bandit"},  {0x4BB56C, "Dragon Spawn"}, {0x544130, "Goat"},   {0xE65918, "Goblin"},
       {0x7C6E57, "Golem"},   {0x373E01, "Goo Blob"},     {0x0BA837, "Gorgon"}, {0xFF6666, "Meat Man"},
       {0xBA863E, "Serpent"}, {0xC74E73, "Warlock"},      {0x090D3F, "Wraith"}, {0x378A85, "Zombie"},
+      // Advanced Monsters
+      {0xBBD6D5, "Vampire"},
   };
 
   // Red and green components of 3 specific pixels on a tile (3, 18), (4, 22) (3, 24)
@@ -88,7 +92,8 @@ auto getTileCropped(const cv::Mat& dungeon, int x, int y)
 int main()
 {
   int numFrames = 0;
-  ImageCapture capture;
+  GameWindow gameWindow;
+  ImageCapture capture(gameWindow);
   while (auto ximage = capture.acquire())
   {
     if (ximage->width != 800 || ximage->height != 600)
@@ -99,6 +104,8 @@ int main()
     }
     printf("Processing image...\n");
     auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
+    auto pos = getMousePosition(gameWindow.getDisplay(), 0);
+    bool wasMoved = false;
     for (int index = 0; index < 400; ++index)
     {
       auto level = getMonsterLevel(image, index % 20, index / 20);
@@ -110,9 +117,12 @@ int main()
           printf("%s level %i\t", name->second.data(), level->get());
         else
           printf("unknown monster level %i, hash 0x%06X\n", level->get(), hash);
-        continue;
+        moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 30 * (index % 20) + 15, 30 * (index / 20) + 15);
+        wasMoved = true;
       }
     }
+    if (wasMoved && pos)
+      moveMouseTo(gameWindow.getDisplay(), 0, pos->first, pos->second);
     puts("");
     cv::waitKey(1000);
     ++numFrames;

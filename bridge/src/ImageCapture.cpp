@@ -9,6 +9,7 @@
 class ImageCapture::Impl
 {
 public:
+  Impl(GameWindow&);
   bool init();
   void clear();
   bool acquire();
@@ -30,12 +31,15 @@ private:
     }
   };
 
-  GameWindow gameWindow;
+  GameWindow& gameWindow;
   Display* attachedDisplay;
   std::unique_ptr<XImage, ximage_cleanup> ximage;
   std::unique_ptr<XShmSegmentInfo, shm_cleanup> shminfo;
   XWindowAttributes attributes;
 };
+
+ImageCapture::Impl::Impl(GameWindow& gameWindow) : gameWindow(gameWindow) {}
+
 
 bool ImageCapture::Impl::init()
 {
@@ -106,8 +110,8 @@ bool ImageCapture::Impl::isInitialized() const
   return shminfo != nullptr;
 }
 
-ImageCapture::ImageCapture()
-  : impl(new Impl())
+ImageCapture::ImageCapture(GameWindow& gameWindow)
+  : impl(new Impl(gameWindow))
 {
 }
 

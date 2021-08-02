@@ -2,12 +2,14 @@
 
 #include "bridge/GameWindow.hpp"
 
+#include <X11/Xlib.h>
+
 #include <memory>
 
 class ImageCapture
 {
 public:
-  ImageCapture();
+  ImageCapture(GameWindow& gameWindow);
   ~ImageCapture();
 
   const XImage* acquire();

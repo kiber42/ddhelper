@@ -14,6 +14,7 @@ add_library(
   ddbridge STATIC
   src/ImageCapture.cpp
   src/GameWindow.cpp
+  src/Mouse.cpp
 )
 target_include_directories(ddbridge PUBLIC .)
 target_include_directories(ddbridge PUBLIC /usr/include/opencv4)
