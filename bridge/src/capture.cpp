@@ -1,54 +1,52 @@
 #include "bridge/capture.hpp"
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/extensions/XShm.h>
 #include <sys/ipc.h>
+#include <sys/shm.h>
 
-namespace
+class ImageCapture::Impl
 {
-  std::optional<Window> findWindowByName(Display* display, Window top, const std::string& name)
+public:
+  bool init();
+  void clear();
+  bool acquire();
+  bool isInitialized() const;
+  const XImage* getImage() const;
+
+private:
+  struct ximage_cleanup
   {
-    char* window_name;
-    if (XFetchName(display, top, &window_name) && name == window_name)
-      return top;
+    void operator()(XImage* ximage) { XDestroyImage(ximage); }
+  };
 
-    Window dummy;
-    Window* children;
-    unsigned int numChildren;
-    if (!XQueryTree(display, top, &dummy, &dummy, &children, &numChildren))
-      return {};
-
-    auto cleaner = [](Window* children) { XFree(children); };
-    std::unique_ptr<Window, decltype(cleaner)> cleanup(children);
-    for (unsigned i = 0; i < numChildren; ++i)
-    {
-      if (auto window = findWindowByName(display, children[i], name))
-        return window;
-    }
-    return {};
-  }
-
-  std::optional<Window> findWindowByName(Display* display, const std::string& name)
+  struct shm_cleanup
   {
-    for (int i = 0; i < ScreenCount(display); ++i)
+    void operator()(XShmSegmentInfo* shminfo)
     {
-      if (auto window = findWindowByName(display, RootWindow(display, i), name))
-        return window;
+      if (shminfo->shmaddr)
+        shmdt(shminfo->shmaddr);
     }
-    return {};
-  }
-} // namespace
+  };
 
-ImageCapture::~ImageCapture()
-{
-  clear();
-}
+  GameWindow gameWindow;
+  Display* attachedDisplay;
+  std::unique_ptr<XImage, ximage_cleanup> ximage;
+  std::unique_ptr<XShmSegmentInfo, shm_cleanup> shminfo;
+  XWindowAttributes attributes;
+};
 
-bool ImageCapture::init()
+bool ImageCapture::Impl::init()
 {
+  if (!gameWindow.valid())
+    return false;
+
   if (isInitialized())
   {
     XWindowAttributes updated;
-    if (!XGetWindowAttributes(display.get(), *window, &updated) || attributes.screen != updated.screen ||
-        attributes.width != updated.width || attributes.height != updated.height)
+    if (!XGetWindowAttributes(gameWindow.getDisplay(), gameWindow.getWindow(), &updated) ||
+        attributes.screen != updated.screen || attributes.width != updated.width || attributes.height != updated.height)
     {
       clear();
       return init();
@@ -56,14 +54,9 @@ bool ImageCapture::init()
     return true;
   }
 
-  display.reset(XOpenDisplay(NULL));
-  window = findWindowByName(display.get(), "Desktop Dungeons");
-  if (!window)
-    return false;
-
-  XGetWindowAttributes(display.get(), *window, &attributes);
+  XGetWindowAttributes(gameWindow.getDisplay(), gameWindow.getWindow(), &attributes);
   shminfo.reset(new XShmSegmentInfo);
-  ximage.reset(XShmCreateImage(display.get(), DefaultVisualOfScreen(attributes.screen),
+  ximage.reset(XShmCreateImage(gameWindow.getDisplay(), DefaultVisualOfScreen(attributes.screen),
                                DefaultDepthOfScreen(attributes.screen), ZPixmap, nullptr, shminfo.get(),
                                attributes.width, attributes.height));
   if (!ximage)
@@ -78,7 +71,8 @@ bool ImageCapture::init()
   shminfo->shmaddr = ximage->data = static_cast<char*>(shmat(shminfo->shmid, 0, 0));
   shminfo->readOnly = 0;
 
-  if (!XShmAttach(display.get(), shminfo.get()))
+  attachedDisplay = gameWindow.getDisplay();
+  if (!XShmAttach(attachedDisplay, shminfo.get()))
   {
     shminfo.reset();
     return false;
@@ -87,36 +81,49 @@ bool ImageCapture::init()
   return true;
 }
 
-void ImageCapture::clear()
+void ImageCapture::Impl::clear()
 {
-  if (display && shminfo)
-    XShmDetach(display.get(), shminfo.get());
-  ximage.reset();
+  if (attachedDisplay && shminfo)
+    XShmDetach(attachedDisplay, shminfo.get());
+  attachedDisplay = nullptr;
   shminfo.reset();
-  display.reset();
-  window = 0;
+  ximage.reset();
 }
 
-bool ImageCapture::isInitialized() const
+bool ImageCapture::Impl::acquire()
+{
+  return init() && XShmGetImage(gameWindow.getDisplay(), gameWindow.getWindow(), ximage.get(), 0, 0, 0x00ffffff);
+}
+
+const XImage* ImageCapture::Impl::getImage() const
+{
+  return ximage.get();
+}
+
+bool ImageCapture::Impl::isInitialized() const
 {
   // shminfo is initialized last and can therefore to check whether initialization is complete
   return shminfo != nullptr;
 }
 
+ImageCapture::ImageCapture()
+  : impl(new Impl())
+{
+}
+
+ImageCapture::~ImageCapture()
+{
+  // needs to be defined here, where Impl is a complete type
+}
+
 const XImage* ImageCapture::acquire()
 {
-  if (init() && XShmGetImage(display.get(), *window, ximage.get(), 0, 0, 0x00ffffff))
-    return ximage.get();
+  if (impl->acquire())
+    return impl->getImage();
   return nullptr;
 }
 
 const XImage* ImageCapture::current() const
 {
-  return ximage.get();
-}
-
-bool ImageCapture::isAttached() const
-{
-  thread_local XWindowAttributes updated;
-  return isInitialized() && XGetWindowAttributes(display.get(), *window, &updated);
+  return impl->getImage();
 }

@@ -13,6 +13,7 @@ add_compile_options(-Wno-float-conversion)
 add_library(
   ddbridge STATIC
   src/capture.cpp
+  src/GameWindow.cpp
 )
 target_include_directories(ddbridge PUBLIC .)
 target_include_directories(ddbridge PUBLIC /usr/include/opencv4)
