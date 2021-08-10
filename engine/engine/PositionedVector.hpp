@@ -4,93 +4,60 @@
 #include <utility>
 #include <vector>
 
-class Position
+struct Position
 {
-public:
-  Position() = default;
-
-  Position(unsigned x, unsigned y)
-    : x(x)
-    , y(y)
-  {
-  }
-
-  unsigned getX() const { return x; }
-  unsigned getY() const { return y; }
-
-  auto operator<=>(const Position&) const = default;
-
-private:
   unsigned x{0};
   unsigned y{0};
+  auto operator<=>(const Position& other) const = default;
 };
 
 template <class Object>
-class Positioned : public Object
-{
-public:
-  Positioned() = default;
-  Positioned(Object object, Position position)
-    : Object(std::move(object))
-    , _the_position(std::move(position))
-  {
-  }
-  virtual ~Positioned() = default;
-
-  Position getPosition() const { return _the_position; }
-  void setPosition(Position position) { _the_position = position; }
-  Object& get() { return *this; }
-
-private:
-  Position _the_position;
-};
+using Positioned = std::pair<Object, Position>;
 
 template <class Object>
-Positioned<Object> make_positioned(Object object, Position position)
+Positioned<Object> make_positioned(Object&& object, Position position)
 {
-  return Positioned<Object>(std::move(object), std::move(position));
+  return {std::forward<Object>(object), std::move(position)};
 }
 
-template <class Item>
-class PositionedVector : public std::vector<Positioned<Item>>
+template <class Object>
+class PositionedVector : public std::vector<Positioned<Object>>
 {
 public:
-  void add(Item item, Position position);
+  void add(Object object, Position position);
   bool anyAt(Position) const;
-  std::vector<Item> getAt(Position position);
-  std::vector<Item> getAll();
+  std::vector<Object> getAt(Position position) const;
+  std::vector<Object> getAll() const;
 };
 
-template <class Item>
-void PositionedVector<Item>::add(Item item, Position position)
+template <class Object>
+void PositionedVector<Object>::add(Object object, Position position)
 {
-  std::vector<Positioned<Item>>::emplace_back(make_positioned(std::move(item), std::move(position)));
+  PositionedVector<Object>::emplace_back(std::move(object), std::move(position));
 }
 
-template <class Item>
-bool PositionedVector<Item>::anyAt(Position position) const
+template <class Object>
+bool PositionedVector<Object>::anyAt(Position position) const
 {
-  for (auto& item : *this)
-    if (item.getPosition() == position)
-      return true;
-  return false;
+  return std::any_of(begin(*this), end(*this),
+                     [position](auto& positionedObject) { return positionedObject.second == position; });
 }
 
-template <class Item>
-std::vector<Item> PositionedVector<Item>::getAt(Position position)
+template <class Object>
+std::vector<Object> PositionedVector<Object>::getAt(Position position) const
 {
-  std::vector<Item> itemsAtPosition;
-  for (auto& item : *this)
-    if (item.getPosition() == position)
-      itemsAtPosition.emplace_back(item.get());
-  return itemsAtPosition;
+  std::vector<Object> objectsAtPosition;
+  for (auto& object : *this)
+    if (object.first == position)
+      objectsAtPosition.emplace_back(object.first);
+  return objectsAtPosition;
 }
 
-template <class Item>
-std::vector<Item> PositionedVector<Item>::getAll()
+template <class Object>
+std::vector<Object> PositionedVector<Object>::getAll() const
 {
-  std::vector<Item> allItems;
-  for (auto& item : *this)
-    allItems.emplace_back(item.get());
-  return allItems;
+  std::vector<Object> allObjects;
+  for (auto& object : *this)
+    allObjects.emplace_back(object.first);
+  return allObjects;
 }

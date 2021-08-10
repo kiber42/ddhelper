@@ -46,7 +46,7 @@ std::optional<Position> Dungeon::randomFreePosition() const
   std::shuffle(begin(indices), end(indices), generator);
   for (unsigned index : indices)
   {
-    Position position(index % sizeX, index / sizeX);
+    Position position{index % sizeX, index / sizeX};
     if (isFree(position))
     {
       return position;
@@ -57,7 +57,7 @@ std::optional<Position> Dungeon::randomFreePosition() const
 
 bool Dungeon::isFree(Position position) const
 {
-  return !monsters.anyAt(position) && (!hero || hero.getPosition() != position);
+  return !monsters.anyAt(position) && (!hero.first || hero.second != position);
 }
 
 bool Dungeon::isGround(Position position) const
@@ -80,12 +80,12 @@ bool Dungeon::isRevealed(Position position) const
   return revealed[position];
 }
 
-void Dungeon::reveal(Position position)
+void Dungeon::reveal(const Position position)
 {
   for (unsigned dy = -1u; dy != +2; ++dy)
     for (unsigned dx = -1u; dx != +2; ++dx)
     {
-      Position posToReveal(position.getX() + dx, position.getY() + dy);
+      Position posToReveal{position.x + dx, position.y + dy};
       if (revealed.isValid(posToReveal))
         revealed[posToReveal] = true;
     }
@@ -98,17 +98,18 @@ void Dungeon::revealOne(Position position)
 
 void Dungeon::update()
 {
-  monsters.erase(std::remove_if(begin(monsters), end(monsters), [](auto& monster) { return monster->isDefeated(); }));
+  monsters.erase(
+      std::remove_if(begin(monsters), end(monsters), [](auto& monster) { return monster.first->isDefeated(); }));
 }
 
 bool Dungeon::isAccessible(Position position) const
 {
   Grid<unsigned> path(sizeX, sizeY, -1u);
-  // Zero fields that should not be used in pathfinding
+  // Fields that should not be used in pathfinding are set to 0
   path.setMatching([&](Position pos) { return !isRevealed(pos); }, 0u);
-  for (const auto& monster : monsters)
-    path[monster.getPosition()] = 0u;
-  return pathfinder(hero.getPosition(), position, std::move(path));
+  for (const auto& [monster, position] : monsters)
+    path[position] = 0u;
+  return pathfinder(hero.second, position, std::move(path));
 }
 
 bool Dungeon::isConnected(Position position) const
@@ -116,7 +117,7 @@ bool Dungeon::isConnected(Position position) const
   Grid<unsigned> path(sizeX, sizeY, -1u);
   // Zero fields that should not be used in pathfinding
   path.setMatching([&](Position pos) { return !isGround(pos); }, 0u);
-  return pathfinder(hero.getPosition(), position, std::move(path));
+  return pathfinder(hero.second, position, std::move(path));
 }
 
 bool Dungeon::pathfinder(Position start, Position end, Grid<unsigned> path)

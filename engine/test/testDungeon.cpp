@@ -43,7 +43,7 @@ void testDungeonBasics()
   describe("Pathfinding", [] {
     Dungeon dungeon(10, 10);
     auto hero = std::make_shared<Hero>();
-    dungeon.setHero(hero, Position(0, 0));
+    dungeon.setHero(hero, {0, 0});
     it("should find paths if there are no obstacles", [&] { AssertThat(dungeon.isConnected({9, 9}), IsTrue()); });
     it("should consider squares inaccessible if there are no revealed paths to them", [&] {
       AssertThat(dungeon.isAccessible({9, 9}), IsFalse());

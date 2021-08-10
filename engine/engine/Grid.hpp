@@ -52,19 +52,19 @@ Grid<DataType>::Grid(unsigned sizeX, unsigned sizeY, const DataType& init)
 template <class DataType>
 bool Grid<DataType>::isValid(Position position) const
 {
-  return position.getX() < sizeX && position.getY() < sizeY;
+  return position.x < sizeX && position.y < sizeY;
 }
 
 template <class DataType>
 auto Grid<DataType>::operator[](Position position) -> DataRef
 {
-  return data[position.getY() * sizeX + position.getX()];
+  return data[position.y * sizeX + position.x];
 }
 
 template <class DataType>
 auto Grid<DataType>::operator[](Position position) const -> ConstDataRef
 {
-  return data[position.getY() * sizeX + position.getX()];
+  return data[position.y * sizeX + position.x];
 }
 
 template <class DataType>
@@ -74,7 +74,7 @@ void Grid<DataType>::setMatching(MatcherFn matcher, DataType newValue)
   {
     for (unsigned y = 0; y < sizeY; ++y)
     {
-      if (matcher(Position(x, y)))
+      if (matcher({x, y}))
         data[y * sizeX + x] = newValue;
     }
   }
@@ -87,7 +87,7 @@ bool Grid<DataType>::iterateOver(MatcherFn matcher)
   {
     for (unsigned y = 0; y < sizeY; ++y)
     {
-      if (matcher(Position(x, y)))
+      if (matcher({x, y}))
         return true;
     }
   }
@@ -97,8 +97,8 @@ bool Grid<DataType>::iterateOver(MatcherFn matcher)
 template <class DataType>
 bool Grid<DataType>::iterateAround(Position center, MatcherFn matcher)
 {
-  const unsigned cx = center.getX();
-  const unsigned cy = center.getX();
+  const unsigned cx = center.x;
+  const unsigned cy = center.y;
   for (unsigned dx = cx > 0 ? -1u : 0u; dx != +2; ++dx)
   {
     const unsigned x = cx + dx;
@@ -107,7 +107,7 @@ bool Grid<DataType>::iterateAround(Position center, MatcherFn matcher)
     for (unsigned dy = cy > 0 ? -1u : 0u; dy != +2; ++dy)
     {
       const unsigned y = cy + dy;
-      if ((dx != 0 || dy != 0) && y < sizeY && matcher(Position(x, y)))
+      if ((dx != 0 || dy != 0) && y < sizeY && matcher({x, y}))
         return true;
     }
   }
