@@ -1,11 +1,13 @@
 // Include OpenCV before any X11 headers
 #include <opencv2/opencv.hpp>
 
-#include "engine/StrongTypes.hpp"
-
 #include "bridge/GameWindow.hpp"
 #include "bridge/ImageCapture.hpp"
 #include "bridge/Mouse.hpp"
+
+#include "engine/Monster.hpp"
+#include "engine/PositionedVector.hpp"
+#include "engine/StrongTypes.hpp"
 
 #include <array>
 #include <cstdint>
@@ -21,13 +23,23 @@ namespace
   constexpr int y_offset = -1;
 
   // Identify monster by color of pixel at (11, 4)
-  const std::map<uint32_t, std::string> monsterFromPixel = {
+  const std::map<uint32_t, MonsterType> monsterFromPixel = {
       // Basic Monsters
-      {0xCC7F54, "Bandit"},  {0x4BB56C, "Dragon Spawn"}, {0x544130, "Goat"},   {0xE65918, "Goblin"},
-      {0x7C6E57, "Golem"},   {0x373E01, "Goo Blob"},     {0x0BA837, "Gorgon"}, {0xFF6666, "Meat Man"},
-      {0xBA863E, "Serpent"}, {0xC74E73, "Warlock"},      {0x090D3F, "Wraith"}, {0x378A85, "Zombie"},
+      {0xCC7F54, MonsterType::Bandit},
+      {0x4BB56C, MonsterType::DragonSpawn},
+      {0x544130, MonsterType::Goat},
+      {0xE65918, MonsterType::Goblin},
+      {0x7C6E57, MonsterType::Golem},
+      {0x373E01, MonsterType::GooBlob},
+      {0x0BA837, MonsterType::Gorgon},
+      {0xFF6666, MonsterType::MeatMan},
+      {0xBA863E, MonsterType::Serpent},
+      {0xC74E73, MonsterType::Warlock},
+      {0x090D3F, MonsterType::Wraith},
+      {0x378A85, MonsterType::Zombie},
       // Advanced Monsters
-      {0xBBD6D5, "Vampire"},
+      {0x718A3F, MonsterType::Naga},
+      {0xBBD6D5, MonsterType::Vampire},
   };
 
   // Red and green components of 3 specific pixels on a tile (3, 18), (4, 22) (3, 24)
@@ -60,7 +72,7 @@ int32_t getTileHash(const cv::Mat& tile)
   return tile.at<int32_t>(4, 11) & 0xFFFFFF;
 }
 
-std::optional<Level> getMonsterLevel(cv::Mat& dungeon, int x, int y)
+std::optional<Level> getMonsterLevel(const cv::Mat& dungeon, int x, int y)
 {
   // Level number (if any) is a 16x16 sprite overlayed in the lower left corner of a 30x30 tile.
   const int start_y = y * 30 + y_offset + 18;
@@ -89,10 +101,61 @@ auto getTileCropped(const cv::Mat& dungeon, int x, int y)
   return dungeon(cv::Rect(x * 30 + 1, y * 30, 22, 25));
 }
 
-int main()
+namespace
 {
-  int numFrames = 0;
-  GameWindow gameWindow;
+  struct ImageInfo
+  {
+    PositionedVector<Monster> monsters;
+  };
+
+  [[nodiscard]] ImageInfo processImage(const cv::Mat& image)
+  {
+    ImageInfo result;
+    for (unsigned index = 0u; index < 400u; ++index)
+    {
+      const unsigned char x = index % 20;
+      const unsigned char y = static_cast<unsigned char>(index / 20);
+      auto level = getMonsterLevel(image, x, y);
+      if (level)
+      {
+        auto tile = getTileCropped(image, x, y);
+        const auto monsterType = [hash = getTileHash(tile), level = level->get()] {
+          if (auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
+          {
+            printf("%s level %i\t", toString(detected->second), level);
+            return detected->second;
+          }
+          else
+          {
+            printf("unknown monster level %i, hash 0x%06X\n", level, hash);
+            return MonsterType::Generic;
+          }
+        }();
+        Monster monster{monsterType, level->get(), 100};
+        result.monsters.emplace_back(make_positioned(std::move(monster), Position{x, y}));
+      }
+    }
+    puts("");
+    return result;
+  }
+
+  void scanMonsters(const ImageInfo& imageInfo, GameWindow& gameWindow)
+  {
+    if (imageInfo.monsters.empty())
+      return;
+    auto pos = getMousePosition(gameWindow.getDisplay(), 0);
+    for (const auto& [monster, position] : imageInfo.monsters)
+    {
+      moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 30 * position.x + 15, 30 * position.y + 15);
+    }
+    if (pos)
+      moveMouseTo(gameWindow.getDisplay(), 0, pos->first, pos->second);
+  }
+} // namespace
+
+unsigned monitorContinuous(GameWindow& gameWindow)
+{
+  unsigned numFrames = 0;
   ImageCapture capture(gameWindow);
   while (auto ximage = capture.acquire())
   {
@@ -104,29 +167,16 @@ int main()
     }
     printf("Processing image...\n");
     auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
-    auto pos = getMousePosition(gameWindow.getDisplay(), 0);
-    bool wasMoved = false;
-    for (int index = 0; index < 400; ++index)
-    {
-      auto level = getMonsterLevel(image, index % 20, index / 20);
-      if (level)
-      {
-        auto tile = getTileCropped(image, index % 20, index / 20);
-        auto hash = getTileHash(tile);
-        if (auto name = monsterFromPixel.find(hash); name != end(monsterFromPixel))
-          printf("%s level %i\t", name->second.data(), level->get());
-        else
-          printf("unknown monster level %i, hash 0x%06X\n", level->get(), hash);
-        moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 30 * (index % 20) + 15, 30 * (index / 20) + 15);
-        wasMoved = true;
-      }
-    }
-    if (wasMoved && pos)
-      moveMouseTo(gameWindow.getDisplay(), 0, pos->first, pos->second);
-    puts("");
+    auto result = processImage(image);
+    scanMonsters(result, gameWindow);
     cv::waitKey(1000);
     ++numFrames;
   }
+  return numFrames;
+}
 
-  return numFrames != 0;
+int main()
+{
+  GameWindow gameWindow;
+  return monitorContinuous(gameWindow) > 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

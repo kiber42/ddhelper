@@ -21,7 +21,6 @@ std::optional<std::pair<int, int>> getMousePosition(Display* display, Window win
 
 void moveMouseTo(Display* display, Window window, int x, int y)
 {
-  printf("Move mouse to %i, %i\n", x, y);
   if (window == 0)
     window = DefaultRootWindow(display);
   XWarpPointer(display, None, window, 0, 0, 0, 0, x, y);
