@@ -18,7 +18,7 @@ add_library(
 )
 target_include_directories(ddbridge PUBLIC .)
 target_include_directories(ddbridge PUBLIC /usr/include/opencv4)
-target_link_libraries(ddbridge PUBLIC "-lopencv_core" "-lopencv_highgui" "-lopencv_imgproc" "-lX11" "-lXext")
+target_link_libraries(ddbridge PUBLIC "-lopencv_core" "-lopencv_highgui" "-lopencv_imgproc" "-lopencv_imgcodecs" "-lX11" "-lXext")
 
 add_executable(
   bridge

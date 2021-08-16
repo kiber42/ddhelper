@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -21,6 +22,9 @@ namespace
   // On Linux/X11, the window contents are shifted one pixel up: the topmost row is missing, and a black row of pixels
   // appears at the bottom of the window
   constexpr int y_offset = -1;
+
+  constexpr int required_screen_size_x = 800;
+  constexpr int required_screen_size_y = 600;
 
   // Identify monster by color of pixel at (11, 4)
   const std::map<uint32_t, MonsterType> monsterFromPixel = {
@@ -38,6 +42,7 @@ namespace
       {0x090D3F, MonsterType::Wraith},
       {0x378A85, MonsterType::Zombie},
       // Advanced Monsters
+      {0x79341C, MonsterType::Minotaur},
       {0x718A3F, MonsterType::Naga},
       {0xBBD6D5, MonsterType::Vampire},
   };
@@ -47,62 +52,95 @@ namespace
       0x00FF00FF0000, 0x00FF000000FF, 0x000000FF0000, 0xFFFF0000FFFF, 0xFFFFFFFF0000,
       0xFFFFFFFFFFFF, 0x0000FF800000, 0xFF80FF80FF80, 0xFF80FF800000, 0xFF00FF000000,
   };
-} // namespace
 
-auto getTile(const cv::Mat& dungeon, int x, int y)
-{
-  if constexpr (y_offset == 0)
+  [[maybe_unused]] auto getTile(const cv::Mat& dungeon, int x, int y)
   {
-    return dungeon(cv::Rect(x * 30, y * 30, 30, 30));
-  }
-  else
-  {
-    static_assert(y_offset < 0 && y_offset > -30);
-    if (y > 0)
-      return dungeon(cv::Rect(x * 30, y * 30 + y_offset, 30, 30));
-    auto partialTile = dungeon(cv::Rect(x * 30, 0, 30, 30 + y_offset));
-    cv::Mat tile = cv::Mat::zeros(cv::Size(30, 30), CV_8UC4);
-    partialTile.rowRange(0, 30 + y_offset).copyTo(tile.rowRange(-y_offset, 30));
-    return tile;
-  }
-}
-
-int32_t getTileHash(const cv::Mat& tile)
-{
-  return tile.at<int32_t>(4, 11) & 0xFFFFFF;
-}
-
-std::optional<Level> getMonsterLevel(const cv::Mat& dungeon, int x, int y)
-{
-  // Level number (if any) is a 16x16 sprite overlayed in the lower left corner of a 30x30 tile.
-  const int start_y = y * 30 + y_offset + 18;
-  const int start_x = x * 30 + 3;
-  // Several suitable combinations of 3 pixels exist that suffice to tell them apart, we use (3, 18), (4, 22) (3, 24)
-  const auto pixel1 = dungeon.at<uint32_t>(start_y, start_x) & 0xFFFFFF;
-  const auto pixel2 = dungeon.at<uint32_t>(start_y + 4, start_x + 1) & 0xFFFFFF;
-  const auto pixel3 = dungeon.at<uint32_t>(start_y + 6, start_x) & 0xFFFFFF;
-  // Level labels have no blue component
-  if ((pixel1 & 0xFF) == 0 && (pixel2 & 0xFF) == 0 && (pixel3 & 0xFF) == 0)
-  {
-    const uint64_t hash = (static_cast<uint64_t>(pixel1) << 24) + (static_cast<uint64_t>(pixel2) << 8) +
-                          (static_cast<uint64_t>(pixel3) >> 8);
-    const auto iter = std::find(begin(levelFromPixels), end(levelFromPixels), hash);
-    if (iter != end(levelFromPixels))
+    static_assert(y_offset <= 0 && y_offset > -30);
+    if constexpr (y_offset == 0)
     {
-      const auto index = std::distance(begin(levelFromPixels), iter);
-      return Level{index + 1};
+      return dungeon(cv::Rect(x * 30, y * 30, 30, 30));
+    }
+    else if (y > 0)
+      return dungeon(cv::Rect(x * 30, y * 30 + y_offset, 30, 30));
+    else
+    {
+      auto partialTile = dungeon(cv::Rect(x * 30, 0, 30, 30 + y_offset));
+      cv::Mat tile = cv::Mat::zeros(cv::Size(30, 30), CV_8UC4);
+      partialTile.rowRange(0, 30 + y_offset).copyTo(tile.rowRange(-y_offset, 30));
+      return tile;
     }
   }
-  return {};
-}
 
-auto getTileCropped(const cv::Mat& dungeon, int x, int y)
-{
-  return dungeon(cv::Rect(x * 30 + 1, y * 30, 22, 25));
-}
+  using Column = NamedType<int, struct ColumnParameter>;
+  using Row = NamedType<int, struct RowParameter>;
 
-namespace
-{
+  struct PixelBGR
+  {
+    PixelBGR(const cv::Mat& image, Column col, Row row)
+      : _v(image.at<cv::Vec3b>(row.get(), col.get()))
+    {
+    }
+    constexpr uint8_t r() const { return _v.val[2]; }
+    constexpr uint8_t g() const { return _v.val[1]; }
+    constexpr uint8_t b() const { return _v.val[0]; }
+    constexpr uint32_t rgb() const
+    {
+      return (static_cast<uint32_t>(_v.val[2]) << 16) + (static_cast<uint32_t>(_v.val[1]) << 8) +
+             static_cast<uint32_t>(_v.val[0]);
+    }
+    constexpr uint32_t rg() const { return (static_cast<uint32_t>(_v.val[2]) << 8) + static_cast<uint32_t>(_v.val[1]); }
+
+  private:
+    cv::Vec3b _v;
+  };
+
+  struct PixelARGB
+  {
+    PixelARGB(const cv::Mat& image, Column col, Row row)
+      : _v(image.at<uint32_t>(row.get(), col.get()) & 0xFFFFFF)
+    {
+    }
+    constexpr uint8_t r() const { return (_v & 0xFF0000) >> 16; }
+    constexpr uint8_t g() const { return (_v & 0xFF00) >> 8; }
+    constexpr uint8_t b() const { return _v & 0xFF; }
+    constexpr uint32_t rgb() const { return _v; }
+    constexpr uint32_t rg() const { return _v >> 8; }
+
+  private:
+    uint32_t _v;
+  };
+
+  template <typename PixelFunc>
+  std::optional<Level> getMonsterLevel(const cv::Mat& dungeon, int x, int y)
+  {
+    // Level number (if any) is a 16x16 sprite overlayed in the lower left corner of a 30x30 tile.
+    const int start_x = x * 30;
+    const int start_y = y * 30 + y_offset;
+    // Several suitable combinations of 3 pixels exist that suffice to tell them apart, we use (3, 18), (4, 22) (3, 24).
+    const auto pixel1 = PixelFunc(dungeon, Column{start_x + 3}, Row{start_y + 18});
+    const auto pixel2 = PixelFunc(dungeon, Column{start_x + 4}, Row{start_y + 22});
+    const auto pixel3 = PixelFunc(dungeon, Column{start_x + 3}, Row{start_y + 24});
+    // Level labels have no blue component
+    if (pixel1.b() == 0 && pixel2.b() == 0 && pixel3.b() == 0)
+    {
+      const uint64_t hash = (static_cast<uint64_t>(pixel1.rg()) << 32) + (static_cast<uint64_t>(pixel2.rg()) << 16) +
+                            static_cast<uint64_t>(pixel3.rg());
+      const auto iter = std::find(begin(levelFromPixels), end(levelFromPixels), hash);
+      if (iter != end(levelFromPixels))
+      {
+        const auto index = std::distance(begin(levelFromPixels), iter);
+        return Level{index + 1};
+      }
+    }
+    return {};
+  }
+
+  template <typename PixelFunc>
+  inline int32_t getTileHash(const cv::Mat& tile, int x, int y)
+  {
+    return PixelFunc(tile, Column{x * 30 + 12}, Row{y * 30 + y_offset + 5}).rgb();
+  }
+
   struct ImageInfo
   {
     PositionedVector<Monster> monsters;
@@ -111,31 +149,48 @@ namespace
   [[nodiscard]] ImageInfo processImage(const cv::Mat& image)
   {
     ImageInfo result;
+    auto getLevel = [type = image.type()] {
+      if (type == CV_8UC4)
+        return getMonsterLevel<PixelARGB>;
+      else
+      {
+        assert(type == CV_8UC3);
+        return getMonsterLevel<PixelBGR>;
+      }
+    }();
+    auto getMonster = [type = image.type()] {
+      if (type == CV_8UC4)
+        return getTileHash<PixelARGB>;
+      else
+      {
+        assert(type == CV_8UC3);
+        return getTileHash<PixelBGR>;
+      }
+    }();
     for (unsigned index = 0u; index < 400u; ++index)
     {
       const unsigned char x = index % 20;
       const unsigned char y = static_cast<unsigned char>(index / 20);
-      auto level = getMonsterLevel(image, x, y);
-      if (level)
-      {
-        auto tile = getTileCropped(image, x, y);
-        const auto monsterType = [hash = getTileHash(tile), level = level->get()] {
-          if (auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
-          {
-            printf("%s level %i\t", toString(detected->second), level);
-            return detected->second;
-          }
-          else
-          {
-            printf("unknown monster level %i, hash 0x%06X\n", level, hash);
-            return MonsterType::Generic;
-          }
-        }();
-        Monster monster{monsterType, level->get(), 100};
-        result.monsters.emplace_back(make_positioned(std::move(monster), Position{x, y}));
-      }
+      const auto level = getLevel(image, x, y);
+      if (!level)
+        continue;
+      const auto monsterType = [hash = getMonster(image, x, y), level = level->get()] {
+        if (auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
+        {
+          printf("%s level %i\t", toString(detected->second), level);
+          return detected->second;
+        }
+        else
+        {
+          printf("unknown monster level %i (hash 0x%06X)\t", level, hash);
+          return MonsterType::Generic;
+        }
+      }();
+      Monster monster{monsterType, level->get(), 100};
+      result.monsters.emplace_back(make_positioned(std::move(monster), Position{x, y}));
     }
-    puts("");
+    if (!result.monsters.empty())
+      puts("");
     return result;
   }
 
@@ -159,9 +214,10 @@ unsigned monitorContinuous(GameWindow& gameWindow)
   ImageCapture capture(gameWindow);
   while (auto ximage = capture.acquire())
   {
-    if (ximage->width != 800 || ximage->height != 600)
+    if (ximage->width != required_screen_size_x || ximage->height != required_screen_size_y)
     {
-      printf("Please resize game window to 800x600 (current size: %ix%i)\n", ximage->width, ximage->height);
+      printf("Please resize game window to %ix%i (current size: %ix%i)\n", required_screen_size_x,
+             required_screen_size_y, ximage->width, ximage->height);
       cv::waitKey(1000);
       continue;
     }
@@ -175,8 +231,40 @@ unsigned monitorContinuous(GameWindow& gameWindow)
   return numFrames;
 }
 
-int main()
+bool processImageFromFile(const char* filename)
+{
+  auto image = static_cast<cv::Mat_<cv::Vec3b>>(cv::imread(filename, cv::IMREAD_COLOR));
+  if (image.empty())
+  {
+    std::cerr << "Could not read image data from " << filename << std::endl;
+    return false;
+  }
+  if (image.size[0] != required_screen_size_y || image.size[1] != required_screen_size_x)
+  {
+    std::cerr << "Wrong image size " << image.size[1] << "x" << image.size[0]
+              << " (required: " << required_screen_size_x << "x" << required_screen_size_y << ")" << std::endl;
+    return false;
+  }
+
+  const auto result = processImage(image);
+  std::cout << result.monsters.size() << " monster(s) found." << std::endl;
+  for (auto& [monster, position] : result.monsters)
+    std::cout << monster.getName() << std::endl;
+
+  return true;
+}
+
+bool processImagesFromGameWindow()
 {
   GameWindow gameWindow;
-  return monitorContinuous(gameWindow) > 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+  const bool imagesProcessed = monitorContinuous(gameWindow) > 0;
+  if (!imagesProcessed)
+    std::cerr << "Game window not found." << std::endl;
+  return imagesProcessed > 0;
+}
+
+int main(int argc, char** argv)
+{
+  const bool success = argc >= 2 ? processImageFromFile(argv[1]) : processImagesFromGameWindow();
+  return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
