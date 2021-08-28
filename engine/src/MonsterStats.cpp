@@ -10,7 +10,9 @@ namespace
 {
   constexpr HitPoints hpInitial(uint8_t level, uint16_t multiplier1, uint16_t multiplier2)
   {
-    // TODO: Result sometimes appears to be 1 too high (at least for "Shifting Passages")
+    // Reproduce strange (rounding?) effect for goats and gorgons at level 7
+    if (level == 7u && multiplier2 == 90u)
+      return HitPoints{multiplier1 * 4 / 5};
     return HitPoints{(level * (level + 6) - 1) * multiplier1 / 100 * multiplier2 / 100};
   }
 
