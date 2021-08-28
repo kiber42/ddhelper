@@ -15,6 +15,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 namespace
@@ -141,9 +142,19 @@ namespace
     return PixelFunc(tile, Column{x * 30 + 12}, Row{y * 30 + y_offset + 5}).rgb();
   }
 
+  using HealthInfo = std::pair<int, int>;
+
+  struct MonsterInfo
+  {
+    Position position;
+    MonsterType type;
+    Level level;
+    std::optional<HealthInfo> health;
+  };
+
   struct ImageInfo
   {
-    PositionedVector<Monster> monsters;
+    std::vector<MonsterInfo> monsters;
   };
 
   [[nodiscard]] ImageInfo processImage(const cv::Mat& image)
@@ -186,23 +197,99 @@ namespace
           return MonsterType::Generic;
         }
       }();
-      Monster monster{monsterType, level->get(), 100};
-      result.monsters.emplace_back(make_positioned(std::move(monster), Position{x, y}));
+      result.monsters.emplace_back(MonsterInfo{Position{x, y}, monsterType, *level, {}});
     }
     if (!result.monsters.empty())
       puts("");
     return result;
   }
 
-  void scanMonsters(const ImageInfo& imageInfo, GameWindow& gameWindow)
+  // Identify monster HP and max HP by counting number of "bright" pixels per column
+  constexpr std::array patterns = {52225, 11900, 22224, 22324, 23391, 23323, 50333, 13221, 63336, 33305, 0};
+
+  template <typename PixelFunc>
+  std::optional<std::pair<int, int>> extract_hp_or_mp(const cv::Mat& imagePart)
+  {
+    auto countBrightPixels = [&, height = imagePart.size[0]](int x) {
+      int count = 0;
+      for (int y = 0; y < height; ++y)
+      {
+        if (PixelFunc(imagePart, Column{x}, Row{y}).g() >= 190)
+          ++count;
+      }
+      return count;
+    };
+    auto parseNumbers = [&, x = 0, width = imagePart.size[1]]() mutable -> std::optional<int> {
+      int current = 0;
+      while (x + 8 < width)
+      {
+        const int nextPattern = 10000 * countBrightPixels(x) + 1000 * countBrightPixels(x + 1) +
+                                100 * countBrightPixels(x + 2) + 10 * countBrightPixels(x + 3) +
+                                countBrightPixels(x + 4);
+        const auto match = std::find(begin(patterns), end(patterns), nextPattern);
+        if (match == end(patterns))
+          return {};
+        const auto index = static_cast<int>(std::distance(begin(patterns), match));
+        if (index == 10)
+          break;
+        current = 10 * current + index;
+        // Proceed to next number (gap between adjacent numbers is two pixels wide)
+        x += 7;
+        // Detect if following character is a slash (sequence 01310; gaps before and after only one pixel wide)
+        if (countBrightPixels(x - 1) == 1)
+        {
+          const bool isSlash = countBrightPixels(x) == 3 && countBrightPixels(x + 1) == 1;
+          if (isSlash)
+          {
+            x += 3;
+            break;
+          }
+          return {};
+        }
+      }
+      return current;
+    };
+    auto points = parseNumbers();
+    auto maxPoints = parseNumbers();
+    if (!points || !maxPoints)
+    {
+      std::cerr << "Failed to extract HP or MP from image region." << std::endl;
+      return {};
+    }
+    return {{*points, *maxPoints}};
+  }
+
+  // Extract info for monster that is tagged / hovered over from sidebar
+  template <typename PixelFunc>
+  void updateMonsterInfo(const cv::Mat& image, MonsterInfo& monsterInfo)
+  {
+    monsterInfo.health = extract_hp_or_mp<PixelFunc>(image(cv::Rect(651, 430, 100, 10)));
+    if (monsterInfo.health)
+    {
+      std::cout << monsterInfo.health->first << '/' << monsterInfo.health->second;
+    }
+  }
+
+  void scanMonsters(ImageInfo& imageInfo, GameWindow& gameWindow, ImageCapture& capture)
   {
     if (imageInfo.monsters.empty())
       return;
     auto pos = getMousePosition(gameWindow.getDisplay(), 0);
-    for (const auto& [monster, position] : imageInfo.monsters)
+    for (auto& monsterInfo : imageInfo.monsters)
     {
-      moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 30 * position.x + 15, 30 * position.y + 15);
+      moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 30 * monsterInfo.position.x + 15,
+                  30 * monsterInfo.position.y + 15);
+      using namespace std::chrono_literals;
+      std::this_thread::sleep_for(50ms);
+      std::cout << toString(monsterInfo.type) << " level " << (int)monsterInfo.level.get() << ": ";
+      if (auto ximage = capture.acquire())
+      {
+        auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
+        updateMonsterInfo<PixelARGB>(image, monsterInfo);
+      }
+      std::cout << '\n';
     }
+    moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 750, 100);
     if (pos)
       moveMouseTo(gameWindow.getDisplay(), 0, pos->first, pos->second);
   }
@@ -223,8 +310,8 @@ unsigned monitorContinuous(GameWindow& gameWindow)
     }
     printf("Processing image...\n");
     auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
-    auto result = processImage(image);
-    scanMonsters(result, gameWindow);
+    auto result = processImage(std::move(image));
+    scanMonsters(result, gameWindow, capture);
     cv::waitKey(1000);
     ++numFrames;
   }
@@ -248,8 +335,9 @@ bool processImageFromFile(const char* filename)
 
   const auto result = processImage(image);
   std::cout << result.monsters.size() << " monster(s) found." << std::endl;
-  for (auto& [monster, position] : result.monsters)
-    std::cout << monster.getName() << std::endl;
+  for (const auto& monsterInfo : result.monsters)
+    std::cout << toString(monsterInfo.type) << " "
+              << " level " << monsterInfo.level.get() << std::endl;
 
   return true;
 }
