@@ -214,7 +214,7 @@ namespace
       int count = 0;
       for (int y = 0; y < height; ++y)
       {
-        if (PixelFunc(imagePart, Column{x}, Row{y}).g() >= 190)
+        if (PixelFunc(imagePart, Column{x}, Row{y}).g() >= 189)
           ++count;
       }
       return count;
@@ -253,7 +253,7 @@ namespace
     auto maxPoints = parseNumbers();
     if (!points || !maxPoints)
     {
-      std::cerr << "Failed to extract HP or MP from image region." << std::endl;
+      std::cerr << "Failed to extract HP or MP from image region.";
       return {};
     }
     return {{*points, *maxPoints}};
@@ -266,7 +266,10 @@ namespace
     monsterInfo.health = extract_hp_or_mp<PixelFunc>(image(cv::Rect(651, 430, 100, 10)));
     if (monsterInfo.health)
     {
-      std::cout << monsterInfo.health->first << '/' << monsterInfo.health->second;
+      const MonsterStats stats(monsterInfo.type, monsterInfo.level, DungeonMultiplier{100});
+      if (stats.getHitPointsMax() != HitPoints{monsterInfo.health->first})
+        std::cout << monsterInfo.health->first << '/' << monsterInfo.health->second
+                  << " (HP max expected: " << stats.getHitPointsMax().get() << ")";
     }
   }
 
@@ -280,7 +283,7 @@ namespace
       moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 30 * monsterInfo.position.x + 15,
                   30 * monsterInfo.position.y + 15);
       using namespace std::chrono_literals;
-      std::this_thread::sleep_for(50ms);
+      std::this_thread::sleep_for(100ms);
       std::cout << toString(monsterInfo.type) << " level " << (int)monsterInfo.level.get() << ": ";
       if (auto ximage = capture.acquire())
       {
