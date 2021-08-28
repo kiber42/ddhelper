@@ -13,7 +13,7 @@ public:
   ~ImageCapture();
 
   const XImage* acquire();
-  const XImage* current() const;
+  [[nodiscard]] const XImage* current() const;
 
 private:
   class Impl;
