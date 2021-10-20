@@ -682,9 +682,12 @@ bool Faith::desecrate(God altar, Hero& hero, Monsters& allMonsters, bool hasAgno
   if (!hasAgnosticCollar)
     punish(altar, hero, allMonsters);
   if (numDesecrated < 3)
-    gainPiety((3 - numDesecrated) * 10);
+  {
+    unsigned bonus = 3 - numDesecrated;
+    gainPiety(bonus * 10);
+    indulgence += bonus;
+  }
   ++numDesecrated;
-  indulgence += 3;
   return true;
 }
 
