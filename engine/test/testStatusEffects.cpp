@@ -462,6 +462,13 @@ void testStatusEffects()
         hero.convert(BlacksmithItem::ReallyBigSword, noOtherMonsters);
         AssertThat(hero.has(HeroStatus::PiercePhysical), IsFalse());
       });
+      it("should not break physical immunity", [] {
+        Hero hero;
+        AssertThat(hero.receive(BlacksmithItem::ReallyBigSword), IsTrue());
+        Monster immune("Immune", {Level{1}, 10_HP, 5_damage}, {100_physicalresist}, {});
+        AssertThat(attack(hero, immune), Equals(Summary::Safe));
+        AssertThat(immune.getHitPoints(), Equals(10u));
+      });
       it("should not affect magical attacks", [] {
         Hero hero;
         hero.setHitPointsMax(100);

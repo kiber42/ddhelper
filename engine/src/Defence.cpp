@@ -84,6 +84,8 @@ Defence::predictDamageTaken(DamagePoints attackerDamageOutput, DamageType damage
         const auto pierced = 35_physicalresist;
         if (physicalResist <= pierced)
           return 0;
+        if (physicalResist >= 100_physicalresist)
+          return 100;
         return (physicalResist - pierced).in_percent();
       }
       case DamageType::Magical:
