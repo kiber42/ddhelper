@@ -6,7 +6,6 @@
 #include "bridge/Mouse.hpp"
 
 #include "engine/Monster.hpp"
-#include "engine/PositionedVector.hpp"
 #include "engine/StrongTypes.hpp"
 
 #include <array>
@@ -143,6 +142,12 @@ namespace
   }
 
   using HealthInfo = std::pair<int, int>;
+
+  struct Position
+  {
+    int x;
+    int y;
+  };
 
   struct MonsterInfo
   {

@@ -8,7 +8,6 @@ add_library(
   src/Combat.cpp
   src/Conversion.cpp
   src/Defence.cpp
-  src/Dungeon.cpp
   src/DungeonSetup.cpp
   src/Experience.cpp
   src/Faith.cpp
@@ -31,7 +30,6 @@ add_executable(
   test/main.cpp
   test/testCombat.cpp
   test/testDefence.cpp
-  test/testDungeon.cpp
   test/testExperience.cpp
   test/testFaith.cpp
   test/testInventory.cpp

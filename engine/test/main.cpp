@@ -11,7 +11,6 @@ void testInventory();
 void testResources();
 void testPotions();
 void testFaith();
-void testDungeon();
 
 go_bandit([] {
   testHeroExperience();
@@ -25,7 +24,6 @@ go_bandit([] {
   testResources();
   testPotions();
   testFaith();
-  testDungeon();
 });
 
 int main(int argc, char* argv[])
