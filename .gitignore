@@ -5,3 +5,4 @@ imgui
 res
 imgui.ini
 SDL
+.cache
