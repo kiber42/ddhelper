@@ -16,7 +16,7 @@ namespace solver
     // TODO: Replace std::transform and std::shuffle with equivalent std::ranges functions
 
     // Rely on at least one monster being present
-    assert(!state.monsters.empty());
+    assert(!state.visibleMonsters.empty());
     std::uniform_int_distribution<> randomAction(0, 10);
     std::optional<std::vector<Spell>> spells;
     std::optional<std::vector<Item>> shops;
@@ -56,7 +56,7 @@ namespace solver
           auto spellCounts = state.hero.getSpellCounts();
           std::shuffle(begin(spellCounts), end(spellCounts), generator);
           const auto spellIt = std::find_if(begin(spellCounts), end(spellCounts),
-                                            [&state, &monster = state.monsters.front()](const auto& spellCount) {
+                                            [&state, &monster = state.visibleMonsters.front()](const auto& spellCount) {
                                               const Spell spell = spellCount.first;
                                               return Magic::isPossible(state.hero, monster, spell, state.resources);
                                             });
@@ -126,7 +126,7 @@ namespace solver
           std::shuffle(begin(boons), end(boons), generator);
           auto boonIt = std::find_if(begin(boons), end(boons), [&state, &faith = state.hero.getFaith()](Boon boon) {
             return static_cast<int>(faith.getPiety()) >= faith.getCosts(boon, state.hero) &&
-                   faith.isAvailable(boon, state.hero, state.monsters, state.resources);
+                   faith.isAvailable(boon, state.hero, state.visibleMonsters, state.resources);
           });
           if (boonIt != end(boons))
             return Request{*boonIt};
@@ -155,8 +155,8 @@ namespace solver
   {
     const auto& hero = state.hero;
     return std::visit(
-        overloaded{[&](Attack) { return !state.monsters.empty(); },
-                   [&, &monsters = state.monsters, &resources = state.resources](Cast cast) {
+        overloaded{[&](Attack) { return !state.visibleMonsters.empty(); },
+                   [&, &monsters = state.visibleMonsters, &resources = state.resources](Cast cast) {
                      return hero.has(cast.spell) &&
                             (Magic::isPossible(hero, cast.spell, resources) ||
                              (!monsters.empty() && Magic::isPossible(hero, monsters.front(), cast.spell, resources)));
@@ -178,7 +178,7 @@ namespace solver
                             std::find(begin(altars), end(altars), GodOrPactmaker{follow.deity}) != end(altars);
                    },
                    [&faith = hero.getFaith(), &hero, &resources = state.resources,
-                    &monsters = state.monsters](Request request) {
+                    &monsters = state.visibleMonsters](Request request) {
                      if (const auto boon = std::get_if<Boon>(&request.boonOrPact))
                        return faith.isAvailable(*boon, hero, monsters, resources) &&
                               static_cast<int>(hero.getPiety()) >= faith.getCosts(*boon, hero);
@@ -194,14 +194,14 @@ namespace solver
 
   GameState apply(const Step& step, GameState state)
   {
-    if (state.monsters.empty())
+    if (state.visibleMonsters.empty())
       return state;
     auto& hero = state.hero;
-    auto& monster = state.monsters.front();
-    std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, state.monsters, state.resources); },
-                          [&](Cast cast) { Magic::cast(hero, monster, cast.spell, state.monsters, state.resources); },
+    auto& monster = state.visibleMonsters.front();
+    std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, state.visibleMonsters, state.resources); },
+                          [&](Cast cast) { Magic::cast(hero, monster, cast.spell, state.visibleMonsters, state.resources); },
                           [&](Uncover uncover) {
-                            hero.recover(uncover.numTiles, state.monsters);
+                            hero.recover(uncover.numTiles, state.visibleMonsters);
                             monster.recover(uncover.numTiles);
                             state.resources.numHiddenTiles -= uncover.numTiles;
                           },
@@ -209,8 +209,8 @@ namespace solver
                             shops.erase(std::find(begin(shops), end(shops), buy.item));
                             hero.buy(buy.item);
                           },
-                          [&](Use use) { hero.use(use.item, state.monsters); },
-                          [&](Convert convert) { hero.convert(convert.itemOrSpell, state.monsters); },
+                          [&](Use use) { hero.use(use.item, state.visibleMonsters); },
+                          [&](Convert convert) { hero.convert(convert.itemOrSpell, state.visibleMonsters); },
                           [&hero, &spells = state.resources.spells](Find find) {
                             if (hero.receive(find.spell))
                               spells.erase(std::find(begin(spells), end(spells), find.spell));
@@ -218,15 +218,15 @@ namespace solver
                           [&](Follow follow) {
                             hero.followDeity(follow.deity, state.resources.numRevealedTiles, state.resources);
                           },
-                          [&](Request request) { hero.request(request.boonOrPact, state.monsters, state.resources); },
-                          [&hero, &monsters = state.monsters, &altars = state.resources.altars](Desecrate desecrate) {
+                          [&](Request request) { hero.request(request.boonOrPact, state.visibleMonsters, state.resources); },
+                          [&hero, &monsters = state.visibleMonsters, &altars = state.resources.altars](Desecrate desecrate) {
                             if (hero.desecrate(desecrate.altar, monsters))
                               altars.erase(std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}));
                           }},
                step);
-    state.monsters.erase(std::remove_if(begin(state.monsters), end(state.monsters),
+    state.visibleMonsters.erase(std::remove_if(begin(state.visibleMonsters), end(state.visibleMonsters),
                                         [](const auto& monster) { return monster.isDefeated(); }),
-                         end(state.monsters));
+                         end(state.visibleMonsters));
     return state;
   }
 
@@ -251,24 +251,24 @@ namespace solver
   void print(Solution solution, GameState state)
   {
     print_description(describe(state.hero));
-    if (!state.monsters.empty())
-      print_description(describe(state.monsters.front()));
+    if (!state.visibleMonsters.empty())
+      print_description(describe(state.visibleMonsters.front()));
     for (const auto& step : solution)
     {
       std::cout << toString(step) << '\n';
       const auto heroBefore = state.hero;
-      const auto poolSize = state.monsters.size();
+      const auto poolSize = state.visibleMonsters.size();
       state = apply(step, std::move(state));
       print_description(describe_diff(heroBefore, state.hero));
       if (isCombat(step))
       {
-        if (state.monsters.empty())
+        if (state.visibleMonsters.empty())
           std::cout << "***** All enemies defeated *****" << std::endl;
         else
         {
-          if (state.monsters.size() != poolSize)
+          if (state.visibleMonsters.size() != poolSize)
             std::cout << "Next enemy: ";
-          print_description(describe(state.monsters.front()));
+          print_description(describe(state.visibleMonsters.front()));
         }
       }
     }

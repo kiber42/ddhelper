@@ -23,7 +23,7 @@ void testPrinting()
 
 void testSolve(Solver solver, Scenario scenario)
 {
-  GameState state{getHeroForScenario(scenario), getMonstersForScenario(scenario), getResourcesForScenario(scenario)};
+  GameState state{getHeroForScenario(scenario), getMonstersForScenario(scenario), {}, getResourcesForScenario(scenario)};
 
   auto solution = run(solver, state);
   if (solution)

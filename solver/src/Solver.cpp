@@ -17,7 +17,7 @@ namespace GeneticAlgorithm
   // Random initial solution, stops close to hero's death
   Solution initialSolution(GameState state)
   {
-    if (state.hero.isDefeated() || state.monsters.empty())
+    if (state.hero.isDefeated() || state.visibleMonsters.empty())
       return {};
     Solution initial;
     while (true)
@@ -28,7 +28,7 @@ namespace GeneticAlgorithm
       if (state.hero.isDefeated())
         break;
       initial.emplace_back(std::move(step));
-      if (initial.size() == 100 || state.monsters.empty())
+      if (initial.size() == 100 || state.visibleMonsters.empty())
         break;
     }
     return initial;
@@ -36,11 +36,11 @@ namespace GeneticAlgorithm
 
   int fitnessScore(const GameState& finalState)
   {
-    if (finalState.monsters.empty())
+    if (finalState.visibleMonsters.empty())
       return 1000;
     const auto& hero = finalState.hero;
     const auto heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
-    return std::accumulate(begin(finalState.monsters), end(finalState.monsters), static_cast<int>(heroScore),
+    return std::accumulate(begin(finalState.visibleMonsters), end(finalState.visibleMonsters), static_cast<int>(heroScore),
                            [](const int runningTotal, const Monster& monster) {
                              return runningTotal - static_cast<int>(monster.getHitPoints());
                            });
@@ -48,7 +48,7 @@ namespace GeneticAlgorithm
 
   void explainScore(const GameState& finalState)
   {
-    if (finalState.monsters.empty())
+    if (finalState.visibleMonsters.empty())
     {
       std::cout << "No monsters remaining, score = 1000" << std::endl;
       return;
@@ -61,7 +61,7 @@ namespace GeneticAlgorithm
               << "   Hero hitpoints = " << hero.getHitPoints() << std::endl
               << "=> " << heroScore << std::endl;
     const auto monsterHitpoints = std::accumulate(
-        begin(finalState.monsters), end(finalState.monsters), 0u,
+        begin(finalState.visibleMonsters), end(finalState.visibleMonsters), 0u,
         [](const unsigned runningTotal, const Monster& monster) { return runningTotal + monster.getHitPoints(); });
     std::cout << "   Total monster hit points = " << monsterHitpoints << std::endl
               << "=> " << heroScore - monsterHitpoints << std::endl;
@@ -122,7 +122,7 @@ namespace GeneticAlgorithm
       if (state.hero.isDefeated())
         break;
       cleanedSolution.emplace_back(std::move(step));
-      if (state.monsters.empty())
+      if (state.visibleMonsters.empty())
         break;
       if (rand(generator) < probability_insert)
       {
@@ -131,11 +131,11 @@ namespace GeneticAlgorithm
         if (state.hero.isDefeated())
           break;
         cleanedSolution.emplace_back(std::move(randomStep));
-        if (state.monsters.empty())
+        if (state.visibleMonsters.empty())
           break;
       }
     }
-    if (!state.hero.isDefeated() && !state.monsters.empty())
+    if (!state.hero.isDefeated() && !state.visibleMonsters.empty())
     {
       while (true)
       {
@@ -144,7 +144,7 @@ namespace GeneticAlgorithm
         if (state.hero.isDefeated())
           break;
         cleanedSolution.emplace_back(randomStep);
-        if (state.monsters.empty())
+        if (state.visibleMonsters.empty())
           break;
       }
     }

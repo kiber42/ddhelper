@@ -9,6 +9,7 @@
 struct GameState
 {
   Hero hero{};
-  Monsters monsters{};
+  Monsters visibleMonsters{};
+  HiddenMonsters hiddenMonsters{};
   SimpleResources resources{ResourceSet{DungeonSetup{}}, 20};
 };

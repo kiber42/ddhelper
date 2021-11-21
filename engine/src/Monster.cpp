@@ -1,9 +1,12 @@
 #include "engine/Monster.hpp"
 
 #include "engine/Clamp.hpp"
+#include "engine/MonsterStats.hpp"
 #include "engine/MonsterTypes.hpp"
 
 #include <algorithm>
+#include <cstdint>
+#include <random>
 #include <utility>
 
 int Monster::lastId = 0;
@@ -395,4 +398,46 @@ std::vector<std::string> describe(const Monster& monster)
     description.emplace_back("No Experience");
 
   return description;
+}
+
+HiddenMonster::HiddenMonster(Monster monster)
+  : monster(std::move(monster))
+{
+}
+
+HiddenMonster::HiddenMonster(Level level, DungeonMultiplier dungeonMultiplier, bool includeAdvanced)
+  : monster(MonsterDescription{level, dungeonMultiplier, includeAdvanced})
+{
+}
+
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+Level HiddenMonster::getLevel() const
+{
+  return std::visit(overloaded{
+                        [](const Monster& monster) { return Level{monster.getLevel()}; },
+                        [](const MonsterDescription& description) { return description.level; },
+                    },
+                    monster);
+}
+
+Monster HiddenMonster::reveal(std::mt19937& generator)
+{
+  if (auto revealedMonsterPtr = std::get_if<Monster>(&monster))
+  {
+    auto revealedMonster = std::move(*revealedMonsterPtr);
+    monster = MonsterDescription{Level{revealedMonster.getLevel()}};
+    return revealedMonster;
+  }
+  const auto& description = std::get<MonsterDescription>(monster);
+  const auto type = MonsterType(std::uniform_int_distribution<unsigned char>(
+      0, (unsigned char)(description.includeAdvanced ? MonsterType::Last : MonsterType::LastBasic))(generator));
+  return Monster(type, description.level.get(), description.dungeonMultiplier.get());
 }

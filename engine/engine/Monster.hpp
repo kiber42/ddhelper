@@ -6,7 +6,9 @@
 #include "engine/MonsterTraits.hpp"
 #include "engine/Resources.hpp"
 
+#include <memory>
 #include <string>
+#include <random>
 #include <vector>
 
 class Monster
@@ -86,7 +88,31 @@ private:
   static int lastId;
 };
 
+//! A hidden monster can be either a specific but currently not uncovered monster, or an unknown monster of known level
+class HiddenMonster
+{
+public:
+  //! Construct from specific monster
+  HiddenMonster(Monster monster);
+  //! Construct unknown monster with given level
+  HiddenMonster(Level level, DungeonMultiplier dungeonMultiplier, bool includeAdvanced);
+  //! Query level of hidden monster
+  Level getLevel() const;
+  //! Reveal hidden monster. Note: will return random monsters if called repeatedly
+  Monster reveal(std::mt19937& generator);
+
+private:
+  struct MonsterDescription
+  {
+    Level level;
+    DungeonMultiplier dungeonMultiplier{100};
+    bool includeAdvanced{true};
+  };
+  std::variant<Monster, MonsterDescription> monster;
+};
+
 using Monsters = std::vector<Monster>;
+using HiddenMonsters = std::vector<HiddenMonster>;
 
 std::vector<std::string> describe(const Monster& monster);
 

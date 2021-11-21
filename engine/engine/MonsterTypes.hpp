@@ -17,6 +17,7 @@ enum class MonsterType : unsigned char
   Warlock,
   Wraith,
   Zombie,
+  LastBasic = Zombie,
   // Advanced
   AcidBlob,
   AnimatedArmour,
