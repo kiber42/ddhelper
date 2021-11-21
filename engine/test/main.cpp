@@ -1,7 +1,7 @@
 #include "bandit/bandit.h"
 
 void testHeroExperience();
-void testMonsterBasics();
+void testMonsters();
 void testDefenceBasics();
 void testCombat();
 void testSpells();
@@ -14,7 +14,7 @@ void testFaith();
 
 go_bandit([] {
   testHeroExperience();
-  testMonsterBasics();
+  testMonsters();
   testDefenceBasics();
   testCombat();
   testSpells();

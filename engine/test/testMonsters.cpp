@@ -1,6 +1,10 @@
 #include "bandit/bandit.h"
 
 #include "engine/Monster.hpp"
+#include "engine/MonsterStats.hpp"
+
+#include <array>
+#include <random>
 
 using namespace bandit;
 using namespace snowhouse;
@@ -79,4 +83,47 @@ void testMonsterBasics()
       AssertThat(monster.isSlowed(), IsFalse());
     });
   });
+}
+
+void testHiddenMonster()
+{
+  describe("Hidden Monster", [] {
+    std::mt19937 generator{0};
+    Monster monster(MonsterType::BloodSnake, 7, 200);
+    HiddenMonster hiddenSpecific(std::move(monster));
+    it("should allow to set and reveal a specific monster", [&] {
+      auto revealedMonster = hiddenSpecific.reveal(generator);
+      AssertThat(revealedMonster.getLevel(), Equals(7u));
+      AssertThat(revealedMonster.getHitPoints(), Equals(180u));
+      AssertThat(revealedMonster.getName(), Equals("Blood Snake level 7"));
+    });
+    it("should reveal random monsters of same level if called repeatedly", [&] {
+      auto revealedMonster = hiddenSpecific.reveal(generator);
+      revealedMonster = hiddenSpecific.reveal(generator);
+      // Dungeon multiplier is reset to 100%
+      AssertThat(revealedMonster.getHitPoints(), IsLessThan(100u));
+      AssertThat(revealedMonster.getName(), !Equals("Blood Snake level 7"));
+    });
+    HiddenMonster hiddenBasic(Level{5}, DungeonMultiplier{10}, false);
+    it("should allow to set and reveal a random basic monster of given level", [&] {
+      for (int count = 0; count < 10; ++count)
+      {
+        auto revealedMonster = hiddenBasic.reveal(generator);
+        AssertThat(revealedMonster.getLevel(), Equals(5u));
+        AssertThat(revealedMonster.getHitPoints(), IsLessThan(20u));
+        // Have to verify that a basic monster was revealed using its name
+        std::array<std::string, (int)MonsterType::LastBasic + 1> basic_names;
+        using namespace std::string_literals;
+        for (auto i = 0u; i <= (int)MonsterType::LastBasic; ++i)
+          basic_names[i] = toString((MonsterType)i) + " level 5"s;
+        AssertThat(basic_names, Contains(revealedMonster.getName()));
+      }
+    });
+  });
+}
+
+void testMonsters()
+{
+  testMonsterBasics();
+  testHiddenMonster();
 }
