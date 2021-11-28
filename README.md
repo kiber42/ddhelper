@@ -3,11 +3,13 @@ Prerequisites
 
 Linux
 -----
+A recent version of clang or gcc is required.
 ```
 sudo apt install clang
 sudo apt install cmake
 sudo apt install libsdl2-dev
 sudo apt install libtbb-dev
+sudo apt install libopencv2-dev
 ```
 
 For OpenGL build:
@@ -27,6 +29,8 @@ mv bandit engine
 
 Windows
 -------
+The Windows build is not currently maintained and is probably broken.
+
 Install `clang`, `cmake`, `ninja`, `git`
 Retrieve `imgui` to this directory.
 Retrieve `bandit` and `snowhouse` and move them to the `engine` sub-directory,
@@ -40,6 +44,7 @@ Visual Studio Code
 Useful extensions:
 + C/C++ Extension
 + CMake Tools Extension
++ clangd
 + Clang-Format Extension
 + CMake-Format Extension
 + `pip install cmake-format`
