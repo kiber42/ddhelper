@@ -1,10 +1,13 @@
 #include "bandit/bandit.h"
 
 #include "engine/Combat.hpp"
+#include "engine/Defence.hpp"
 #include "engine/Hero.hpp"
 #include "engine/Magic.hpp"
 #include "engine/Monster.hpp"
 #include "engine/Resources.hpp"
+
+#include <cstdint>
 
 using namespace bandit;
 using namespace snowhouse;
@@ -127,4 +130,31 @@ void testHeroTraits()
   testRaces();
   testChemist();
   testTransmuter();
+}
+
+void testMonsterTraits()
+{
+  describe("Berserk", [] {
+    it("should become active when threshold is reached", [] {
+      for (uint8_t level = 1u; level <= 10u; ++level)
+      {
+        Monster minotaur(MonsterType::Minotaur, level);
+        AssertThat(minotaur.getBerserkPercent(), Equals(50u));
+        AssertThat(minotaur.isEnraged(), IsFalse());
+        const auto damage50 = minotaur.getHitPointsMax() - minotaur.getHitPoints() / 2;
+        minotaur.takeDamage(damage50 - 1, DamageType::Typeless);
+        AssertThat(minotaur.isEnraged(), IsFalse());
+        minotaur.takeDamage(1, DamageType::Typeless);
+        AssertThat(minotaur.isEnraged(), IsTrue());
+        minotaur.recover(1);
+        AssertThat(minotaur.isEnraged(), IsFalse());
+      }
+    });
+  });
+}
+
+void testTraits()
+{
+  testHeroTraits();
+  testMonsterTraits();
 }

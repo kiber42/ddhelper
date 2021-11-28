@@ -6,7 +6,7 @@ void testDefenceBasics();
 void testCombat();
 void testSpells();
 void testStatusEffects();
-void testHeroTraits();
+void testTraits();
 void testInventory();
 void testResources();
 void testPotions();
@@ -19,7 +19,7 @@ go_bandit([] {
   testCombat();
   testSpells();
   testStatusEffects();
-  testHeroTraits();
+  testTraits();
   testInventory();
   testResources();
   testPotions();
