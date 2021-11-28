@@ -80,10 +80,7 @@ unsigned Monster::getHitPointsMax() const
 unsigned Monster::getDamage() const
 {
   const auto standardDamage = stats.getDamage().get();
-  const auto berserkLimit = traits.berserk().in_percent() * getHitPointsMax();
-  if (berserkLimit > 0 && getHitPoints() <= berserkLimit)
-    return standardDamage * 3 / 2;
-  return standardDamage;
+  return isEnraged() ? standardDamage * 3 / 2 : standardDamage;
 }
 
 unsigned Monster::getPhysicalResistPercent() const
@@ -322,6 +319,17 @@ unsigned Monster::getLifeStealPercent() const
   return traits.lifeSteal().in_percent();
 }
 
+unsigned Monster::getBerserkPercent() const
+{
+  return traits.berserk().in_percent();
+}
+
+bool Monster::isEnraged() const
+{
+  const auto berserkLimit = getHitPointsMax() * getBerserkPercent() / 100;
+  return berserkLimit > 0 && getHitPoints() <= berserkLimit;
+}
+
 void Monster::changePhysicalResist(int deltaPercent)
 {
   defence.changePhysicalResistPercent(deltaPercent);
@@ -360,6 +368,14 @@ std::vector<std::string> describe(const Monster& monster)
     checkTrait(MonsterTrait::FirstStrike);
     if (monster.has(MonsterTrait::Retaliate))
       description.emplace_back("Retaliate: Fireball");
+  }
+  const auto berserkPercent = monster.getBerserkPercent();
+  if (berserkPercent > 0)
+  {
+    if (monster.isEnraged())
+      description.emplace_back("Enraged");
+    else
+      description.emplace_back("Berserks at " + std::to_string(berserkPercent) + "%");
   }
   checkTrait(MonsterTrait::Cowardly);
   checkTrait(MonsterTrait::FastRegen);

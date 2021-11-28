@@ -65,6 +65,8 @@ public:
   bool has(MonsterTrait trait) const;
   unsigned getDeathGazePercent() const;
   unsigned getLifeStealPercent() const;
+  unsigned getBerserkPercent() const;
+  bool isEnraged() const;
 
   DamageType damageType() const;
 
