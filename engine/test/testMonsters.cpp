@@ -122,8 +122,28 @@ void testHiddenMonster()
   });
 }
 
+void testMonsterHitPoints()
+{
+  describe("Monster hitpoints", [] {
+    it("should match those of real game", [] {
+    });
+    it("should match those of real game (Shifting passages)", [] {
+    });
+    it("should match those of real game (tricky rounding)", [] {
+      // Using the HP computation and dungeon multipliers on DDWiki, for a few cases
+      // the computed value is off by one from the one found in the actual game.
+
+      // Shifting passages: Multiplier is 130
+      AssertThat(Monster(MonsterType::Goat, 4, 130).getHitPoints(), Equals(44u));
+      AssertThat(Monster(MonsterType::Goat, 7, 130).getHitPoints(), Equals(104u));
+      AssertThat(Monster(MonsterType::Changeling, 7, 130).getHitPoints(), Equals(116u));
+    });
+  });
+}
+
 void testMonsters()
 {
   testMonsterBasics();
+  testMonsterHitPoints();
   testHiddenMonster();
 }

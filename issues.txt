@@ -1,0 +1,103 @@
+Shifting Passages (HARD)
+
+///////////////////////////////////////////////////////////////
+KNOWN ISSUES:
+
+Changeling
+----------
+Retaliate: Fireball !!! depends on hero class
+
+Level Attack Health
+-------------------
+ 7     54    116    !!! current implementation yields HP=117
+
+Goat
+----
+Level Attack Health
+-------------------
+ 4     23     44    !!! current implementation yields HP=45
+
+///////////////////////////////////////////////////////////////
+
+Super Meat Man
+--------------
+Attack 63, HP 1236
+
+Medusa
+------
+First Strike
+Mana Burn
+Death Gaze 100%
+Attack 97, HP 247
+
+Wraith
+------
+Undead
+Bloodless
+Mana burn
+Magical attack
+Physical resist 30%
+
+Level Attack Health
+-------------------
+ 1      3       5
+ 3     15      24
+ 4     23      37
+ 5     32      52
+ 6     42      69
+ 7     54      87
+ 8     67     108
+
+
+Minotaur
+--------
+Knockback 50% / Enraged
+Berserks at 50%
+
+Level Attack Health
+-------------------
+ 1      3/     7
+ 3     15/22  33
+
+Djinn
+-----
+Magical attack
+Retaliate: Fireball
+
+Level Attack Health
+-------------------
+ 1      3      7
+ 2      9     20
+ 6     42    101
+
+
+Dragon Spawn
+------------
+Magical attack
+
+Level Attack Health
+-------------------
+ 1      3      8
+ 5     32     87
+
+
+Changeling
+----------
+Retaliate: Fireball
+
+Level Attack Health
+-------------------
+ 7     54    116
+ 8     67    144
+
+
+Goat
+----
+Magic resist 25%
+
+Level Attack Health
+-------------------
+ 3     15     29
+ 4     23     44
+ 7     54    104
+ 9     81    156
