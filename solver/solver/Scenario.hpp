@@ -13,6 +13,7 @@ enum class Scenario
   HalflingTrial,
   TheThirdAct,
   TheMonsterMachine1,
+  TrueGrit,
 };
 
 Hero getHeroForScenario(Scenario scenario);

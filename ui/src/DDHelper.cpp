@@ -58,6 +58,10 @@ namespace ui
     ImGui::SameLine(140);
     if (ImGui::SmallButton("2.1"))
       selection = Scenario::TheMonsterMachine1;
+    ImGui::TextUnformatted("The Divine Forge");
+    ImGui::SameLine(140);
+    if (ImGui::SmallButton("True Grit"))
+      selection = Scenario::TrueGrit;
     ImGui::End();
     return selection;
   }

@@ -113,6 +113,7 @@ enum class MiscItem
   PatchesTheTeddy,
   Food,
   FoodStack,
+  InfiniteManaPotions, // 99 mana potions with 0 CP (True Grit puzzle level)
   // Subdungeon Items, Lockerable
   Gorgward,
   // God Items

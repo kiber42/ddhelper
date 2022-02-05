@@ -68,9 +68,21 @@ Hero getHeroForScenario(Scenario scenario)
     return hero;
   }
   case Scenario::TheMonsterMachine1:
-    auto accoLite = Hero{getSetupForScenario(scenario), {}};;
+  {
+    auto accoLite = Hero{getSetupForScenario(scenario), {}};
     accoLite.setName("Acco Lite");
     return accoLite;
+  }
+  case Scenario::TrueGrit:
+  {
+    DungeonSetup setup;
+    setup.startingEquipment.clear();
+    setup.startingEquipment.insert(MiscItem::InfiniteManaPotions);
+    auto hero = Hero{std::move(setup), {}};
+    SimpleResources ignoreFreeSpell;
+    hero.followDeity(God::BinlorIronshield, 1000u, ignoreFreeSpell);
+    return hero;
+  }
   }
 }
 
@@ -131,6 +143,12 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
     // Level also has 44 Mysterious Murkshades (Corrosive!)
     break;
   }
+  case Scenario::TrueGrit:
+  {
+    monsters.emplace_back(Monster{"Druid", MonsterStats{Level{3}, 8_HP, 5_damage}, {}, {}});
+    monsters.emplace_back(Monster{
+        "Catglove", MonsterStats{Level{4}, 75_HP, 4_damage}, {25_physicalresist}, {MonsterTrait::MagicalAttack}});
+  }
   }
   return monsters;
 }
@@ -164,6 +182,13 @@ SimpleResources getResourcesForScenario(Scenario scenario)
       spells[1] = Spell::Burndayraz;
     spells.front() = Spell::Wonafyt;
     return resources;
+  }
+  else if (scenario == Scenario::TrueGrit)
+  {
+    auto resourceSet = ResourceSet{};
+    resourceSet.numWalls = 112;
+    resourceSet.altars = {God::BinlorIronshield};
+    return SimpleResources{std::move(resourceSet), 0 /* no hidden tiles */};
   }
   return SimpleResources{{}, 0 /* no hidden tiles */};
 }

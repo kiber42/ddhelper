@@ -37,6 +37,6 @@ void testSolve(Solver solver, Scenario scenario)
 
 int main()
 {
-  testSolve(Solver::GeneticAlgorithm, Scenario::HalflingTrial);
+  testSolve(Solver::GeneticAlgorithm, Scenario::TrueGrit);
   return 0;
 }
