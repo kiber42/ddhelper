@@ -1,11 +1,13 @@
 #include "solver/Solver.hpp"
 
 #include "engine/Combat.hpp"
+#include "engine/Resources.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <execution>
 #include <iostream>
+#include <numeric>
 #include <random>
 
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());
@@ -34,37 +36,76 @@ namespace GeneticAlgorithm
     return initial;
   }
 
+  unsigned computeInventoryScore(const Hero& hero)
+  {
+    const auto itemCounts = hero.getItemsGrouped();
+    const auto itemScore =
+        std::accumulate(begin(itemCounts), end(itemCounts), 0u,
+                        [](const unsigned sum, const auto& itemEntryAndCount) {
+                          const auto& [entry, count] = itemEntryAndCount;
+                          return sum + count * static_cast<unsigned>(entry.price + 2 * entry.conversionPoints);
+                        }) /
+        2u;
+    const auto spellScore = clampedTo<unsigned>(hero.getSpells().size() * 150u);
+    return itemScore + spellScore;
+  }
+
+  unsigned computeResourceScore(const SimpleResources& resources)
+  {
+    return clampedTo<unsigned>((2u * resources.numHiddenTiles + resources.numWalls) / 10u +
+                               resources.spells.size() * 100u + resources.freeSpells.size() * 90u);
+  }
+
+  unsigned computeHeroScore(const Hero& hero)
+  {
+    return 50u * hero.getLevel() + 50u * hero.getXP() / hero.getXPforNextLevel() +
+           10u * hero.getDamageVersusStandard() + 3u * hero.getHitPoints() + 5u * hero.getManaPoints() +
+           hero.getPiety();
+  }
+
+  unsigned computeMonsterScore(const Monsters& monsters)
+  {
+    return std::accumulate(begin(monsters), end(monsters), 0u, [](const unsigned sum, const Monster& monster) {
+      return sum + monster.getHitPoints() * 100u + monster.getPhysicalResistPercent() +
+             monster.getMagicalResistPercent();
+    });
+  }
+
   int fitnessScore(const GameState& finalState)
   {
     if (finalState.visibleMonsters.empty())
-      return 1000;
-    const auto& hero = finalState.hero;
-    const auto heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
-    return std::accumulate(begin(finalState.visibleMonsters), end(finalState.visibleMonsters), static_cast<int>(heroScore),
-                           [](const int runningTotal, const Monster& monster) {
-                             return runningTotal - static_cast<int>(monster.getHitPoints());
-                           });
+      return 10000;
+    return static_cast<int>(computeHeroScore(finalState.hero) + computeInventoryScore(finalState.hero) +
+                            computeResourceScore(finalState.resources)) -
+           static_cast<int>(computeMonsterScore(finalState.visibleMonsters));
   }
 
   void explainScore(const GameState& finalState)
   {
     if (finalState.visibleMonsters.empty())
     {
-      std::cout << "No monsters remaining, score = 1000" << std::endl;
+      std::cout << "No monsters remaining, score = 10000" << std::endl;
       return;
     }
     const auto& hero = finalState.hero;
-    const auto heroScore = hero.getLevel() * 50 + hero.getXP() + hero.getDamageVersusStandard() + hero.getHitPoints();
-    std::cout << "   Hero level = " << hero.getLevel() << " -> " << 50 * hero.getLevel() << std::endl
-              << "   Hero XP = " << hero.getXP() << std::endl
-              << "   Hero damage = " << hero.getDamageVersusStandard() << std::endl
-              << "   Hero hitpoints = " << hero.getHitPoints() << std::endl
-              << "=> " << heroScore << std::endl;
-    const auto monsterHitpoints = std::accumulate(
-        begin(finalState.visibleMonsters), end(finalState.visibleMonsters), 0u,
-        [](const unsigned runningTotal, const Monster& monster) { return runningTotal + monster.getHitPoints(); });
-    std::cout << "   Total monster hit points = " << monsterHitpoints << std::endl
-              << "=> " << heroScore - monsterHitpoints << std::endl;
+    const auto heroScore = computeHeroScore(hero);
+    const auto damage = hero.getDamageVersusStandard();
+    const auto inventoryScore = computeInventoryScore(finalState.hero);
+    const auto resourceScore = computeResourceScore(finalState.resources);
+    const auto monsterScore = computeMonsterScore(finalState.visibleMonsters);
+    std::cout << "Hero (total): " << heroScore << std::endl
+              << "  Level = " << hero.getLevel() << " -> " << 50 * hero.getLevel() << std::endl
+              << "  XP = " << hero.getXP() << " -> " << 50 * hero.getXP() / hero.getXPforNextLevel() << std::endl
+              << "  Damage = " << damage << " -> " << 10 * damage << std::endl
+              << "  HP = " << hero.getHitPoints() << " -> " << 3 * hero.getHitPoints() << std::endl
+              << "  MP = " << hero.getManaPoints() << " -> " << 5 * hero.getManaPoints() << std::endl
+              << "  Piety = " << hero.getPiety() << std::endl
+              << "Inventory: " << inventoryScore << std::endl
+              << "Resources: " << resourceScore << std::endl
+              << "Monsters: " << monsterScore << std::endl
+              << "Total score: "
+              << static_cast<int>(heroScore + inventoryScore + resourceScore) - static_cast<int>(monsterScore)
+              << std::endl;
   }
 
   // Applies mutations to a candidate solution, removes invalid steps and extends it with valid random steps.
@@ -182,7 +223,7 @@ namespace GeneticAlgorithm
       explainScore(apply(bestCandidateSolution, state));
       std::cout << std::string(80, '-') << std::endl;
 
-      if (population.front().second == 1000)
+      if (population.front().second == 10000)
         return population.front().first;
 
       // A) Spawn new generation of candidate solutions by mixing successful solutions
