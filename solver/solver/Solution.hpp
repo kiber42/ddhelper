@@ -42,6 +42,11 @@ struct Find
   Spell spell;
 };
 
+struct FindFree
+{
+  Spell spell;
+};
+
 struct Follow
 {
   God deity;
@@ -57,7 +62,7 @@ struct Desecrate
   God altar;
 };
 
-using Step = std::variant<Attack, Cast, Uncover, Buy, Use, Convert, Find, Follow, Request, Desecrate>;
+using Step = std::variant<Attack, Cast, Uncover, Buy, Use, Convert, Find, FindFree, Follow, Request, Desecrate>;
 
 using Solution = std::vector<Step>;
 

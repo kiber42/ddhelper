@@ -28,6 +28,7 @@ std::string toString(const Step& step)
           [](Spell spell) -> std::string { return toString(spell); }
         }, convert.itemOrSpell); },
       [](Find find) { return "Find "s + toString(find.spell); },
+      [](FindFree find) { return "Take free "s + toString(find.spell); },
       [](Follow follow) { return "Follow "s + toString(follow.deity); },
       [](Request request) {
 
