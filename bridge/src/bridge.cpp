@@ -44,6 +44,7 @@ namespace
       // Advanced Monsters
       {0x79341C, MonsterType::Minotaur},
       {0x718A3F, MonsterType::Naga},
+      {0x9B7036, MonsterType::DesertTroll},
       {0xBBD6D5, MonsterType::Vampire},
   };
 
@@ -271,8 +272,8 @@ namespace
     monsterInfo.health = extract_hp_or_mp<PixelFunc>(image(cv::Rect(651, 430, 100, 10)));
     if (monsterInfo.health)
     {
-      const MonsterStats stats(monsterInfo.type, monsterInfo.level, DungeonMultiplier{100});
-      if (stats.getHitPointsMax() != HitPoints{monsterInfo.health->first})
+      const MonsterStats stats(monsterInfo.type, monsterInfo.level, DungeonMultiplier{140});
+      if (stats.getHitPointsMax() != HitPoints{monsterInfo.health->second})
         std::cout << monsterInfo.health->first << '/' << monsterInfo.health->second
                   << " (HP max expected: " << stats.getHitPointsMax().get() << ")";
     }
@@ -319,6 +320,27 @@ unsigned monitorContinuous(GameWindow& gameWindow)
     printf("Processing image...\n");
     auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
     auto result = processImage(std::move(image));
+    for (int i = 0; i < 5; ++i)
+    {
+      // If a monster could not be identified, this could be due to an animation (monster is slowed, or there's a piety
+      // token on the same square).  Take another screenshot and retry.  Attempt up to 5 extra screenshots.
+      const auto isGenericMonster = [](const auto& monster) { return monster.type == MonsterType::Generic; };
+      auto nextUnknown = std::find_if(begin(result.monsters), end(result.monsters), isGenericMonster);
+      if (nextUnknown == end(result.monsters))
+        break;
+      using namespace std::chrono_literals;
+      std::this_thread::sleep_for(110ms);
+      ximage = capture.acquire();
+      image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
+      auto result2 = processImage(std::move(image));
+      // Overwrite generic monsters with result from second screenshot
+      do
+      {
+        nextUnknown = std::find_if(nextUnknown + 1, end(result.monsters), isGenericMonster);
+        *nextUnknown = result2.monsters[std::distance(begin(result.monsters), nextUnknown)];
+      } while (nextUnknown != end(result.monsters));
+    }
+
     scanMonsters(result, gameWindow, capture);
     cv::waitKey(1000);
     ++numFrames;
