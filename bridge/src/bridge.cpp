@@ -42,9 +42,13 @@ namespace
       {0x090D3F, MonsterType::Wraith},
       {0x378A85, MonsterType::Zombie},
       // Advanced Monsters
+      {0xA2FBD5, MonsterType::Changeling},
+      {0xA3FBD5, MonsterType::Changeling},
+      {0xA3FCD5, MonsterType::Changeling},
+      {0x9B7036, MonsterType::DesertTroll},
+      {0x1285FD, MonsterType::Djinn},
       {0x79341C, MonsterType::Minotaur},
       {0x718A3F, MonsterType::Naga},
-      {0x9B7036, MonsterType::DesertTroll},
       {0xBBD6D5, MonsterType::Vampire},
   };
 
@@ -272,10 +276,15 @@ namespace
     monsterInfo.health = extract_hp_or_mp<PixelFunc>(image(cv::Rect(651, 430, 100, 10)));
     if (monsterInfo.health)
     {
-      const MonsterStats stats(monsterInfo.type, monsterInfo.level, DungeonMultiplier{140});
+      const MonsterStats stats(monsterInfo.type, monsterInfo.level, DungeonMultiplier{1.3f});
       if (stats.getHitPointsMax() != HitPoints{monsterInfo.health->second})
         std::cout << monsterInfo.health->first << '/' << monsterInfo.health->second
                   << " (HP max expected: " << stats.getHitPointsMax().get() << ")";
+      else
+        std::cout << std::endl
+                  << "AssertThat(Monster(MonsterType::" << toString(monsterInfo.type) << ", Level{"
+                  << (int)monsterInfo.level.get() << "}, DungeonMultiplier{x}).getHitPoints(), Equals("
+                  << monsterInfo.health->second << "u));";
     }
   }
 
