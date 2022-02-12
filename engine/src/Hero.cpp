@@ -838,6 +838,7 @@ void Hero::levelGainedUpdate(unsigned newLevel, Monsters& allMonsters)
   if (has(ShopItem::MartyrWraps))
   {
     add(HeroDebuff::Corroded, allMonsters);
+    // TODO: Only applies to visible monsters
     for (auto& monster : allMonsters)
       monster.corrode();
   }
