@@ -10,7 +10,7 @@ namespace ui
   MonsterSelection::MonsterSelection()
     : selectedType(MonsterType::Bandit)
     , level(1)
-    , dungeonMultiplier(100)
+    , dungeonMultiplier(1.0f)
     , selectedDungeonIndex(1)
   {
   }
@@ -35,28 +35,28 @@ namespace ui
     if (ImGui::InputInt("Level", &level, 1, 1))
       level = std::min(std::max(level, 1), 10);
 
-    constexpr std::array<std::pair<const char*, int>, 21> dungeons = {
-        std::make_pair("Hobbler's Hold", 80),
-        {"Den of Danger", 100},
-        {"Venture Cave", 100},
-        {"Western Jungle", 100},
-        {"Eastern Tundra", 100},
-        {"Northern Desert", 100},
-        {"Southern Swamp", 100},
-        {"Doubledoom", 110},
-        {"Grimm's Grotto", 140},
-        {"Rock Garden", 100},
-        {"Cursed Oasis", 115},
-        {"Shifting Passages", 130},
-        {"Havendale Bridge", 105},
-        {"The Labyrinth", 130},
-        {"Magma Mines", 130},
-        {"Hexx Ruins", 100},
-        {"Ick Swamp", 120},
-        {"The Slime Pit", 120},
-        {"Berserker Camp", 100},
-        {"Creeplight Ruins", 110},
-        {"Halls of Steel", 120},
+    constexpr std::array<std::pair<const char*, float>, 21> dungeons = {
+        std::make_pair("Hobbler's Hold", 0.8f),
+        {"Den of Danger", 1},
+        {"Venture Cave", 1},
+        {"Western Jungle", 1},
+        {"Eastern Tundra", 1},
+        {"Northern Desert", 1},
+        {"Southern Swamp", 1},
+        {"Doubledoom", 1.1f},
+        {"Grimm's Grotto", 1.4f},
+        {"Rock Garden", 1},
+        {"Cursed Oasis", 1.15f},
+        {"Shifting Passages", 1.299f},
+        {"Havendale Bridge", 1.05f},
+        {"The Labyrinth", 1.3f},
+        {"Magma Mines", 1.3f},
+        {"Hexx Ruins", 1},
+        {"Ick Swamp", 1.2f},
+        {"The Slime Pit", 1.2f},
+        {"Berserker Camp", 1},
+        {"Creeplight Ruins", 1.1f},
+        {"Halls of Steel", 1.2f},
     };
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
@@ -66,7 +66,7 @@ namespace ui
       for (auto dungeon : dungeons)
       {
         char buffer[30];
-        sprintf(buffer, "%s (%i%%)", dungeon.first, dungeon.second);
+        sprintf(buffer, "%s (%.0f%%)", dungeon.first, dungeon.second * 100);
         if (ImGui::Selectable(buffer, n == selectedDungeonIndex))
         {
           dungeonMultiplier = dungeon.second;
@@ -86,7 +86,7 @@ namespace ui
 
   Monster MonsterSelection::get() const
   {
-    return {selectedType, clamped<uint8_t>(level, 1, 10), clampedTo<uint8_t>(dungeonMultiplier)};
+    return {selectedType, clamped<uint8_t>(level, 1, 10), dungeonMultiplier};
   }
 
   std::optional<Monster> MonsterSelection::toArena()

@@ -20,7 +20,7 @@ namespace
   }
 } // namespace
 
-Monster::Monster(MonsterType type, uint8_t level, uint8_t dungeonMultiplier)
+Monster::Monster(MonsterType type, uint8_t level, float dungeonMultiplier)
   : name(makeMonsterName(type, Level{level}))
   , id(++lastId)
   , stats(type, Level{level}, DungeonMultiplier{dungeonMultiplier})

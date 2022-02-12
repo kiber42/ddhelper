@@ -8,19 +8,18 @@
 
 namespace
 {
-  constexpr HitPoints hpInitial(uint8_t level, uint16_t dungeonMultiplier, float monsterMultiplier)
+  constexpr HitPoints hpInitial(uint8_t level, float dungeonMultiplier, float monsterMultiplier)
   {
-    const float dungeonMult = dungeonMultiplier == 130 ? 1.299f : dungeonMultiplier * 0.01f;
     const auto hitPointsBase = level * (level + 6) - 1;
-    const auto hitPointsDungeon = static_cast<int>(hitPointsBase * dungeonMult);
+    const auto hitPointsDungeon = static_cast<int>(hitPointsBase * dungeonMultiplier);
     const auto hitPoints = static_cast<int>(hitPointsDungeon * monsterMultiplier);
     return HitPoints{hitPoints};
   }
 
-  constexpr DamagePoints damageInitial(uint8_t level, uint16_t dungeonMultiplier, float monsterMultiplier)
+  constexpr DamagePoints damageInitial(uint8_t level, float dungeonMultiplier, float monsterMultiplier)
   {
     const auto damagePointsBase = level * (level + 5) / 2;
-    const auto damagePointsDungeon = static_cast<int>(damagePointsBase * dungeonMultiplier * 0.01f);
+    const auto damagePointsDungeon = static_cast<int>(damagePointsBase * dungeonMultiplier);
     const auto damagePoints = static_cast<int>(damagePointsDungeon * monsterMultiplier);
     return DamagePoints{damagePoints};
   }
@@ -41,7 +40,7 @@ MonsterStats::MonsterStats(Level level, HitPoints hpMax, DamagePoints damage, De
   : type(MonsterType::Generic)
   , level(level)
   , deathProtection(deathProtection)
-  , dungeonMultiplier(DungeonMultiplier{100})
+  , dungeonMultiplier(DungeonMultiplier{1.0f})
   , hp(hpMax)
   , hpMax(hp)
   , damage(damage)
