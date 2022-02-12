@@ -311,6 +311,22 @@ namespace
     if (pos)
       moveMouseTo(gameWindow.getDisplay(), 0, pos->first, pos->second);
   }
+
+  [[maybe_unused]] void importState()
+  {
+    /** Pseudocode:
+     * Grab screen
+     * Identify dungeon?
+     * Process all tiles:
+     *  - Identify monster
+     *    - Get level
+     *    - Get health (Check if health bar is present? Find numeric value from side-bar)
+     *  - Identify wall, corroded wall, petrified enemy, shop, altar, empty tile
+     *  - Identify plants and glyphs
+     *  - Identify extras: booster, gold, blood, acid, piety
+     * Process hero state?
+     **/
+  }
 } // namespace
 
 unsigned monitorContinuous(GameWindow& gameWindow)
