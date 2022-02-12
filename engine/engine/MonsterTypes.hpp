@@ -141,181 +141,181 @@ constexpr const char* toString(MonsterType type)
   }
 }
 
-constexpr unsigned char getHPMultiplierPercent(MonsterType type)
+constexpr float getHPMultiplier(MonsterType type)
 {
   switch (type)
   {
   case MonsterType::Bandit:
-    return 100;
+    return 1;
   case MonsterType::DragonSpawn:
-    return 125;
+    return 1.25f;
   case MonsterType::Goat:
-    return 90;
+    return 0.899f;
   case MonsterType::Goblin:
-    return 100;
+    return 1;
   case MonsterType::Golem:
-    return 100;
+    return 1;
   case MonsterType::GooBlob:
-    return 100;
+    return 1;
   case MonsterType::Gorgon:
-    return 90;
+    return 0.9f;
   case MonsterType::MeatMan:
-    return 200;
+    return 2;
   case MonsterType::Serpent:
-    return 100;
+    return 1;
   case MonsterType::Warlock:
-    return 100;
+    return 1;
   case MonsterType::Wraith:
-    return 75;
+    return 0.75f;
   case MonsterType::Zombie:
-    return 150;
+    return 1.5f;
   case MonsterType::AcidBlob:
-    return 85;
+    return 0.85f;
   case MonsterType::AnimatedArmour:
-    return 55;
+    return 0.55f;
   case MonsterType::Berserker:
-    return 100;
+    return 1;
   case MonsterType::BurnViper:
-    return 100;
+    return 1;
   case MonsterType::BloodSnake:
-    return 100;
+    return 1;
   case MonsterType::CaveSnake:
-    return 160;
+    return 1.6f;
   case MonsterType::Changeling:
-    return 100;
+    return 1;
   case MonsterType::Cultist:
-    return 80;
+    return 0.8f;
   case MonsterType::DesertTroll:
-    return 140;
+    return 1.39f;
   case MonsterType::Djinn:
-    return 110;
+    return 1.1f;
   case MonsterType::DoomArmour:
-    return 65;
+    return 0.65f;
   case MonsterType::Druid:
-    return 80;
+    return 0.8f;
   case MonsterType::ForestTroll:
-    return 100;
+    return 1;
   case MonsterType::FrozenTroll:
-    return 100;
+    return 1;
   case MonsterType::GelatinousThing:
-    return 100;
+    return 1;
   case MonsterType::Imp:
-    return 80;
+    return 0.8f;
   case MonsterType::Illusion:
-    return 100;
+    return 1;
   case MonsterType::Minotaur:
-    return 100;
+    return 1;
   case MonsterType::MuckWalker:
-    return 100;
+    return 1;
   case MonsterType::Naga:
-    return 85;
+    return 0.85f;
   case MonsterType::RockTroll:
-    return 100;
+    return 1;
   case MonsterType::Rusalka:
-    return 100;
+    return 1;
   case MonsterType::SteelGolem:
-    return 100;
+    return 1;
   case MonsterType::Shade:
-    return 75;
+    return 0.75f;
   case MonsterType::SlimeBlob:
-    return 100;
+    return 1;
   case MonsterType::Thrall:
-    return 110;
+    return 1.1f;
   case MonsterType::Tokoloshe:
-    return 100;
+    return 1;
   case MonsterType::Vampire:
-    return 100;
+    return 1;
   case MonsterType::Generic:
-    return 100;
+    return 1;
   }
 }
 
-constexpr unsigned char getDamageMultiplierPercent(MonsterType type)
+constexpr float getDamageMultiplier(MonsterType type)
 {
   switch (type)
   {
   case MonsterType::Bandit:
-    return 70;
+    return 0.7f;
   case MonsterType::DragonSpawn:
-    return 100;
+    return 1;
   case MonsterType::Goat:
-    return 100;
+    return 1;
   case MonsterType::Goblin:
-    return 120;
+    return 1.2f;
   case MonsterType::Golem:
-    return 100;
+    return 1;
   case MonsterType::GooBlob:
-    return 100;
+    return 1;
   case MonsterType::Gorgon:
-    return 100;
+    return 1;
   case MonsterType::MeatMan:
-    return 65;
+    return 0.65f;
   case MonsterType::Serpent:
-    return 100;
+    return 1;
   case MonsterType::Warlock:
-    return 135;
+    return 1.35f;
   case MonsterType::Wraith:
-    return 100;
+    return 1;
   case MonsterType::Zombie:
-    return 100;
+    return 1;
   case MonsterType::AcidBlob:
-    return 100;
+    return 1;
   case MonsterType::AnimatedArmour:
-    return 160;
+    return 1.6f;
   case MonsterType::Berserker:
-    return 100;
+    return 1;
   case MonsterType::BurnViper:
-    return 100;
+    return 1;
   case MonsterType::BloodSnake:
-    return 100;
+    return 1;
   case MonsterType::CaveSnake:
-    return 70;
+    return 0.7f;
   case MonsterType::Changeling:
-    return 100;
+    return 1;
   case MonsterType::Cultist:
-    return 80;
+    return 0.8f;
   case MonsterType::DesertTroll:
-    return 85;
+    return 0.85f;
   case MonsterType::Djinn:
-    return 100;
+    return 1;
   case MonsterType::DoomArmour:
-    return 100;
+    return 1;
   case MonsterType::Druid:
-    return 80;
+    return 0.8f;
   case MonsterType::ForestTroll:
-    return 85;
+    return 0.85f;
   case MonsterType::FrozenTroll:
-    return 65;
+    return 0.65f;
   case MonsterType::GelatinousThing:
-    return 100;
+    return 1;
   case MonsterType::Imp:
-    return 100;
+    return 1;
   case MonsterType::Illusion:
-    return 100;
+    return 1;
   case MonsterType::Minotaur:
-    return 100;
+    return 1;
   case MonsterType::MuckWalker:
-    return 100;
+    return 1;
   case MonsterType::Naga:
-    return 100;
+    return 1;
   case MonsterType::RockTroll:
-    return 100;
+    return 1;
   case MonsterType::Rusalka:
-    return 100;
+    return 1;
   case MonsterType::SteelGolem:
-    return 100;
+    return 1;
   case MonsterType::Shade:
-    return 100;
+    return 1;
   case MonsterType::SlimeBlob:
-    return 100;
+    return 1;
   case MonsterType::Thrall:
-    return 100;
+    return 1;
   case MonsterType::Tokoloshe:
-    return 100;
+    return 1;
   case MonsterType::Vampire:
-    return 100;
+    return 1;
   case MonsterType::Generic:
-    return 100;
+    return 1;
   }
 }
 
