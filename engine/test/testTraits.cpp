@@ -138,7 +138,7 @@ void testMonsterTraits()
     it("should become active when threshold is reached", [] {
       for (uint8_t level = 1u; level <= 10u; ++level)
       {
-        Monster minotaur(MonsterType::Minotaur, level);
+        Monster minotaur(MonsterType::Minotaur, Level{level});
         AssertThat(minotaur.getBerserkPercent(), Equals(50u));
         AssertThat(minotaur.isEnraged(), IsFalse());
         const auto damage50 = minotaur.getHitPointsMax() - minotaur.getHitPoints() / 2;

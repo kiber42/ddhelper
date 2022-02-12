@@ -86,7 +86,7 @@ namespace ui
 
   Monster MonsterSelection::get() const
   {
-    return {selectedType, clamped<uint8_t>(level, 1, 10), dungeonMultiplier};
+    return {selectedType, Level{level}, DungeonMultiplier{dungeonMultiplier}};
   }
 
   std::optional<Monster> MonsterSelection::toArena()

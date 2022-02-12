@@ -79,11 +79,11 @@ void testMelee()
     };
     it("should petrify hero with low health (<50%)", [] {
       Hero hero;
-      Monster gorgon(MonsterType::Gorgon, 1);
+      Monster gorgon(MonsterType::Gorgon, Level{1});
       AssertThat(attack(hero, gorgon), Equals(Summary::Win));
       hero.loseHitPointsOutsideOfFight(3, noOtherMonsters);
       AssertThat(hero.getHitPoints(), Equals(4));
-      Monster gorgon2(MonsterType::Gorgon, 1);
+      Monster gorgon2(MonsterType::Gorgon, Level{1});
       AssertThat(attack(hero, gorgon2), Equals(Summary::Petrified));
     });
     it("should be available with 100% intensity", [] {
@@ -118,7 +118,7 @@ void testCombatWithTwoMonsters()
     SimpleResources resources;
     allMonsters.reserve(2); // prevent reallocation
     Monster& burning = allMonsters.emplace_back(Monster(1, 10, 1));
-    Monster& nextTarget = allMonsters.emplace_back(MonsterType::MeatMan, 1);
+    Monster& nextTarget = allMonsters.emplace_back(MonsterType::MeatMan, Level{1});
     it("should occur on physical attack to other monster", [&] {
       AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));
       AssertThat(burning.getHitPoints(), Equals(6u));

@@ -48,7 +48,7 @@ void testStatusEffects()
       hero.gainLevel(noOtherMonsters);
       hero.add(HeroStatus::CorrosiveStrike);
       it("should corrode monster", [&] {
-        Monster monster(MonsterType::MeatMan, 2);
+        Monster monster(MonsterType::MeatMan, Level{2});
         attack(hero, monster);
         AssertThat(monster.getCorroded(), Equals(1u));
         hero.add(HeroStatus::FirstStrikeTemporary);
@@ -67,7 +67,7 @@ void testStatusEffects()
         hero.add(HeroStatus::DeathProtection);
       });
       it("should reduce the monster's health to 75%", [&] {
-        Monster monster(MonsterType::MeatMan, 10);
+        Monster monster(MonsterType::MeatMan, Level{10});
         attack(hero, monster);
         AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax() * 3u / 4u));
       });
@@ -83,13 +83,13 @@ void testStatusEffects()
         AssertThat(monster.getHitPoints(), Equals(75u));
       });
       it("should not affect monsters below 75% health", [&] {
-        Monster monster(MonsterType::MeatMan, 1);
+        Monster monster(MonsterType::MeatMan, Level{1});
         monster.takeDamage(monster.getHitPoints() - 1, DamageType::Physical);
         attack(hero, monster);
         AssertThat(monster.getHitPoints(), Equals(1u));
       });
       it("should wear off", [&] {
-        Monster monster(MonsterType::MeatMan, 10);
+        Monster monster(MonsterType::MeatMan, Level{10});
         attack(hero, monster);
         AssertThat(hero.has(HeroStatus::CrushingBlow), IsFalse());
       });
@@ -145,7 +145,7 @@ void testStatusEffects()
         Hero hero;
         hero.takeDamage(6, DamageType::Physical, noOtherMonsters);
         hero.add(HeroStatus::DeathGazeImmune);
-        Monster gorgon(MonsterType::Gorgon, 1);
+        Monster gorgon(MonsterType::Gorgon, Level{1});
         AssertThat(attack(hero, gorgon), Equals(Summary::Win));
       });
     });
@@ -153,7 +153,7 @@ void testStatusEffects()
       it("should result in hero not taking hit", [] {
         Hero hero;
         hero.add(HeroStatus::DodgeTemporary, 100);
-        Monster boss(MonsterType::Gorgon, 10);
+        Monster boss(MonsterType::Gorgon, Level{10});
         AssertThat(hero.getDodgeChancePercent(), Equals(100u));
         AssertThat(attack(hero, boss), Equals(Summary::Safe));
         AssertThat(hero.getDodgeChancePercent(), Equals(0u));
@@ -191,7 +191,7 @@ void testStatusEffects()
         for (int i = 0; i < 1000; ++i)
         {
           // Alternate between level 1 and 2 monsters to change attack order
-          Monster monster(MonsterType::MeatMan, 1 + i % 2);
+          Monster monster(MonsterType::MeatMan, Level{1 + i % 2});
           attack(hero, monster);
           if (dodgeNext)
           {
@@ -218,7 +218,7 @@ void testStatusEffects()
         Hero hero;
         hero.add(HeroStatus::DodgeTemporary, 100);
         hero.add(HeroStatus::Reflexes);
-        Monster monster(MonsterType::MeatMan, 2);
+        Monster monster(MonsterType::MeatMan, Level{2});
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
         AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(2u * hero.getDamageVersusStandard()));
       });
@@ -251,14 +251,14 @@ void testStatusEffects()
     describe("First Strike", [] {
       it("should give initiative versus regular monsters of any level", [&] {
         Hero hero;
-        Monster boss(MonsterType::Goat, 10);
+        Monster boss(MonsterType::Goat, Level{10});
         hero.add(HeroStatus::FirstStrikeTemporary);
         AssertThat(hero.hasInitiativeVersus(boss), IsTrue());
       });
       it("should not give initiative versus first-strike monsters of any level", [] {
         Hero hero;
         hero.gainLevel(noOtherMonsters);
-        Monster goblin(MonsterType::Goblin, 1);
+        Monster goblin(MonsterType::Goblin, Level{1});
         hero.add(HeroStatus::FirstStrikeTemporary);
         AssertThat(hero.hasInitiativeVersus(goblin), IsFalse());
       });
@@ -266,7 +266,7 @@ void testStatusEffects()
     describe("Heavy Fireball", [] {
       Hero hero(HeroClass::Wizard, HeroRace::Elf);
       hero.add(HeroStatus::HeavyFireball);
-      Monster monster(MonsterType::MeatMan, 3);
+      Monster monster(MonsterType::MeatMan, Level{3});
       it("should increase fireball damage by 4 per caster level", [&] {
         auto hp = monster.getHitPoints();
         AssertThat(cast(hero, monster, Spell::Burndayraz), Equals(Summary::Safe));
@@ -331,7 +331,7 @@ void testStatusEffects()
       });
       it("should be applied immediately after hero's attack", [] {
         Hero hero;
-        Monster goblin(MonsterType::Goblin, 1);
+        Monster goblin(MonsterType::Goblin, Level{1});
         hero.add(HeroStatus::LifeSteal);
         hero.loseHitPointsOutsideOfFight(10 - goblin.getDamage(), noOtherMonsters);
         goblin.slow();
@@ -370,7 +370,7 @@ void testStatusEffects()
     describe("Magical Attack", [] {
       it("should convert hero's damage into magical damage", [] {
         Hero hero;
-        Monster monster(MonsterType::Wraith, 2);
+        Monster monster(MonsterType::Wraith, Level{2});
         AssertThat(monster.getHitPoints(), Equals(11u));
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
         AssertThat(monster.getHitPoints(), Equals(7u));
@@ -393,7 +393,7 @@ void testStatusEffects()
         hero.add(HeroDebuff::ManaBurned, noOtherMonsters);
         AssertThat(hero.getManaPoints(), Equals(0u));
         hero.add(HeroStatus::Schadenfreude);
-        Monster monster(MonsterType::MeatMan, 1);
+        Monster monster(MonsterType::MeatMan, Level{1});
         attack(hero, monster);
         AssertThat(hero.getManaPoints(), Equals(monster.getDamage()));
         hero.use(Potion::HealthPotion, noOtherMonsters);
@@ -439,7 +439,7 @@ void testStatusEffects()
         hero.gainLevel(noOtherMonsters);
         const auto damage = hero.getDamageVersusStandard();
 
-        Monster resist25(MonsterType::SteelGolem, 5); // 25% physical resist
+        Monster resist25(MonsterType::SteelGolem, Level{5}); // 25% physical resist
         AssertThat(attack(hero, resist25), Equals(Summary::Safe));
         const unsigned resisted = damage / 4;
         AssertThat(resist25.getHitPointsMax() - resist25.getHitPoints(), Equals(damage - resisted));
@@ -450,12 +450,12 @@ void testStatusEffects()
         AssertThat(attack(hero, resist25), Equals(Summary::Safe));
         AssertThat(resist25.getHitPointsMax() - resist25.getHitPoints(), Equals(damage));
 
-        Monster resist50(MonsterType::GooBlob, 3);
+        Monster resist50(MonsterType::GooBlob, Level{3});
         AssertThat(attack(hero, resist50), Equals(Summary::Safe));
         const unsigned resistedReduced = damage * (50 - 35) / 100;
         AssertThat(resist50.getHitPointsMax() - resist50.getHitPoints(), Equals(damage - resistedReduced));
 
-        Monster resist0(MonsterType::MeatMan, 3);
+        Monster resist0(MonsterType::MeatMan, Level{3});
         AssertThat(attack(hero, resist0), Equals(Summary::Safe));
         AssertThat(resist0.getHitPointsMax() - resist0.getHitPoints(), Equals(damage));
 
@@ -476,7 +476,7 @@ void testStatusEffects()
         hero.gainLevel(noOtherMonsters);
         hero.add(HeroStatus::ConsecratedStrike);
         AssertThat(hero.receive(BlacksmithItem::ReallyBigSword), IsTrue());
-        Monster troll(MonsterType::FrozenTroll, 3);
+        Monster troll(MonsterType::FrozenTroll, Level{3});
         AssertThat(troll.getPhysicalResistPercent(), Equals(50u));
         AssertThat(troll.getMagicalResistPercent(), Equals(50u));
         const auto damage = hero.getDamageVersusStandard();
@@ -510,7 +510,7 @@ void testStatusEffects()
       it("should poison the monster (1 point per hero level)", [] {
         Hero hero({100_HP, 0_MP, 1_damage}, {}, Experience{5});
         hero.add(HeroStatus::Poisonous, 3);
-        Monster monster(MonsterType::GooBlob, 4);
+        Monster monster(MonsterType::GooBlob, Level{4});
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
         AssertThat(monster.getPoisonAmount(), Equals(15u));
       });
@@ -551,8 +551,8 @@ void testStatusEffects()
     });
     describe("Slow Strike", [] {
       Hero hero({}, {}, Experience(10));
-      Monster meatMan(MonsterType::MeatMan, 1);
-      Monster goblin(MonsterType::Goblin, 1);
+      Monster meatMan(MonsterType::MeatMan, Level{1});
+      Monster goblin(MonsterType::Goblin, Level{1});
       it("should give initiative to regular monsters of any level", [&] {
         hero.add(HeroStatus::SlowStrike);
         AssertThat(hero.hasInitiativeVersus(meatMan), IsFalse());
@@ -635,7 +635,7 @@ void testStatusEffects()
         AssertThat(hero.getPhysicalResistPercent(), Equals(65));
       });
       it("should wear off when hit", [&] {
-        Monster monster(MonsterType::MeatMan, 1);
+        Monster monster(MonsterType::MeatMan, Level{1});
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
         AssertThat(hero.getHitPoints(), Equals(19u));
         AssertThat(hero.has(HeroStatus::StoneSkin), IsFalse());

@@ -80,7 +80,7 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
   switch (scenario)
   {
   case Scenario::AgbaarsAcademySlowingPart2:
-    monsters.emplace_back(Monster{MonsterType::Goblin, 1});
+    monsters.emplace_back(Monster{MonsterType::Goblin, Level{1}});
     monsters.emplace_back(Monster{"Djinn level 1", {Level{1}, 19_HP, 99_damage}, {}, {MonsterTrait::Retaliate}});
     monsters.emplace_back(
         Monster{"Zombie level 2", {Level{2}, 10_HP, 27_damage}, {}, {MonsterTrait::Undead, MonsterTrait::Bloodless}});
@@ -89,7 +89,7 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
     break;
   case Scenario::HalflingTrial:
     monsters.emplace_back(Monster{"Goblin level 2", {Level{2}, 17_HP, 8_damage}, {}, {MonsterTrait::FirstStrike}});
-    monsters.emplace_back(Monster{MonsterType::Warlock, 2});
+    monsters.emplace_back(Monster{MonsterType::Warlock, Level{2}});
     monsters.emplace_back(Monster{"Meat Man level 2", {Level{2}, 30_HP, 4_damage}, {100_magicalresist}, {}});
     monsters.emplace_back(
         Monster{"Goblin level 2", {Level{2}, 15_HP, 8_damage}, {100_magicalresist}, {MonsterTrait::FirstStrike}});
@@ -104,7 +104,7 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
     break;
   case Scenario::TheThirdAct:
     for (int i = 0; i < 5; ++i)
-      monsters.emplace_back(MonsterType::MeatMan, 1);
+      monsters.emplace_back(MonsterType::MeatMan, Level{1});
     monsters.emplace_back(Monster{"Puryton (level 1)", {Level{1}, 53_HP, 15_damage}, {}, {}});
     break;
   case Scenario::TheMonsterMachine1:
@@ -120,7 +120,7 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
     {
       for (int i = 0; i < count; ++i)
       {
-        auto monster = Monster{types[typeIndex(generator)], level.get(), 130u};
+        auto monster = Monster{types[typeIndex(generator)], level, DungeonMultiplier{1.3f}};
         monster.makeCorrosive();
         monsters.emplace_back(std::move(monster));
       }

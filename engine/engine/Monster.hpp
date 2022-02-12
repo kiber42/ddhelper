@@ -14,7 +14,7 @@
 class Monster
 {
 public:
-  Monster(MonsterType type, uint8_t level, float dungeonMultiplier = 1);
+  Monster(MonsterType, Level, DungeonMultiplier = DungeonMultiplier{1});
   Monster(std::string name, MonsterStats, Defence, MonsterTraits);
   Monster(uint8_t level, uint16_t hp, uint16_t damage);
 

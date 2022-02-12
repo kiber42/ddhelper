@@ -92,7 +92,7 @@ void testBurndayraz()
   describe("Burndown", [] {
     it("shall deal damage equal to burn stack size", [] {
       Hero hero;
-      Monster monster{MonsterType::MeatMan, 2};
+      Monster monster{MonsterType::MeatMan, Level{2}};
       cast(hero, monster, Spell::Burndayraz);
       hero.recoverManaPoints(6);
       cast(hero, monster, Spell::Burndayraz);
