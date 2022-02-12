@@ -59,7 +59,7 @@ void testFaith()
       hero.setManaPointsMax(14);
       hero.recoverManaPoints(4);
       hero.followDeity(God::MysteraAnnur, 0, resources);
-      Monster meatMan(MonsterType::MeatMan, 1);
+      Monster meatMan(MonsterType::MeatMan, Level{1});
       AssertThat(cast(hero, meatMan, Spell::Burndayraz), Equals(Summary::Safe));
       AssertThat(hero.getPiety(), Equals(3u));
       cast(hero, Spell::Getindare);
@@ -109,7 +109,7 @@ void testFaith()
         Hero hero;
         hero.gainLevel(noOtherMonsters);
         hero.followDeity(God::TikkiTooki, 0, resources);
-        Monster monster(MonsterType::MeatMan, 1);
+        Monster monster(MonsterType::MeatMan, Level{1});
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
         AssertThat(attack(hero, monster), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5u));
@@ -126,7 +126,7 @@ void testFaith()
         hero.add(HeroStatus::Learning, 4);
         hero.getFaith().gainPiety(5);
         hero.followDeity(God::TikkiTooki, 0, resources);
-        Monsters meatMen{{MonsterType::MeatMan, 1}, {MonsterType::MeatMan, 1}};
+        Monsters meatMen{{MonsterType::MeatMan, Level{1}}, {MonsterType::MeatMan, Level{1}}};
         AssertThat(attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
         AssertThat(attack(hero, meatMen[0], meatMen, resources), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(2u));
@@ -146,7 +146,7 @@ void testFaith()
         Hero hero{setup, {}};
         hero.getFaith().gainPiety(10);
         hero.followDeity(God::TikkiTooki, 0, resources);
-        Monsters monsters{{MonsterType::MeatMan, 1}, {MonsterType::Wraith, 1}};
+        Monsters monsters{{MonsterType::MeatMan, Level{1}}, {MonsterType::Wraith, Level{1}}};
         Monster& meatMan = monsters[0];
         Monster& wraith = monsters[1];
         AssertThat(attack(hero, meatMan, monsters, resources), Equals(Summary::Safe));

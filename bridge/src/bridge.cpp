@@ -49,6 +49,7 @@ namespace
       {0x1285FD, MonsterType::Djinn},
       {0x79341C, MonsterType::Minotaur},
       {0x718A3F, MonsterType::Naga},
+      {0x9B7036, MonsterType::DesertTroll},
       {0xBBD6D5, MonsterType::Vampire},
   };
 

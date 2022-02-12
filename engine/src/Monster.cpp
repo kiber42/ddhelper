@@ -20,10 +20,10 @@ namespace
   }
 } // namespace
 
-Monster::Monster(MonsterType type, uint8_t level, uint8_t dungeonMultiplier)
-  : name(makeMonsterName(type, Level{level}))
+Monster::Monster(MonsterType type, Level level, DungeonMultiplier dungeonMultiplier)
+  : name(makeMonsterName(type, level))
   , id(++lastId)
-  , stats(type, Level{level}, DungeonMultiplier{dungeonMultiplier})
+  , stats(type, level, dungeonMultiplier)
   , defence(type)
   , traits(type)
 {
@@ -455,5 +455,5 @@ Monster HiddenMonster::reveal(std::mt19937& generator)
   const auto& description = std::get<MonsterDescription>(monster);
   const auto type = MonsterType(std::uniform_int_distribution<unsigned char>(
       0, (unsigned char)(description.includeAdvanced ? MonsterType::Last : MonsterType::LastBasic))(generator));
-  return Monster(type, description.level.get(), description.dungeonMultiplier.get());
+  return Monster(type, description.level, description.dungeonMultiplier);
 }

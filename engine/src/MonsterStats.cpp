@@ -8,17 +8,20 @@
 
 namespace
 {
-  constexpr HitPoints hpInitial(uint8_t level, uint16_t multiplier1, uint16_t multiplier2)
+  constexpr HitPoints hpInitial(uint8_t level, float dungeonMultiplier, float monsterMultiplier)
   {
-    // Reproduce strange (rounding?) effect for goats and gorgons at level 7
-    if (level == 7u && multiplier2 == 90u)
-      return HitPoints{multiplier1 * 4 / 5};
-    return HitPoints{(level * (level + 6) - 1) * multiplier1 / 100 * multiplier2 / 100};
+    const auto hitPointsBase = level * (level + 6) - 1;
+    const auto hitPointsDungeon = static_cast<int>(hitPointsBase * dungeonMultiplier);
+    const auto hitPoints = static_cast<int>(hitPointsDungeon * monsterMultiplier);
+    return HitPoints{hitPoints};
   }
 
-  constexpr DamagePoints damageInitial(uint8_t level, uint16_t multiplier1, uint16_t multiplier2)
+  constexpr DamagePoints damageInitial(uint8_t level, float dungeonMultiplier, float monsterMultiplier)
   {
-    return DamagePoints{(level * (level + 5) / 2) * multiplier1 / 100 * multiplier2 / 100};
+    const auto damagePointsBase = level * (level + 5) / 2;
+    const auto damagePointsDungeon = static_cast<int>(damagePointsBase * dungeonMultiplier);
+    const auto damagePoints = static_cast<int>(damagePointsDungeon * monsterMultiplier);
+    return DamagePoints{damagePoints};
   }
 } // namespace
 
@@ -27,9 +30,9 @@ MonsterStats::MonsterStats(MonsterType type, Level level, DungeonMultiplier dung
   , level(level)
   , deathProtection(getDeathProtectionInitial(type, level))
   , dungeonMultiplier(dungeonMultiplier)
-  , hp(hpInitial(level.get(), dungeonMultiplier.get(), getHPMultiplierPercent(type)))
+  , hp(hpInitial(level.get(), dungeonMultiplier.get(), getHPMultiplier(type)))
   , hpMax(hp)
-  , damage(damageInitial(level.get(), dungeonMultiplier.get(), getDamageMultiplierPercent(type)))
+  , damage(damageInitial(level.get(), dungeonMultiplier.get(), getDamageMultiplier(type)))
 {
 }
 
@@ -37,7 +40,7 @@ MonsterStats::MonsterStats(Level level, HitPoints hpMax, DamagePoints damage, De
   : type(MonsterType::Generic)
   , level(level)
   , deathProtection(deathProtection)
-  , dungeonMultiplier(DungeonMultiplier{100})
+  , dungeonMultiplier(DungeonMultiplier{1.0f})
   , hp(hpMax)
   , hpMax(hp)
   , damage(damage)

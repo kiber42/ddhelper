@@ -20,7 +20,7 @@ namespace ui
   private:
     MonsterType selectedType;
     int level;
-    int dungeonMultiplier;
+    float dungeonMultiplier;
     unsigned selectedDungeonIndex;
     std::optional<Monster> arenaMonster;
     std::optional<Monster> poolMonster;
