@@ -8,6 +8,7 @@
 #include <execution>
 #include <iostream>
 #include <numeric>
+#include <optional>
 #include <random>
 
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());
@@ -108,6 +109,40 @@ namespace GeneticAlgorithm
               << std::endl;
   }
 
+  using OptionalStepResult = std::optional<std::pair<Step, GameState>>;
+  using RatingFunc = std::function<int(const GameState&)>;
+
+  // Generate and apply random step.  If hero survives, returns step and resulting gamestate; nullopt otherwise.
+  OptionalStepResult makeRandomStep(GameState state)
+  {
+    auto randomStep = generateRandomValidStep(state);
+    state = solver::apply(randomStep, std::move(state));
+    if (!state.hero.isDefeated())
+      return std::pair{std::move(randomStep), std::move(state)};
+    return std::nullopt;
+  }
+
+  // Generate and apply several random steps.  Return the most successful one and the resulting gamestate, or nullopt
+  // if the hero died in all attempted steps.
+  OptionalStepResult bestRandomStep(GameState state, RatingFunc rate, int num_attempts = 3)
+  {
+    OptionalStepResult result;
+    int bestRating;
+    while (--num_attempts >= 0)
+    {
+      auto candidate = num_attempts > 0 ? makeRandomStep(state) : makeRandomStep(std::move(state));
+      if (!candidate)
+        continue;
+      auto rating = rate(candidate->second);
+      if (!result || rating > bestRating)
+      {
+        bestRating = rating;
+        result = std::move(candidate);
+      }
+    }
+    return result;
+  }
+
   // Applies mutations to a candidate solution, removes invalid steps and extends it with valid random steps.
   // Stops when the hero would be defeated by the next action.  Returns updated state.
   Solution mutateAndClean(Solution candidate, GameState state)
@@ -117,10 +152,10 @@ namespace GeneticAlgorithm
     // 1) random erasure of a single step
     const double probability_erasure = 0.01;
     // 2) swap pairs of (neighbouring) steps
-    const double probability_swap_any = 0.02;
+    const double probability_swap_any = 0.01;
     const double probability_swap_neighbor = 0.05;
     // 3) insert random valid step at random position
-    const double probability_insert = 0.015;
+    const double probability_insert = 0.04;
 
     int num_mutations =
         std::poisson_distribution<>(static_cast<double>(candidate.size()) * probability_erasure)(generator);
@@ -167,11 +202,11 @@ namespace GeneticAlgorithm
         break;
       if (rand(generator) < probability_insert)
       {
-        auto randomStep = generateRandomValidStep(state);
-        state = solver::apply(randomStep, std::move(state));
-        if (state.hero.isDefeated())
+        auto bestRandom = bestRandomStep(std::move(state), fitnessScore, 5);
+        if (!bestRandom)
           break;
-        cleanedSolution.emplace_back(std::move(randomStep));
+        cleanedSolution.emplace_back(std::move(bestRandom->first));
+        state = std::move(bestRandom->second);
         if (state.visibleMonsters.empty())
           break;
       }
@@ -180,11 +215,11 @@ namespace GeneticAlgorithm
     {
       while (true)
       {
-        auto randomStep = generateRandomValidStep(state);
-        state = solver::apply(randomStep, std::move(state));
-        if (state.hero.isDefeated())
+        auto bestRandom = bestRandomStep(std::move(state), fitnessScore, 3);
+        if (!bestRandom)
           break;
-        cleanedSolution.emplace_back(randomStep);
+        cleanedSolution.emplace_back(std::move(bestRandom->first));
+        state = std::move(bestRandom->second);
         if (state.visibleMonsters.empty())
           break;
       }
