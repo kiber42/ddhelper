@@ -155,6 +155,85 @@ namespace solver
     }
   }
 
+  std::vector<Step> generateAllValidSteps(const GameState& state)
+  {
+    std::vector<Step> steps;
+    steps.emplace_back(Attack{});
+    if (state.resources.numHiddenTiles > 0)
+      steps.emplace_back(Uncover{1});
+    const auto& hero = state.hero;
+    const auto& monsters = state.visibleMonsters;
+    const bool hasMonster = !monsters.empty();
+    for (auto& entry : hero.getItemsAndSpells())
+    {
+      if (const auto spell = std::get_if<Spell>(&entry.itemOrSpell))
+      {
+        if (!Magic::needsMonster(*spell) ||
+            (hasMonster && Magic::isPossible(hero, monsters.front(), *spell, state.resources)))
+          steps.emplace_back(Cast{*spell});
+      }
+      else if (const auto item = std::get<Item>(entry.itemOrSpell); hero.canUse(item))
+        steps.emplace_back(Use{item});
+      if (entry.conversionPoints >= 0)
+        steps.emplace_back(Convert{entry.itemOrSpell});
+    }
+    for (const auto& item : state.resources.shops)
+    {
+      if (hero.hasRoomFor(item) && hero.canAfford(item))
+        steps.emplace_back(Buy{item});
+    }
+    if (hero.hasRoomFor(Spell::Burndayraz))
+    {
+      for (const auto& spell : state.resources.spells)
+        steps.emplace_back(Find{spell});
+      for (const auto& spell : state.resources.freeSpells)
+        steps.emplace_back(FindFree{spell});
+    }
+    const auto& faith = hero.getFaith();
+    if (state.resources.pactmakerAvailable() && !faith.getPact())
+    {
+      for (int i = 0; i < static_cast<int>(Pact::LastNoConsensus); ++i)
+        steps.emplace_back(Request{static_cast<Pact>(i)});
+      if (!faith.enteredConsensus())
+        steps.emplace_back(Request{Pact::Consensus});
+    }
+    if (state.hero.getFollowedDeity())
+    {
+      for (const auto boon : offeredBoons(*state.hero.getFollowedDeity()))
+      {
+        const auto costs = hero.getBoonCosts(boon);
+        if ((costs <= 0 || hero.getPiety() >= static_cast<unsigned>(costs)) &&
+            faith.isAvailable(boon, hero, state.visibleMonsters, state.resources))
+          steps.emplace_back(Request{boon});
+      }
+      const bool canConvert = faith.getPiety() >= 50;
+      const bool canDesecrate = !hero.has(HeroTrait::Scapegoat);
+      if (canConvert || canDesecrate)
+      {
+        for (const auto& altar : state.resources.altars)
+        {
+          if (const auto god = std::get_if<God>(&altar); god && *god != state.hero.getFollowedDeity())
+          {
+            if (canConvert)
+              steps.emplace_back(Follow{*god});
+            if (canDesecrate)
+              steps.emplace_back(Desecrate{*god});
+          }
+        }
+      }
+    }
+    else
+    {
+      for (const auto& altar : state.resources.altars)
+      {
+        if (const auto god = std::get_if<God>(&altar))
+          steps.emplace_back(Follow{*god});
+      }
+    }
+
+    return steps;
+  }
+
   bool isValid(Step step, const GameState& state)
   {
     const auto& hero = state.hero;
