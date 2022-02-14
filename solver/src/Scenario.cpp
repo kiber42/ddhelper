@@ -77,8 +77,9 @@ Hero getHeroForScenario(Scenario scenario)
   {
     DungeonSetup setup;
     setup.startingEquipment.clear();
-    setup.startingEquipment.insert(MiscItem::InfiniteManaPotions);
     auto hero = Hero{std::move(setup), {}};
+    hero.setManaPointsMax(10 + 4 * 99); /* will be clamped to 255 */
+    hero.refillHealthAndMana();
     SimpleResources ignoreFreeSpell;
     hero.followDeity(God::BinlorIronshield, 1000u, ignoreFreeSpell);
     return hero;

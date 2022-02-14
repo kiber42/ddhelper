@@ -78,14 +78,6 @@ bool Inventory::add(ItemOrSpell itemOrSpell)
 {
   if (itemOrSpell == ItemOrSpell{MiscItem::FoodStack})
     return addFood(9);
-  if (itemOrSpell == ItemOrSpell{MiscItem::InfiniteManaPotions})
-  {
-    if (!hasRoomFor(Potion::ManaPotion))
-      return false;
-    for (int i = 0; i < 99; ++i)
-      entries.emplace_back(Entry{Potion::ManaPotion, true, 10, 0});
-    return true;
-  }
   if (!hasRoomFor(itemOrSpell))
     return false;
   if (itemOrSpell == FoodItemOrSpell)
