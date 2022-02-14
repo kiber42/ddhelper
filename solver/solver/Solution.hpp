@@ -62,7 +62,11 @@ struct Desecrate
   God altar;
 };
 
-using Step = std::variant<Attack, Cast, Uncover, Buy, Use, Convert, Find, FindFree, Follow, Request, Desecrate>;
+struct NoOp
+{
+};
+
+using Step = std::variant<Attack, Cast, Uncover, Buy, Use, Convert, Find, FindFree, Follow, Request, Desecrate, NoOp>;
 
 using Solution = std::vector<Step>;
 

@@ -6,22 +6,14 @@
 #include <cassert>
 #include <iostream>
 #include <random>
-
-static std::mt19937 generator(std::random_device{"/dev/urandom"}());
+#include <variant>
 
 namespace solver
 {
-  Step generateRandomValidStep(const GameState& state)
+  thread_local std::mt19937 generator{std::random_device{"/dev/urandom"}()};
+
+  Step generateStep(const GameState& state, int stepTypeIndex)
   {
-    // TODO: Replace std::transform and std::shuffle with equivalent std::ranges functions
-
-    // Rely on at least one monster being present
-    assert(!state.visibleMonsters.empty());
-    std::uniform_int_distribution<> randomAction(0, 11);
-    std::optional<std::vector<Spell>> spells;
-    std::optional<std::vector<Item>> shops;
-    std::optional<std::vector<Item>> items;
-
     auto otherAltar = [&hero = state.hero, altars = state.resources.altars]() mutable -> std::optional<God> {
       altars.erase(std::remove(begin(altars), end(altars), GodOrPactmaker{Pactmaker::ThePactmaker}), end(altars));
       if (altars.empty())
@@ -44,115 +36,122 @@ namespace solver
       return vec[index];
     };
 
+    switch (stepTypeIndex)
+    {
+    case 0:
+      return Attack{};
+    case 1:
+    {
+      if (state.visibleMonsters.empty())
+        break;
+      auto spellCounts = state.hero.getSpellCounts();
+      std::shuffle(begin(spellCounts), end(spellCounts), generator);
+      const auto spellIt = std::find_if(begin(spellCounts), end(spellCounts),
+                                        [&state, &monster = state.visibleMonsters.front()](const auto& spellCount) {
+                                          const Spell spell = spellCount.first;
+                                          return Magic::isPossible(state.hero, monster, spell, state.resources);
+                                        });
+      if (spellIt != end(spellCounts))
+        return Cast{spellIt->first};
+      break;
+    }
+    case 2:
+      if (state.resources.numHiddenTiles > 0)
+        return Uncover{1};
+      break;
+    case 3:
+    {
+      if (!state.hero.hasRoomFor(Potion::HealthPotion) || state.hero.gold() == 0)
+        break;
+      auto shops = state.resources.shops;
+      std::shuffle(begin(shops), end(shops), generator);
+      const auto shopIt = std::find_if(begin(shops), end(shops), [&hero = state.hero](const Item item) {
+        return hero.hasRoomFor(item) && hero.canAfford(item);
+      });
+      if (shopIt != end(shops))
+        return Buy{*shopIt};
+      break;
+    }
+    case 4:
+    {
+      auto itemCounts = state.hero.getItemCounts();
+      std::shuffle(begin(itemCounts), end(itemCounts), generator);
+      const auto itemIt = std::find_if(begin(itemCounts), end(itemCounts), [&hero = state.hero](const auto& itemCount) {
+        return hero.canUse(itemCount.first);
+      });
+      if (itemIt != end(itemCounts))
+        return Use{itemIt->first};
+      break;
+    }
+    case 5:
+    {
+      const auto& entries = state.hero.getItemsAndSpells();
+      if (!entries.empty())
+      {
+        if (const auto& entry = randomElement(entries); entry.conversionPoints >= 0)
+          return Convert{entry.itemOrSpell};
+        // few items cannot be converted, do not retry here
+      }
+      break;
+    }
+    case 6:
+      if (!state.resources.spells.empty() && state.hero.hasRoomFor(Spell::Burndayraz))
+        return Find{randomElement(state.resources.spells)};
+      break;
+    case 7:
+      if (!state.resources.freeSpells.empty() && state.hero.hasRoomFor(Spell::Burndayraz))
+        return FindFree{randomElement(state.resources.freeSpells)};
+      break;
+    case 8:
+    {
+      if (state.resources.altars.empty() || (state.hero.getFollowedDeity() && state.hero.getPiety() < 50))
+        break;
+      if (const auto altar = otherAltar())
+        return Follow{*altar};
+      break;
+    }
+    case 9:
+      if (state.hero.getFollowedDeity())
+      {
+        auto boons = offeredBoons(*state.hero.getFollowedDeity());
+        std::shuffle(begin(boons), end(boons), generator);
+        auto boonIt = std::find_if(begin(boons), end(boons), [&state, &faith = state.hero.getFaith()](Boon boon) {
+          return static_cast<int>(faith.getPiety()) >= faith.getCosts(boon, state.hero) &&
+                 faith.isAvailable(boon, state.hero, state.visibleMonsters, state.resources);
+        });
+        if (boonIt != end(boons))
+          return Request{*boonIt};
+      }
+      break;
+    case 10:
+      if (state.resources.pactmakerAvailable() && !state.hero.getFaith().getPact())
+      {
+        const auto last = state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus;
+        return Request{static_cast<Pact>(std::uniform_int_distribution<>(0, static_cast<int>(last) - 1)(generator))};
+      }
+      break;
+    case 11:
+      if (state.hero.getFollowedDeity() && !state.resources.altars.empty() && !state.hero.has(HeroTrait::Scapegoat))
+      {
+        if (const auto altar = otherAltar())
+          return Desecrate{*altar};
+      }
+      break;
+    }
+    return NoOp{};
+  }
+
+  Step generateRandomValidStep(const GameState& state)
+  {
+    // Rely on at least one monster being present
+    assert(!state.visibleMonsters.empty());
+    std::uniform_int_distribution<> randomAction(0, 11);
+
     while (true)
     {
-      switch (randomAction(generator))
-      {
-      default:
-      case 0:
-        return Attack{};
-      case 1:
-        if (!spells)
-        {
-          auto spellCounts = state.hero.getSpellCounts();
-          std::shuffle(begin(spellCounts), end(spellCounts), generator);
-          const auto spellIt = std::find_if(begin(spellCounts), end(spellCounts),
-                                            [&state, &monster = state.visibleMonsters.front()](const auto& spellCount) {
-                                              const Spell spell = spellCount.first;
-                                              return Magic::isPossible(state.hero, monster, spell, state.resources);
-                                            });
-          if (spellIt != end(spellCounts))
-            return Cast{spellIt->first};
-        }
-        break;
-      case 2:
-        if (state.resources.numHiddenTiles > 0)
-          return Uncover{1};
-        break;
-      case 3:
-        if (!state.hero.hasRoomFor(Potion::HealthPotion) || state.hero.gold() == 0)
-          break;
-        if (!shops)
-        {
-          shops = state.resources.shops;
-          std::shuffle(begin(*shops), end(*shops), generator);
-          const auto shopIt = std::find_if(begin(*shops), end(*shops), [&hero = state.hero](const Item item) {
-            return hero.hasRoomFor(item) && hero.canAfford(item);
-          });
-          if (shopIt != end(*shops))
-            return Buy{*shopIt};
-        }
-        break;
-      case 4:
-        if (!items)
-        {
-          auto itemCounts = state.hero.getItemCounts();
-          std::shuffle(begin(itemCounts), end(itemCounts), generator);
-          const auto itemIt =
-              std::find_if(begin(itemCounts), end(itemCounts),
-                           [&hero = state.hero](const auto& itemCount) { return hero.canUse(itemCount.first); });
-          if (itemIt != end(itemCounts))
-            return Use{itemIt->first};
-        }
-        break;
-      case 5:
-      {
-        const auto& entries = state.hero.getItemsAndSpells();
-        if (!entries.empty())
-        {
-          const auto& entry = randomElement(entries);
-          if (entry.conversionPoints >= 0)
-            return Convert{entry.itemOrSpell};
-          // few items cannot be converted, do not retry here
-        }
-        break;
-      }
-      case 6:
-        if (!state.resources.spells.empty() && state.hero.hasRoomFor(Spell::Burndayraz))
-          return Find{randomElement(state.resources.spells)};
-        break;
-      case 7:
-        if (!state.resources.freeSpells.empty() && state.hero.hasRoomFor(Spell::Burndayraz))
-          return FindFree{randomElement(state.resources.freeSpells)};
-        break;
-      case 8:
-      {
-        if (state.resources.altars.empty() || (state.hero.getFollowedDeity() && state.hero.getPiety() < 50))
-          break;
-        const auto altar = otherAltar();
-        if (altar)
-          return Follow{*altar};
-        break;
-      }
-      case 9:
-        if (state.hero.getFollowedDeity())
-        {
-          auto boons = offeredBoons(*state.hero.getFollowedDeity());
-          std::shuffle(begin(boons), end(boons), generator);
-          auto boonIt = std::find_if(begin(boons), end(boons), [&state, &faith = state.hero.getFaith()](Boon boon) {
-            return static_cast<int>(faith.getPiety()) >= faith.getCosts(boon, state.hero) &&
-                   faith.isAvailable(boon, state.hero, state.visibleMonsters, state.resources);
-          });
-          if (boonIt != end(boons))
-            return Request{*boonIt};
-        }
-        break;
-      case 10:
-        if (state.resources.pactmakerAvailable() && !state.hero.getFaith().getPact())
-        {
-          const auto last = state.hero.getFaith().enteredConsensus() ? Pact::LastNoConsensus : Pact::LastWithConsensus;
-          return Request{static_cast<Pact>(std::uniform_int_distribution<>(0, static_cast<int>(last) - 1)(generator))};
-        }
-        break;
-      case 11:
-        if (state.hero.getFollowedDeity() && !state.resources.altars.empty() && !state.hero.has(HeroTrait::Scapegoat))
-        {
-          const auto altar = otherAltar();
-          if (altar)
-            return Desecrate{*altar};
-        }
-        break;
-      }
+      auto step = generateStep(state, randomAction(generator));
+      if (!std::holds_alternative<NoOp>(step))
+        return step;
     }
   }
 
@@ -197,7 +196,8 @@ namespace solver
                    [current = hero.getFollowedDeity(), &altars = state.resources.altars](Desecrate desecrate) {
                      return current != desecrate.altar &&
                             std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}) != end(altars);
-                   }},
+                   },
+                   [](NoOp) { return true; }},
         step);
   }
 
@@ -235,7 +235,8 @@ namespace solver
             [&hero, &monsters = state.visibleMonsters, &altars = state.resources.altars](Desecrate desecrate) {
               if (hero.desecrate(desecrate.altar, monsters))
                 altars.erase(std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}));
-            }},
+            },
+            [](NoOp) {}},
         step);
     state.visibleMonsters.erase(std::remove_if(begin(state.visibleMonsters), end(state.visibleMonsters),
                                                [](const auto& monster) { return monster.isDefeated(); }),

@@ -36,7 +36,8 @@ std::string toString(const Step& step)
           return "Request "s + toString(*boon);
         return "Request "s + toString(std::get<Pact>(request.boonOrPact));
       },
-      [](Desecrate desecrate) { return "Desecrate "s + toString(desecrate.altar); }
+      [](Desecrate desecrate) { return "Desecrate "s + toString(desecrate.altar); },
+      [](NoOp) { return "no-op"s; }
   }, step);
 }
 // clang-format on

@@ -13,12 +13,12 @@
 #include <random>
 
 const auto fitnessRating = StateFitnessRating1{};
-static std::mt19937 generator(std::random_device{"/dev/urandom"}());
-
-using namespace solver;
 
 namespace
 {
+  using namespace solver;
+  thread_local std::mt19937 generator{std::random_device{"/dev/urandom"}()};
+
   // Random initial solution, stops close to hero's death
   Solution initialSolution(GameState state)
   {
