@@ -2,6 +2,7 @@
 #include "solver/Scenario.hpp"
 #include "solver/Solution.hpp"
 #include "solver/Solver.hpp"
+#include "solver/SolverTools.hpp"
 
 #include <iostream>
 

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_library(
   ddsolver STATIC
   src/Fitness.cpp
+  src/GeneticAlgorithm.cpp
   src/Scenario.cpp
   src/Solution.cpp
   src/Solver.cpp

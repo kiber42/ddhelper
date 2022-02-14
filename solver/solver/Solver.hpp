@@ -1,7 +1,7 @@
 #pragma once
 
 #include "solver/GameState.hpp"
-#include "solver/SolverTools.hpp"
+#include "solver/Solution.hpp"
 
 #include <optional>
 
