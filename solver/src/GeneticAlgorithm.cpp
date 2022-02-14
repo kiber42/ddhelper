@@ -1,4 +1,5 @@
 #include "engine/Combat.hpp"
+#include "engine/HeroStatus.hpp"
 #include "engine/Resources.hpp"
 #include "solver/Fitness.hpp"
 #include "solver/SolverTools.hpp"
@@ -73,17 +74,17 @@ namespace
 
   // Applies mutations to a candidate solution, removes invalid steps and extends it with valid random steps.
   // Stops when the hero would be defeated by the next action.  Returns updated state.
-  Solution mutateAndClean(Solution candidate, GameState state)
+  Solution mutateAndClean(Solution candidate, GameState state, double temperature)
   {
     // The following probabilities are interpreted per step of current candidate.
     // The mutations are applied in this order:
     // 1) random erasure of a single step
-    const double probability_erasure = 0.01;
+    const double probability_erasure = 0.01 * temperature;
     // 2) swap pairs of (neighbouring) steps
-    const double probability_swap_any = 0.01;
-    const double probability_swap_neighbor = 0.05;
+    const double probability_swap_any = 0.01 * temperature;
+    const double probability_swap_neighbor = 0.05 * temperature;
     // 3) insert random valid step at random position
-    const double probability_insert = 0.04;
+    const double probability_insert = 0.04 * temperature;
 
     int num_mutations =
         std::poisson_distribution<>(static_cast<double>(candidate.size()) * probability_erasure)(generator);
@@ -166,32 +167,53 @@ std::optional<Solution> runGeneticAlgorithm(GameState state)
 
   // Create and rate initial generation of solutions
   std::array<std::pair<Solution, int>, generation_size> population;
-  std::generate(begin(population), end(population), [&state] {
-    auto candidate = initialSolution(state);
-    const auto finalState = solver::apply(candidate, state);
-    return std::pair{std::move(candidate), fitnessRating(finalState)};
-  });
-
+  bool initialized = false;
+  int best_previous = 0;
+  double temperature = 1;
   for (unsigned gen = 0; gen < num_generations; ++gen)
   {
+    if (!initialized)
+    {
+      std::generate(std::execution::par_unseq, begin(population), end(population), [&state] {
+        auto candidate = initialSolution(state);
+        const auto finalState = solver::apply(candidate, state);
+        return std::pair{std::move(candidate), fitnessRating(finalState)};
+      });
+      initialized = true;
+    }
+
     std::stable_sort(begin(population), end(population),
                      [](const auto& scoredCandidateA, const auto& scoredCandidateB) {
                        return scoredCandidateA.second > scoredCandidateB.second;
                      });
 
+    const auto& [bestSolution, bestScore] = population.front();
     std::cout << "Generation " << gen << " complete:" << std::endl;
-    std::cout << "  Highest fitness score: " << population.front().second << std::endl;
+    std::cout << "  Highest fitness score: " << bestScore << std::endl;
     std::cout << "  Lowest retained fitness score: " << population[num_keep - 1].second << std::endl;
-    const auto& bestCandidateSolution = population.front().first;
-    std::cout << "  Best candidate: " << std::endl << "  " << toString(bestCandidateSolution) << std::endl;
-    fitnessRating.explain(apply(bestCandidateSolution, state));
+    std::cout << "  Current temperature: " << static_cast<int>(temperature * 100) << std::endl;
+    std::cout << "  Best candidate: " << std::endl << "  " << toString(bestSolution) << std::endl;
+    fitnessRating.explain(apply(bestSolution, state));
     std::cout << std::string(80, '-') << std::endl;
+    if (bestScore == fitnessRating.GAME_WON)
+      return bestSolution;
 
-    if (population.front().second == 10000)
-      return population.front().first;
+    if (bestScore <= best_previous)
+      temperature += 0.1;
+    else
+      temperature /= 2;
+    best_previous = bestScore;
+
+    if (temperature > 3)
+    {
+      // start over
+      initialized = false;
+      temperature = 1;
+      continue;
+    }
 
     // A) Spawn new generation of candidate solutions by mixing successful solutions
-    // Fill entire array with copies of `num_keep` most successful solutions
+    // Fill array with copies of `num_keep` most successful solutions
     auto n = num_keep;
     while (n < generation_size)
     {
@@ -223,7 +245,7 @@ std::optional<Solution> runGeneticAlgorithm(GameState state)
     // B) Random mutations
     // C) Clean up solutions and update scores
     std::for_each(std::execution::par_unseq, begin(population) + 1, end(population), [&](auto& entry) {
-      auto cleaned = mutateAndClean(std::move(entry.first), state);
+      auto cleaned = mutateAndClean(std::move(entry.first), state, temperature);
       const auto finalState = solver::apply(cleaned, state);
       entry = {std::move(cleaned), fitnessRating(finalState)};
     });
