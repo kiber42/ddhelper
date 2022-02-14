@@ -1,4 +1,5 @@
 #include "solver/Solver.hpp"
+#include "solver/Fitness.hpp"
 
 #include "engine/Combat.hpp"
 #include "engine/Resources.hpp"
@@ -11,6 +12,7 @@
 #include <optional>
 #include <random>
 
+const auto fitnessRating = StateFitnessRating1{};
 static std::mt19937 generator(std::random_device{"/dev/urandom"}());
 
 using namespace solver;
@@ -37,78 +39,6 @@ namespace GeneticAlgorithm
     return initial;
   }
 
-  unsigned computeInventoryScore(const Hero& hero)
-  {
-    const auto itemCounts = hero.getItemsGrouped();
-    const auto itemScore =
-        std::accumulate(begin(itemCounts), end(itemCounts), 0u,
-                        [](const unsigned sum, const auto& itemEntryAndCount) {
-                          const auto& [entry, count] = itemEntryAndCount;
-                          return sum + count * static_cast<unsigned>(entry.price + 2 * entry.conversionPoints);
-                        }) /
-        2u;
-    const auto spellScore = clampedTo<unsigned>(hero.getSpells().size() * 150u);
-    return itemScore + spellScore;
-  }
-
-  unsigned computeResourceScore(const SimpleResources& resources)
-  {
-    return clampedTo<unsigned>((2u * resources.numHiddenTiles + resources.numWalls) / 10u +
-                               resources.spells.size() * 100u + resources.freeSpells.size() * 90u);
-  }
-
-  unsigned computeHeroScore(const Hero& hero)
-  {
-    return 50u * hero.getLevel() + 50u * hero.getXP() / hero.getXPforNextLevel() +
-           10u * hero.getDamageVersusStandard() + 3u * hero.getHitPoints() + 5u * hero.getManaPoints() +
-           hero.getPiety();
-  }
-
-  unsigned computeMonsterScore(const Monsters& monsters)
-  {
-    return std::accumulate(begin(monsters), end(monsters), 0u, [](const unsigned sum, const Monster& monster) {
-      return sum + monster.getHitPoints() * 100u + monster.getPhysicalResistPercent() +
-             monster.getMagicalResistPercent();
-    });
-  }
-
-  int fitnessScore(const GameState& finalState)
-  {
-    if (finalState.visibleMonsters.empty())
-      return 10000;
-    return static_cast<int>(computeHeroScore(finalState.hero) + computeInventoryScore(finalState.hero) +
-                            computeResourceScore(finalState.resources)) -
-           static_cast<int>(computeMonsterScore(finalState.visibleMonsters));
-  }
-
-  void explainScore(const GameState& finalState)
-  {
-    if (finalState.visibleMonsters.empty())
-    {
-      std::cout << "No monsters remaining, score = 10000" << std::endl;
-      return;
-    }
-    const auto& hero = finalState.hero;
-    const auto heroScore = computeHeroScore(hero);
-    const auto damage = hero.getDamageVersusStandard();
-    const auto inventoryScore = computeInventoryScore(finalState.hero);
-    const auto resourceScore = computeResourceScore(finalState.resources);
-    const auto monsterScore = computeMonsterScore(finalState.visibleMonsters);
-    std::cout << "Hero (total): " << heroScore << std::endl
-              << "  Level = " << hero.getLevel() << " -> " << 50 * hero.getLevel() << std::endl
-              << "  XP = " << hero.getXP() << " -> " << 50 * hero.getXP() / hero.getXPforNextLevel() << std::endl
-              << "  Damage = " << damage << " -> " << 10 * damage << std::endl
-              << "  HP = " << hero.getHitPoints() << " -> " << 3 * hero.getHitPoints() << std::endl
-              << "  MP = " << hero.getManaPoints() << " -> " << 5 * hero.getManaPoints() << std::endl
-              << "  Piety = " << hero.getPiety() << std::endl
-              << "Inventory: " << inventoryScore << std::endl
-              << "Resources: " << resourceScore << std::endl
-              << "Monsters: " << monsterScore << std::endl
-              << "Total score: "
-              << static_cast<int>(heroScore + inventoryScore + resourceScore) - static_cast<int>(monsterScore)
-              << std::endl;
-  }
-
   using OptionalStepResult = std::optional<std::pair<Step, GameState>>;
   using RatingFunc = std::function<int(const GameState&)>;
 
@@ -124,7 +54,7 @@ namespace GeneticAlgorithm
 
   // Generate and apply several random steps.  Return the most successful one and the resulting gamestate, or nullopt
   // if the hero died in all attempted steps.
-  OptionalStepResult bestRandomStep(GameState state, RatingFunc rate, int num_attempts = 3)
+  OptionalStepResult bestRandomStep(GameState state, const StateFitnessRating& rate, int num_attempts = 3)
   {
     OptionalStepResult result;
     int bestRating;
@@ -202,7 +132,7 @@ namespace GeneticAlgorithm
         break;
       if (rand(generator) < probability_insert)
       {
-        auto bestRandom = bestRandomStep(std::move(state), fitnessScore, 5);
+        auto bestRandom = bestRandomStep(std::move(state), fitnessRating, 5);
         if (!bestRandom)
           break;
         cleanedSolution.emplace_back(std::move(bestRandom->first));
@@ -215,7 +145,7 @@ namespace GeneticAlgorithm
     {
       while (true)
       {
-        auto bestRandom = bestRandomStep(std::move(state), fitnessScore, 3);
+        auto bestRandom = bestRandomStep(std::move(state), fitnessRating, 3);
         if (!bestRandom)
           break;
         cleanedSolution.emplace_back(std::move(bestRandom->first));
@@ -240,7 +170,7 @@ namespace GeneticAlgorithm
     std::generate(begin(population), end(population), [&state] {
       auto candidate = initialSolution(state);
       const auto finalState = solver::apply(candidate, state);
-      return std::pair{std::move(candidate), fitnessScore(finalState)};
+      return std::pair{std::move(candidate), fitnessRating(finalState)};
     });
 
     for (unsigned gen = 0; gen < num_generations; ++gen)
@@ -255,7 +185,7 @@ namespace GeneticAlgorithm
       std::cout << "  Lowest retained fitness score: " << population[num_keep - 1].second << std::endl;
       const auto& bestCandidateSolution = population.front().first;
       std::cout << "  Best candidate: " << std::endl << "  " << toString(bestCandidateSolution) << std::endl;
-      explainScore(apply(bestCandidateSolution, state));
+      fitnessRating.explain(apply(bestCandidateSolution, state));
       std::cout << std::string(80, '-') << std::endl;
 
       if (population.front().second == 10000)
@@ -296,7 +226,7 @@ namespace GeneticAlgorithm
       std::for_each(std::execution::par_unseq, begin(population) + 1, end(population), [&](auto& entry) {
         auto cleaned = mutateAndClean(std::move(entry.first), state);
         const auto finalState = solver::apply(cleaned, state);
-        entry = {std::move(cleaned), fitnessScore(finalState)};
+        entry = {std::move(cleaned), fitnessRating(finalState)};
       });
     }
 
@@ -304,7 +234,7 @@ namespace GeneticAlgorithm
                    return a.second < b.second;
                  })->first;
     const auto finalState = solver::apply(best, state);
-    explainScore(finalState);
+    fitnessRating.explain(finalState);
     return std::move(best);
   }
 } // namespace GeneticAlgorithm
