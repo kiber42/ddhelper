@@ -356,6 +356,8 @@ uint16_t Hero::getDamageOutputVersus(const Monster& monster) const
     damage += standardDamage * 4 / 10;
   if (has(HeroTrait::GoodGolly) && monster.has(MonsterTrait::Undead))
     damage += getBaseDamage();
+  if (has(HeroTrait::SwiftHand) && getLevel() > monster.getLevel())
+    damage = clampedTo<uint16_t>(10 * monster.getHitPoints());
   return damage;
 }
 
@@ -425,7 +427,7 @@ DamageType Hero::damageType() const
 
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
-  if (has(HeroStatus::Reflexes))
+  if (has(HeroStatus::Reflexes) || (has(HeroTrait::SwiftHand) && getLevel() > monster.getLevel()))
     return true;
 
   const bool firstStrike = has(HeroStatus::FirstStrikePermanent) || has(HeroStatus::FirstStrikeTemporary);

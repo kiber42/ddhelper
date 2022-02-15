@@ -207,7 +207,10 @@ namespace Combat
     PietyCollection collectPiety{hero};
 
     if (swiftHand)
+    {
+      monster.takeDamage(monster.getHitPoints(), DamageType::Typeless);
       monster.die();
+    }
     else if (heroUsesDeathGaze)
       monster.takeDamage(hero.getBaseDamage(), DamageType::Typeless);
 

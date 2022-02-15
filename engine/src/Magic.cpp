@@ -4,6 +4,7 @@
 #include "engine/Items.hpp"
 
 #include <cassert>
+#include <iostream>
 
 namespace Magic
 {
@@ -183,7 +184,15 @@ namespace Magic
   void cast(Hero& hero, Spell spell, Monsters& allMonsters, Resources& resources)
   {
     if (!isPossible(hero, spell, resources))
+    {
+      std::cerr << "Cast is not possible." << std::endl;
       return;
+    }
+    if (hero.isDefeated())
+    {
+      std::cerr << "Dead hero cannot cast." << std::endl;
+      return;
+    }
 
     const auto manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
@@ -253,13 +262,22 @@ namespace Magic
 
   Summary cast(Hero& hero, Monster& monster, Spell spell, Monsters& allMonsters, Resources& resources)
   {
-    if (!isPossible(hero, monster, spell, resources))
-      return Summary::NotPossible;
-
     if (!needsMonster(spell) && !monsterIsOptional(spell))
     {
       Magic::cast(hero, spell, allMonsters, resources);
       return Summary::Safe;
+    }
+
+    if (!isPossible(hero, monster, spell, resources))
+    {
+      std::cerr << "Cast is not possible." << std::endl;
+      return Summary::NotPossible;
+    }
+
+    if (monster.isDefeated())
+    {
+      std::cerr << "Cannot cast against defeated monster." << std::endl;
+      return Summary::NotPossible;
     }
 
     const bool monsterWasSlowed = monster.isSlowed();
