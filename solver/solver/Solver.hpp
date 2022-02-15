@@ -7,7 +7,8 @@
 
 enum class Solver
 {
-  GeneticAlgorithm
+  GeneticAlgorithm,
+  TreeSearch,
 };
 
 std::optional<Solution> run(Solver solver, GameState initialState);

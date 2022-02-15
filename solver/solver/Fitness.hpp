@@ -1,3 +1,5 @@
+#pragma once
+
 #include "solver/GameState.hpp"
 
 #include <string>
@@ -6,6 +8,7 @@ class StateFitnessRating
 {
   public:
     const int GAME_WON = 10000;
+    const int GAME_LOST = -100000;
     virtual int operator()(const GameState&) const = 0;
     virtual std::string explain(const GameState&) const { return ""; }
 };

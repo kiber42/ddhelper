@@ -3,8 +3,10 @@
 
 namespace solver
 {
-  Step generateRandomStep();
+  Step generateValidStep(const GameState& state);
   Step generateRandomValidStep(const GameState& state);
+  std::vector<Step> generateAllValidSteps(const GameState& state);
+
   bool isValid(Step step, const GameState& state);
 
   GameState apply(const Step& step, GameState state);

@@ -12,7 +12,7 @@ namespace solver
 {
   thread_local std::mt19937 generator{std::random_device{"/dev/urandom"}()};
 
-  Step generateStep(const GameState& state, int stepTypeIndex)
+  Step generateValidStep(const GameState& state, int stepTypeIndex)
   {
     auto otherAltar = [&hero = state.hero, altars = state.resources.altars]() mutable -> std::optional<God> {
       altars.erase(std::remove(begin(altars), end(altars), GodOrPactmaker{Pactmaker::ThePactmaker}), end(altars));
@@ -149,7 +149,7 @@ namespace solver
 
     while (true)
     {
-      auto step = generateStep(state, randomAction(generator));
+      auto step = generateValidStep(state, randomAction(generator));
       if (!std::holds_alternative<NoOp>(step))
         return step;
     }
@@ -168,7 +168,7 @@ namespace solver
     {
       if (const auto spell = std::get_if<Spell>(&entry.itemOrSpell))
       {
-        if (!Magic::needsMonster(*spell) ||
+        if ((!Magic::needsMonster(*spell) && Magic::isPossible(hero, *spell, state.resources)) ||
             (hasMonster && Magic::isPossible(hero, monsters.front(), *spell, state.resources)))
           steps.emplace_back(Cast{*spell});
       }

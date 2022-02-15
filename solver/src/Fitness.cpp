@@ -5,16 +5,13 @@ namespace fitness1
 {
   unsigned computeInventoryScore(const Hero& hero)
   {
-    const auto itemCounts = hero.getItemsGrouped();
-    const auto itemScore =
-        std::accumulate(begin(itemCounts), end(itemCounts), 0u,
-                        [](const unsigned sum, const auto& itemEntryAndCount) {
-                          const auto& [entry, count] = itemEntryAndCount;
-                          return sum + count * static_cast<unsigned>(entry.price + 2 * entry.conversionPoints);
-                        }) /
-        2u;
-    const auto spellScore = clampedTo<unsigned>(hero.getSpells().size() * 150u);
-    return itemScore + spellScore;
+    const auto& itemsAndSpells = hero.getItemsAndSpells();
+    return std::accumulate(begin(itemsAndSpells), end(itemsAndSpells), 0u, [](const unsigned sum, const auto& entry) {
+      if (const auto item = std::get_if<Item>(&entry.itemOrSpell))
+        return sum + static_cast<unsigned>(entry.price + 2 * entry.conversionPoints);
+      else
+        return sum + 300;
+    }) / 2u;
   }
 
   unsigned computeResourceScore(const SimpleResources& resources)
@@ -41,9 +38,11 @@ namespace fitness1
 
 int StateFitnessRating1::operator()(const GameState& state) const
 {
-  using namespace fitness1;
+  if (state.hero.isDefeated())
+    return GAME_LOST;
   if (state.visibleMonsters.empty())
     return GAME_WON;
+  using namespace fitness1;
   return static_cast<int>(computeHeroScore(state.hero) + computeInventoryScore(state.hero) +
                           computeResourceScore(state.resources)) -
          static_cast<int>(computeMonsterScore(state.visibleMonsters));
@@ -78,10 +77,12 @@ std::string StateFitnessRating1::explain(const GameState& state) const
 
 int StateFitnessRating2::operator()(const GameState& state) const
 {
+  if (state.hero.isDefeated())
+    return GAME_LOST;
   const auto& monsters = state.visibleMonsters;
   const auto numMonsters = monsters.size();
   if (numMonsters == 0)
-    return 10000;
+    return GAME_WON;
   const auto& hero = state.hero;
   const auto& monster = monsters.front();
   const auto numHeroGetsHit = ceil(static_cast<double>(monster.getHitPoints()) / hero.getDamageOutputVersus(monster)) +
