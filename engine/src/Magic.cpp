@@ -188,7 +188,7 @@ namespace Magic
     const auto manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
 
-    hero.startPietyCollection();
+    PietyCollection collectPiety(hero);
 
     switch (spell)
     {
@@ -243,9 +243,9 @@ namespace Magic
 
     // Imawal changes its function when cast without target
     if (spell != Spell::Imawal)
-      hero.collect(hero.getFaith().spellCast(spell, manaCosts));
+      collectPiety(hero.getFaith().spellCast(spell, manaCosts));
     else
-      hero.collect(hero.getFaith().imawalCreateWall(manaCosts));
+      collectPiety(hero.getFaith().imawalCreateWall(manaCosts));
     hero.applyCollectedPiety(allMonsters);
 
     applyCastingSideEffects(hero, manaCosts, allMonsters);
@@ -268,13 +268,13 @@ namespace Magic
     const auto manaCosts = spellCosts(spell, hero);
     hero.loseManaPoints(manaCosts);
 
-    hero.startPietyCollection();
+    PietyCollection collection(hero);
 
     switch (spell)
     {
     case Spell::Apheelsik:
       if (monster.poison(10 * hero.getLevel()))
-        hero.collect(hero.getFaith().monsterPoisoned(monster));
+        collection(hero.getFaith().monsterPoisoned(monster));
       break;
     case Spell::Burndayraz:
       burndayraz(hero, monster, allMonsters);
@@ -319,7 +319,7 @@ namespace Magic
       break;
     }
 
-    hero.collect(hero.getFaith().spellCast(spell, manaCosts));
+    collection(hero.getFaith().spellCast(spell, manaCosts));
     applyCastingSideEffects(hero, manaCosts, allMonsters);
 
     if (spell == Spell::Imawal)

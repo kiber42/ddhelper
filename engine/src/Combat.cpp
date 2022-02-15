@@ -204,7 +204,7 @@ namespace Combat
       }
     };
 
-    hero.startPietyCollection();
+    PietyCollection collectPiety{hero};
 
     if (swiftHand)
       monster.die();
@@ -224,13 +224,13 @@ namespace Combat
         hero.add(HeroDebuff::Corroded, allMonsters);
       if (monster.has(MonsterTrait::Weakening))
         hero.add(HeroDebuff::Weakened, allMonsters);
-      hero.collect(hero.getFaith().receivedHit(monster));
+      collectPiety(hero.getFaith().receivedHit(monster));
     }
 
     if (appliedPoison)
     {
       // Applying poison twice (with reflexes) does not trigger likes/dislikes twice
-      hero.collect(hero.getFaith().monsterPoisoned(monster));
+      collectPiety(hero.getFaith().monsterPoisoned(monster));
     }
 
     hero.adjustMomentum(monster.isDefeated());

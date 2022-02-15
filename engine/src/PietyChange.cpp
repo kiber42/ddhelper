@@ -1,5 +1,7 @@
 #include "engine/PietyChange.hpp"
 
+#include "engine/Hero.hpp"
+
 PietyChange::PietyChange(int deltaPoints)
   : values({deltaPoints})
   , pact(std::nullopt)
@@ -50,4 +52,20 @@ PietyChange& PietyChange::operator+=(int deltaPoints)
 {
   values.emplace_back(deltaPoints);
   return *this;
+}
+
+PietyCollection::PietyCollection(Hero& hero)
+  : hero(hero)
+{
+  hero.startPietyCollection();
+}
+
+void PietyCollection::operator()(const PietyChange& pietyChange)
+{
+  hero.collect(pietyChange);
+}
+
+PietyCollection::~PietyCollection()
+{
+  hero.resetCollectedPiety();
 }

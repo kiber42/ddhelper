@@ -1140,6 +1140,11 @@ void Hero::applyCollectedPiety(Monsters& allMonsters)
   collectedPiety.reset();
 }
 
+void Hero::resetCollectedPiety()
+{
+  collectedPiety.reset();
+}
+
 void Hero::applyOrCollect(PietyChange pietyChange, Monsters& allMonsters)
 {
   if (collectedPiety)

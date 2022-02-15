@@ -148,10 +148,12 @@ public:
   [[nodiscard]] bool desecrate(God altar, Monsters& allMonsters);
 
   // Functions to group all piety events belonging to one action.
-  // Make sure each call to startPietyCollection is followed by a call to applyCollectedPiety
+  // Make sure each call to startPietyCollection is followed by a call to applyCollectedPiety or resetCollectedPiety
+  // (@see PietyCollection guard object)
   void startPietyCollection();
   void collect(PietyChange);
   void applyCollectedPiety(Monsters& allMonsters);
+  void resetCollectedPiety();
 
   // Methods required to apply side effects of worship, boons and punishments
   void setHitPointsMax(unsigned hitPointsMax);

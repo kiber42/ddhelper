@@ -2,6 +2,8 @@
 
 #include "engine/GodsAndBoons.hpp"
 
+class Hero;
+
 #include <optional>
 #include <vector>
 
@@ -25,4 +27,16 @@ private:
   std::vector<int> values;
   std::optional<Pact> pact;
   bool jehora{false};
+};
+
+class PietyCollection
+{
+  public:
+    PietyCollection(Hero& hero);
+    void operator()(const PietyChange& pietyChange);
+    PietyCollection(const Hero&) = delete;
+    PietyCollection& operator=(const Hero&) = delete;
+    ~PietyCollection();
+  private:
+    Hero& hero;
 };
