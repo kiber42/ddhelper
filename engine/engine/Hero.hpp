@@ -197,8 +197,8 @@ public:
   bool useTransmutationSealOnWallOrPetrifiedPlant();
   bool useTranslocationSealOn(Item shopItem);
 
-  int getConversionPoints() const;
-  int getConversionThreshold() const;
+  uint8_t getConversionPoints() const;
+  uint8_t getConversionThreshold() const;
 
 private:
   std::string name;

@@ -1762,12 +1762,12 @@ void Hero::changeStatsFromItem(Item item, bool itemReceived)
              item);
 }
 
-int Hero::getConversionPoints() const
+uint8_t Hero::getConversionPoints() const
 {
   return conversion.getPoints();
 }
 
-int Hero::getConversionThreshold() const
+uint8_t Hero::getConversionThreshold() const
 {
   return conversion.getThreshold();
 }

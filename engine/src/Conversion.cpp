@@ -86,12 +86,12 @@ Conversion::Conversion(const DungeonSetup& setup)
   };
 }
 
-int Conversion::getPoints() const
+uint8_t Conversion::getPoints() const
 {
   return points;
 }
 
-int Conversion::getThreshold() const
+uint8_t Conversion::getThreshold() const
 {
   return threshold;
 }
