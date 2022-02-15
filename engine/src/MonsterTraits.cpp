@@ -144,6 +144,10 @@ MonsterTraits::MonsterTraits(MonsterType type)
     add(MonsterTrait::Retaliate);
     add(MonsterTrait::FastRegen);
     break;
+  case MonsterType::Succubus:
+    deathGaze_ = 50_deathgaze;
+    add(MonsterTrait::Weakening);
+    break;
   case MonsterType::Goat:
   case MonsterType::Golem:
   case MonsterType::GooBlob:

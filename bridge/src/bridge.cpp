@@ -6,6 +6,7 @@
 #include "bridge/Mouse.hpp"
 
 #include "engine/Monster.hpp"
+#include "engine/MonsterTypes.hpp"
 #include "engine/StrongTypes.hpp"
 
 #include <array>
@@ -45,11 +46,16 @@ namespace
       {0xA2FBD5, MonsterType::Changeling},
       {0xA3FBD5, MonsterType::Changeling},
       {0xA3FCD5, MonsterType::Changeling},
+      {0x664EC7, MonsterType::Cultist},
       {0x9B7036, MonsterType::DesertTroll},
       {0x1285FD, MonsterType::Djinn},
+      {0xFF3222, MonsterType::DoomArmour},
       {0x79341C, MonsterType::Minotaur},
       {0x718A3F, MonsterType::Naga},
       {0xB6AAA1, MonsterType::Ratling},
+      {0xA8860B, MonsterType::Succubus},
+      {0x57657C, MonsterType::SteelGolem},
+      {0xBB54CC, MonsterType::Thrall},
       {0xBBD6D5, MonsterType::Vampire},
   };
 
@@ -142,7 +148,7 @@ namespace
   }
 
   template <typename PixelFunc>
-  inline int32_t getTileHash(const cv::Mat& tile, int x, int y)
+  inline uint32_t getTileHash(const cv::Mat& tile, int x, int y)
   {
     return PixelFunc(tile, Column{x * 30 + 12}, Row{y * 30 + y_offset + 5}).rgb();
   }
