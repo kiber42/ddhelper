@@ -261,5 +261,5 @@ constexpr void Hero::use(Item item, Monsters& allMonsters)
              item);
 }
 
-std::vector<std::string> describe(const Hero& hero);
-std::vector<std::string> describe_diff(const Hero& before, const Hero& now);
+[[nodiscard]] std::vector<std::string> describe(const Hero& hero);
+[[nodiscard]] std::vector<std::string> describe_diff(const Hero& before, const Hero& now);

@@ -1666,7 +1666,11 @@ void Hero::changeStatsImpl(ShopItem item, bool itemReceived)
     changeBaseDamage(sign * inventory.getTriswordDamage());
     break;
   case ShopItem::VenomDagger:
-    add(HeroStatus::Poisonous, 2 * sign);
+    if (sign > 0 || getIntensity(HeroStatus::Poisonous) > 2)
+      add(HeroStatus::Poisonous, 2 * sign);
+    else
+      // We can end up here if Tikki Tooki's punishment was triggered
+      reset(HeroStatus::Poisonous);
     break;
   case ShopItem::MartyrWraps:
     add(HeroStatus::CorrosiveStrike, sign);
