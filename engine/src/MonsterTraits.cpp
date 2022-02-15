@@ -140,6 +140,10 @@ MonsterTraits::MonsterTraits(MonsterType type)
     lifeSteal_ = 40_lifesteal;
     add(MonsterTrait::MagicalAttack);
     break;
+  case MonsterType::Ratling:
+    add(MonsterTrait::Retaliate);
+    add(MonsterTrait::FastRegen);
+    break;
   case MonsterType::Goat:
   case MonsterType::Golem:
   case MonsterType::GooBlob:

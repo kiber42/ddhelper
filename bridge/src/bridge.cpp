@@ -49,7 +49,7 @@ namespace
       {0x1285FD, MonsterType::Djinn},
       {0x79341C, MonsterType::Minotaur},
       {0x718A3F, MonsterType::Naga},
-      {0x9B7036, MonsterType::DesertTroll},
+      {0xB6AAA1, MonsterType::Ratling},
       {0xBBD6D5, MonsterType::Vampire},
   };
 
@@ -277,7 +277,7 @@ namespace
     monsterInfo.health = extract_hp_or_mp<PixelFunc>(image(cv::Rect(651, 430, 100, 10)));
     if (monsterInfo.health)
     {
-      const MonsterStats stats(monsterInfo.type, monsterInfo.level, DungeonMultiplier{1.3f});
+      const MonsterStats stats(monsterInfo.type, monsterInfo.level, DungeonMultiplier{1.299f});
       if (stats.getHitPointsMax() != HitPoints{monsterInfo.health->second})
         std::cout << monsterInfo.health->first << '/' << monsterInfo.health->second
                   << " (HP max expected: " << stats.getHitPointsMax().get() << ")";

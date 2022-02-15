@@ -48,6 +48,8 @@ enum class MonsterType : unsigned char
   Tokoloshe,
   Vampire,
   Last = Vampire,
+  // Dungeon Specific
+  Ratling,
   // Internal
   Generic
 };
@@ -136,6 +138,8 @@ constexpr const char* toString(MonsterType type)
     return "Tokoloshe";
   case MonsterType::Vampire:
     return "Vampire";
+  case MonsterType::Ratling:
+    return "Ratling";
   case MonsterType::Generic:
     return "Monster";
   }
@@ -225,6 +229,8 @@ constexpr float getHPMultiplier(MonsterType type)
     return 1;
   case MonsterType::Vampire:
     return 1;
+  case MonsterType::Ratling:
+    return 1;
   case MonsterType::Generic:
     return 1;
   }
@@ -313,6 +319,8 @@ constexpr float getDamageMultiplier(MonsterType type)
   case MonsterType::Tokoloshe:
     return 1;
   case MonsterType::Vampire:
+    return 1;
+  case MonsterType::Ratling:
     return 1;
   case MonsterType::Generic:
     return 1;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "MonsterTypes.hpp"
-#include "StrongTypes.hpp"
+#include "engine/MonsterTypes.hpp"
+#include "engine/StrongTypes.hpp"
 
 #include <cstdint>
 #include <type_traits>

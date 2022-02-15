@@ -133,7 +133,7 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
     {
       for (int i = 0; i < count; ++i)
       {
-        auto monster = Monster{types[typeIndex(generator)], level, DungeonMultiplier{1.3f}};
+        auto monster = Monster{types[typeIndex(generator)], level, DungeonMultiplier{1.299f}};
         monster.makeCorrosive();
         monsters.emplace_back(std::move(monster));
       }
