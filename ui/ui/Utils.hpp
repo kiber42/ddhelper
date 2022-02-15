@@ -6,10 +6,10 @@
 #include "engine/Monster.hpp"
 #include "engine/Outcome.hpp"
 
-#include "imgui.h"
-
 #include <optional>
 #include <utility>
+
+struct ImVec4;
 
 namespace ui
 {

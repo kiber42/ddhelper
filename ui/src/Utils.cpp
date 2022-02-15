@@ -1,5 +1,7 @@
 #include "ui/Utils.hpp"
 
+#include "imgui.h"
+
 namespace ui
 {
   ImVec4 colorSafe(0, 0.5f, 0, 1);
