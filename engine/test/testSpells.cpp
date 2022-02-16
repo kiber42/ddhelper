@@ -89,6 +89,21 @@ void testBurndayraz()
   describe("Burndayraz", [] {
     // TODO
   });
+  describe("Retaliation", [] {
+    it("shall be triggered", [] {
+      Hero hero;
+      Monster djinn{MonsterType::Djinn, Level{2}};
+      AssertThat(cast(hero, djinn, Spell::Burndayraz), Equals(Summary::Safe));
+      AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax() - djinn.getDamage() / 2));
+    });
+    it("shall trigger side effects", [] {
+      Hero hero;
+      Monster illusion{MonsterType::Illusion, Level{2}};
+      AssertThat(cast(hero, illusion, Spell::Burndayraz), Equals(Summary::Safe));
+      AssertThat(hero.getHitPoints(), Equals(hero.getHitPointsMax() - illusion.getDamage() / 2));
+      AssertThat(hero.getIntensity(HeroDebuff::Weakened), Equals(1u));
+    });
+  });
   describe("Burndown", [] {
     it("shall deal damage equal to burn stack size", [] {
       Hero hero;

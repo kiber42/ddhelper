@@ -65,6 +65,36 @@ void testMelee()
       AssertThat(monster.getHitPoints(), Equals(15u - hero.getDamageOutputVersus(monster)));
     });
   });
+  describe("Side effects", [] {
+    Monster monster{"",
+                    {Level{1}, 10_HP, 5_damage},
+                    Defence{},
+                    MonsterTraits{MonsterTrait::Corrosive, MonsterTrait::CurseBearer, MonsterTrait::ManaBurn,
+                                  MonsterTrait::Poisonous, MonsterTrait::Weakening}};
+    it("should be applied", [&] {
+      Hero hero;
+      AssertThat(attack(hero, monster), Equals(Summary::Safe));
+      {
+        AssertThat(hero.has(HeroDebuff::Corroded), IsTrue());
+        AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(1u));
+        AssertThat(hero.has(HeroDebuff::ManaBurned), IsTrue());
+        AssertThat(hero.has(HeroDebuff::Poisoned), IsTrue());
+        AssertThat(hero.getIntensity(HeroDebuff::Weakened), Equals(1u));
+      }
+    });
+    it("should not be applied when hero takes no damage (except curse)", [&] {
+      Hero hero;
+      AssertThat(hero.receive(TaurogItem::Wereward), IsTrue());
+      AssertThat(attack(hero, monster), Equals(Summary::Win));
+      {
+        AssertThat(hero.has(HeroDebuff::Corroded), IsFalse());
+        AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(2u));
+        AssertThat(hero.has(HeroDebuff::ManaBurned), IsFalse());
+        AssertThat(hero.has(HeroDebuff::Poisoned), IsFalse());
+        AssertThat(hero.has(HeroDebuff::Weakened), IsFalse());
+      }
+    });
+  });
 
   describe("Monster death gaze", [] {
     class CustomMonsterTraits : public MonsterTraits
