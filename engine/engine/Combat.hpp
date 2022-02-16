@@ -53,5 +53,8 @@ namespace Combat
                            bool triggerBurndown,
                            Monsters& allMonsters,
                            Resources& resources);
+
+    // Apply debuffs from monster hit.  Piety collection must be activated before (@see Hero::startPietyCollection).
+    void applyHitSideEffects(Hero& hero, const Monster& monster);
   } // namespace detail
 } // namespace Combat

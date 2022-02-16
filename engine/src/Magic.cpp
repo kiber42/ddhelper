@@ -10,7 +10,7 @@ namespace Magic
 {
   namespace
   {
-    // Rules for Burndayray glyph:
+    // Rules for Burndayraz glyph:
     // 4 damage per character level, 1 burn stack (max 2 burn stacks per character level)
     // (existing burn stack size is added to damage as usual)
     // Effects to be accounted for:
@@ -44,7 +44,8 @@ namespace Magic
       // Retaliation
       if (!monster.isDefeated() && !monsterSlowed && (heavy || monster.has(MonsterTrait::Retaliate)))
       {
-        hero.takeDamage(monster.getDamage() / 2, monster.damageType(), allMonsters);
+        if (hero.takeDamage(monster.getDamage() / 2, monster.damageType(), allMonsters))
+          Combat::detail::applyHitSideEffects(hero, monster);
         if (hero.has(HeroTrait::ManaShield))
           monster.takeManaShieldDamage(hero.getLevel());
       }

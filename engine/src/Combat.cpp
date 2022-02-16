@@ -10,8 +10,12 @@ namespace Combat
   namespace
   {
     // Determines outcome summary and awards experience if applicable.
-    Summary summaryAndExperience(
-        Hero& hero, const Monster& monster, bool monsterWasSlowed, bool monsterWasBurning, Monsters& allMonsters, Resources& resources)
+    Summary summaryAndExperience(Hero& hero,
+                                 const Monster& monster,
+                                 bool monsterWasSlowed,
+                                 bool monsterWasBurning,
+                                 Monsters& allMonsters,
+                                 Resources& resources)
     {
       assert(!hero.isDefeated());
 
@@ -52,7 +56,8 @@ namespace Combat
       }
     }
 
-    Summary knockBackMonster(Hero& hero, Monster& monster, Monsters& allMonsters, Monster* intoMonster, Resources& resources)
+    Summary
+    knockBackMonster(Hero& hero, Monster& monster, Monsters& allMonsters, Monster* intoMonster, Resources& resources)
     {
       const auto knockback = hero.getIntensity(HeroStatus::Knockback);
       if (knockback == 0)
@@ -82,8 +87,7 @@ namespace Combat
                            bool monsterWasBurning,
                            bool triggerBurndown,
                            Monsters& allMonsters,
-                           Resources& resources
-                           )
+                           Resources& resources)
     {
       if (hero.isDefeated())
         return Summary::Death;
@@ -105,6 +109,20 @@ namespace Combat
       hero.applyCollectedPiety(allMonsters);
 
       return summary;
+    }
+
+    void applyHitSideEffects(Hero& hero, const Monster& monster)
+    {
+      Monsters ignore;
+      if (monster.has(MonsterTrait::Poisonous))
+        hero.add(HeroDebuff::Poisoned, ignore);
+      if (monster.has(MonsterTrait::ManaBurn))
+        hero.add(HeroDebuff::ManaBurned, ignore);
+      if (monster.has(MonsterTrait::Corrosive))
+        hero.add(HeroDebuff::Corroded, ignore);
+      if (monster.has(MonsterTrait::Weakening))
+        hero.add(HeroDebuff::Weakened, ignore);
+      hero.collect(hero.getFaith().receivedHit(monster));
     }
   } // namespace detail
 
@@ -131,7 +149,8 @@ namespace Combat
     const auto monsterDamageInitial = monster.getDamage();
     const bool reflexes = hero.has(HeroStatus::Reflexes);
     const bool swiftHand = hero.has(HeroTrait::SwiftHand) && hero.getLevel() > monster.getLevel();
-    const bool heroUsesDeathGaze = hero.getIntensity(HeroStatus::DeathGaze) * monster.getHitPointsMax() > monster.getHitPoints() * 100;
+    const bool heroUsesDeathGaze =
+        hero.getIntensity(HeroStatus::DeathGaze) * monster.getHitPointsMax() > monster.getHitPoints() * 100;
     const bool willPetrify = !monster.isSlowed() && !hero.has(HeroStatus::DeathGazeImmune) &&
                              (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
 
@@ -218,17 +237,7 @@ namespace Combat
       regularAttackSequence();
 
     if (heroReceivedHit)
-    {
-      if (monster.has(MonsterTrait::Poisonous))
-        hero.add(HeroDebuff::Poisoned, allMonsters);
-      if (monster.has(MonsterTrait::ManaBurn))
-        hero.add(HeroDebuff::ManaBurned, allMonsters);
-      if (monster.has(MonsterTrait::Corrosive))
-        hero.add(HeroDebuff::Corroded, allMonsters);
-      if (monster.has(MonsterTrait::Weakening))
-        hero.add(HeroDebuff::Weakened, allMonsters);
-      collectPiety(hero.getFaith().receivedHit(monster));
-    }
+      detail::applyHitSideEffects(hero, monster);
 
     if (appliedPoison)
     {
