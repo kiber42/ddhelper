@@ -22,14 +22,96 @@ namespace
   void cast(Hero& hero, Spell spell) { Magic::cast(hero, spell, noOtherMonsters, resources); }
 } // namespace
 
-void testRaces()
+void testConversionBonuses()
 {
+  describe("Human", [] {
+    it("should receive one base damage for 100 conversion points", [] {
+      auto human = Hero{HeroClass::Guard, HeroRace::Human};
+      human.addConversionPoints(99, noOtherMonsters);
+      AssertThat(human.getDamageBonusPercent(), Equals(0));
+      human.addConversionPoints(1, noOtherMonsters);
+      AssertThat(human.getDamageBonusPercent(), Equals(10));
+      human.addConversionPoints(100, noOtherMonsters);
+      AssertThat(human.getDamageBonusPercent(), Equals(20));
+    });
+  });
   describe("Elf", [] {
-    it("should receive one max mana point on conversion", [] {
-      Hero hero(HeroClass::Guard, HeroRace::Elf);
-      hero.addConversionPoints(70, noOtherMonsters);
-      AssertThat(hero.getManaPointsMax(), Equals(11));
-      AssertThat(hero.getManaPoints(), Equals(10));
+    it("should receive one max mana point for 70 conversion points", [] {
+      auto elf = Hero{HeroClass::Guard, HeroRace::Elf};
+      elf.addConversionPoints(69, noOtherMonsters);
+      AssertThat(elf.getManaPointsMax(), Equals(10u));
+      elf.addConversionPoints(1, noOtherMonsters);
+      AssertThat(elf.getManaPointsMax(), Equals(11u));
+      AssertThat(elf.getManaPoints(), Equals(10u));
+    });
+  });
+  describe("Dwarf", [] {
+    it("should receive one health bonus for 80 conversion points", [] {
+      auto dwarf = Hero{HeroClass::Guard, HeroRace::Dwarf};
+      dwarf.addConversionPoints(79, noOtherMonsters);
+      dwarf.gainLevel(noOtherMonsters);
+      dwarf.gainLevel(noOtherMonsters);
+      AssertThat(dwarf.getHitPointsMax(), Equals(30u));
+      dwarf.addConversionPoints(1, noOtherMonsters);
+      AssertThat(dwarf.getHitPointsMax(), Equals(33u));
+      AssertThat(dwarf.getHitPoints(), Equals(30u));
+      dwarf.gainLevel(noOtherMonsters);
+      AssertThat(dwarf.getHitPointsMax(), Equals(44u));
+    });
+  });
+  auto itemCount = [](const Hero& hero, Item itemType) {
+    const auto& inventory = hero.getItemsAndSpells();
+    return std::count_if(begin(inventory), end(inventory), [&](auto& entry) {
+      if (auto item = std::get_if<Item>(&entry.itemOrSpell))
+        return *item == itemType;
+      return false;
+    });
+  };
+  describe("Halfling", [&] {
+    it("should receive one health potion for 80 conversion points", [&] {
+      auto halfling = Hero{HeroClass::Guard, HeroRace::Halfling};
+      halfling.addConversionPoints(79, noOtherMonsters);
+      AssertThat(itemCount(halfling, Potion::HealthPotion), Equals(1u));
+      halfling.addConversionPoints(1, noOtherMonsters);
+      AssertThat(itemCount(halfling, Potion::HealthPotion), Equals(2u));
+    });
+  });
+  describe("Gnome", [&] {
+    it("should receive one mana potion for 90 conversion points", [&] {
+      auto gnome = Hero{HeroClass::Guard, HeroRace::Gnome};
+      gnome.addConversionPoints(89, noOtherMonsters);
+      AssertThat(itemCount(gnome, Potion::ManaPotion), Equals(1u));
+      gnome.addConversionPoints(1, noOtherMonsters);
+      AssertThat(itemCount(gnome, Potion::ManaPotion), Equals(2u));
+    });
+  });
+  describe("Orc", [] {
+    it("should receive two base damage for 80 conversion points", [] {
+      auto orc = Hero{HeroClass::Guard, HeroRace::Orc};
+      orc.addConversionPoints(79, noOtherMonsters);
+      AssertThat(orc.getBaseDamage(), Equals(5u));
+      orc.addConversionPoints(1, noOtherMonsters);
+      AssertThat(orc.getBaseDamage(), Equals(7u));
+    });
+  });
+  describe("Goblin", [] {
+    it("should receive stacking XP bonus for 85 conversion points", [] {
+      auto goblin = Hero{HeroClass::Guard, HeroRace::Goblin};
+      goblin.addConversionPoints(84, noOtherMonsters);
+      AssertThat(goblin.getLevel(), Equals(1u));
+      AssertThat(goblin.getXP(), Equals(0u));
+      unsigned expected = 5u - goblin.getXPforNextLevel();
+      goblin.addConversionPoints(1, noOtherMonsters);
+      AssertThat(goblin.getLevel(), Equals(2u));
+      AssertThat(goblin.getXP(), Equals(expected));
+      expected += 6u;
+      goblin.addConversionPoints(85, noOtherMonsters);
+      AssertThat(goblin.getLevel(), Equals(2u));
+      AssertThat(goblin.getXP(), Equals(expected));
+      expected += 7u - goblin.getXPforNextLevel();
+      goblin.addConversionPoints(85, noOtherMonsters);
+      AssertThat(goblin.getLevel(), Equals(3u));
+      AssertThat(goblin.getXP(), Equals(expected));
     });
   });
 }
@@ -127,7 +209,7 @@ void testTransmuter()
 
 void testHeroTraits()
 {
-  testRaces();
+  testConversionBonuses();
   testChemist();
   testTransmuter();
 }
