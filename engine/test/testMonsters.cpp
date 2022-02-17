@@ -12,112 +12,124 @@ using namespace snowhouse;
 void testMonsterBasics()
 {
   describe("Monster", [] {
-    auto monster = Monster{{Level{2}, 10_HP, 3_damage}};
-    it("used for test should have level 2 and 10 HP", [&] {
+    it("has constructor for basic stats", [] {
+      auto monster = Monster{{Level{2}, 10_HP, 3_damage, 4_dprot}};
       AssertThat(monster.getLevel(), Equals(2u));
       AssertThat(monster.getHitPoints(), Equals(10u));
+      AssertThat(monster.getDamage(), Equals(3u));
+      AssertThat(monster.getDeathProtection(), Equals(4u));
     });
-    it("with 10 HP should survive a hit with 9 damage points and has 1 HP remaining", [&] {
+    it("with 10 HP should survive a hit with 9 damage points and have 1 HP remaining", [] {
+      auto monster = Monster{{Level{2}, 10_HP, 3_damage}};
       monster.takeDamage(9, DamageType::Physical);
       AssertThat(monster.isDefeated(), IsFalse());
       AssertThat(monster.getHitPoints(), Equals(1u));
     });
-    it("at level 2 should recover at a rate of 2 HP per explored square", [&] {
-      monster.recover(4);
-      AssertThat(monster.getHitPoints(), Equals(9u));
+    it("should recover HP corresponding to its level", [] {
+      auto monsterLevelTwo = Monster{{Level{2}, 10_HP, 3_damage}};
+      monsterLevelTwo.takeDamage(9, DamageType::Physical);
+      monsterLevelTwo.recover(1);
+      AssertThat(monsterLevelTwo.getHitPoints(), Equals(3u));
+      monsterLevelTwo.recover(3);
+      AssertThat(monsterLevelTwo.getHitPoints(), Equals(9u));
+      auto monsterLevelSeven = Monster{{Level{7}, 50_HP, 3_damage}};
+      monsterLevelSeven.takeDamage(49, DamageType::Physical);
+      monsterLevelSeven.recover(1);
+      AssertThat(monsterLevelSeven.getHitPoints(), Equals(8u));
+      monsterLevelSeven.recover(6);
+      AssertThat(monsterLevelSeven.getHitPoints(), Equals(50u));
     });
-    it("should not recover beyond its max HP", [&] {
+    it("should not recover beyond its max HP", [] {
+      auto monster = Monster{MonsterType::Generic, Level{10}};
       monster.recover(10);
       AssertThat(monster.getHitPoints(), Equals(monster.getHitPointsMax()));
-    });
-    it("should not recover HP while poisoned", [&] {
-      monster.takeDamage(1, DamageType::Physical);
-      monster.poison(3);
-      monster.recover(1);
-      AssertThat(monster.getHitPoints(), Equals(9u));
-      AssertThat(monster.getPoisonAmount(), Equals(1u));
-    });
-    it("should reduce poison as it would usually recover HP", [&] {
-      monster.recover(1);
-      AssertThat(monster.getHitPoints(), Equals(10u));
-      AssertThat(monster.isPoisoned(), IsFalse());
-    });
-    it("should lose 4 HP per caster level when hit by a fireball", [&] {
-      monster.takeFireballDamage(2);
-      AssertThat(monster.getHitPoints(), Equals(10u - 2u * 4u));
-    });
-    it("should be burning after hit by a fireball", [&] {
-      AssertThat(monster.isBurning(), IsTrue());
-      AssertThat(monster.getBurnStackSize(), Equals(1u));
-    });
-    it("should recover HP at a rate reduced by 1 when burning", [&] {
-      monster.recover(4);
-      AssertThat(monster.getHitPoints(), Equals(6u));
-    });
-    it("should take additional fireball damage when already burning", [&] {
-      monster.takeFireballDamage(1);
-      AssertThat(monster.getHitPoints(), Equals(6u - 1u * 4u - 1u));
-      AssertThat(monster.getBurnStackSize(), Equals(2u));
-    });
-    it("should recover HP at a rate reduced by 1 when burning, independent of burn stack size", [&] {
-      monster.recover(5);
-      AssertThat(monster.getHitPoints(), Equals(6u));
-    });
-    it("should take additional fireball damage per burn stack", [&] {
-      monster.recover(10);
-      monster.takeFireballDamage(1);
-      AssertThat(monster.getHitPoints(), Equals(10u - 1u * 4u - 2u));
-    });
-    it("should not have a burn stack size higher than twice the caster's level",
-       [&] { AssertThat(monster.getBurnStackSize(), Equals(2u)); });
-    it("should stop burning upon any physical damage, and take damage equal to burn stack size", [&] {
-      AssertThat(monster.getHitPoints() - monster.getBurnStackSize(), Equals(2u));
-      monster.takeDamage(0, DamageType::Physical);
-      AssertThat(monster.isBurning(), IsFalse());
-      AssertThat(monster.getHitPoints(), Equals(2u));
-    });
-    it("should recover from being slowed when taking damage", [&] {
-      monster.slow();
-      AssertThat(monster.isSlowed(), IsTrue());
-      monster.takeDamage(1, DamageType::Physical);
-      AssertThat(monster.isSlowed(), IsFalse());
     });
   });
 }
 
-void testHiddenMonster()
+void testMonsterStatusEffects()
 {
-  describe("Hidden Monster", [] {
-    std::mt19937 generator{0};
-    Monster monster(MonsterType::BloodSnake, Level{7}, DungeonMultiplier{2});
-    HiddenMonster hiddenSpecific(std::move(monster));
-    it("should allow to set and reveal a specific monster", [&] {
-      auto revealedMonster = hiddenSpecific.reveal(generator);
-      AssertThat(revealedMonster.getLevel(), Equals(7u));
-      AssertThat(revealedMonster.getHitPoints(), Equals(180u));
-      AssertThat(revealedMonster.getName(), Equals("Blood Snake level 7"));
+  describe("Poison", [] {
+    it("should prevent monster HP recovery", [] {
+      auto monster = Monster{{Level{5}, 10_HP, 1_damage}};
+      monster.takeDamage(5, DamageType::Typeless);
+      monster.poison(7);
+      monster.recover(1);
+      AssertThat(monster.getHitPoints(), Equals(5u));
+      AssertThat(monster.getPoisonAmount(), Equals(2u));
+      monster.recover(1);
+      AssertThat(monster.getHitPoints(), Equals(8u));
+      AssertThat(monster.isPoisoned(), IsFalse());
     });
-    it("should reveal random monsters of same level if called repeatedly", [&] {
-      auto revealedMonster = hiddenSpecific.reveal(generator);
-      revealedMonster = hiddenSpecific.reveal(generator);
-      // Dungeon multiplier is reset to 100%
-      AssertThat(revealedMonster.getHitPoints(), IsLessThan(100u));
-      AssertThat(revealedMonster.getName(), !Equals("Blood Snake level 7"));
+    it("should wear off also for healthy monsters", [] {
+      auto monster = Monster{{Level{3}, 10_HP, 1_damage}};
+      monster.poison(7);
+      monster.recover(2);
+      AssertThat(monster.getPoisonAmount(), Equals(1u));
+      monster.recover(1);
+      AssertThat(monster.isPoisoned(), IsFalse());
     });
-    HiddenMonster hiddenBasic(Level{5}, DungeonMultiplier{0.1f}, false);
-    it("should allow to set and reveal a random basic monster of given level", [&] {
-      for (int count = 0; count < 10; ++count)
-      {
-        auto revealedMonster = hiddenBasic.reveal(generator);
-        AssertThat(revealedMonster.getLevel(), Equals(5u));
-        AssertThat(revealedMonster.getHitPoints(), IsLessThan(20u));
-        // Have to verify that a basic monster was revealed using its name
-        std::array<std::string, (int)MonsterType::LastBasic + 1> basic_names;
-        using namespace std::string_literals;
-        for (auto i = 0u; i <= (int)MonsterType::LastBasic; ++i)
-          basic_names[i] = toString((MonsterType)i) + " level 5"s;
-        AssertThat(basic_names, Contains(revealedMonster.getName()));
-      }
+  });
+  describe("Fireball", [] {
+    it("should cause 4 HP magical damage per caster level and burning", [] {
+      auto monster = Monster{{Level{2}, 10_HP, 3_damage}};
+      monster.takeFireballDamage(2);
+      AssertThat(monster.getHitPoints(), Equals(10u - 2u * 4u));
+      AssertThat(monster.isBurning(), IsTrue());
+      AssertThat(monster.getBurnStackSize(), Equals(1u));
+    });
+    it("should cause more damage when monster is already burning", [] {
+      auto monster = Monster{{Level{10}, 10_HP, 3_damage}};
+      monster.takeFireballDamage(2);
+      monster.recover(1);
+      monster.takeFireballDamage(1);
+      AssertThat(monster.getHitPoints(), Equals(1u * 4u + 1u));
+      AssertThat(monster.getBurnStackSize(), Equals(2u));
+      monster.recover(1);
+      monster.takeFireballDamage(1);
+      AssertThat(monster.getHitPointsMax() - monster.getHitPoints(), Equals(1u * 4u + 2u));
+    });
+  });
+  describe("Burning", [] {
+    it("should reduce HP recovery rate by 1, independent of burn stack size", [] {
+      auto monster = Monster{{Level{5}, 100_HP, 0_damage}};
+      monster.takeFireballDamage(3);
+      const auto hpAfterFireball1 = monster.getHitPoints();
+      AssertThat(hpAfterFireball1, Equals(100u - 3u * 4u));
+      monster.recover(2);
+      AssertThat(monster.getHitPoints() - hpAfterFireball1, Equals(2 * (monster.getLevel() - 1)));
+
+      monster.takeFireballDamage(3);
+      const auto hpAfterFireball2 = monster.getHitPoints();
+      monster.recover(2);
+      AssertThat(monster.getHitPoints() - hpAfterFireball2, Equals(2 * (monster.getLevel() - 1)));
+    });
+    it("should not be larger than twice the caster's level", [] {
+      auto monster = Monster{{Level{5}, 100_HP, 0_damage}};
+      monster.takeFireballDamage(1);
+      AssertThat(monster.getBurnStackSize(), Equals(1u));
+      monster.takeFireballDamage(1);
+      AssertThat(monster.getBurnStackSize(), Equals(2u));
+      monster.takeFireballDamage(1);
+      AssertThat(monster.getBurnStackSize(), Equals(2u));
+    });
+    it("should end upon non-magical damage, and cause damage equal to burn stack size", [] {
+      auto monster = Monster{{Level{10}, 10_HP, 0_damage}};
+      monster.takeFireballDamage(1);
+      monster.takeFireballDamage(1);
+      monster.recover(1);
+      monster.takeDamage(0, DamageType::Typeless);
+      AssertThat(monster.isBurning(), IsFalse());
+      AssertThat(monster.getHitPoints(), Equals(10u - 2u));
+    });
+  });
+  describe("Slowed", [] {
+    it("should end when taking damage", [] {
+      auto monster = Monster{{Level{2}, 10_HP, 3_damage}};
+      monster.slow();
+      AssertThat(monster.isSlowed(), IsTrue());
+      monster.takeDamage(1, DamageType::Physical);
+      AssertThat(monster.isSlowed(), IsFalse());
     });
   });
 }
@@ -280,9 +292,47 @@ void testMonsterHitPoints()
   });
 }
 
+void testHiddenMonster()
+{
+  describe("Hidden Monster", [] {
+    std::mt19937 generator{0};
+    Monster monster(MonsterType::BloodSnake, Level{7}, DungeonMultiplier{2});
+    HiddenMonster hiddenSpecific(std::move(monster));
+    it("should allow to set and reveal a specific monster", [&] {
+      auto revealedMonster = hiddenSpecific.reveal(generator);
+      AssertThat(revealedMonster.getLevel(), Equals(7u));
+      AssertThat(revealedMonster.getHitPoints(), Equals(180u));
+      AssertThat(revealedMonster.getName(), Equals("Blood Snake level 7"));
+    });
+    it("should reveal random monsters of same level if called repeatedly", [&] {
+      auto revealedMonster = hiddenSpecific.reveal(generator);
+      revealedMonster = hiddenSpecific.reveal(generator);
+      // Dungeon multiplier is reset to 100%
+      AssertThat(revealedMonster.getHitPoints(), IsLessThan(100u));
+      AssertThat(revealedMonster.getName(), !Equals("Blood Snake level 7"));
+    });
+    HiddenMonster hiddenBasic(Level{5}, DungeonMultiplier{0.1f}, false);
+    it("should allow to set and reveal a random basic monster of given level", [&] {
+      for (int count = 0; count < 10; ++count)
+      {
+        auto revealedMonster = hiddenBasic.reveal(generator);
+        AssertThat(revealedMonster.getLevel(), Equals(5u));
+        AssertThat(revealedMonster.getHitPoints(), IsLessThan(20u));
+        // Have to verify that a basic monster was revealed using its name
+        std::array<std::string, (int)MonsterType::LastBasic + 1> basic_names;
+        using namespace std::string_literals;
+        for (auto i = 0u; i <= (int)MonsterType::LastBasic; ++i)
+          basic_names[i] = toString((MonsterType)i) + " level 5"s;
+        AssertThat(basic_names, Contains(revealedMonster.getName()));
+      }
+    });
+  });
+}
+
 void testMonsters()
 {
   testMonsterBasics();
+  testMonsterStatusEffects();
   testMonsterHitPoints();
   testHiddenMonster();
 }

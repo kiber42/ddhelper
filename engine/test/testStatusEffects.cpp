@@ -110,8 +110,12 @@ void testStatusEffects()
         attack(hero, monster);
         // One curse from hit, one from killing
         AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(2u));
-        auto monster2 = Monster{{Level{1}, 1_HP, 3_damage}};
-        attack(hero, monster2);
+      });
+      it("should be removed when non-cursed monster is defeated", [] {
+        Hero hero;
+        hero.add(HeroDebuff::Cursed, noOtherMonsters, 2);
+        auto monster = Monster{{Level{1}, 1_HP, 3_damage}};
+        attack(hero, monster);
         AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(1u));
       });
       it("should take effect immediately after hero's attack", [] {
