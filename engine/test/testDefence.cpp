@@ -15,7 +15,7 @@ void testDefenceBasics()
 {
   describe("Monster", [] {
     describe("Physical resistance", [] {
-      Monster monster("", {Level{1}, 10_HP, 1_damage}, {50_physicalresist}, {});
+      auto monster = Monster{{Level{1}, 10_HP, 1_damage}, {50_physicalresist}};
       it("should reduce damage according to resistance %", [&] {
         AssertThat(monster.getPhysicalResistPercent(), Equals(50u));
         monster.takeDamage(10, DamageType::Physical);
@@ -27,7 +27,7 @@ void testDefenceBasics()
       });
     });
     describe("Magical resistance", [] {
-      Monster monster("", {Level{1}, 10_HP, 1_damage}, {75_magicalresist}, {});
+      auto monster = Monster{{Level{1}, 10_HP, 1_damage}, {75_magicalresist}};
       it("should be applied for magical damage, resisted damage is rounded down", [&] {
         AssertThat(monster.getMagicalResistPercent(), Equals(75u));
         monster.takeDamage(5 * 4 + 1, DamageType::Magical);
@@ -37,7 +37,7 @@ void testDefenceBasics()
     describe("Corroded", [] {
       it("should add 1 damage point per level", [] {
         Hero hero;
-        Monster monster(1, 20, 1);
+        auto monster = Monster{{Level{1}, 20_HP, 1_damage}};
         monster.corrode();
         monster.takeDamage(1, DamageType::Physical);
         AssertThat(monster.getHitPoints(), Equals(18u));
@@ -48,7 +48,7 @@ void testDefenceBasics()
     });
     describe("Resistance crushing", [] {
       it("should reduce resistances by 3 percentage points", [] {
-        Monster monster("", {Level{1}, 10_HP, 1_damage}, {50_physicalresist, 75_magicalresist}, {});
+        auto monster = Monster{{Level{1}, 10_HP, 1_damage}, {50_physicalresist, 75_magicalresist}};
         monster.erodeResitances();
         AssertThat(monster.getPhysicalResistPercent(), Equals(47u));
         AssertThat(monster.getMagicalResistPercent(), Equals(72u));
@@ -63,18 +63,18 @@ void testDefenceBasics()
         AssertThat(monster.getHitPoints(), Equals(8u));
       });
       it("should not reduce resistances below 0", [] {
-        Monster monster("", {Level{1}, 10_HP, 1_damage}, {2_physicalresist, 3_magicalresist}, {});
+        auto monster = Monster{{Level{1}, 10_HP, 10_damage, 2_dprot}, {2_physicalresist, 3_magicalresist}};
         monster.erodeResitances();
         AssertThat(monster.getPhysicalResistPercent(), Equals(0u));
         AssertThat(monster.getMagicalResistPercent(), Equals(0u));
-        Monster monster2("", {Level{1}, 10_HP, 1_damage}, {3_physicalresist, 4_magicalresist}, {});
+        auto monster2 = Monster{{Level{1}, 10_HP, 1_damage}, {3_physicalresist, 4_magicalresist}};
         monster2.erodeResitances();
         AssertThat(monster2.getPhysicalResistPercent(), Equals(0u));
         AssertThat(monster2.getMagicalResistPercent(), Equals(1u));
       });
     });
     describe("Death protection", [] {
-      Monster monster("", {Level{1}, 10_HP, 10_damage, 2_dprot}, {}, {});
+      auto monster = Monster{{Level{1}, 10_HP, 10_damage, 2_dprot}};
       it("should prevent defeat", [&] {
         monster.takeDamage(100, DamageType::Physical);
         AssertThat(monster.isDefeated(), IsFalse());

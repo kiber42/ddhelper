@@ -214,7 +214,7 @@ void testChemist()
       AssertThat(chemist.getManaPoints(), Equals(0u));
     });
     it("should not stack erode effect", [&] {
-      Monster monster("", {Level{1}, 16_HP, 1_damage}, {4_physicalresist, 2_magicalresist}, {});
+      auto monster = Monster{{Level{1}, 16_HP, 1_damage}, {4_physicalresist, 2_magicalresist}};
       AssertThat(attack(chemist, monster), Equals(Summary::Safe));
       AssertThat(monster.getHitPoints(), Equals(1u));
       AssertThat(monster.getPhysicalResistPercent(), Equals(1u));
@@ -247,7 +247,7 @@ void testChemist()
       chemist.request(Boon::StoneForm, noOtherMonsters, resources);
       chemist.wallDestroyed();
       AssertThat(chemist.getIntensity(HeroStatus::Might), Equals(1u));
-      Monster monster("", {Level{1}, 16_HP, 1_damage}, {4_physicalresist, 2_magicalresist}, {});
+      auto monster = Monster{{Level{1}, 16_HP, 1_damage}, {4_physicalresist, 2_magicalresist}};
       attack(chemist, monster);
       AssertThat(chemist.has(HeroStatus::Might), IsFalse());
 
@@ -306,23 +306,22 @@ void testGorgon()
     });
     it("will not affect enemies with sufficient health", [] {
       auto gorgon = Hero{HeroClass::Gorgon};
-      auto monster = Monster{"10% HP", {Level{3}, 100_HP, 5_damage}, {}, {}};
+      auto monster = Monster{{Level{3}, 100_HP, 5_damage}};
       monster.takeDamage(90, DamageType::Physical);
       AssertThat(attack(gorgon, monster), Equals(Summary::Safe));
       AssertThat(monster.getHitPoints(), Equals(10u - gorgon.getDamageVersusStandard()));
     });
     it("death gaze deals an extra attack with base damage", [] {
       auto gorgon = Hero{HeroClass::Gorgon};
-      gorgon.changeBaseDamage(15);
       const auto attackDamage = gorgon.getDamageVersusStandard();
       const auto deathGazeDamage = gorgon.getBaseDamage();
-      AssertThat(attackDamage, Equals(10u) /* -50% damage bonus */);
+      AssertThat(attackDamage, Equals(2u) /* -50% damage bonus */);
 
-      auto monster = Monster{"Tank", {Level{1}, 70_HP, 4_damage}, {}, {}};
+      auto monster = Monster{{Level{1}, 16_HP, 4_damage}};
       gorgon.add(HeroStatus::DeathGaze, 91);
       AssertThat(gorgon.getIntensity(HeroStatus::DeathGaze), Equals(101u));
       AssertThat(attack(gorgon, monster), Equals(Summary::Safe));
-      AssertThat(monster.getHitPoints(), Equals(70u - attackDamage - deathGazeDamage));
+      AssertThat(monster.getHitPoints(), Equals(16u - attackDamage - deathGazeDamage));
       AssertThat(gorgon.getHitPoints(), Equals(7u) /* 25% physical resist */);
 
       Monsters ignore;

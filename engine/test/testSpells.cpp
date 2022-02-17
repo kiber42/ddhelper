@@ -126,7 +126,7 @@ void testBurndayraz()
     });
     it("shall account for magical resist", [] {
       Hero hero;
-      Monster monster{"lvl1", {Level{1}, 10_HP, 0_damage}, {20_magicalresist}, {}};
+      auto monster = Monster{{Level{1}, 10_HP, 0_damage}, {20_magicalresist}};
       monster.burnMax(11);
       monster.burnDown();
       AssertThat(monster.getHitPoints(), Equals(1u /* 10 - (11 - 11 * 2 / 10) */));

@@ -40,12 +40,12 @@ void testFaith()
         Hero hero;
         hero.followDeity(God::GlowingGuardian, 0, resources);
         const auto initialPiety = hero.getPiety();
-        Monster manaBurnMonster("", {Level{1}, 10_HP, 1_damage}, {}, {MonsterTrait::ManaBurn});
+        auto manaBurnMonster = Monster{{Level{1}, 10_HP, 1_damage}, {}, {MonsterTrait::ManaBurn}};
         AssertThat(attack(hero, manaBurnMonster), Equals(Summary::Safe));
         AssertThat(hero.getPiety() - initialPiety, Equals(2u));
         AssertThat(attack(hero, manaBurnMonster), Equals(Summary::Win));
         AssertThat(hero.getPiety() - initialPiety, Equals(2u));
-        Monster poisonMonster("", {Level{1}, 10_HP, 1_damage}, {}, {MonsterTrait::Poisonous});
+        auto poisonMonster = Monster{{Level{1}, 10_HP, 1_damage}, {}, {MonsterTrait::Poisonous}};
         AssertThat(attack(hero, poisonMonster), Equals(Summary::Safe));
         AssertThat(hero.getPiety() - initialPiety, Equals(4u));
         AssertThat(attack(hero, poisonMonster), Equals(Summary::Win));
@@ -109,12 +109,12 @@ void testFaith()
         Hero hero;
         hero.gainLevel(noOtherMonsters);
         hero.followDeity(God::TikkiTooki, 0, resources);
-        Monster monster(MonsterType::MeatMan, Level{1});
+        auto monster = Monster{MonsterType::MeatMan, Level{1}};
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
         AssertThat(attack(hero, monster), Equals(Summary::Win));
         AssertThat(hero.getPiety(), Equals(5u));
         hero.gainExperienceNoBonuses(7, noOtherMonsters);
-        Monster monster2(2, 1, 1);
+        auto monster2 = Monster{{Level{2}, 1_HP, 1_damage}};
         AssertThat(attack(hero, monster2), Equals(Summary::LevelUp));
         AssertThat(hero.getLevel(), Equals(3u));
         AssertThat(hero.getPiety(), Equals(5u));
@@ -174,7 +174,7 @@ void testFaith()
         hero.followDeity(God::TikkiTooki, 0, resources);
         hero.request(Boon::Tribute, noOtherMonsters, resources);
         AssertThat(hero.getPiety(), Equals(10u));
-        Monster meatMan(1, 100, 3);
+        auto meatMan = Monster{{Level{1}, 100_HP, 3_damage}};
         AssertThat(attack(hero, meatMan), Equals(Summary::Safe));
         AssertThat(hero.getPiety(), Equals(10u));
         AssertThat(attack(hero, meatMan), Equals(Summary::Safe));

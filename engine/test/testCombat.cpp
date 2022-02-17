@@ -26,8 +26,8 @@ void testCombatInitiative()
 {
   describe("Initiative", [] {
     Hero hero;
-    Monster boss(10, 10, 3);
-    Monster monster(1, 10, 3);
+    auto boss = Monster{{Level{10}, 10_HP, 3_damage}};
+    auto monster = Monster{{Level{1}, 10_HP, 3_damage}};
     it("should go to the monster of higher level", [&] { AssertThat(hero.hasInitiativeVersus(boss), IsFalse()); });
     it("should go to the monster of equal level", [&] { AssertThat(hero.hasInitiativeVersus(monster), IsFalse()); });
     it("should go to the hero if he has higher level", [&] {
@@ -41,7 +41,7 @@ void testMelee()
 {
   describe("Melee simulation", [] {
     Hero hero;
-    Monster monster(3, 15, 5);
+    auto monster = Monster{{Level{3}, 15_HP, 5_damage}};
     it("should correctly predict safe outcome (simple case)",
        [&] { AssertThat(attack(hero, monster), Equals(Summary::Safe)); });
     it("should correctly predict death outcome (simple case)",
@@ -57,7 +57,7 @@ void testMelee()
     });
     it("should correctly predict hitpoint loss (simple case)", [] {
       Hero hero;
-      Monster monster(3, 15, 9);
+      auto monster = Monster{{Level{3}, 15_HP, 9_damage}};
       AssertThat(hero.getHitPoints(), Equals(10u));
       AssertThat(monster.getHitPoints(), Equals(15u));
       attack(hero, monster);
@@ -66,11 +66,9 @@ void testMelee()
     });
   });
   describe("Side effects", [] {
-    Monster monster{"",
-                    {Level{1}, 10_HP, 5_damage},
-                    Defence{},
-                    MonsterTraits{MonsterTrait::Corrosive, MonsterTrait::CurseBearer, MonsterTrait::ManaBurn,
-                                  MonsterTrait::Poisonous, MonsterTrait::Weakening}};
+    auto traits = MonsterTraits{MonsterTrait::Corrosive, MonsterTrait::CurseBearer, MonsterTrait::ManaBurn,
+                                MonsterTrait::Poisonous, MonsterTrait::Weakening};
+    auto monster = Monster{{Level{1}, 10_HP, 5_damage}, {}, std::move(traits)};
     it("should be applied", [&] {
       Hero hero;
       AssertThat(attack(hero, monster), Equals(Summary::Safe));
@@ -119,7 +117,7 @@ void testMelee()
     it("should be available with 100% intensity", [] {
       Hero hero;
       auto traits = CustomMonsterTraits::withDeathGaze(100);
-      Monster monster("", {Level{1}, 100_HP, 1_damage}, {}, std::move(traits));
+      auto monster = Monster{{Level{1}, 100_HP, 1_damage}, {}, std::move(traits)};
       hero.add(HeroStatus::DeathProtection);
       AssertThat(attack(hero, monster), Equals(Summary::Safe));
       AssertThat(hero.has(HeroStatus::DeathProtection), IsTrue());
@@ -134,7 +132,7 @@ void testMelee()
     it("should be available with 101% intensity", [] {
       Hero hero;
       MonsterTraits traits = CustomMonsterTraits::withDeathGaze(101);
-      Monster monster("", {Level{1}, 10_HP, 1_damage}, {}, std::move(traits));
+      auto monster = Monster{{Level{1}, 10_HP, 1_damage}, {}, std::move(traits)};
       AssertThat(attack(hero, monster), Equals(Summary::Petrified));
     });
   });
@@ -147,7 +145,7 @@ void testCombatWithTwoMonsters()
     Monsters allMonsters;
     SimpleResources resources;
     allMonsters.reserve(2); // prevent reallocation
-    Monster& burning = allMonsters.emplace_back(Monster(1, 10, 1));
+    Monster& burning = allMonsters.emplace_back(MonsterStats{Level{1}, 10_HP, 1_damage});
     Monster& nextTarget = allMonsters.emplace_back(MonsterType::MeatMan, Level{1});
     it("should occur on physical attack to other monster", [&] {
       AssertThat(Magic::cast(hero, burning, Spell::Burndayraz, allMonsters, resources), Equals(Summary::Safe));

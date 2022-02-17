@@ -15,8 +15,8 @@ class Monster
 {
 public:
   Monster(MonsterType, Level, DungeonMultiplier = DungeonMultiplier{1});
-  Monster(std::string name, MonsterStats, Defence, MonsterTraits);
-  Monster(uint8_t level, uint16_t hp, uint16_t damage);
+  Monster(std::string name, MonsterStats, Defence = {}, MonsterTraits = {});
+  Monster(MonsterStats, Defence = {}, MonsterTraits = {});
 
   const std::string& getName() const;
   int getID() const;

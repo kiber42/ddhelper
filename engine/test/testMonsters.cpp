@@ -12,7 +12,7 @@ using namespace snowhouse;
 void testMonsterBasics()
 {
   describe("Monster", [] {
-    Monster monster(2, 10, 3);
+    auto monster = Monster{{Level{2}, 10_HP, 3_damage}};
     it("used for test should have level 2 and 10 HP", [&] {
       AssertThat(monster.getLevel(), Equals(2u));
       AssertThat(monster.getHitPoints(), Equals(10u));

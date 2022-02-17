@@ -39,11 +39,11 @@ Monster::Monster(std::string name, MonsterStats stats, Defence damage, MonsterTr
 {
 }
 
-Monster::Monster(uint8_t level, uint16_t hp, uint16_t damage)
-  : Monster("Monster level " + std::to_string(level),
-            {Level{level}, HitPoints{hp}, DamagePoints{damage}, DeathProtection{0}},
-            {},
-            {})
+Monster::Monster(MonsterStats stats, Defence defence, MonsterTraits traits)
+  : Monster("Monster level " + std::to_string(stats.getLevel().get()),
+            std::move(stats),
+            std::move(defence),
+            std::move(traits))
 {
 }
 
