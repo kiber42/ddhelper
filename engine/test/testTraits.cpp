@@ -20,9 +20,11 @@ namespace
   auto attack(Hero& hero, Monster& monster) { return Combat::attack(hero, monster, noOtherMonsters, resources); }
 
   void cast(Hero& hero, Spell spell) { Magic::cast(hero, spell, noOtherMonsters, resources); }
+
+  void cast(Hero& hero, Monster& monster, Spell spell) { Magic::cast(hero, monster, spell, noOtherMonsters, resources); }
 } // namespace
 
-void testConversionBonuses()
+void testConversionBonusesBasic()
 {
   describe("Human", [] {
     it("should receive one base damage for 100 conversion points", [] {
@@ -112,6 +114,81 @@ void testConversionBonuses()
       goblin.addConversionPoints(85, noOtherMonsters);
       AssertThat(goblin.getLevel(), Equals(3u));
       AssertThat(goblin.getXP(), Equals(expected));
+    });
+  });
+}
+
+void testConversionBonusesMonsterClasses()
+{
+  describe("Vampire", [] {
+    it("should receive one level of lifesteal for 120 conversion points", [] {
+      auto vampire = Hero{HeroClass::Vampire};
+      vampire.addConversionPoints(119, noOtherMonsters);
+      AssertThat(vampire.getIntensity(HeroStatus::LifeSteal), Equals(1u));
+      vampire.addConversionPoints(1, noOtherMonsters);
+      AssertThat(vampire.getIntensity(HeroStatus::LifeSteal), Equals(2u));
+    });
+  });
+  describe("Half-Dragon", [] {
+    it("should receive 20% knockback for 100 conversion points", [] {
+      auto halfDragon = Hero{HeroClass::HalfDragon};
+      halfDragon.addConversionPoints(99, noOtherMonsters);
+      AssertThat(halfDragon.getIntensity(HeroStatus::Knockback), Equals(20u));
+      halfDragon.addConversionPoints(1, noOtherMonsters);
+      AssertThat(halfDragon.getIntensity(HeroStatus::Knockback), Equals(40u));
+    });
+  });
+  describe("Gorgon", [] {
+    it("should receive 5% death gaze for 100 conversion points", [] {
+      auto gorgon = Hero{HeroClass::Gorgon};
+      gorgon.addConversionPoints(99, noOtherMonsters);
+      AssertThat(gorgon.getIntensity(HeroStatus::DeathGaze), Equals(10u));
+      gorgon.addConversionPoints(1, noOtherMonsters);
+      AssertThat(gorgon.getIntensity(HeroStatus::DeathGaze), Equals(15u));
+    });
+  });
+  describe("Rat Monarch", [] {
+    it("should receive one level of corrosive strike for 80 conversion points", [] {
+      auto ratMonarch = Hero{HeroClass::RatMonarch};
+      ratMonarch.addConversionPoints(79, noOtherMonsters);
+      AssertThat(ratMonarch.getIntensity(HeroStatus::CorrosiveStrike), Equals(1u));
+      ratMonarch.addConversionPoints(1, noOtherMonsters);
+      AssertThat(ratMonarch.getIntensity(HeroStatus::CorrosiveStrike), Equals(2u));
+    });
+  });
+  describe("Goatperson", [] {
+    it("should receive HP and MP refresh as conversion bonus", [] {
+      auto altars = std::vector{God::BinlorIronshield};
+      auto goatperson = Hero{HeroClass::Goatperson, altars};
+      auto boss = Monster{MonsterType::DoomArmour, Level{10}};
+      goatperson.add(HeroStatus::DeathProtection);
+      AssertThat(attack(goatperson, boss), Equals(Summary::Safe));
+      AssertThat(goatperson.getHitPoints(), Equals(1u));
+      goatperson.addConversionPoints(99, noOtherMonsters);
+      AssertThat(goatperson.getHitPoints(), Equals(1u));
+      goatperson.addConversionPoints(1, noOtherMonsters);
+      AssertThat(goatperson.getHitPoints(), Equals(10u));
+
+      goatperson.add(HeroStatus::DeathProtection);
+      cast(goatperson, boss, Spell::Pisorf);
+      cast(goatperson, boss, Spell::Apheelsik);
+      AssertThat(attack(goatperson, boss), Equals(Summary::Safe));
+      AssertThat(goatperson.getHitPoints(), Equals(1u));
+      AssertThat(goatperson.getManaPoints(), Equals(1u));
+      goatperson.addConversionPoints(100, noOtherMonsters);
+      AssertThat(goatperson.getHitPoints(), Equals(1u));
+      AssertThat(goatperson.getManaPoints(), Equals(1u));
+      goatperson.addConversionPoints(10, noOtherMonsters);
+      AssertThat(goatperson.getHitPoints(), Equals(10u));
+      AssertThat(goatperson.getManaPoints(), Equals(10u));
+
+      cast(goatperson, Spell::Getindare);
+      cast(goatperson, boss, Spell::Burndayraz);
+      AssertThat(goatperson.getManaPoints(), Equals(1u));
+      goatperson.addConversionPoints(110, noOtherMonsters);
+      AssertThat(goatperson.getManaPoints(), Equals(1u));
+      goatperson.addConversionPoints(10, noOtherMonsters);
+      AssertThat(goatperson.getManaPoints(), Equals(10u));
     });
   });
 }
@@ -209,7 +286,8 @@ void testTransmuter()
 
 void testHeroTraits()
 {
-  testConversionBonuses();
+  testConversionBonusesBasic();
+  testConversionBonusesMonsterClasses();
   testChemist();
   testTransmuter();
 }
