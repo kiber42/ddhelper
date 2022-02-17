@@ -21,7 +21,10 @@ namespace
 
   void cast(Hero& hero, Spell spell) { Magic::cast(hero, spell, noOtherMonsters, resources); }
 
-  void cast(Hero& hero, Monster& monster, Spell spell) { Magic::cast(hero, monster, spell, noOtherMonsters, resources); }
+  void cast(Hero& hero, Monster& monster, Spell spell)
+  {
+    Magic::cast(hero, monster, spell, noOtherMonsters, resources);
+  }
 } // namespace
 
 void testConversionBonusesBasic()
@@ -284,12 +287,60 @@ void testTransmuter()
   });
 }
 
+void testGorgon()
+{
+  describe("Gorgon", [] {
+    it("will instantly petrify weak enemies", [] {
+      auto gorgon = Hero{HeroClass::Gorgon};
+      gorgon.add(HeroStatus::StoneSkin, 20);
+      auto monster = Monster{MonsterType::Wraith, Level{2}};
+      monster.applyTikkiTookiBoost();
+      AssertThat(monster.has(MonsterTrait::FirstStrike), IsTrue());
+      monster.takeDamage(monster.getHitPoints() - 1, DamageType::Typeless);
+      const auto numWallsBefore = resources.numWalls;
+      AssertThat(attack(gorgon, monster), Equals(Summary::Win));
+      AssertThat(resources.numWalls - numWallsBefore, Equals(1u));
+      AssertThat(gorgon.getHitPoints(), Equals(10u));
+      AssertThat(gorgon.has(HeroDebuff::ManaBurned), IsFalse());
+      AssertThat(gorgon.has(HeroStatus::StoneSkin), IsTrue());
+    });
+    it("will not affect enemies with sufficient health", [] {
+      auto gorgon = Hero{HeroClass::Gorgon};
+      auto monster = Monster{"10% HP", {Level{3}, 100_HP, 5_damage}, {}, {}};
+      monster.takeDamage(90, DamageType::Physical);
+      AssertThat(attack(gorgon, monster), Equals(Summary::Safe));
+      AssertThat(monster.getHitPoints(), Equals(10u - gorgon.getDamageVersusStandard()));
+    });
+    it("death gaze deals an extra attack with base damage", [] {
+      auto gorgon = Hero{HeroClass::Gorgon};
+      gorgon.changeBaseDamage(15);
+      const auto attackDamage = gorgon.getDamageVersusStandard();
+      const auto deathGazeDamage = gorgon.getBaseDamage();
+      AssertThat(attackDamage, Equals(10u) /* -50% damage bonus */);
+
+      auto monster = Monster{"Tank", {Level{1}, 70_HP, 4_damage}, {}, {}};
+      gorgon.add(HeroStatus::DeathGaze, 91);
+      AssertThat(gorgon.getIntensity(HeroStatus::DeathGaze), Equals(101u));
+      AssertThat(attack(gorgon, monster), Equals(Summary::Safe));
+      AssertThat(monster.getHitPoints(), Equals(70u - attackDamage - deathGazeDamage));
+      AssertThat(gorgon.getHitPoints(), Equals(7u) /* 25% physical resist */);
+
+      Monsters ignore;
+      gorgon.use(Potion::ReflexPotion, ignore);
+      AssertThat(monster.getHitPoints(), Equals(2u * attackDamage + deathGazeDamage));
+      AssertThat(attack(gorgon, monster), Equals(Summary::Win));
+      AssertThat(gorgon.getHitPoints(), Equals(4u));
+    });
+  });
+}
+
 void testHeroTraits()
 {
   testConversionBonusesBasic();
   testConversionBonusesMonsterClasses();
   testChemist();
   testTransmuter();
+  testGorgon();
 }
 
 void testMonsterTraits()
