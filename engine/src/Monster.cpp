@@ -357,17 +357,26 @@ std::vector<std::string> describe(const Monster& monster)
                               " HP",
                           std::to_string(monster.getDamage()) + " damage"};
 
-  auto checkTrait = [&](MonsterTrait trait) {
+  auto checkTrait = [&](MonsterTrait trait, std::string label = "") {
     if (monster.has(trait))
-      description.emplace_back(toString(trait));
+    {
+      if (label.empty())
+        description.emplace_back(toString(trait));
+      else
+        description.emplace_back(std::move(label));
+    }
+  };
+  auto checkIntensity = [&](unsigned intensity, std::string prefix, std::string suffix)
+  {
+    if (intensity > 0)
+      description.emplace_back(std::move(prefix) + std::to_string(intensity) + std::move(suffix));
   };
 
   if (!monster.isSlowed())
   {
     checkTrait(MonsterTrait::Blinks);
     checkTrait(MonsterTrait::FirstStrike);
-    if (monster.has(MonsterTrait::Retaliate))
-      description.emplace_back("Retaliate: Fireball");
+    checkTrait(MonsterTrait::Retaliate, "Retaliate: Fireball");
   }
   const auto berserkPercent = monster.getBerserkPercent();
   if (berserkPercent > 0)
@@ -380,34 +389,25 @@ std::vector<std::string> describe(const Monster& monster)
   checkTrait(MonsterTrait::Cowardly);
   checkTrait(MonsterTrait::FastRegen);
   checkTrait(MonsterTrait::MagicalAttack);
-  if (monster.getPhysicalResistPercent() > 0)
-    description.emplace_back("Physical resist "s + std::to_string(monster.getPhysicalResistPercent()) + "%");
-  if (monster.getMagicalResistPercent() > 0)
-    description.emplace_back("Magical resist "s + std::to_string(monster.getMagicalResistPercent()) + "%");
+  checkIntensity(monster.getPhysicalResistPercent(), "Physical resist ", "%");
+  checkIntensity(monster.getMagicalResistPercent(), "Magical resist ", "%");
   checkTrait(MonsterTrait::Poisonous);
   checkTrait(MonsterTrait::ManaBurn);
   checkTrait(MonsterTrait::CurseBearer);
   checkTrait(MonsterTrait::Corrosive);
-  if (monster.has(MonsterTrait::Weakening))
-    description.emplace_back("Weakening Blow");
-  if (monster.getDeathGazePercent() > 0)
-    description.emplace_back("Death Gaze "s + std::to_string(monster.getDeathGazePercent()) + "%");
-  if (monster.getDeathProtection() > 0)
-    description.emplace_back("Death protection (x"s + std::to_string(monster.getDeathProtection()) + ")");
-  if (monster.getLifeStealPercent() > 0)
-    description.emplace_back("Life Steal "s + std::to_string(monster.getLifeStealPercent()) + "%");
-  if (monster.isBurning())
-    description.emplace_back("Burning (burn stack size "s + std::to_string(monster.getBurnStackSize()) + ")");
-  if (monster.isPoisoned())
-    description.emplace_back("Poisoned (amount: "s + std::to_string(monster.getPoisonAmount()) + ")");
+  checkTrait(MonsterTrait::Weakening, "Weakening Blow");
+  checkIntensity(monster.getDeathGazePercent(), "Death Gaze ", "%");
+  checkIntensity(monster.getDeathProtection(), "Death protection (x", ")");
+  checkIntensity(monster.getLifeStealPercent(), "Life Steal ", "%");
+  checkIntensity(monster.getBurnStackSize(), "Burning (burn stack size ", ")");
+  checkIntensity(monster.getPoisonAmount(), "Poisoned (amount: ", ")");
   if (monster.isSlowed())
     description.emplace_back("Slowed");
   if (monster.isZotted())
     description.emplace_back("Zotted");
   if (monster.isWickedSick())
     description.emplace_back("Wicked Sick");
-  if (monster.getCorroded() > 0)
-    description.emplace_back("Corroded (x"s + std::to_string(monster.getCorroded()) + ")");
+  checkIntensity(monster.getCorroded(), "Corroded (x", ")");
   checkTrait(MonsterTrait::Undead);
   checkTrait(MonsterTrait::Bloodless);
   if (!monster.grantsXP())
