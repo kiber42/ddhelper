@@ -1,8 +1,8 @@
 // Include OpenCV before any X11
 #include <opencv2/opencv.hpp>
 
-#include "bridge/GameWindow.hpp"
-#include "bridge/ImageCapture.hpp"
+#include "importer/GameWindow.hpp"
+#include "importer/ImageCapture.hpp"
 
 bool captureTest()
 {

@@ -1,4 +1,4 @@
-#include "bridge/GameWindow.hpp"
+#include "importer/GameWindow.hpp"
 
 #include <string>
 

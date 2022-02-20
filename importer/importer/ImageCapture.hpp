@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bridge/GameWindow.hpp"
+#include "importer/GameWindow.hpp"
 
 #include <X11/Xlib.h>
 

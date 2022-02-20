@@ -1,4 +1,4 @@
-project(ddbridge)
+project(ddimporter)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -11,25 +11,25 @@ add_compile_options(-Wno-implicit-float-conversion)
 add_compile_options(-Wno-float-conversion)
 
 add_library(
-  ddbridge STATIC
+  ddimporter STATIC
   src/ImageCapture.cpp
   src/GameWindow.cpp
   src/Mouse.cpp
 )
-target_include_directories(ddbridge PUBLIC .)
-target_include_directories(ddbridge PUBLIC /usr/include/opencv4)
-target_link_libraries(ddbridge PUBLIC "-lopencv_core" "-lopencv_highgui" "-lopencv_imgproc" "-lopencv_imgcodecs" "-lX11" "-lXext")
+target_include_directories(ddimporter PUBLIC .)
+target_include_directories(ddimporter PUBLIC /usr/include/opencv4)
+target_link_libraries(ddimporter PUBLIC "-lopencv_core" "-lopencv_highgui" "-lopencv_imgproc" "-lopencv_imgcodecs" "-lX11" "-lXext")
 
 add_executable(
-  bridge
-  src/bridge.cpp)
-target_include_directories(bridge PUBLIC .)
-target_link_libraries(bridge ddbridge)
-target_link_libraries(bridge ddhelperengine)
+  importer
+  src/importer.cpp)
+target_include_directories(importer PUBLIC .)
+target_link_libraries(importer ddimporter)
+target_link_libraries(importer ddhelperengine)
 
 add_executable(
   captureTest
   src/captureTest.cpp)
 
 target_include_directories(captureTest PUBLIC .)
-target_link_libraries(captureTest ddbridge)
+target_link_libraries(captureTest ddimporter)

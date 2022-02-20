@@ -1,9 +1,9 @@
 // Include OpenCV before any X11 headers
 #include <opencv2/opencv.hpp>
 
-#include "bridge/GameWindow.hpp"
-#include "bridge/ImageCapture.hpp"
-#include "bridge/Mouse.hpp"
+#include "importer/GameWindow.hpp"
+#include "importer/ImageCapture.hpp"
+#include "importer/Mouse.hpp"
 
 #include "engine/Monster.hpp"
 #include "engine/MonsterTypes.hpp"
