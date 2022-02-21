@@ -7,6 +7,7 @@
 #include "ui/MonsterPool.hpp"
 #include "ui/MonsterSelection.hpp"
 #include "ui/Resources.hpp"
+#include "ui/RunImporter.hpp"
 #include "ui/RunSolver.hpp"
 #include "ui/State.hpp"
 
@@ -31,6 +32,7 @@ namespace ui
     History history;
     Arena arena;
     RunSolver runSolver;
+    RunImporter runImporter;
   };
 
   DDHelperApp::DDHelperApp()
@@ -166,6 +168,8 @@ namespace ui
     }
 
     applyResultUndoable(runSolver(state));
+
+    applyResultUndoable(runImporter());
   }
 } // namespace ui
 

@@ -31,8 +31,9 @@ add_executable(
   src/MonsterPool.cpp
   src/MonsterSelection.cpp
   src/Resources.cpp
+  src/RunImporter.cpp
   src/RunSolver.cpp
   src/State.cpp
   src/Utils.cpp)
-target_link_libraries(ddhelper ddhelperengine ddsolver imguiapp)
+target_link_libraries(ddhelper ddhelperengine ddsolver ddimporter imguiapp)
 target_include_directories(ddhelper PUBLIC imgui)
