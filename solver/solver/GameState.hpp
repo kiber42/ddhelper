@@ -4,8 +4,6 @@
 #include "engine/Monster.hpp"
 #include "engine/Resources.hpp"
 
-#include <vector>
-
 struct GameState
 {
   Hero hero{};
