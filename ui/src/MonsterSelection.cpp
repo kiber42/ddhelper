@@ -10,7 +10,6 @@ namespace ui
   MonsterSelection::MonsterSelection()
     : selectedType(MonsterType::Bandit)
     , level(1)
-    , dungeonMultiplier(1.0f)
     , selectedDungeonIndex(1)
   {
   }
@@ -35,47 +34,8 @@ namespace ui
     if (ImGui::InputInt("Level", &level, 1, 1))
       level = std::min(std::max(level, 1), 10);
 
-    constexpr std::array<std::pair<const char*, float>, 21> dungeons = {
-        std::make_pair("Hobbler's Hold", 0.8f),
-        {"Den of Danger", 1},
-        {"Venture Cave", 1},
-        {"Western Jungle", 1},
-        {"Eastern Tundra", 1},
-        {"Northern Desert", 1},
-        {"Southern Swamp", 1},
-        {"Doubledoom", 1.1f},
-        {"Grimm's Grotto", 1.4f},
-        {"Rock Garden", 1},
-        {"Cursed Oasis", 1.15f},
-        {"Shifting Passages", 1.299f},
-        {"Havendale Bridge", 1.05f},
-        {"The Labyrinth", 1.3f},
-        {"Magma Mines", 1.3f},
-        {"Hexx Ruins", 1},
-        {"Ick Swamp", 1.2f},
-        {"The Slime Pit", 1.2f},
-        {"Berserker Camp", 1},
-        {"Creeplight Ruins", 1.1f},
-        {"Halls of Steel", 1.2f},
-    };
+    selectedDungeonIndex = runDungeonSelection(selectedDungeonIndex);
 
-    ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
-    if (ImGui::BeginCombo("Dungeon", dungeons[selectedDungeonIndex].first))
-    {
-      auto n = 0u;
-      for (auto dungeon : dungeons)
-      {
-        char buffer[30];
-        sprintf(buffer, "%s (%.0f%%)", dungeon.first, dungeon.second * 100);
-        if (ImGui::Selectable(buffer, n == selectedDungeonIndex))
-        {
-          dungeonMultiplier = dungeon.second;
-          selectedDungeonIndex = n;
-        }
-        ++n;
-      }
-      ImGui::EndCombo();
-    }
     if (ImGui::Button("Send to Arena"))
       arenaMonster.emplace(get());
     ImGui::SameLine();
@@ -86,7 +46,7 @@ namespace ui
 
   Monster MonsterSelection::get() const
   {
-    return {selectedType, Level{level}, DungeonMultiplier{dungeonMultiplier}};
+    return {selectedType, Level{level}, getDungeonMultiplier(selectedDungeonIndex)};
   }
 
   std::optional<Monster> MonsterSelection::toArena()
@@ -195,5 +155,53 @@ namespace ui
     std::optional<Monster> monster;
     std::swap(monster, poolMonster);
     return monster;
+  }
+
+  static constexpr std::array<std::pair<const char*, float>, 21> dungeons = {
+      std::make_pair("Hobbler's Hold", 0.8f),
+      {"Den of Danger", 1},
+      {"Venture Cave", 1},
+      {"Western Jungle", 1},
+      {"Eastern Tundra", 1},
+      {"Northern Desert", 1},
+      {"Southern Swamp", 1},
+      {"Doubledoom", 1.1f},
+      {"Grimm's Grotto", 1.4f},
+      {"Rock Garden", 1},
+      {"Cursed Oasis", 1.15f},
+      {"Shifting Passages", 1.299f},
+      {"Havendale Bridge", 1.05f},
+      {"The Labyrinth", 1.3f},
+      {"Magma Mines", 1.3f},
+      {"Hexx Ruins", 1},
+      {"Ick Swamp", 1.2f},
+      {"The Slime Pit", 1.2f},
+      {"Berserker Camp", 1},
+      {"Creeplight Ruins", 1.1f},
+      {"Halls of Steel", 1.2f},
+  };
+
+  [[nodiscard]] unsigned MonsterSelection::runDungeonSelection(unsigned previousSelection)
+  {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
+    if (ImGui::BeginCombo("Dungeon", dungeons[previousSelection].first))
+    {
+      auto n = 0u;
+      for (auto dungeon : dungeons)
+      {
+        char buffer[30];
+        sprintf(buffer, "%s (%.0f%%)", dungeon.first, dungeon.second * 100);
+        if (ImGui::Selectable(buffer, previousSelection == n))
+          previousSelection = n;
+        ++n;
+      }
+      ImGui::EndCombo();
+    }
+    return previousSelection;
+  }
+
+  DungeonMultiplier MonsterSelection::getDungeonMultiplier(unsigned selectedDungeonIndex)
+  {
+    return DungeonMultiplier{selectedDungeonIndex < dungeons.size() ? dungeons[selectedDungeonIndex].second : 1};
   }
 } // namespace ui

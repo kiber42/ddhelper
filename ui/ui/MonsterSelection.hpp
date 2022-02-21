@@ -17,10 +17,12 @@ namespace ui
     [[nodiscard]] std::optional<Monster> toArena();
     [[nodiscard]] std::optional<Monster> toPool();
 
+    static unsigned runDungeonSelection(unsigned previousSelection);
+    static DungeonMultiplier getDungeonMultiplier(unsigned selectedDungeonIndex);
+
   private:
     MonsterType selectedType;
     int level;
-    float dungeonMultiplier;
     unsigned selectedDungeonIndex;
     std::optional<Monster> arenaMonster;
     std::optional<Monster> poolMonster;
