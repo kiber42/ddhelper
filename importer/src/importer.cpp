@@ -82,7 +82,7 @@ namespace
       }
       if (runcheck)
         processor.extractMonsterInfos();
-      auto state = std::move(processor).get();
+      const auto& state = processor.get();
       if (runcheck || state.monsterInfos.size() != size)
       {
         std::cout << std::string(80, '*') << std::endl;

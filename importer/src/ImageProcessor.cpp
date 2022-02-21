@@ -94,6 +94,20 @@ namespace importer
       return PixelFunc(tile, Column{x * 30 + 12}, Row{y * 30 + y_offset + 5}).rgb();
     }
 
+    cv::Mat acquireValidScreenshot(ImageCapture& capture)
+    {
+      auto ximage = capture.acquire();
+      if (!ximage)
+        throw std::runtime_error("Failed to acquire image.");
+      if (ximage->width != required_screen_size_x || ximage->height != required_screen_size_y)
+      {
+        throw std::runtime_error("Please resize game window to " + std::to_string(required_screen_size_x) + "x" +
+                                 std::to_string(required_screen_size_y) + " (current size: " +
+                                 std::to_string(ximage->width) + "x" + std::to_string(ximage->height) + ")");
+      }
+      return cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
+    }
+
     // Find all monsters on map shown in the input image.
     // Returns info about monsters and a flag that indicates whether all monsters could be identified.
     template <class PixelClass>
@@ -119,31 +133,6 @@ namespace importer
         }
       }
       return result;
-    }
-
-    // Take screenshot and try to update information about previously unidentied monsters.
-    // This might help if a monster could not previously be identified due to an animation (monster is slowed, or
-    // there's a piety token on the same square).
-    // Returns true if no unidentified / generic monsters remain.
-    bool identifyAllUnknownMonsters(ImageCapture& capture, std::vector<MonsterInfo>& monsterInfos)
-    {
-      auto ximage = capture.acquire();
-      auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
-
-      bool complete = true;
-      auto isGenericMonster = [](const auto& monster) { return monster.type == MonsterType::Generic; };
-      auto nextUnknown = std::find_if(begin(monsterInfos), end(monsterInfos), isGenericMonster);
-      while (nextUnknown != end(monsterInfos))
-      {
-        const auto& pos = nextUnknown->position;
-        const auto hash = getTileHash<PixelARGB>(image, pos.x, pos.y);
-        if (const auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
-          nextUnknown->type = detected->second;
-        else
-          complete = false;
-        nextUnknown = std::find_if(nextUnknown + 1, end(monsterInfos), isGenericMonster);
-      };
-      return complete;
     }
 
     // Identify monster HP and max HP by counting number of "bright" pixels per column
@@ -218,19 +207,6 @@ namespace importer
       }
       return false;
     }
-
-    bool extractMonsterInfosImpl(std::vector<MonsterInfo>& infosToUpdate, ImageCapture& capture)
-    {
-      auto& gameWindow = capture.getGameWindow();
-      AutoRestoreMousePosition restoreMouse(gameWindow);
-      bool success = true;
-      for (auto& info : infosToUpdate)
-      {
-        success &= extractMonsterInfoImpl(info, gameWindow, capture);
-      }
-      moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 750, 100);
-      return success;
-    }
   } // namespace
 
   ImageProcessor::ImageProcessor(ImageCapture& capture)
@@ -238,32 +214,54 @@ namespace importer
   {
   }
 
-  const std::vector<MonsterInfo>& ImageProcessor::findMonsters(int numRetries, int retryDelayInMilliseconds)
+  bool ImageProcessor::findMonsters(int numRetries, int retryDelayInMilliseconds)
   {
-    auto ximage = capture.acquire();
-    if (!ximage)
-      throw std::runtime_error("Failed to acquire image.");
-    if (ximage->width != required_screen_size_x || ximage->height != required_screen_size_y)
-    {
-      throw std::runtime_error("Please resize game window to " + std::to_string(required_screen_size_x) + "x" +
-                               std::to_string(required_screen_size_y) + " (current size: " +
-                               std::to_string(ximage->width) + "x" + std::to_string(ximage->height) + ")");
-    }
-    auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
-    auto [result, complete] = findMonstersImpl<PixelARGB>(image);
-    std::swap(result, monsterInfos);
+    auto image = acquireValidScreenshot(capture);
+    auto [infos, complete] = findMonstersImpl<PixelARGB>(image);
+    state.monsterInfos = std::move(infos);
     while (!complete && numRetries-- > 0)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds{retryDelayInMilliseconds});
-      complete = identifyAllUnknownMonsters(capture, monsterInfos);
+      complete = retryFindMonsters();
     }
-    return monsterInfos;
+    return complete;
   }
 
-  const std::vector<MonsterInfo>& ImageProcessor::extractMonsterInfos()
+  // Take screenshot and try to update information about previously unidentied monsters.
+  // This might help if a monster could not previously be identified due to an animation (monster is slowed, or
+  // there's a piety token on the same square).
+  // Returns true if no unidentified / generic monsters remain.
+  bool ImageProcessor::retryFindMonsters()
   {
-    extractMonsterInfosImpl(monsterInfos, capture);
-    return monsterInfos;
+    auto image = acquireValidScreenshot(capture);
+
+    bool complete = true;
+    auto isGenericMonster = [](const auto& monster) { return monster.type == MonsterType::Generic; };
+    auto nextUnknown = std::find_if(begin(state.monsterInfos), end(state.monsterInfos), isGenericMonster);
+    while (nextUnknown != end(state.monsterInfos))
+    {
+      const auto& pos = nextUnknown->position;
+      const auto hash = getTileHash<PixelARGB>(image, pos.x, pos.y);
+      if (const auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
+        nextUnknown->type = detected->second;
+      else
+        complete = false;
+      nextUnknown = std::find_if(nextUnknown + 1, end(state.monsterInfos), isGenericMonster);
+    };
+    return complete;
+  }
+
+  bool ImageProcessor::extractMonsterInfos()
+  {
+    auto& gameWindow = capture.getGameWindow();
+    AutoRestoreMousePosition restoreMouse(gameWindow);
+    bool success = true;
+    for (auto& info : state.monsterInfos)
+    {
+      success &= extractMonsterInfoImpl(info, gameWindow, capture);
+    }
+    moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 750, 100);
+    return success;
   }
 
   std::vector<MonsterInfo> ImageProcessor::findMonstersInScreenshot(std::filesystem::path path)

@@ -14,20 +14,27 @@ namespace importer
   public:
     ImageProcessor(ImageCapture&);
 
-    // Find monsters on map in screen capture; optionally attempt multiple times if any monster was not identified
-    const std::vector<MonsterInfo>& findMonsters(int numRetries = 0, int retryDelayInMilliseconds = 100);
+    // Take screenshot and try to identify monsters on map; optionally attempt multiple times if any monster was not identified
+    // Returns true if no unidentified / generic monsters remain.
+    bool findMonsters(int numRetries = 0, int retryDelayInMilliseconds = 100);
 
-    // Extract additional information for monsters from sidebar
-    const std::vector<MonsterInfo>& extractMonsterInfos();
+    // Take screenshot and try to update information about previously unidentied monsters.
+    // This might help if a monster could not previously be identified due to an animation (monster is slowed, or
+    // there's a piety token on the same square).
+    // Returns true if no unidentified / generic monsters remain.
+    bool retryFindMonsters();
 
-    [[nodiscard]] ImportedState get() const & { return { monsterInfos }; }
-    [[nodiscard]] ImportedState get() && { return { std::move(monsterInfos) }; }
+    // Move mouse over monster tiles and extract healthpoints information from sidebar.
+    // Returns true if HP could be extracted for all monsters detected by above methods.
+    bool extractMonsterInfos();
+
+    [[nodiscard]] const ImportedState& get() const & { return state; }
 
     static std::vector<MonsterInfo> findMonstersInScreenshot(std::filesystem::path screenshot);
 
   private:
     ImageCapture& capture;
-    std::vector<MonsterInfo> monsterInfos;
+    ImportedState state;
   };
 
 } // namespace importer
