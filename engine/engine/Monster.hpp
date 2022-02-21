@@ -17,6 +17,7 @@ public:
   Monster(MonsterType, Level, DungeonMultiplier = DungeonMultiplier{1});
   Monster(std::string name, MonsterStats, Defence = {}, MonsterTraits = {});
   Monster(MonsterStats, Defence = {}, MonsterTraits = {});
+  static std::string makeName(MonsterType type, Level level);
 
   const std::string& getName() const;
   int getID() const;

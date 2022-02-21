@@ -11,17 +11,14 @@
 
 int Monster::lastId = 0;
 
-namespace
+std::string Monster::makeName(MonsterType type, Level level)
 {
-  std::string makeMonsterName(MonsterType type, Level level)
-  {
-    using namespace std::string_literals;
-    return toString(type) + " level "s + std::to_string(level.get());
-  }
-} // namespace
+  using namespace std::string_literals;
+  return toString(type) + " level "s + std::to_string(level.get());
+}
 
 Monster::Monster(MonsterType type, Level level, DungeonMultiplier dungeonMultiplier)
-  : name(makeMonsterName(type, level))
+  : name(makeName(type, level))
   , id(++lastId)
   , stats(type, level, dungeonMultiplier)
   , defence(type)
@@ -237,11 +234,11 @@ void Monster::makeWickedSick()
   if (!isWickedSick() && level.increase())
   {
     const auto type = stats.getType();
-    const bool hasStandardName = name == makeMonsterName(type, level);
+    const bool hasStandardName = name == makeName(type, level);
     traits.addWickedSick();
     stats = MonsterStats(stats.getType(), level, stats.getDungeonMultiplier());
     if (hasStandardName)
-      name = makeMonsterName(type, level);
+      name = makeName(type, level);
   }
 }
 
@@ -366,8 +363,7 @@ std::vector<std::string> describe(const Monster& monster)
         description.emplace_back(std::move(label));
     }
   };
-  auto checkIntensity = [&](unsigned intensity, std::string prefix, std::string suffix)
-  {
+  auto checkIntensity = [&](unsigned intensity, std::string prefix, std::string suffix) {
     if (intensity > 0)
       description.emplace_back(std::move(prefix) + std::to_string(intensity) + std::move(suffix));
   };
