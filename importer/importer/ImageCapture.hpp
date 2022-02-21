@@ -1,21 +1,27 @@
 #pragma once
 
-#include "importer/GameWindow.hpp"
-
-#include <X11/Xlib.h>
-
 #include <memory>
 
-class ImageCapture
+struct _XImage;
+typedef struct _XImage XImage;
+
+namespace importer
 {
-public:
-  ImageCapture(GameWindow& gameWindow);
-  ~ImageCapture();
+  class GameWindow;
 
-  const XImage* acquire();
-  [[nodiscard]] const XImage* current() const;
+  class ImageCapture
+  {
+  public:
+    ImageCapture(GameWindow& gameWindow);
+    ~ImageCapture();
 
-private:
-  class Impl;
-  std::unique_ptr<Impl> impl;
-};
+    GameWindow& getGameWindow() const;
+
+    const XImage* acquire();
+    [[nodiscard]] const XImage* current() const;
+
+  private:
+    class Impl;
+    std::unique_ptr<Impl> impl;
+  };
+} // namespace importer

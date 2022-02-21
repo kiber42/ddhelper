@@ -13,19 +13,19 @@ add_compile_options(-Wno-float-conversion)
 add_library(
   ddimporter STATIC
   src/ImageCapture.cpp
+  src/ImageProcessor.cpp
   src/GameWindow.cpp
   src/Mouse.cpp
 )
 target_include_directories(ddimporter PUBLIC .)
 target_include_directories(ddimporter PUBLIC /usr/include/opencv4)
-target_link_libraries(ddimporter PUBLIC "-lopencv_core" "-lopencv_highgui" "-lopencv_imgproc" "-lopencv_imgcodecs" "-lX11" "-lXext")
+target_link_libraries(ddimporter PUBLIC ddhelperengine opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs X11 Xext)
 
 add_executable(
   importer
   src/importer.cpp)
 target_include_directories(importer PUBLIC .)
 target_link_libraries(importer ddimporter)
-target_link_libraries(importer ddhelperengine)
 
 add_executable(
   captureTest

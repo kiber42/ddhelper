@@ -1,26 +1,30 @@
 #pragma once
 
-#include <X11/Xlib.h>
-
 #include <memory>
 #include <optional>
 
-class GameWindow
+struct _XDisplay;
+typedef struct _XDisplay Display;
+
+typedef unsigned long XID;
+typedef XID Window;
+
+namespace importer
 {
-public:
-  GameWindow();
-
-  Display* getDisplay() const { return display.get(); }
-
-  Window getWindow() const { return window.value_or(0); }
-
-  bool valid() const;
-
-private:
-  struct display_cleanup
+  class GameWindow
   {
-    void operator()(Display* display) { XCloseDisplay(display); }
+  public:
+    GameWindow();
+    ~GameWindow();
+
+    Display* getDisplay() const { return display; }
+
+    Window getWindow() const { return window.value_or(0); }
+
+    bool valid() const;
+
+  private:
+    Display* display;
+    std::optional<Window> window;
   };
-  std::unique_ptr<Display, display_cleanup> display;
-  std::optional<Window> window;
-};
+} // namespace importer

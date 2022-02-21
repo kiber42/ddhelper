@@ -1,14 +1,16 @@
 // Include OpenCV before any X11
 #include <opencv2/opencv.hpp>
 
+#include "X11/Xlib.h"
+
 #include "importer/GameWindow.hpp"
 #include "importer/ImageCapture.hpp"
 
 bool captureTest()
 {
   int numFrames = 0;
-  GameWindow gameWindow;
-  ImageCapture capture(gameWindow);
+  importer::GameWindow gameWindow;
+  importer::ImageCapture capture(gameWindow);
   while (auto ximage = capture.acquire())
   {
     auto img = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);

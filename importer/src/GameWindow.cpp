@@ -1,5 +1,7 @@
 #include "importer/GameWindow.hpp"
 
+#include <X11/Xlib.h>
+
 #include <string>
 
 namespace
@@ -37,14 +39,22 @@ namespace
   }
 } // namespace
 
-GameWindow::GameWindow()
-  : display(XOpenDisplay(NULL))
-  , window(findWindowByName(display.get(), "Desktop Dungeons"))
+namespace importer
 {
-}
+  GameWindow::GameWindow()
+    : display(XOpenDisplay(NULL))
+    , window(findWindowByName(display, "Desktop Dungeons"))
+  {
+  }
 
-bool GameWindow::valid() const
-{
-  thread_local XWindowAttributes updated;
-  return display && window && XGetWindowAttributes(display.get(), *window, &updated);
-}
+  GameWindow::~GameWindow()
+  {
+    XCloseDisplay(display);
+  }
+
+  bool GameWindow::valid() const
+  {
+    thread_local XWindowAttributes updated;
+    return display && window && XGetWindowAttributes(display, *window, &updated);
+  }
+} // namespace importer
