@@ -26,10 +26,3 @@ add_executable(
   src/importer.cpp)
 target_include_directories(importer PUBLIC .)
 target_link_libraries(importer ddimporter)
-
-add_executable(
-  captureTest
-  src/captureTest.cpp)
-
-target_include_directories(captureTest PUBLIC .)
-target_link_libraries(captureTest ddimporter)
