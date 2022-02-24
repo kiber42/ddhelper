@@ -73,7 +73,7 @@ namespace ui
         }
         result = {"Import State", [monsters = std::move(monsters)](State& state) {
                     state.monsterPool = monsters;
-                    state.activeMonster = state.monsterPool.empty() ? -1 : 0;
+                    state.activeMonster = state.monsterPool.empty() ? std::nullopt : std::optional{0};
                     return Summary::None;
                   }};
       }
