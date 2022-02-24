@@ -38,38 +38,31 @@ namespace ui
         status = "Imported " + std::to_string(processor.get().monsterInfos.size()) + " monsters.";
         std::vector<Monster> monsters;
         const auto multiplier = MonsterSelection::getDungeonMultiplier(selectedDungeonIndex);
-        switch (acquireHitPointsMode)
+        if (acquireHitPointsMode > 0)
         {
-        default:
-        case 0:
-          for (auto& info : processor.get().monsterInfos)
-            monsters.emplace_back(info.type, info.level, multiplier);
-          break;
-        case 2: // TODO
-        case 1:
-          processor.extractMonsterInfos();
-          for (auto& info : processor.get().monsterInfos)
+          const bool smart = acquireHitPointsMode == 2;
+          processor.extractMonsterInfos(smart);
+        }
+        for (auto& info : processor.get().monsterInfos)
+        {
+          if (info.health)
           {
-            if (info.health)
+            auto [hp, hpMax] = *info.health;
+            auto stats = MonsterStats{info.type, info.level, multiplier};
+            stats.setHitPointsMax(HitPoints{hpMax});
+            stats.healHitPoints(HitPoints{hpMax}, false);
+            if (hp != hpMax)
             {
-              auto [hp, hpMax] = *info.health;
-              auto stats = MonsterStats{info.type, info.level, multiplier};
-              stats.setHitPointsMax(HitPoints{hpMax});
-              stats.healHitPoints(HitPoints{hpMax}, false);
-              if (hp != hpMax)
-              {
-                if (hp < hpMax)
-                  stats.loseHitPoints(HitPoints{hpMax - hp});
-                else
-                  stats.healHitPoints(HitPoints{hp - hpMax}, true);
-              }
-              monsters.emplace_back(Monster::makeName(info.type, info.level), std::move(stats), Defence{info.type},
-                                    MonsterTraits{info.type});
+              if (hp < hpMax)
+                stats.loseHitPoints(HitPoints{hpMax - hp});
+              else
+                stats.healHitPoints(HitPoints{hp - hpMax}, true);
             }
-            else
-              monsters.emplace_back(info.type, info.level, multiplier);
+            monsters.emplace_back(Monster::makeName(info.type, info.level), std::move(stats), Defence{info.type},
+                                  MonsterTraits{info.type});
           }
-          break;
+          else
+            monsters.emplace_back(info.type, info.level, multiplier);
         }
         result = {"Import State", [monsters = std::move(monsters)](State& state) {
                     state.monsterPool = monsters;

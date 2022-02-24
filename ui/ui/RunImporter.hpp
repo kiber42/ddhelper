@@ -17,8 +17,8 @@ namespace ui
     ActionResultUI operator()();
 
   private:
-    unsigned selectedDungeonIndex{0};
-    unsigned acquireHitPointsMode{0};
+    unsigned selectedDungeonIndex{1};
+    unsigned acquireHitPointsMode{2};
     std::string status;
   };
 } // namespace ui

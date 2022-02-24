@@ -85,7 +85,7 @@ namespace
         cv::waitKey(500);
       }
       if (runcheck)
-        processor.extractMonsterInfos();
+        processor.extractMonsterInfos(false);
       const auto& state = processor.get();
       if (runcheck || state.monsterInfos.size() != size)
       {

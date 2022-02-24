@@ -259,14 +259,15 @@ namespace importer
     return complete;
   }
 
-  bool ImageProcessor::extractMonsterInfos()
+  bool ImageProcessor::extractMonsterInfos(bool smart)
   {
     auto& gameWindow = capture.getGameWindow();
     AutoRestoreMousePosition restoreMouse(gameWindow);
     bool success = true;
     for (auto& info : state.monsterInfos)
     {
-      success &= extractMonsterInfoImpl(info, gameWindow, capture);
+      if (info.hasHealthBar || !smart)
+        success &= extractMonsterInfoImpl(info, gameWindow, capture);
     }
     moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 750, 100);
     return success;

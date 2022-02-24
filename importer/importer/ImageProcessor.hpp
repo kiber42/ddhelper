@@ -24,9 +24,13 @@ namespace importer
     // Returns true if no unidentified / generic monsters remain.
     bool retryFindMonsters();
 
-    // Move mouse over monster tiles and extract healthpoints information from sidebar.
+    // Move mouse over monster tiles and extract HP information from sidebar.
     // Returns true if HP could be extracted for all monsters detected by above methods.
-    bool extractMonsterInfos();
+    // If the flag is true, successfully identified monsters at 100% health will be skipped.
+    // If the dungeon difficulty multiplier is known, their health can be computed directly.
+    // This will produce accurate results except for slowed monsters with >100% health,
+    // as no health bar is shown for those.
+    bool extractMonsterInfos(bool smart);
 
     [[nodiscard]] const ImportedState& get() const & { return state; }
 
