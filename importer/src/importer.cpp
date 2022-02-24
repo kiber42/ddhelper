@@ -41,8 +41,12 @@ namespace
       if (referenceHitPoints != static_cast<unsigned>(info.health->second))
         hitpoints += " (unexpected! reference value is " + std::to_string(referenceMonster.getHitPointsMax()) + ')';
     }
-    else if (!isGeneric)
-      hitpoints = "\treference HP: " + std::to_string(referenceMonster.getHitPointsMax());
+    else {
+      if (!isGeneric)
+        hitpoints = "\treference HP: " + std::to_string(referenceMonster.getHitPointsMax());
+      if (info.hasHealthBar)
+        hitpoints += " [has health bar]";
+    }
 
     return name + position + hitpoints;
   }

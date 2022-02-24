@@ -24,7 +24,12 @@ namespace importer
     TilePosition position;
     MonsterType type;
     Level level;
+
+    // A health bar is shown for monsters that do not have full health.
+    // It is also shown for monsters with more than 100% health, unless they are slowed.
+    bool hasHealthBar;
     std::optional<HealthInfo> health;
+
     std::uint32_t hash;
   };
 

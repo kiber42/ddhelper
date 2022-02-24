@@ -94,6 +94,13 @@ namespace importer
       return PixelFunc(tile, Column{x * 30 + 12}, Row{y * 30 + y_offset + 5}).rgb();
     }
 
+    template <typename PixelFunc>
+    inline bool hasHealthBar(const cv::Mat& tile, int x, int y)
+    {
+      const auto pixel = PixelFunc(tile, Column{x * 30 + 29}, Row{y * 30 + y_offset + 29}).rgb();
+      return pixel == 0xFF0000 || pixel == 0x00FF00;
+    }
+
     cv::Mat acquireValidScreenshot(ImageCapture& capture)
     {
       auto ximage = capture.acquire();
@@ -129,7 +136,8 @@ namespace importer
             monsterType = detected->second;
           else
             complete = false;
-          monsters.emplace_back(MonsterInfo{TilePosition{x, y}, monsterType, *monsterLevel, {}, hash});
+          monsters.emplace_back(MonsterInfo{
+              TilePosition{x, y}, monsterType, *monsterLevel, hasHealthBar<PixelClass>(image, x, y), {}, hash});
         }
       }
       return result;
