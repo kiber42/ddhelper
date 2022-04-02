@@ -5,9 +5,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(
   ddhelperengine STATIC
+  src/Boss.cpp
   src/Combat.cpp
   src/Conversion.cpp
   src/Defence.cpp
+  src/DungeonInfo.cpp
   src/DungeonSetup.cpp
   src/Experience.cpp
   src/Faith.cpp

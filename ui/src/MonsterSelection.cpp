@@ -1,6 +1,7 @@
 #include "ui/MonsterSelection.hpp"
 
 #include "engine/Clamp.hpp"
+#include "engine/DungeonSetup.hpp"
 #include "engine/MonsterTypes.hpp"
 
 #include "imgui.h"
@@ -156,30 +157,6 @@ namespace ui
     std::swap(monster, poolMonster);
     return monster;
   }
-
-  static constexpr std::array<std::pair<const char*, float>, 21> dungeons = {
-      std::make_pair("Hobbler's Hold", 0.8f),
-      {"Den of Danger", 1},
-      {"Venture Cave", 1},
-      {"Western Jungle", 1},
-      {"Eastern Tundra", 1},
-      {"Northern Desert", 1},
-      {"Southern Swamp", 1},
-      {"Doubledoom", 1.1f},
-      {"Grimm's Grotto", 1.4f},
-      {"Rock Garden", 1},
-      {"Cursed Oasis", 1.15f},
-      {"Shifting Passages", 1.299f},
-      {"Havendale Bridge", 1.05f},
-      {"The Labyrinth", 1.3f},
-      {"Magma Mines", 1.3f},
-      {"Hexx Ruins", 1},
-      {"Ick Swamp", 1.2f},
-      {"The Slime Pit", 1.2f},
-      {"Berserker Camp", 1},
-      {"Creeplight Ruins", 1.1f},
-      {"Halls of Steel", 1.2f},
-  };
 
   [[nodiscard]] unsigned MonsterSelection::runDungeonSelection(unsigned previousSelection)
   {
