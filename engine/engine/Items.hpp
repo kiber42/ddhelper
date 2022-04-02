@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/ConstExprMap.hpp"
+
 #include <algorithm>
 #include <array>
 #include <string_view>
@@ -36,7 +38,7 @@ enum class Potion
   ReflexPotion,
   CanOfWhupaz,
   LastInShop = CanOfWhupaz,
-  CourageJuice, // Available only in very few dungeons
+  CourageJuice,         // Available only in very few dungeons
   CourageJuiceCorroded, // Workaround: Often dropped by corrosive monsters
   Last = CourageJuiceCorroded
 };
@@ -124,7 +126,7 @@ enum class MiscItem
   WispGem,
   WallCruncher,
   Charm, // MonsterMachine: small item; +1 HP; + 1DAM
-  // Workaround: These items are often dropped by corrosive monsters, stepping on tile will corrode.
+         // Workaround: These items are often dropped by corrosive monsters, stepping on tile will corrode.
   WispGemCorroded,
   WallCruncherCorroded,
   CharmCorroded,
@@ -137,21 +139,6 @@ enum class TaurogItem
   Wereward,
   Gloat,
   Will
-};
-
-template <typename Key, typename Value, std::size_t Size>
-struct Map
-{
-  std::array<std::pair<Key, Value>, Size> data;
-
-  [[nodiscard]] constexpr Value at(const Key& key) const
-  {
-    const auto iter = std::find_if(begin(data), end(data), [&key](const auto& v) { return v.first == key; });
-    if (iter != end(data))
-      return iter->second;
-    else
-      throw std::range_error("Not found");
-  }
 };
 
 using namespace std::string_view_literals;
