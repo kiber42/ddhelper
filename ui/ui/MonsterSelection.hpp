@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/DungeonInfo.hpp"
 #include "engine/Monster.hpp"
 #include "engine/MonsterTraits.hpp"
 
@@ -17,13 +18,12 @@ namespace ui
     [[nodiscard]] std::optional<Monster> toArena();
     [[nodiscard]] std::optional<Monster> toPool();
 
-    static unsigned runDungeonSelection(unsigned previousSelection);
-    static DungeonMultiplier getDungeonMultiplier(unsigned selectedDungeonIndex);
+    static void runDungeonSelection(Dungeon& selected);
 
   private:
     MonsterType selectedType;
-    int level;
-    unsigned selectedDungeonIndex;
+    Level level;
+    Dungeon selectedDungeon;
     std::optional<Monster> arenaMonster;
     std::optional<Monster> poolMonster;
   };

@@ -11,7 +11,7 @@ namespace ui
   MonsterSelection::MonsterSelection()
     : selectedType(MonsterType::Bandit)
     , level(1)
-    , selectedDungeonIndex(1)
+    , selectedDungeon(Dungeon::DenOfDanger)
   {
   }
 
@@ -32,10 +32,11 @@ namespace ui
       }
       ImGui::EndCombo();
     }
-    if (ImGui::InputInt("Level", &level, 1, 1))
-      level = std::min(std::max(level, 1), 10);
+    int level_int = level.get();
+    if (ImGui::InputInt("Level", &level_int, 1, 1))
+      level = Level{level_int};
 
-    selectedDungeonIndex = runDungeonSelection(selectedDungeonIndex);
+    runDungeonSelection(selectedDungeon);
 
     if (ImGui::Button("Send to Arena"))
       arenaMonster.emplace(get());
@@ -45,10 +46,7 @@ namespace ui
     ImGui::End();
   }
 
-  Monster MonsterSelection::get() const
-  {
-    return {selectedType, Level{level}, getDungeonMultiplier(selectedDungeonIndex)};
-  }
+  Monster MonsterSelection::get() const { return {selectedType, Level{level}, dungeonMultiplier(selectedDungeon)}; }
 
   std::optional<Monster> MonsterSelection::toArena()
   {
@@ -158,27 +156,20 @@ namespace ui
     return monster;
   }
 
-  [[nodiscard]] unsigned MonsterSelection::runDungeonSelection(unsigned previousSelection)
+  void MonsterSelection::runDungeonSelection(Dungeon& selected)
   {
     ImGui::SetNextWindowSizeConstraints(ImVec2(100, 300), ImVec2(500, 1000));
-    if (ImGui::BeginCombo("Dungeon", dungeons[previousSelection].first))
+    if (ImGui::BeginCombo("Dungeon", toString(selected)))
     {
-      auto n = 0u;
-      for (auto dungeon : dungeons)
+      for (auto n = 0u; n < static_cast<unsigned>(Dungeon::Last); ++n)
       {
+        auto dungeon = static_cast<Dungeon>(n);
         char buffer[30];
-        sprintf(buffer, "%s (%.0f%%)", dungeon.first, dungeon.second * 100);
-        if (ImGui::Selectable(buffer, previousSelection == n))
-          previousSelection = n;
-        ++n;
+        sprintf(buffer, "%s (%.0f%%)", toString(dungeon), dungeonMultiplier(dungeon).get() * 100);
+        if (ImGui::Selectable(buffer, selected == dungeon))
+          selected = dungeon;
       }
       ImGui::EndCombo();
     }
-    return previousSelection;
-  }
-
-  DungeonMultiplier MonsterSelection::getDungeonMultiplier(unsigned selectedDungeonIndex)
-  {
-    return DungeonMultiplier{selectedDungeonIndex < dungeons.size() ? dungeons[selectedDungeonIndex].second : 1};
   }
 } // namespace ui

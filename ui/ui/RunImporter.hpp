@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/DungeonInfo.hpp"
+
 #include "ui/State.hpp"
 #include "ui/Utils.hpp"
 
@@ -17,7 +19,7 @@ namespace ui
     ActionResultUI operator()();
 
   private:
-    unsigned selectedDungeonIndex{1};
+    Dungeon selectedDungeon{Dungeon::HobblersHold};
     unsigned acquireHitPointsMode{2};
     std::string status;
   };

@@ -15,7 +15,7 @@ namespace ui
     ImGui::Begin("Importer");
     //    ImGui::SetWindowPos(ImVec2{5, 545}, ImGuiCond_FirstUseEver);
     //    ImGui::SetWindowSize(ImVec2{250, 170}, ImGuiCond_FirstUseEver);
-    selectedDungeonIndex = MonsterSelection::runDungeonSelection(selectedDungeonIndex);
+    MonsterSelection::runDungeonSelection(selectedDungeon);
     if (ImGui::BeginCombo("Acquire HP", acquireHitPointModes[acquireHitPointsMode]))
     {
       for (unsigned i = 0; i < acquireHitPointModes.size(); ++i)
@@ -37,7 +37,7 @@ namespace ui
         processor.findMonsters(3);
         status = "Imported " + std::to_string(processor.get().monsterInfos.size()) + " monsters.";
         std::vector<Monster> monsters;
-        const auto multiplier = MonsterSelection::getDungeonMultiplier(selectedDungeonIndex);
+        const auto multiplier = dungeonMultiplier(selectedDungeon);
         if (acquireHitPointsMode > 0)
         {
           const bool smart = acquireHitPointsMode == 2;
