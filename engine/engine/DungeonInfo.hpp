@@ -1,8 +1,9 @@
 #pragma once
 
-#include "engine/Boss.hpp"
-#include "engine/Monster.hpp"
+#include "engine/ConstExprMap.hpp"
+#include "engine/StrongTypes.hpp"
 
+#include <string_view>
 #include <vector>
 
 enum class Dungeon
@@ -29,109 +30,47 @@ enum class Dungeon
   CreeplightRuins,
   HallsOfSteel,
   MonsterMachine1,
+  Last = MonsterMachine1,
+};
+
+struct DungeonInfo
+{
+  std::string_view name;
+  DungeonMultiplier multiplier;
+};
+
+using namespace std::string_view_literals;
+static constexpr Map<Dungeon, DungeonInfo, 22> dungeons{
+    std::make_pair(Dungeon::HobblersHold, DungeonInfo{"Hobbler's Hold"sv, DungeonMultiplier{0.8f}}),
+    {Dungeon::DenOfDanger, {"Den of Danger"sv, DungeonMultiplier{1}}},
+    {Dungeon::VentureCave, {"Venture Cave"sv, DungeonMultiplier{1}}},
+    {Dungeon::WesternJungle, {"Western Jungle"sv, DungeonMultiplier{1}}},
+    {Dungeon::EasternTundra, {"Eastern Tundra"sv, DungeonMultiplier{1}}},
+    {Dungeon::NorthernDesert, {"Northern Desert"sv, DungeonMultiplier{1}}},
+    {Dungeon::SouthernSwamp, {"Southern Swamp"sv, DungeonMultiplier{1}}},
+    {Dungeon::Doubledoom, {"Doubledoom"sv, DungeonMultiplier{1.1f}}},
+    {Dungeon::GrimmsGrotto, {"Grimm's Grotto"sv, DungeonMultiplier{1.4f}}},
+    {Dungeon::RockGarden, {"Rock Garden"sv, DungeonMultiplier{1}}},
+    {Dungeon::CursedOasis, {"Cursed Oasis"sv, DungeonMultiplier{1.15f}}},
+    {Dungeon::ShiftingPassages, {"Shifting Passages"sv, DungeonMultiplier{1.299f}}},
+    {Dungeon::HavendaleBridge, {"Havendale Bridge"sv, DungeonMultiplier{1.05f}}},
+    {Dungeon::TheLabyrinth, {"The Labyrinth"sv, DungeonMultiplier{1.3f}}},
+    {Dungeon::MagmaMines, {"Magma Mines"sv, DungeonMultiplier{1.3f}}},
+    {Dungeon::HexxRuins, {"Hexx Ruins"sv, DungeonMultiplier{1}}},
+    {Dungeon::IckSwamp, {"Ick Swamp"sv, DungeonMultiplier{1.2f}}},
+    {Dungeon::TheSlimePit, {"The Slime Pit"sv, DungeonMultiplier{1.2f}}},
+    {Dungeon::BerserkerCamp, {"Berserker Camp"sv, DungeonMultiplier{1}}},
+    {Dungeon::CreeplightRuins, {"Creeplight Ruins"sv, DungeonMultiplier{1.1f}}},
+    {Dungeon::HallsOfSteel, {"Halls of Steel"sv, DungeonMultiplier{1.2f}}},
+    {Dungeon::MonsterMachine1, {"Monster Machine 1"sv, DungeonMultiplier{1.3f}}},
 };
 
 constexpr const char* toString(Dungeon dungeon)
 {
-  switch (dungeon)
-  {
-  case Dungeon::HobblersHold:
-    return "Hobbler's Hold";
-  case Dungeon::DenOfDanger:
-    return "Den of Danger";
-  case Dungeon::VentureCave:
-    return "Venture Cave";
-  case Dungeon::WesternJungle:
-    return "Western Jungle";
-  case Dungeon::EasternTundra:
-    return "Eastern Tundra";
-  case Dungeon::NorthernDesert:
-    return "Northern Desert";
-  case Dungeon::SouthernSwamp:
-    return "Southern Swamp";
-  case Dungeon::Doubledoom:
-    return "Doubledoom";
-  case Dungeon::GrimmsGrotto:
-    return "Grimm's Grotto";
-  case Dungeon::RockGarden:
-    return "Rock Garden";
-  case Dungeon::CursedOasis:
-    return "Cursed Oasis";
-  case Dungeon::ShiftingPassages:
-    return "Shifting Passages";
-  case Dungeon::HavendaleBridge:
-    return "Havendale Bridge";
-  case Dungeon::TheLabyrinth:
-    return "The Labyrinth";
-  case Dungeon::MagmaMines:
-    return "Magma Mines";
-  case Dungeon::HexxRuins:
-    return "Hexx Ruins";
-  case Dungeon::IckSwamp:
-    return "Ick Swamp";
-  case Dungeon::TheSlimePit:
-    return "The Slime Pit";
-  case Dungeon::BerserkerCamp:
-    return "Berserker Camp";
-  case Dungeon::CreeplightRuins:
-    return "Creeplight Ruins";
-  case Dungeon::HallsOfSteel:
-    return "Halls of Steel";
-  case Dungeon::MonsterMachine1:
-    return "Monster Machine 1";
-  }
+  return dungeons.at(dungeon).name.data();
 };
 
-constexpr float dungeonMultiplier(Dungeon dungeon)
+constexpr DungeonMultiplier dungeonMultiplier(Dungeon dungeon)
 {
-  switch (dungeon)
-  {
-  case Dungeon::HobblersHold:
-    return 0.8f;
-  case Dungeon::DenOfDanger:
-    return 1.0f;
-  case Dungeon::VentureCave:
-    return 1.0f;
-  case Dungeon::WesternJungle:
-    return 1.0f;
-  case Dungeon::EasternTundra:
-    return 1.0f;
-  case Dungeon::NorthernDesert:
-    return 1.0f;
-  case Dungeon::SouthernSwamp:
-    return 1.0f;
-  case Dungeon::Doubledoom:
-    return 1.1f;
-  case Dungeon::GrimmsGrotto:
-    return 1.4f;
-  case Dungeon::RockGarden:
-    return 1.0f;
-  case Dungeon::CursedOasis:
-    return 1.15f;
-  case Dungeon::ShiftingPassages:
-    return 1.299f;
-  case Dungeon::HavendaleBridge:
-    return 1.05f;
-  case Dungeon::TheLabyrinth:
-    return 1.3f;
-  case Dungeon::MagmaMines:
-    return 1.3f;
-  case Dungeon::HexxRuins:
-    return 1.0f;
-  case Dungeon::IckSwamp:
-    return 1.2f;
-  case Dungeon::TheSlimePit:
-    return 1.2f;
-  case Dungeon::BerserkerCamp:
-    return 1.0f;
-  case Dungeon::CreeplightRuins:
-    return 1.1f;
-  case Dungeon::HallsOfSteel:
-    return 1.2f;
-  case Dungeon::MonsterMachine1:
-    return 1.299f;
-  }
+  return dungeons.at(dungeon).multiplier;
 }
-
-std::vector<Monster> boss(Dungeon dungeon);
-std::vector<BossType> boss(Dungeon dungeon, MonsterType type);

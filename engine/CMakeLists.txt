@@ -9,7 +9,6 @@ add_library(
   src/Combat.cpp
   src/Conversion.cpp
   src/Defence.cpp
-  src/DungeonInfo.cpp
   src/DungeonSetup.cpp
   src/Experience.cpp
   src/Faith.cpp
