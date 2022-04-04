@@ -1,8 +1,6 @@
 #pragma once
 
-#include "engine/Defence.hpp"
 #include "engine/Monster.hpp"
-#include "engine/MonsterTraits.hpp"
 #include "engine/StrongTypes.hpp"
 
 enum class BossType

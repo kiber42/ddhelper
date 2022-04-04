@@ -17,6 +17,7 @@ using StoneSkinLayers = NamedType<uint8_t, struct StoneSkinLayersParameter>;
 using BurnStackSize = NamedType<uint8_t, struct BurnStackSizeParameter, Addable, Scalable, Comparable>;
 using PoisonAmount = NamedType<uint16_t, struct PoisonAmountParameter, Addable, Subtractable, Comparable>;
 using CorrosionAmount = NamedType<uint16_t, struct CorrosionAmountParameter, Addable, Comparable>;
+using DungeonMultiplier = NamedType<float, struct DungeonMultiplierParameter, Comparable>;
 
 auto constexpr operator"" _HP(unsigned long long value) { return HitPoints{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _MP(unsigned long long value) { return ManaPoints{clampedTo<uint16_t>(value)}; }

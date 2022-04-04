@@ -6,8 +6,6 @@
 
 enum class MonsterType : uint8_t;
 
-using DungeonMultiplier = NamedType<float, struct DungeonMultiplierParameter>;
-
 class MonsterStats
 {
 public:
