@@ -82,6 +82,8 @@ constexpr std::optional<BossType> getBossInfo(Dungeon dungeon, MonsterType monst
   // TODO: Add boss information for more dungeons.
   // Note: Some dungeons like Rock Garden cannot be handled this way.
   // Note: For many dungeons, a random selection from a set of basic bosses is used.
+  if (dungeon == Dungeon::HobblersHold && monsterType == MonsterType::Goblin && level == Level{8})
+    return BossType::LordGobb;
   if (level != Level{10})
     return {};
   if (dungeon == Dungeon::MonsterMachine1 && monsterType == MonsterType::Ratling)

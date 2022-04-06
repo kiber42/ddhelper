@@ -7,6 +7,7 @@
 
 enum class BossType
 {
+  LordGobb,
   Chzar,
   Last = Chzar
 };
@@ -18,6 +19,8 @@ constexpr const char* toString(BossType type)
 {
   switch (type)
   {
+  case BossType::LordGobb:
+    return "Lord Gobb";
   case BossType::Chzar:
     return "Chzar";
   }

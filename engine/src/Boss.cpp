@@ -6,6 +6,8 @@ namespace
   {
     switch (type)
     {
+    case BossType::LordGobb:
+      return {Level{8}, 176_HP, 49_damage};
     case BossType::Chzar:
       return {Level{10}, 1200_HP, 50_damage};
     }
@@ -15,6 +17,8 @@ namespace
   {
     switch (type)
     {
+    case BossType::LordGobb:
+      return {20_physicalresist, 20_magicalresist};
     case BossType::Chzar:
       return {};
     }
@@ -24,6 +28,8 @@ namespace
   {
     switch (type)
     {
+    case BossType::LordGobb:
+      return {MonsterTrait::FirstStrike};
     case BossType::Chzar:
       return {MonsterTrait::Retaliate, MonsterTrait::Corrosive};
     }
