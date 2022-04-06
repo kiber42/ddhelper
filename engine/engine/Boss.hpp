@@ -3,6 +3,8 @@
 #include "engine/Monster.hpp"
 #include "engine/StrongTypes.hpp"
 
+#include <optional>
+
 enum class BossType
 {
   Chzar,
@@ -10,7 +12,7 @@ enum class BossType
 };
 
 Monster create(BossType BossType);
-Monster create(BossType type, HitPoints currentHitPoints);
+Monster create(BossType type, std::optional<HitPoints> currentHitPoints);
 
 constexpr const char* toString(BossType type)
 {

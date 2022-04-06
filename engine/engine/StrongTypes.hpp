@@ -36,7 +36,7 @@ class Level
 {
 public:
   template <class Integral>
-  explicit Level(Integral level)
+  constexpr explicit Level(Integral level)
     : level(clamped<uint8_t>(level, 1, 10))
   {
   }

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "engine/Boss.hpp"
 #include "engine/ConstExprMap.hpp"
 #include "engine/StrongTypes.hpp"
 
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -73,4 +75,16 @@ constexpr const char* toString(Dungeon dungeon)
 constexpr DungeonMultiplier dungeonMultiplier(Dungeon dungeon)
 {
   return dungeons.at(dungeon).multiplier;
+}
+
+constexpr std::optional<BossType> getBossInfo(Dungeon dungeon, MonsterType monsterType, Level level)
+{
+  // TODO: Add boss information for more dungeons.
+  // Note: Some dungeons like Rock Garden cannot be handled this way.
+  // Note: For many dungeons, a random selection from a set of basic bosses is used.
+  if (level != Level{10})
+    return {};
+  if (dungeon == Dungeon::MonsterMachine1 && monsterType == MonsterType::Ratling)
+    return BossType::Chzar;
+  return {};
 }

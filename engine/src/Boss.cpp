@@ -35,9 +35,10 @@ Monster create(BossType type)
   return {toString(type), stats(type), defence(type), traits(type)};
 }
 
-Monster create(BossType type, HitPoints hp)
+Monster create(BossType type, std::optional<HitPoints> hp)
 {
   auto bossStats = stats(type);
-  bossStats.setHitPoints(hp);
+  if (hp)
+    bossStats.setHitPoints(*hp);
   return {toString(type), std::move(bossStats), defence(type), traits(type)};
 }
