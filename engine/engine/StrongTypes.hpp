@@ -65,6 +65,8 @@ public:
     return true;
   }
 
+  bool operator<=>(const Level&) const = default;
+
 private:
   uint8_t level;
 };
