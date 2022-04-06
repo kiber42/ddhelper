@@ -23,6 +23,8 @@ public:
   void healHitPoints(HitPoints amountPointsHealed, bool allowOverheal);
   void loseHitPoints(HitPoints amountPointsLost);
   void setHitPointsMax(HitPoints newHitPointsMax);
+  //! Set HP, capped at 150% HP max
+  void setHitPoints(HitPoints newHitPoints);
 
   DamagePoints getDamage() const;
   void set(DamagePoints);

@@ -9,17 +9,8 @@ enum class BossType
   Last = Chzar
 };
 
-class Boss
-{
-public:
-  static Monster create(BossType BossType);
-  static Monster create(BossType type, HitPoints currentHitPoints);
-
-private:
-  static MonsterStats stats(BossType type);
-  static Defence defence(BossType type);
-  static MonsterTraits traits(BossType type);
-};
+Monster create(BossType BossType);
+Monster create(BossType type, HitPoints currentHitPoints);
 
 constexpr const char* toString(BossType type)
 {

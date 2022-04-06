@@ -1,5 +1,6 @@
 #include "solver/Scenario.hpp"
 
+#include "engine/Boss.hpp"
 #include "engine/Hero.hpp"
 #include "engine/Items.hpp"
 #include "engine/Monster.hpp"
@@ -139,8 +140,8 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
       }
       level.increase();
     }
-    monsters.emplace_back(Monster{
-        "Chzar", MonsterStats{Level{10}, 1200_HP, 50_damage}, {}, {MonsterTrait::Retaliate, MonsterTrait::Corrosive}});
+
+    monsters.emplace_back(create(BossType::Chzar));
     // Level also has 44 Mysterious Murkshades (Corrosive!)
     break;
   }

@@ -119,6 +119,11 @@ void MonsterStats::setHitPointsMax(HitPoints newHitPointsMax)
   hpMax = newHitPointsMax > 0_HP ? newHitPointsMax : 1_HP;
 }
 
+void MonsterStats::setHitPoints(HitPoints newHitPoints)
+{
+  hp = std::min(std::max(newHitPoints, 0_HP), hpMax.percentage(150));
+}
+
 DamagePoints MonsterStats::getDamage() const
 {
   return damage;
