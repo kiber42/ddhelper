@@ -1,5 +1,7 @@
 #include "ui/RunImporter.hpp"
 
+#include "engine/Boss.hpp"
+
 #include "ui/MonsterSelection.hpp"
 #include "ui/State.hpp"
 
@@ -7,6 +9,24 @@
 
 namespace ui
 {
+  namespace
+  {
+    Monster create(const importer::MonsterInfo& info, DungeonMultiplier multiplier)
+    {
+      if (info.health)
+      {
+        auto [hp, hpMax] = *info.health;
+        auto stats = MonsterStats{info.type, info.level, multiplier};
+        stats.setHitPointsMax(HitPoints{hpMax});
+        stats.setHitPoints(HitPoints{hp});
+        return {Monster::makeName(info.type, info.level), std::move(stats), Defence{info.type},
+                MonsterTraits{info.type}};
+      }
+      else
+        return {info.type, info.level, multiplier};
+    }
+  } // namespace
+
   static constexpr std::array<const char*, 3> acquireHitPointModes = {"Never", "Always", "Smart"};
 
   ActionResultUI RunImporter::operator()()
@@ -43,26 +63,16 @@ namespace ui
           const bool smart = acquireHitPointsMode == 2;
           processor.extractMonsterInfos(smart);
         }
-        for (auto& info : processor.get().monsterInfos)
+        for (const auto& monsterInfo : processor.get().monsterInfos)
         {
-          if (info.health)
+          auto bossType = getBossInfo(selectedDungeon, monsterInfo.type, monsterInfo.level);
+          if (bossType)
           {
-            auto [hp, hpMax] = *info.health;
-            auto stats = MonsterStats{info.type, info.level, multiplier};
-            stats.setHitPointsMax(HitPoints{hpMax});
-            stats.healHitPoints(HitPoints{hpMax}, false);
-            if (hp != hpMax)
-            {
-              if (hp < hpMax)
-                stats.loseHitPoints(HitPoints{hpMax - hp});
-              else
-                stats.healHitPoints(HitPoints{hp - hpMax}, true);
-            }
-            monsters.emplace_back(Monster::makeName(info.type, info.level), std::move(stats), Defence{info.type},
-                                  MonsterTraits{info.type});
+            std::optional hp = monsterInfo.health ? std::optional<HitPoints>{monsterInfo.health->first} : std::nullopt;
+            monsters.emplace_back(create(*bossType, hp));
           }
           else
-            monsters.emplace_back(info.type, info.level, multiplier);
+            monsters.emplace_back(create(monsterInfo, multiplier));
         }
         result = {"Import State", [monsters = std::move(monsters)](State& state) {
                     state.monsterPool = monsters;
