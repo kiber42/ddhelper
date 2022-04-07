@@ -15,7 +15,7 @@ public:
   unsigned getPrestige() const { return prestige; }
   unsigned getXPforNextLevel() const { return xpNext; }
 
-  void gain(unsigned xpGained, unsigned xpBonus, bool xpBoost);
+  void gain(unsigned xpGainedTotal);
   void gainLevel();
   void modifyLevelBy(int delta);
 

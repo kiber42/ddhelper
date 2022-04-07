@@ -38,6 +38,7 @@ public:
   unsigned getLevel() const;
   unsigned getPrestige() const;
   unsigned getXPforNextLevel() const;
+  unsigned predictExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed) const;
   void gainExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed, Monsters& allMonsters);
   void gainExperienceForPetrification(bool monsterWasSlowed, Monsters& allMonsters);
   void gainExperienceNoBonuses(unsigned xpGained, Monsters& allMonsters);
@@ -219,7 +220,7 @@ private:
   bool alchemistScrollUsedThisLevel{false};
   bool namtarsWardUsedThisLevel{false};
 
-  void gainExperience(unsigned xpGained, unsigned xpBonuses, Monsters& allMonsters);
+  void gainExperience(unsigned xpGainedTotal, Monsters& allMonsters);
   void drinkHealthPotion();
   void drinkManaPotion();
   // Change health bonus, but not retroactively

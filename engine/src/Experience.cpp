@@ -27,13 +27,8 @@ Experience::Experience(IsVeteran)
 {
 }
 
-void Experience::gain(unsigned xpGained, unsigned xpBonus, bool xpBoost)
+void Experience::gain(unsigned xpGained)
 {
-  if (xpBoost)
-    xpGained += xpGained / 2;
-
-  xpGained += xpBonus;
-
   while (xp + xpGained >= xpNext)
   {
     xpGained -= xpNext - xp;

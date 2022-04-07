@@ -169,37 +169,43 @@ unsigned Hero::getXPforNextLevel() const
   return experience.getXPforNextLevel();
 }
 
+unsigned Hero::predictExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed) const
+{
+  auto xp = Experience::forHeroAndMonsterLevels(getLevel(), monsterLevel);
+  if (has(HeroStatus::ExperienceBoost))
+    xp += xp / 2;
+  xp += getIntensity(HeroStatus::Learning);
+  if (monsterWasSlowed)
+    ++xp;
+  if (has(HeroTrait::Veteran))
+    ++xp;
+  if (has(ShopItem::BalancedDagger) && getLevel() == monsterLevel)
+    xp += 2;
+  return xp;
+}
+
 void Hero::gainExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed, Monsters& allMonsters)
 {
-  const auto xpBase = Experience::forHeroAndMonsterLevels(getLevel(), monsterLevel);
-  auto xpBonuses = getIntensity(HeroStatus::Learning);
-  if (monsterWasSlowed)
-    ++xpBonuses;
-  if (has(HeroTrait::Veteran))
-    ++xpBonuses;
-  if (has(ShopItem::BalancedDagger) && getLevel() == monsterLevel)
-    xpBonuses += 2;
-  gainExperience(xpBase, xpBonuses, allMonsters);
+  gainExperience(predictExperienceForKill(monsterLevel, monsterWasSlowed), allMonsters);
+  reset(HeroStatus::ExperienceBoost);
 }
 
 void Hero::gainExperienceForPetrification(bool monsterWasSlowed, Monsters& allMonsters)
 {
   if (monsterWasSlowed)
-    gainExperience(0, 1, allMonsters);
+    gainExperience(1, allMonsters);
 }
 
 void Hero::gainExperienceNoBonuses(unsigned xpGained, Monsters& allMonsters)
 {
-  gainExperience(0, xpGained, allMonsters);
+  gainExperience(xpGained, allMonsters);
 }
 
-void Hero::gainExperience(unsigned xpBase, unsigned xpBonuses, Monsters& allMonsters)
+void Hero::gainExperience(unsigned xpGainedTotal, Monsters& allMonsters)
 {
   auto level = getLevel();
   const auto prestige = getPrestige();
-  experience.gain(xpBase, xpBonuses, has(HeroStatus::ExperienceBoost));
-  if (xpBase > 0)
-    reset(HeroStatus::ExperienceBoost);
+  experience.gain(xpGainedTotal);
   const bool levelUp = getLevel() > level || getPrestige() > prestige;
   while (getLevel() > level)
   {
