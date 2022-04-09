@@ -83,8 +83,13 @@ int StateFitnessRating2::operator()(const GameState& state) const
   const auto numMonsters = monsters.size();
   if (numMonsters == 0)
     return GAME_WON;
+  if (state.activeMonster >= numMonsters)
+  {
+    assert(false);
+    return GAME_LOST;
+  }
   const auto& hero = state.hero;
-  const auto& monster = monsters.front();
+  const auto& monster = monsters[state.activeMonster];
   const auto numHeroGetsHit = ceil(static_cast<double>(monster.getHitPoints()) / hero.getDamageOutputVersus(monster)) +
                               (hero.hasInitiativeVersus(monster) ? -1 : 0);
   const auto expectedHPLoss = numHeroGetsHit * hero.predictDamageTaken(monster.getDamage(), monster.damageType());

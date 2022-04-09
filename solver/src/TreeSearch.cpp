@@ -10,9 +10,9 @@ namespace
 {
   int rateSpell(const GameState& state, const Spell& spell)
   {
-    assert(!state.visibleMonsters.empty());
+    assert(state.activeMonster < state.visibleMonsters.size());
     const auto& hero = state.hero;
-    const auto& monster = state.visibleMonsters.front();
+    const auto& monster = state.visibleMonsters[state.activeMonster];
     switch (spell)
     {
     case Spell::Apheelsik:
@@ -95,9 +95,9 @@ namespace
 
   int rateStep(const GameState& state, const Step& step)
   {
-    assert(!state.visibleMonsters.empty());
+    assert(state.activeMonster < state.visibleMonsters.size());
     const auto& hero = state.hero;
-    const auto& monster = state.visibleMonsters.front();
+    const auto& monster = state.visibleMonsters[state.activeMonster];
     return std::visit(
         overloaded{[&](Attack) {
                      const auto monsterDies = monster.predictDamageTaken(hero.getDamageOutputVersus(monster),
@@ -112,7 +112,7 @@ namespace
                    [&](Cast cast) { return rateSpell(state, cast.spell); }, [](Uncover) { return 1; },
                    [](Buy) { return 1; }, [](Use) { return 3; }, [](Convert) { return 0; }, [](Find) { return 20; },
                    [](FindFree) { return 21; }, [](Follow) { return 8; }, [](Request) { return 4; },
-                   [](Desecrate) { return -2; }, [](NoOp) { return 0; }},
+                   [](Desecrate) { return -2; }, [](ChangeTarget) { return 1; }, [](NoOp) { return 0; }},
         step);
   }
 
@@ -127,7 +127,7 @@ namespace
       return {{}, fitnessRating.GAME_WON};
     if (maxDepth == 0)
       return {{}, fitnessRating(state)};
-    const auto steps = solver::generateAllValidSteps(state);
+    const auto steps = solver::generateAllValidSteps(state, false);
     if (run_parallel)
     {
       auto ratedSolutions = std::vector<RatedSolution>(steps.size());

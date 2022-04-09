@@ -27,7 +27,7 @@ namespace
     Solution initial;
     while (true)
     {
-      Step step = generateRandomValidStep(state);
+      Step step = generateRandomValidStep(state, false);
       assert(isValid(step, state));
       state = solver::apply(step, std::move(state));
       if (state.hero.isDefeated())
@@ -42,9 +42,9 @@ namespace
   using OptionalStepResult = std::optional<std::pair<Step, GameState>>;
 
   // Generate and apply random step.  If hero survives, returns step and resulting gamestate; nullopt otherwise.
-  OptionalStepResult makeRandomStep(GameState state)
+  OptionalStepResult makeRandomStep(GameState state, bool allowTargetChange)
   {
-    auto randomStep = generateRandomValidStep(state);
+    auto randomStep = generateRandomValidStep(state, allowTargetChange);
     state = solver::apply(randomStep, std::move(state));
     if (!state.hero.isDefeated())
       return std::pair{std::move(randomStep), std::move(state)};
@@ -59,7 +59,7 @@ namespace
     int bestRating;
     while (--num_attempts >= 0)
     {
-      auto candidate = num_attempts > 0 ? makeRandomStep(state) : makeRandomStep(std::move(state));
+      auto candidate = num_attempts > 0 ? makeRandomStep(state, false) : makeRandomStep(std::move(state), false);
       if (!candidate)
         continue;
       auto rating = rate(candidate->second);

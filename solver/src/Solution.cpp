@@ -37,6 +37,7 @@ std::string toString(const Step& step)
         return "Request "s + toString(std::get<Pact>(request.boonOrPact));
       },
       [](Desecrate desecrate) { return "Desecrate "s + toString(desecrate.altar); },
+      [](ChangeTarget change) { return "Select target "s + std::to_string(change.targetIndex); },
       [](NoOp) { return "no-op"s; }
   }, step);
 }

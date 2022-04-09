@@ -9,5 +9,6 @@ struct GameState
   Hero hero{};
   Monsters visibleMonsters{};
   HiddenMonsters hiddenMonsters{};
+  std::size_t activeMonster{0};
   SimpleResources resources{ResourceSet{DungeonSetup{}}, 20};
 };

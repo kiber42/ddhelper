@@ -14,19 +14,19 @@ namespace ui
     auto solverState = GameState{
         .hero{state.hero},
         .visibleMonsters{state.monsterPool},
+        .activeMonster = state.activeMonster.value_or(0u),
         .resources{state.resources.visible},
     };
     solverState.resources.numHiddenTiles = state.resources.numHiddenTiles;
     solverState.resources.numRevealedTiles = state.resources.numRevealedTiles;
     solverState.resources.ruleset = state.resources.ruleset;
     auto& monsters = solverState.visibleMonsters;
-    if (state.activeMonster && *state.activeMonster > 0)
+    while (solverState.activeMonster < monsters.size() && monsters[solverState.activeMonster].isDefeated())
     {
-      auto moveToFront = static_cast<int64_t>(*state.activeMonster);
-      std::rotate(begin(monsters), begin(monsters) + moveToFront, begin(monsters) + moveToFront + 1);
+      monsters.erase(begin(monsters) + static_cast<long>(solverState.activeMonster));
+      if (solverState.activeMonster > 0)
+        --solverState.activeMonster;
     }
-    if (!monsters.empty() && monsters.front().isDefeated())
-      monsters.erase(begin(monsters));
     return solverState;
   }
 
@@ -76,7 +76,7 @@ namespace ui
               if (hero.desecrate(desecrate.altar, monsters))
                 altars.erase(std::find(begin(altars), end(altars), GodOrPactmaker{desecrate.altar}));
             },
-            [](NoOp) {}},
+            [&](ChangeTarget changeTarget) { state.activeMonster = changeTarget.targetIndex; }, [](NoOp) {}},
         step);
   }
 
