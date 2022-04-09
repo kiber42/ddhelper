@@ -175,7 +175,7 @@ namespace ui
 
   Hero CustomHeroBuilder::get() const
   {
-    const auto level = clamped<uint8_t>(data[0], 1, 10);
+    const auto level = Level{data[0]};
     const auto hp = HitPoints{data[1]};
     const auto maxHp = HitPoints{data[2]};
     const auto mp = ManaPoints{data[3]};

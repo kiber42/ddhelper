@@ -8,6 +8,7 @@
 using HitPoints = NamedType<uint16_t, struct HitPointsParameter, Addable, Subtractable, Scalable, PercentOf, Comparable>;
 using ManaPoints = NamedType<uint8_t, struct ManaPointsParameter, Addable, Subtractable, PercentOf, Comparable>;
 using DamagePoints = NamedType<uint16_t, struct DamagePointsParameter, Addable, Subtractable, Scalable, Comparable>;
+using ExperiencePoints = NamedType<uint16_t, struct ExperiencePointsParameter, Addable, Incrementable, Subtractable, Scalable, PercentOf, Comparable>;
 using DamageBonus = Percentage<int16_t, struct DamageBonusParameter, Negation, Addable, Subtractable, Comparable>;
 using DeathProtection = NamedType<uint8_t, struct DeathProtectionParameter>;
 using DeathGaze = Percentage<uint8_t, struct DeathGazeParameter, Addable, Comparable>;
@@ -22,6 +23,7 @@ using DungeonMultiplier = NamedType<float, struct DungeonMultiplierParameter, Co
 auto constexpr operator"" _HP(unsigned long long value) { return HitPoints{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _MP(unsigned long long value) { return ManaPoints{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _damage(unsigned long long value) { return DamagePoints{clampedTo<uint16_t>(value)}; }
+auto constexpr operator"" _xp(unsigned long long value) { return ExperiencePoints{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _bonus(unsigned long long value) { return DamageBonus{clampedTo<int16_t>(value)}; }
 auto constexpr operator"" _dprot(unsigned long long value) { return DeathProtection{clampedTo<uint16_t>(value)}; }
 auto constexpr operator"" _deathgaze(unsigned long long value) { return DeathGaze{clampedTo<uint8_t>(value)}; }

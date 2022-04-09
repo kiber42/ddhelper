@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/StrongTypes.hpp"
+
 class Experience
 {
 public:
@@ -7,30 +9,30 @@ public:
   {
   };
 
-  explicit Experience(unsigned initialLevel = 1);
+  explicit Experience(Level initialLevel = Level{1});
   Experience(IsVeteran);
 
-  unsigned getXP() const { return xp; }
-  unsigned getLevel() const { return level; }
+  Level getLevel() const { return level; }
   unsigned getPrestige() const { return prestige; }
-  unsigned getXPforNextLevel() const { return xpNext; }
+  ExperiencePoints getXP() const { return xp; }
+  ExperiencePoints getXPforNextLevel() const { return xpNext; }
 
-  void gain(unsigned xpGainedTotal);
+  void gain(ExperiencePoints xpGainedTotal);
   void gainLevel();
   void modifyLevelBy(int delta);
 
   // May differ from getLevel if Humility or Blood Curse are involved
-  unsigned getUnmodifiedLevel() const;
+  Level getUnmodifiedLevel() const;
 
-  static unsigned forHeroAndMonsterLevels(unsigned heroLevel, unsigned monsterLevel);
+  static ExperiencePoints forHeroAndMonsterLevels(Level heroLevel, Level monsterLevel);
 
 private:
-  unsigned level;
-  unsigned unmodifiedLevel;
+  Level level;
+  Level unmodifiedLevel;
   unsigned prestige;
   bool veteran;
 
-  unsigned xp;
-  unsigned xpStep;
-  unsigned xpNext;
+  ExperiencePoints xp;
+  ExperiencePoints xpStep;
+  ExperiencePoints xpNext;
 };

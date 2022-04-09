@@ -511,7 +511,7 @@ void testStatusEffects()
     });
     describe("Poisonous", [] {
       it("should poison the monster (1 point per hero level)", [] {
-        Hero hero({100_HP, 0_MP, 1_damage}, {}, Experience{5});
+        Hero hero({100_HP, 0_MP, 1_damage}, {}, Experience{Level{5}});
         hero.add(HeroStatus::Poisonous, 3);
         Monster monster(MonsterType::GooBlob, Level{4});
         AssertThat(attack(hero, monster), Equals(Summary::Safe));
@@ -553,7 +553,7 @@ void testStatusEffects()
       });
     });
     describe("Slow Strike", [] {
-      Hero hero({}, {}, Experience(10));
+      Hero hero({}, {}, Experience{Level{10}});
       Monster meatMan(MonsterType::MeatMan, Level{1});
       Monster goblin(MonsterType::Goblin, Level{1});
       it("should give initiative to regular monsters of any level", [&] {

@@ -151,12 +151,12 @@ void Hero::setName(std::string newName)
 
 unsigned Hero::getXP() const
 {
-  return experience.getXP();
+  return experience.getXP().get();
 }
 
 unsigned Hero::getLevel() const
 {
-  return experience.getLevel();
+  return experience.getLevel().get();
 }
 
 unsigned Hero::getPrestige() const
@@ -166,22 +166,22 @@ unsigned Hero::getPrestige() const
 
 unsigned Hero::getXPforNextLevel() const
 {
-  return experience.getXPforNextLevel();
+  return experience.getXPforNextLevel().get();
 }
 
 unsigned Hero::predictExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed) const
 {
-  auto xp = Experience::forHeroAndMonsterLevels(getLevel(), monsterLevel);
+  auto xp = Experience::forHeroAndMonsterLevels(experience.getLevel(), Level{monsterLevel});
   if (has(HeroStatus::ExperienceBoost))
     xp += xp / 2;
-  xp += getIntensity(HeroStatus::Learning);
+  xp += ExperiencePoints{getIntensity(HeroStatus::Learning)};
   if (monsterWasSlowed)
     ++xp;
   if (has(HeroTrait::Veteran))
     ++xp;
   if (has(ShopItem::BalancedDagger) && getLevel() == monsterLevel)
-    xp += 2;
-  return xp;
+    xp += 2_xp;
+  return xp.get();
 }
 
 void Hero::gainExperienceForKill(unsigned monsterLevel, bool monsterWasSlowed, Monsters& allMonsters)
@@ -205,7 +205,7 @@ void Hero::gainExperience(unsigned xpGainedTotal, Monsters& allMonsters)
 {
   auto level = getLevel();
   const auto prestige = getPrestige();
-  experience.gain(xpGainedTotal);
+  experience.gain(ExperiencePoints{xpGainedTotal});
   const bool levelUp = getLevel() > level || getPrestige() > prestige;
   while (getLevel() > level)
   {

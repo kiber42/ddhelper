@@ -74,6 +74,13 @@ struct Addable : MixinBase<T, Addable>
 };
 
 template <typename T>
+struct Incrementable : MixinBase<T, Incrementable>
+{
+  constexpr T& operator++() { ++(this->underlying()._get()); return this->underlying(); }
+  constexpr T operator++(int) { return T((this->underlying()._get())++); }
+};
+
+template <typename T>
 struct Negation : MixinBase<T, Negation>
 {
   [[nodiscard]] constexpr T operator-() const { return T(-this->underlying()._get()); }

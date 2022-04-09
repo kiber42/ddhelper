@@ -1,9 +1,10 @@
 #include "engine/Experience.hpp"
+#include "engine/StrongTypes.hpp"
 
 #include <algorithm>
 #include <cassert>
 
-Experience::Experience(unsigned initialLevel)
+Experience::Experience(Level initialLevel)
   : level(1)
   , unmodifiedLevel(1)
   , prestige(0)
@@ -12,7 +13,7 @@ Experience::Experience(unsigned initialLevel)
   , xpStep(5)
   , xpNext(5)
 {
-  while (level + prestige < initialLevel)
+  while (level < initialLevel)
     gainLevel();
 }
 
@@ -27,7 +28,7 @@ Experience::Experience(IsVeteran)
 {
 }
 
-void Experience::gain(unsigned xpGained)
+void Experience::gain(ExperiencePoints xpGained)
 {
   while (xp + xpGained >= xpNext)
   {
@@ -39,38 +40,36 @@ void Experience::gain(unsigned xpGained)
 
 void Experience::gainLevel()
 {
-  if (level < 10)
-  {
-    ++level;
-    ++unmodifiedLevel;
-  }
+  if (level.increase())
+    unmodifiedLevel.increase();
   else
     ++prestige;
-  xp = 0;
+  xp = 0_xp;
   if (veteran)
   {
     // Increments alternate between +4 and +5
-    xpStep = 9 - xpStep;
+    xpStep = 9_xp - xpStep;
   }
   xpNext += xpStep;
 }
 
 void Experience::modifyLevelBy(int delta)
 {
-  level = static_cast<unsigned>(std::min(std::max(static_cast<int>(level) + delta, 1), 10));
+  level = Level{level.get() + delta};
 }
 
-unsigned Experience::getUnmodifiedLevel() const
+Level Experience::getUnmodifiedLevel() const
 {
   return unmodifiedLevel;
 }
 
-unsigned Experience::forHeroAndMonsterLevels(unsigned heroLevel, unsigned monsterLevel)
+ExperiencePoints Experience::forHeroAndMonsterLevels(Level heroLevel, Level monsterLevel)
 {
+  auto xp = ExperiencePoints{monsterLevel.get()};
   if (monsterLevel > heroLevel)
   {
-    const auto delta = monsterLevel - heroLevel;
-    return monsterLevel + delta * (delta - 1) + 2;
+    const auto delta = monsterLevel.get() - heroLevel.get();
+    return xp + ExperiencePoints{delta * (delta - 1) + 2};
   }
-  return monsterLevel;
+  return xp;
 }
