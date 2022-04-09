@@ -137,13 +137,13 @@ struct Comparable : MixinBase<T, Comparable>
 };
 
 template <typename T>
-auto operator<=>(const Comparable<T>& lhs, const Comparable<T>& rhs)
+constexpr auto operator<=>(const Comparable<T>& lhs, const Comparable<T>& rhs)
 {
   return lhs.underlying()._get() <=> rhs.underlying()._get();
 }
 
 template <typename T>
-bool operator==(const Comparable<T>& lhs, const Comparable<T>& rhs)
+constexpr bool operator==(const Comparable<T>& lhs, const Comparable<T>& rhs)
 {
   return lhs.underlying()._get() == rhs.underlying()._get();
 }

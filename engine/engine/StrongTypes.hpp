@@ -41,23 +41,23 @@ public:
   {
   }
 
-  [[nodiscard]] uint8_t& get() { return level; }
-  [[nodiscard]] const uint8_t& get() const { return level; }
+  [[nodiscard]] constexpr uint8_t& get() { return level; }
+  [[nodiscard]] constexpr const uint8_t& get() const { return level; }
 
-  Level operator++()
+  constexpr Level operator++()
   {
     increase();
     return *this;
   }
 
-  Level operator++(int)
+  constexpr Level operator++(int)
   {
     auto current = *this;
     increase();
     return current;
   }
 
-  bool increase()
+  constexpr bool increase()
   {
     if (level >= 10)
       return false;
@@ -65,7 +65,7 @@ public:
     return true;
   }
 
-  bool operator<=>(const Level&) const = default;
+  constexpr auto operator<=>(const Level&) const = default;
 
 private:
   uint8_t level;
