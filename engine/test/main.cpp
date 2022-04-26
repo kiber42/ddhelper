@@ -8,8 +8,9 @@ void testSpells();
 void testStatusEffects();
 void testTraits();
 void testInventory();
-void testResources();
+void testItems();
 void testPotions();
+void testResources();
 void testFaith();
 
 go_bandit([] {
@@ -21,8 +22,9 @@ go_bandit([] {
   testStatusEffects();
   testTraits();
   testInventory();
-  testResources();
+  testItems();
   testPotions();
+  testResources();
   testFaith();
 });
 

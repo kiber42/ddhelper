@@ -34,6 +34,7 @@ add_executable(
   test/testExperience.cpp
   test/testFaith.cpp
   test/testInventory.cpp
+  test/testItems.cpp
   test/testMonsters.cpp
   test/testPotions.cpp
   test/testResources.cpp
