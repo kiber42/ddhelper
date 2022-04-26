@@ -24,7 +24,6 @@ git clone git@github.com:banditcpp/bandit.git
 git clone git@github.com:banditcpp/snowhouse.git
 cp -r snowhouse/include/snowhouse/* bandit/bandit/assertion_frameworks/snowhouse
 rm -rf snowhouse
-mv bandit engine
 ```
 
 Windows
@@ -33,8 +32,7 @@ The Windows build is not currently maintained and is probably broken.
 
 Install `clang`, `cmake`, `ninja`, `git`
 Retrieve `imgui` to this directory.
-Retrieve `bandit` and `snowhouse` and move them to the `engine` sub-directory,
-  the `snowhouse` include files may need to be placed inside the appropriate `bandit` sub-directory.
+The `snowhouse` include files may need to be placed inside the appropriate `bandit` sub-directory.
 Download the SDL zip file for Windows, unpack them into a sub-directory called `SDL`.
 The Windows build uses SDL + OpenGL.
 

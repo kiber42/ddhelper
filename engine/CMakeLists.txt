@@ -41,5 +41,5 @@ add_executable(
   test/testSpells.cpp
   test/testStatusEffects.cpp
   test/testTraits.cpp)
-target_include_directories(testengine PRIVATE bandit)
+target_include_directories(testengine PRIVATE ../bandit)
 target_link_libraries(testengine ddhelperengine)

@@ -20,4 +20,5 @@ if(NOT WIN32)
 endif()
 
 add_executable(testsolve src/testsolve.cpp)
+target_include_directories(testsolve PRIVATE ../bandit)
 target_link_libraries(testsolve ddsolver)

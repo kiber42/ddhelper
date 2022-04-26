@@ -1,3 +1,5 @@
+#include "bandit/bandit.h"
+
 #include "solver/GameState.hpp"
 #include "solver/Scenario.hpp"
 #include "solver/Solution.hpp"
@@ -5,6 +7,9 @@
 #include "solver/SolverTools.hpp"
 
 #include <iostream>
+
+using namespace bandit;
+using namespace snowhouse;
 
 void testPrinting()
 {
@@ -24,7 +29,8 @@ void testPrinting()
 
 void testSolve(Solver solver, Scenario scenario)
 {
-  GameState state{getHeroForScenario(scenario), getMonstersForScenario(scenario), {}, 0, getResourcesForScenario(scenario)};
+  GameState state{
+      getHeroForScenario(scenario), getMonstersForScenario(scenario), {}, 0, getResourcesForScenario(scenario)};
 
   auto solution = run(solver, state);
   if (solution)
@@ -34,10 +40,12 @@ void testSolve(Solver solver, Scenario scenario)
   }
   else
     std::cout << "No solution found.\n";
+  describe("Dummy", [] { it("should compile", [] { AssertThat(true, IsTrue()); }); });
 }
 
-int main()
+go_bandit([] { testSolve(Solver::GeneticAlgorithm, Scenario::HalflingTrial); });
+
+int main(int argc, char* argv[])
 {
-  testSolve(Solver::GeneticAlgorithm, Scenario::HalflingTrial);
-  return 0;
+  return bandit::run(argc, argv);
 }
