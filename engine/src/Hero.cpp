@@ -62,6 +62,7 @@ Hero::Hero(const DungeonSetup& setup, const std::vector<God>& altarsForGoatperso
     stats.addHealthBonus(Level{1});
     stats.addHealthBonus(Level{1});
     stats.addHealthBonus(Level{1});
+    stats.healHitPoints(3_HP, false);
   }
   if (has(HeroTrait::HandToHand))
   {
