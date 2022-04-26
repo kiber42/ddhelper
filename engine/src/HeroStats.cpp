@@ -58,14 +58,18 @@ HitPoints HeroStats::getHitPointsMax() const
   return hpMax;
 }
 
-void HeroStats::setHitPointsMax(HitPoints hitPointsMax)
+void HeroStats::setHitPointsMax(HitPoints hpMaxNew)
 {
-  if (hitPointsMax < 1_HP)
-    hitPointsMax = 1_HP;
-  const bool isReduction = hitPointsMax < hpMax;
-  hpMax = hitPointsMax;
-  if (isReduction && hp > hpMax)
-    hp = hpMax;
+  if (hpMaxNew < 1_HP)
+    hpMaxNew = 1_HP;
+  if (hpMaxNew < hpMax)
+  {
+    const bool wasOverhealed = hp > hpMax;
+    const auto hpCap = wasOverhealed ? hpMaxNew * 3 / 2 : hpMaxNew;
+    if (hp > hpCap)
+      hp = hpCap;
+  }
+  hpMax = hpMaxNew;
 }
 
 ManaPoints HeroStats::getManaPoints() const
