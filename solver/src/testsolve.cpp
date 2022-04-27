@@ -1,6 +1,7 @@
 #include "bandit/bandit.h"
 
 #include "solver/GameState.hpp"
+#include "solver/Heuristics.hpp"
 #include "solver/Scenario.hpp"
 #include "solver/Solution.hpp"
 #include "solver/Solver.hpp"
@@ -11,28 +12,25 @@
 using namespace bandit;
 using namespace snowhouse;
 
-void testPrinting()
+std::ostream& operator<<(std::ostream& out, const Monster& monster)
 {
-  Solution solution;
-  solution.emplace_back(Attack{});
-  solution.emplace_back(Uncover{5});
-  solution.emplace_back(Buy{ShopItem::Spoon});
-  solution.emplace_back(Find{Spell::Burndayraz});
-  solution.emplace_back(Cast{Spell::Getindare});
-  solution.emplace_back(Follow{God::Taurog});
-  solution.emplace_back(Convert{Spell::Apheelsik});
-  solution.emplace_back(Request{Boon::Humility});
-  solution.emplace_back(Desecrate{God::BinlorIronshield});
-  solution.emplace_back(Use{ShopItem::BattlemageRing});
-  std::cout << toString(solution) << '\n';
+  const auto description = describe(monster);
+  if (!description.empty())
+  {
+    if (description.size() > 1)
+      std::copy(description.begin(), description.end() - 1, std::ostream_iterator<std::string>(out, ", "));
+    out << description.back();
+  }
+  return out;
 }
 
-void testSolve(Solver solver, Scenario scenario)
+void testGeneticSolver()
 {
+  const auto scenario = Scenario::HalflingTrial;
   GameState state{
       getHeroForScenario(scenario), getMonstersForScenario(scenario), {}, 0, getResourcesForScenario(scenario)};
 
-  auto solution = run(solver, state);
+  auto solution = run(Solver::GeneticAlgorithm, state);
   if (solution)
   {
     std::cout << toString(*solution) << '\n';
@@ -40,10 +38,40 @@ void testSolve(Solver solver, Scenario scenario)
   }
   else
     std::cout << "No solution found.\n";
+
   describe("Dummy", [] { it("should compile", [] { AssertThat(true, IsTrue()); }); });
 }
 
-go_bandit([] { testSolve(Solver::GeneticAlgorithm, Scenario::HalflingTrial); });
+void testHeuristics()
+{
+  describe("Solver tools", [] {
+    it("strongest monster shall be found correctly", [] {
+      Monsters monsters;
+      monsters.emplace_back(MonsterType::Generic, Level{6});
+      monsters.emplace_back(MonsterType::Generic, Level{9});
+      monsters.emplace_back(MonsterType::Generic, Level{9});
+      monsters.emplace_back(MonsterType::Generic, Level{8});
+      AssertThat(heuristics::strongest(monsters), Equals(monsters[1]));
+    });
+    it("level catapult availability shall be assessed correctly", [] {
+      auto hero = Hero{HeroClass::Assassin, HeroRace::Goblin};
+      Monsters monsters;
+      hero.gainLevel(monsters);
+      for (int i = 0; i < 8; ++i)
+        monsters.emplace_back(MonsterType::GooBlob, Level{1});
+      monsters.emplace_back(MonsterType::Goblin, Level{1});
+      monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
+      monsters.emplace_back(MonsterType::GooBlob, Level{2});
+      const bool levelCatapultAvailable = heuristics::checkLevelCatapult(hero, monsters);
+      AssertThat(levelCatapultAvailable, IsTrue());
+    });
+  });
+}
+
+go_bandit([] {
+  testHeuristics();
+  // testGeneticSolver();
+});
 
 int main(int argc, char* argv[])
 {

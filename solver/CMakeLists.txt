@@ -8,6 +8,7 @@ add_library(
   src/TreeSearch.cpp
   src/Fitness.cpp
   src/GeneticAlgorithm.cpp
+  src/Heuristics.cpp
   src/Scenario.cpp
   src/Solution.cpp
   src/Solver.cpp
