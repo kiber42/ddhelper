@@ -53,17 +53,25 @@ void testHeuristics()
       monsters.emplace_back(MonsterType::Generic, Level{8});
       AssertThat(heuristics::strongest(monsters), Equals(monsters[1]));
     });
+    it("one shot availability shall be assessed correctly", [] {
+      /* TODO
+      Hero hero;
+      Monster monster;
+      */
+    });
     it("level catapult availability shall be assessed correctly", [] {
       auto hero = Hero{HeroClass::Assassin, HeroRace::Goblin};
       Monsters monsters;
       hero.gainLevel(monsters);
-      for (int i = 0; i < 8; ++i)
+      for (int i = 0; i < 10; ++i)
         monsters.emplace_back(MonsterType::GooBlob, Level{1});
-      monsters.emplace_back(MonsterType::Goblin, Level{1});
-      monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
+      monsters.pop_back();
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
       monsters.emplace_back(MonsterType::GooBlob, Level{2});
-      const bool levelCatapultAvailable = heuristics::checkLevelCatapult(hero, monsters);
-      AssertThat(levelCatapultAvailable, IsTrue());
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
+      monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
     });
   });
 }
