@@ -20,6 +20,8 @@ namespace heuristics
 
   const Monster& strongest(const Monsters& monsters);
 
+  std::vector<const Monster*> sorted_by_level(const Monsters& monsters);
+
   OneShotType checkOneShot(const Hero& hero, const Monster& monster);
 
   bool checkLevelCatapult(const Hero& hero, const Monsters& monsters);
