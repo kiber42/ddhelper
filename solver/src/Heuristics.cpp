@@ -7,12 +7,16 @@ namespace heuristics
   const Monster& strongest(const Monsters& monsters)
   {
     assert(!monsters.empty());
-    auto indices = std::vector<size_t>(monsters.size());
-    std::iota(begin(indices), end(indices), 0);
-    std::sort(begin(indices), end(indices), [&monsters](auto indexA, auto indexB) {
-      return monsters[indexA].getLevel() > monsters[indexB].getLevel();
-    });
-    return monsters[indices.front()];
+    return *std::max_element(begin(monsters), end(monsters),
+                             [](auto& left, auto& right) { return left.getLevel() < right.getLevel(); });
+  }
+
+  std::vector<const Monster*> sorted_by_level(const Monsters& monsters)
+  {
+    std::vector<const Monster*> sorted(monsters.size());
+    std::transform(begin(monsters), end(monsters), begin(sorted), [](const auto& monster) { return &monster; });
+    std::sort(begin(sorted), end(sorted), [](auto left, auto right) { return left->getLevel() > right->getLevel(); });
+    return sorted;
   }
 
   OneShotType checkOneShot(const Hero& hero, const Monster& monster)
