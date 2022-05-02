@@ -164,8 +164,7 @@ namespace ui
                                                    const auto lastItem) mutable {
         if (ImGui::BeginMenu(title))
         {
-          for (auto item = firstItem; item != lastItem;
-               item = static_cast<decltype(firstItem)>(static_cast<int>(item) + 1))
+          for (auto item = firstItem;; item = static_cast<decltype(firstItem)>(static_cast<int>(item) + 1))
           {
             const bool isSelected = ++index == selectedPopupItem;
             if (addPopupAction(
@@ -176,6 +175,8 @@ namespace ui
                     },
                     isSelected, result))
               selectedPopupItem = index;
+            if (item == lastItem)
+              break;
           }
           ImGui::EndMenu();
         }
