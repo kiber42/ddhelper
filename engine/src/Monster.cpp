@@ -137,9 +137,7 @@ void Monster::recover(unsigned nSquares)
 {
   if (isDefeated())
     return;
-  auto recoverPoints = nSquares * (getLevel() - (status.isBurning() ? 1 : 0));
-  if (has(MonsterTrait::FastRegen))
-    recoverPoints *= 2;
+  auto recoverPoints = nSquares * recoveryMultiplier();
   if (status.isPoisoned())
   {
     const auto poison = status.getPoisonAmount();
@@ -156,6 +154,16 @@ void Monster::recover(unsigned nSquares)
   }
   if (recoverPoints > 0)
     stats.healHitPoints(HitPoints{recoverPoints}, false);
+}
+
+unsigned Monster::recoveryMultiplier() const
+{
+  unsigned multiplier = getLevel();
+  if (status.isBurning())
+    multiplier -= 1;
+  if (has(MonsterTrait::FastRegen))
+    multiplier *= 2;
+  return multiplier;
 }
 
 void Monster::burn(unsigned nMaxStacks)

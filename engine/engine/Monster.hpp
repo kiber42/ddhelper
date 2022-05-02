@@ -38,6 +38,7 @@ public:
   void takeManaShieldDamage(unsigned casterLevel);
   void receiveCrushingBlow();
   void recover(unsigned nSquares);
+  unsigned recoveryMultiplier() const;
   void burn(unsigned nMaxStacks);
   void burnMax(unsigned nMaxStacks);
   void burnDown();
