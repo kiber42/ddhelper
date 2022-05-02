@@ -52,6 +52,24 @@ namespace snowhouse
       return "[unsupported value]";
     }
   };
+
+  template <class T>
+  struct Stringizer<std::optional<T>>
+  {
+    static std::string ToString(const std::optional<T>& optional)
+    {
+      if (optional)
+        return std::to_string(optional.value());
+      else
+        return "nullopt";
+    }
+  };
+
+  template <>
+  struct Stringizer<std::nullopt_t>
+  {
+    static std::string ToString(const std::nullopt_t&) { return "nullopt"; }
+  };
 } // namespace snowhouse
 
 void testGeneticSolver()
@@ -116,6 +134,16 @@ void testHeuristics()
       AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
       monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
       AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
+    });
+    it("regen fighting shall be simulated correctly for simple cases", [] {
+      Hero guard;
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{1}}), !Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{2}}), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
+      AssertThat(guard.receive(BlacksmithItem::Sword), IsTrue());
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
+      AssertThat(guard.receive(BlacksmithItem::Shield), IsTrue());
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(1u));
     });
   });
 }

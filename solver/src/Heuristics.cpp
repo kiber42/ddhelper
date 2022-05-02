@@ -55,6 +55,57 @@ namespace heuristics
     }
     return hero.getXP() + (oneShotXp + oneShotFinalXp).get() >= hero.getXPforNextLevel();
   }
+
+  std::optional<unsigned> checkRegenFight(const Hero& hero, const Monster& monster)
+  {
+    const auto heroHpLossPerAttack = hero.predictDamageTaken(monster.getDamage(), monster.damageType());
+    const auto monsterHpLossPerAttack =
+        monster.predictDamageTaken(hero.getDamageOutputVersus(monster), hero.damageType());
+    if (monsterHpLossPerAttack == 0u)
+      return {};
+    if (heroHpLossPerAttack == 0u)
+      return 0;
+
+    // Evaluate initial combat, before any recovery is needed
+    const auto numAttacksBeforeRecovery = (hero.getHitPoints() - 1) / heroHpLossPerAttack;
+    auto heroHitPoints = hero.getHitPoints() - heroHpLossPerAttack * numAttacksBeforeRecovery;
+    auto monsterTotalHpLoss = monsterHpLossPerAttack * numAttacksBeforeRecovery;
+    if (hero.hasInitiativeVersus(monster))
+      monsterTotalHpLoss += monsterHpLossPerAttack;
+    if (monsterTotalHpLoss >= monster.getHitPoints())
+      return 0;
+    if (hero.has(HeroDebuff::Poisoned) || hero.has(HeroStatus::Manaform))
+      return {};
+
+    // Setup regen fighting evaluation
+    const auto heroRecoveryRate = hero.recoveryMultiplier();
+    const auto monsterRecoveryRate = monster.recoveryMultiplier();
+    if (monsterHpLossPerAttack * heroRecoveryRate < heroHpLossPerAttack * monsterRecoveryRate)
+      return {};
+    auto squaresUncovered = 0u;
+    auto recover = [&] {
+      auto uncoverForNextAttack =
+          static_cast<unsigned>(ceil(1.0 * (heroHpLossPerAttack + 1 - heroHitPoints) / heroRecoveryRate));
+      heroHitPoints += uncoverForNextAttack * heroRecoveryRate;
+      assert(monsterTotalHpLoss > uncoverForNextAttack * monsterRecoveryRate);
+      monsterTotalHpLoss -= uncoverForNextAttack * monsterRecoveryRate;
+      return uncoverForNextAttack;
+    };
+
+    // Simulate regen fighting
+    do
+    {
+      if (heroHitPoints <= heroHpLossPerAttack)
+      {
+        squaresUncovered += recover();
+        if (squaresUncovered > 400u)
+          return {};
+      }
+      heroHitPoints -= heroHpLossPerAttack;
+      monsterTotalHpLoss += monsterHpLossPerAttack;
+    } while (monsterTotalHpLoss < monster.getHitPoints());
+    return squaresUncovered;
+  }
 } // namespace heuristics
 
 std::optional<Solution> runHeuristics(GameState)
