@@ -156,6 +156,15 @@ void Monster::recover(unsigned nSquares)
     stats.healHitPoints(HitPoints{recoverPoints}, false);
 }
 
+Speed Monster::speed() const
+{
+  if (isSlowed())
+    return Speed::Slow;
+  if (has(MonsterTrait::FirstStrike))
+    return Speed::Fast;
+  return Speed::Normal;
+}
+
 unsigned Monster::recoveryMultiplier() const
 {
   unsigned multiplier = getLevel();

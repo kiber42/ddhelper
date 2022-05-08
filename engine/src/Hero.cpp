@@ -432,23 +432,36 @@ DamageType Hero::damageType() const
                              : has(HeroStatus::PiercePhysical) ? DamageType::Piercing : DamageType::Physical;
 }
 
+Speed Hero::speed() const
+{
+  if (has(HeroStatus::Reflexes))
+    return Speed::SuperFast;
+  const bool firstStrike = has(HeroStatus::FirstStrikePermanent) || has(HeroStatus::FirstStrikeTemporary);
+  const bool slowStrike = has(HeroStatus::SlowStrike);
+  if (firstStrike != slowStrike)
+  {
+    if (firstStrike)
+      return Speed::Fast;
+    if (slowStrike)
+      return Speed::Slow;
+  }
+  return Speed::Normal;
+}
+
 bool Hero::hasInitiativeVersus(const Monster& monster) const
 {
-  if (has(HeroStatus::Reflexes) || (has(HeroTrait::SwiftHand) && getLevel() > monster.getLevel()))
-    return true;
+  const bool higherLevel = getLevel() > monster.getLevel();
+  const auto heroSpeed = (higherLevel && has(HeroTrait::SwiftHand)) ? Speed::SuperFast : speed();
+  const auto monsterSpeed = monster.speed();
+  return heroSpeed > monsterSpeed || (heroSpeed == Speed::Normal && monsterSpeed == Speed::Normal && higherLevel);
+}
 
-  const bool firstStrike = has(HeroStatus::FirstStrikePermanent) || has(HeroStatus::FirstStrikeTemporary);
-  const bool heroFast = firstStrike && !has(HeroStatus::SlowStrike);
-  const bool monsterFast = monster.has(MonsterTrait::FirstStrike) && !monster.isSlowed();
-  if (heroFast || monsterFast)
-    return !monsterFast;
-
-  const bool heroSlow = !firstStrike && has(HeroStatus::SlowStrike);
-  const bool monsterSlow = monster.isSlowed();
-  if (heroSlow || monsterSlow)
-    return !heroSlow;
-
-  return getLevel() > monster.getLevel();
+bool Hero::hasInitiativeVersusIgnoreMonsterSlowed(const Monster& monster) const
+{
+  const bool higherLevel = getLevel() > monster.getLevel();
+  const auto heroSpeed = (higherLevel && has(HeroTrait::SwiftHand)) ? Speed::SuperFast : speed();
+  const auto monsterSpeed = monster.has(MonsterTrait::FirstStrike) ? Speed::Fast : Speed::Normal;
+  return heroSpeed > monsterSpeed || (heroSpeed == Speed::Normal && monsterSpeed == Speed::Normal && higherLevel);
 }
 
 unsigned Hero::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const

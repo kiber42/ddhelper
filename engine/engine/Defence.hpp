@@ -15,6 +15,14 @@ enum class DamageType : uint8_t
   Typeless
 };
 
+enum class Speed : uint8_t
+{
+  Slow,
+  Normal,
+  Fast,
+  SuperFast,
+};
+
 using PhysicalResist = Percentage<uint8_t, struct PhysicalResistParam, Addable, Subtractable, Comparable>;
 using MagicalResist = Percentage<uint8_t, struct MagicalResistParam, Addable, Subtractable, Comparable>;
 

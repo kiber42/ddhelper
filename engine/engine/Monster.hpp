@@ -39,6 +39,7 @@ public:
   void receiveCrushingBlow();
   void recover(unsigned nSquares);
   unsigned recoveryMultiplier() const;
+  Speed speed() const;
   void burn(unsigned nMaxStacks);
   void burnMax(unsigned nMaxStacks);
   void burnDown();

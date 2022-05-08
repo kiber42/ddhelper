@@ -71,7 +71,9 @@ public:
   bool doesMagicalDamage() const;
   DamageType damageType() const;
 
+  Speed speed() const;
   bool hasInitiativeVersus(const Monster& monster) const;
+  bool hasInitiativeVersusIgnoreMonsterSlowed(const Monster& monster) const;
   unsigned predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const;
   // Returns false if damage was fully absorbed by damage reduction / resistances
   bool takeDamage(unsigned attackerDamageOutput, DamageType damageType, Monsters& allMonsters);
