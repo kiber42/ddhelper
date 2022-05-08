@@ -135,7 +135,7 @@ void testHeuristics()
       monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
       AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
     });
-    it("regen fighting shall be simulated correctly for simple cases", [] {
+    it("regen fighting shall be simulated correctly for simple cases (1)", [] {
       Hero guard;
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{1}}), !Equals(std::nullopt));
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{2}}), Equals(std::nullopt));
@@ -144,6 +144,42 @@ void testHeuristics()
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
       AssertThat(guard.receive(BlacksmithItem::Shield), IsTrue());
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(1u));
+    });
+    it("regen fighting shall be simulated correctly for simple cases (2)", [] {
+      Hero guard;
+      const Monster hitAndRun{MonsterStats{Level{1}, 1_HP, 100_damage}, {}, {}};
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
+      guard.setHitPointsMax(100);
+      guard.healHitPoints(100);
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
+      guard.setHitPointsMax(101);
+      guard.healHitPoints(101);
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(0u));
+      guard.setHitPointsMax(10);
+      guard.gainLevel(noOtherMonsters);
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(0u));
+    });
+    it("regen fighting shall handle basic status effects correctly", [] {
+      Hero guard;
+      Monster slowMonster{{Level{1}, 9_HP, 5_damage}, {}, {}};
+      AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(1u));
+      slowMonster.slow();
+      AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(1u));
+      {
+        Monster burningMonster{{Level{1}, 7_HP, 5_damage}, {}, {}};
+        burningMonster.burn(2);
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(1u));
+        burningMonster.burn(2);
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(0u));
+      }
+      {
+        Monster burningMonster{{Level{1}, 11_HP, 5_damage}, {}, {}};
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(std::nullopt));
+        burningMonster.burn(2);
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(std::nullopt));
+        burningMonster.burn(2);
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(1u));
+      }
     });
   });
 }
