@@ -85,15 +85,34 @@ namespace heuristics
     // Setup regen fighting evaluation
     const auto heroRecoveryRate = hero.recoveryMultiplier();
     const auto monsterRecoveryRate = monster.getLevel() * (monster.has(MonsterTrait::FastRegen) ? 2u : 1u);
-    if (monsterHpLossPerAttack * heroRecoveryRate < heroHpLossPerAttack * monsterRecoveryRate)
+    auto monsterPoison = monster.getPoisonAmount();
+    if (monsterPoison == 0 && monsterHpLossPerAttack * heroRecoveryRate < heroHpLossPerAttack * monsterRecoveryRate)
       return {};
     auto squaresUncovered = 0u;
     auto recover = [&] {
       auto uncoverForNextAttack =
           static_cast<unsigned>(ceil(1.0 * (heroHpLossPerAttack + 1 - heroHitPoints) / heroRecoveryRate));
       heroHitPoints += uncoverForNextAttack * heroRecoveryRate;
-      assert(monsterTotalHpLoss > uncoverForNextAttack * monsterRecoveryRate);
-      monsterTotalHpLoss -= uncoverForNextAttack * monsterRecoveryRate;
+      if (monsterPoison < uncoverForNextAttack)
+      {
+        if (monsterPoison > 0)
+        {
+          uncoverForNextAttack -= monsterPoison;
+          monsterPoison = 0;
+        }
+        const auto recoveredHitPoints = uncoverForNextAttack * monsterRecoveryRate;
+        if (recoveredHitPoints >= monsterTotalHpLoss)
+        {
+          // Not winnable; can only get here for poisoned monster
+          monsterTotalHpLoss = 0;
+          return 1000u;
+        }
+        monsterTotalHpLoss -= uncoverForNextAttack * monsterRecoveryRate;
+      }
+      else
+      {
+        monsterPoison -= uncoverForNextAttack;
+      }
       return uncoverForNextAttack;
     };
 

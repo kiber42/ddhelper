@@ -180,6 +180,16 @@ void testHeuristics()
         burningMonster.burn(2);
         AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(1u));
       }
+      {
+        Monster poisonedMonster{{Level{1}, 10_HP, 9_damage}, {}, {}};
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(std::nullopt));
+        AssertThat(poisonedMonster.poison(8), IsTrue());
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(std::nullopt));
+        AssertThat(poisonedMonster.poison(1), IsTrue());
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(9u));
+        AssertThat(poisonedMonster.poison(10), IsTrue());
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(9u));
+      }
     });
   });
 }
