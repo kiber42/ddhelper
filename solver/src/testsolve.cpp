@@ -46,6 +46,8 @@ namespace snowhouse
         return "Flawless";
       case heuristics::OneShotType::Damaged:
         return "Damaged";
+      case heuristics::OneShotType::DeathProtectionLost:
+        return "DeathProtectionLost";
       case heuristics::OneShotType::GetindareOnly:
         return "GetindareOnly";
       }
@@ -110,7 +112,7 @@ void testHeuristics()
       Hero hero;
       const auto weak = Monster{MonsterType::Generic, Level{1}};
       AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotType::None));
-      const Monster hitAndRun{MonsterStats{Level{1}, 1_HP, 100_damage}, {}, {}};
+      const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
       AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::None));
       AssertThat(hero.receive(Spell::Getindare), IsTrue());
       AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::GetindareOnly));
@@ -147,7 +149,7 @@ void testHeuristics()
     });
     it("regen fighting shall be simulated correctly for simple cases (2)", [] {
       Hero guard;
-      const Monster hitAndRun{MonsterStats{Level{1}, 1_HP, 100_damage}, {}, {}};
+      const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
       guard.setHitPointsMax(100);
       guard.healHitPoints(100);
@@ -159,7 +161,7 @@ void testHeuristics()
       guard.gainLevel(noOtherMonsters);
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(0u));
     });
-    it("regen fighting shall handle basic status effects correctly", [] {
+    it("regen fighting heuristics shall handle basic status effects correctly", [] {
       Hero guard;
       Monster slowMonster{{Level{1}, 9_HP, 5_damage}, {}, {}};
       AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(1u));
@@ -190,6 +192,16 @@ void testHeuristics()
         AssertThat(poisonedMonster.poison(10), IsTrue());
         AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(9u));
       }
+    });
+    it("regen fighting heuristics shall permit losing death protection on the final strike", [] {
+      Hero guard;
+      const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
+      const Monster thirdHitKills{{Level{1}, 12_HP, 4_damage}, {}, {}};
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, thirdHitKills), Equals(3u));
+      guard.add(HeroStatus::DeathProtection);
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(0u));
+      AssertThat(heuristics::checkRegenFight(guard, thirdHitKills), Equals(0u));
     });
   });
 }

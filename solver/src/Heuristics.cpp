@@ -1,5 +1,6 @@
 #include "solver/Heuristics.hpp"
 
+#include "engine/Combat.hpp"
 #include "engine/Magic.hpp"
 
 namespace heuristics
@@ -29,6 +30,8 @@ namespace heuristics
         return OneShotType::Flawless;
       if (hero.predictDamageTaken(monster.getDamage(), monster.damageType()) < hero.getHitPoints())
         return OneShotType::Damaged;
+      if (hero.has(HeroStatus::DeathProtection))
+        return OneShotType::DeathProtectionLost;
       const bool firstStrikeHero =
           hero.has(HeroStatus::FirstStrikePermanent) || hero.has(HeroStatus::FirstStrikeTemporary);
       const bool canCast = !firstStrikeHero && hero.has(Spell::Getindare) &&
@@ -56,7 +59,57 @@ namespace heuristics
     return hero.getXP() + (oneShotXp + oneShotFinalXp).get() >= hero.getXPforNextLevel();
   }
 
-  std::optional<unsigned> checkRegenFight(const Hero& hero, const Monster& monster)
+  std::optional<unsigned> checkRegenFight(Hero hero, Monster monster)
+  {
+    thread_local Monsters ignoreMonsters;
+    thread_local SimpleResources ignoreResources;
+    if (hero.isDefeated())
+      return {};
+    if (monster.isDefeated())
+      return 0;
+    auto numSquaresUncovered = 0u;
+    const auto monsterMaxHitPoints = monster.getHitPointsMax();
+    do
+    {
+      while (true)
+      {
+        const bool willPetrify = !monster.isSlowed() && !hero.has(HeroStatus::DeathGazeImmune) &&
+                                 (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
+        const bool deadly =
+            (willPetrify || hero.predictDamageTaken(monster.getDamage(), monster.damageType()) >= hero.getHitPoints());
+        if (!deadly)
+        {
+          [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+          assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+          if (monster.isDefeated())
+            return numSquaresUncovered;
+        }
+        else
+        {
+          const auto oneShotResult = checkOneShot(hero, monster);
+          if (oneShotResult == OneShotType::Flawless || oneShotResult == OneShotType::DeathProtectionLost)
+            return numSquaresUncovered;
+          if (oneShotResult == OneShotType::Damaged && !willPetrify)
+            return numSquaresUncovered;
+          if (hero.getHitPoints() >= hero.getHitPointsMax())
+            return {};
+          break;
+        }
+      }
+
+      if (monster.getHitPoints() < monsterMaxHitPoints)
+      {
+        monster.recover(1u);
+        if (monster.getHitPoints() == monsterMaxHitPoints)
+          return {};
+      }
+      hero.recover(1u, ignoreMonsters);
+      ++numSquaresUncovered;
+    } while (numSquaresUncovered < 400u);
+    return {};
+  }
+
+  std::optional<unsigned> checkRegenFightFast(const Hero& hero, const Monster& monster)
   {
     const auto heroHpLossPerAttack = hero.predictDamageTaken(monster.getDamage(), monster.damageType());
     const auto burnStackSize = monster.getBurnStackSize();

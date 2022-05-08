@@ -15,6 +15,7 @@ namespace heuristics
     None,
     Flawless,
     Damaged,
+    DeathProtectionLost,
     GetindareOnly,
   };
 
@@ -27,11 +28,17 @@ namespace heuristics
   bool checkLevelCatapult(const Hero& hero, const Monsters& monsters);
 
   /** @brief Evaluate whether a melee + recovery strategy can be used to defeat the monster.
+   *  No simplifying assumptions are made.
+   *  @returns Number of squares to uncover, or nullopt if the monster cannot be defeated this way.
+   **/
+  std::optional<unsigned> checkRegenFight(Hero hero, Monster monster);
+
+  /** @brief Evaluate whether a melee + recovery strategy can be used to defeat the monster.
    *  Makes a number of simplifications, e.g. death protection is ignored, and the traits stabber and defiant are not
    *  considered correctly.  Does not take any resources except black space into account.
    *  @returns Number of squares to uncover, or nullopt if the monster cannot be defeated this way.
    **/
-  std::optional<unsigned> checkRegenFight(const Hero& hero, const Monster& monster);
+  std::optional<unsigned> checkRegenFightFast(const Hero& hero, const Monster& monster);
 } // namespace heuristics
 
 std::optional<Solution> runHeuristics(GameState state);
