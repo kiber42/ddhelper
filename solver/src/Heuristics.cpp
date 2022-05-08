@@ -59,8 +59,13 @@ namespace heuristics
   std::optional<unsigned> checkRegenFight(const Hero& hero, const Monster& monster)
   {
     const auto heroHpLossPerAttack = hero.predictDamageTaken(monster.getDamage(), monster.damageType());
+    const auto burnStackSize = monster.getBurnStackSize();
     const auto monsterHpLossPerAttack =
-        monster.predictDamageTaken(hero.getDamageOutputVersus(monster), hero.damageType());
+        monster.predictDamageTaken(hero.getDamageOutputVersus(monster), hero.damageType()) - burnStackSize;
+    const bool heroInitiative = hero.hasInitiativeVersus(monster);
+    const bool justOneHit = monsterHpLossPerAttack + burnStackSize >= monster.getHitPoints();
+    if (heroInitiative && justOneHit)
+      return 0;
     if (monsterHpLossPerAttack == 0u)
       return {};
     if (heroHpLossPerAttack == 0u)
@@ -69,8 +74,8 @@ namespace heuristics
     // Evaluate initial combat, before any recovery is needed
     const auto numAttacksBeforeRecovery = (hero.getHitPoints() - 1) / heroHpLossPerAttack;
     auto heroHitPoints = hero.getHitPoints() - heroHpLossPerAttack * numAttacksBeforeRecovery;
-    auto monsterTotalHpLoss = monsterHpLossPerAttack * numAttacksBeforeRecovery;
-    if (hero.hasInitiativeVersus(monster))
+    auto monsterTotalHpLoss = monsterHpLossPerAttack * numAttacksBeforeRecovery + burnStackSize;
+    if (heroInitiative && hero.hasInitiativeVersusIgnoreMonsterSlowed(monster))
       monsterTotalHpLoss += monsterHpLossPerAttack;
     if (monsterTotalHpLoss >= monster.getHitPoints())
       return 0;
@@ -79,7 +84,7 @@ namespace heuristics
 
     // Setup regen fighting evaluation
     const auto heroRecoveryRate = hero.recoveryMultiplier();
-    const auto monsterRecoveryRate = monster.recoveryMultiplier();
+    const auto monsterRecoveryRate = monster.getLevel() * (monster.has(MonsterTrait::FastRegen) ? 2u : 1u);
     if (monsterHpLossPerAttack * heroRecoveryRate < heroHpLossPerAttack * monsterRecoveryRate)
       return {};
     auto squaresUncovered = 0u;
