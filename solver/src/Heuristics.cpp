@@ -20,6 +20,15 @@ namespace heuristics
     return sorted;
   }
 
+  inline bool isSafeToAttack(const Hero& hero, const Monster& monster)
+  {
+    const bool willPetrify = !monster.isSlowed() && !hero.has(HeroStatus::DeathGazeImmune) &&
+                             (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
+    const bool deadly =
+        (willPetrify || hero.predictDamageTaken(monster.getDamage(), monster.damageType()) >= hero.getHitPoints());
+    return !deadly;
+  }
+
   OneShotType checkOneShot(const Hero& hero, const Monster& monster)
   {
     const auto monsterDamageTaken = monster.predictDamageTaken(hero.getDamageOutputVersus(monster), hero.damageType());
@@ -28,7 +37,7 @@ namespace heuristics
     {
       if (hero.hasInitiativeVersus(monster))
         return OneShotType::Flawless;
-      if (hero.predictDamageTaken(monster.getDamage(), monster.damageType()) < hero.getHitPoints())
+      if (isSafeToAttack(hero, monster))
         return OneShotType::Damaged;
       if (hero.has(HeroStatus::DeathProtection))
         return OneShotType::DeathProtectionLost;
@@ -40,6 +49,8 @@ namespace heuristics
       if (canCast && !firstStrikeMonster)
         return OneShotType::GetindareOnly;
     }
+    if (!isSafeToAttack(hero, monster))
+      return OneShotType::Danger;
     return OneShotType::None;
   }
 
@@ -67,44 +78,43 @@ namespace heuristics
       return {};
     if (monster.isDefeated())
       return 0;
-    auto numSquaresUncovered = 0u;
-    const auto monsterMaxHitPoints = monster.getHitPointsMax();
-    do
-    {
-      while (true)
-      {
-        const bool willPetrify = !monster.isSlowed() && !hero.has(HeroStatus::DeathGazeImmune) &&
-                                 (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
-        const bool deadly =
-            (willPetrify || hero.predictDamageTaken(monster.getDamage(), monster.damageType()) >= hero.getHitPoints());
-        if (!deadly)
-        {
-          [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
-          assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
-          if (monster.isDefeated())
-            return numSquaresUncovered;
-        }
-        else
-        {
-          const auto oneShotResult = checkOneShot(hero, monster);
-          if (oneShotResult == OneShotType::Flawless || oneShotResult == OneShotType::DeathProtectionLost)
-            return numSquaresUncovered;
-          if (oneShotResult == OneShotType::Damaged && !willPetrify)
-            return numSquaresUncovered;
-          if (hero.getHitPoints() >= hero.getHitPointsMax())
-            return {};
-          break;
-        }
-      }
 
+    auto numSquaresUncovered = 0u;
+    auto recoveryAvailable = [&, monsterMaxHitPoints = monster.getHitPointsMax()] {
+      if (hero.getHitPoints() >= hero.getHitPointsMax())
+        return false;
       if (monster.getHitPoints() < monsterMaxHitPoints)
       {
         monster.recover(1u);
         if (monster.getHitPoints() == monsterMaxHitPoints)
-          return {};
+          return false;
       }
       hero.recover(1u, ignoreMonsters);
       ++numSquaresUncovered;
+      return true;
+    };
+
+    do
+    {
+      switch (checkOneShot(hero, monster))
+      {
+      case OneShotType::None:
+      {
+        [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+        assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+        if (monster.isDefeated())
+          return numSquaresUncovered;
+        break;
+      }
+      case OneShotType::Flawless:
+      case OneShotType::Damaged:
+      case OneShotType::DeathProtectionLost:
+        return numSquaresUncovered;
+      case OneShotType::GetindareOnly:
+      case OneShotType::Danger:
+        if (!recoveryAvailable())
+          return {};
+      }
     } while (numSquaresUncovered < 400u);
     return {};
   }

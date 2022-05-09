@@ -17,6 +17,7 @@ namespace heuristics
     Damaged,
     DeathProtectionLost,
     GetindareOnly,
+    Danger,
   };
 
   const Monster& strongest(const Monsters& monsters);

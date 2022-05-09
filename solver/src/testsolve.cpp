@@ -50,6 +50,8 @@ namespace snowhouse
         return "DeathProtectionLost";
       case heuristics::OneShotType::GetindareOnly:
         return "GetindareOnly";
+      case heuristics::OneShotType::Danger:
+        return "Danger";
       }
       return "[unsupported value]";
     }
@@ -113,7 +115,7 @@ void testHeuristics()
       const auto weak = Monster{MonsterType::Generic, Level{1}};
       AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotType::None));
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
-      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::None));
+      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::Danger));
       AssertThat(hero.receive(Spell::Getindare), IsTrue());
       AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::GetindareOnly));
       hero.gainLevel(noOtherMonsters);
