@@ -17,7 +17,7 @@ using namespace heuristics;
 namespace
 {
   Monsters noOtherMonsters;
-}
+} // namespace
 
 std::ostream& operator<<(std::ostream& out, const Monster& monster)
 {
@@ -57,13 +57,23 @@ namespace snowhouse
     }
   };
 
-  template <class T>
-  struct Stringizer<std::optional<T>>
+  template <>
+  struct Stringizer<RegenFightResult>
   {
-    static std::string ToString(const std::optional<T>& optional)
+    static std::string ToString(const RegenFightResult& result)
     {
-      if (optional)
-        return std::to_string(optional.value());
+      return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquaresUncovered) +
+             " square(s)";
+    }
+  };
+
+  template <>
+  struct Stringizer<std::optional<RegenFightResult>>
+  {
+    static std::string ToString(const std::optional<RegenFightResult>& result)
+    {
+      if (result)
+        return Stringizer<RegenFightResult>::ToString(*result);
       else
         return "nullopt";
     }
@@ -147,7 +157,8 @@ void testHeuristics()
       AssertThat(guard.receive(BlacksmithItem::Sword), IsTrue());
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
       AssertThat(guard.receive(BlacksmithItem::Shield), IsTrue());
-      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(1u));
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}),
+                 Equals(RegenFightResult{.numAttacks = 5u, .numSquaresUncovered = 1u}));
     });
     it("regen fighting shall be simulated correctly for simple cases (2)", [] {
       Hero guard;
@@ -157,24 +168,29 @@ void testHeuristics()
       guard.healHitPoints(100);
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
       guard.setHitPointsMax(101);
-      guard.healHitPoints(101);
-      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(0u));
+      guard.healHitPoints(1);
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
       guard.setHitPointsMax(10);
       guard.gainLevel(noOtherMonsters);
-      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(0u));
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
     });
     it("regen fighting heuristics shall handle basic status effects correctly", [] {
       Hero guard;
       Monster slowMonster{{Level{1}, 9_HP, 5_damage}, {}, {}};
-      AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(1u));
+      const auto expected = RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u};
+      AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(expected));
       slowMonster.slow();
-      AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(1u));
+      AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(expected));
       {
         Monster burningMonster{{Level{1}, 7_HP, 5_damage}, {}, {}};
         burningMonster.burn(2);
-        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(1u));
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster),
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
         burningMonster.burn(2);
-        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(0u));
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster),
+                   Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
       }
       {
         Monster burningMonster{{Level{1}, 11_HP, 5_damage}, {}, {}};
@@ -182,7 +198,8 @@ void testHeuristics()
         burningMonster.burn(2);
         AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(std::nullopt));
         burningMonster.burn(2);
-        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(1u));
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster),
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
       }
       {
         Monster poisonedMonster{{Level{1}, 10_HP, 9_damage}, {}, {}};
@@ -190,9 +207,11 @@ void testHeuristics()
         AssertThat(poisonedMonster.poison(8), IsTrue());
         AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(std::nullopt));
         AssertThat(poisonedMonster.poison(1), IsTrue());
-        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(9u));
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster),
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 9u}));
         AssertThat(poisonedMonster.poison(10), IsTrue());
-        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(9u));
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster),
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 9u}));
       }
     });
     it("regen fighting heuristics shall permit losing death protection on the final strike", [] {
@@ -200,10 +219,13 @@ void testHeuristics()
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
       const Monster thirdHitKills{{Level{1}, 12_HP, 4_damage}, {}, {}};
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
-      AssertThat(heuristics::checkRegenFight(guard, thirdHitKills), Equals(3u));
+      AssertThat(heuristics::checkRegenFight(guard, thirdHitKills),
+                 Equals(RegenFightResult{.numAttacks = 3u, .numSquaresUncovered = 3u}));
       guard.add(HeroStatus::DeathProtection);
-      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(0u));
-      AssertThat(heuristics::checkRegenFight(guard, thirdHitKills), Equals(0u));
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+      AssertThat(heuristics::checkRegenFight(guard, thirdHitKills),
+                 Equals(RegenFightResult{.numAttacks = 3u, .numSquaresUncovered = 0u}));
     });
   });
 }
