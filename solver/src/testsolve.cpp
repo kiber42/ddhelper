@@ -148,6 +148,34 @@ void testHeuristics()
       AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
       monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
       AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
+      monsters.pop_back();
+      monsters.emplace_back(MonsterStats{Level{10}, 1_HP, 100_damage});
+      hero.add(HeroStatus::DeathProtection);
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
+    });
+    it("shall correctly assess the winner of a melee-only battle", [] {
+      AssertThat(heuristics::checkMeleeOnly({HeroClass::Guard}, {MonsterType::Warlock, Level{2}}), IsFalse());
+
+      Hero priest{HeroClass::Priest};
+      AssertThat(heuristics::checkMeleeOnly(priest, {MonsterType::Zombie, Level{2}}), IsFalse());
+      AssertThat(priest.receive(BlacksmithItem::Sword) && priest.receive(BlacksmithItem::Shield), IsTrue());
+      AssertThat(heuristics::checkMeleeOnly(priest, {MonsterType::Zombie, Level{2}}), IsTrue());
+
+      Hero berserker{HeroClass::Berserker};
+      AssertThat(heuristics::checkMeleeOnly(berserker, {MonsterType::Wraith, Level{2}}), IsFalse());
+      AssertThat(berserker.receive(ShopItem::Whurrgarbl), IsTrue());
+      AssertThat(heuristics::checkMeleeOnly(berserker, {MonsterType::Wraith, Level{2}}), IsTrue());
+
+      Hero rogue{HeroClass::Rogue};
+      rogue.gainExperienceNoBonuses(250, noOtherMonsters);
+      AssertThat(heuristics::checkMeleeOnly(rogue, {MonsterType::Serpent, Level{7}}), IsTrue());
+      AssertThat(heuristics::checkMeleeOnly(rogue, {MonsterType::Serpent, Level{8}}), IsFalse());
+
+      Hero assassin{HeroClass::Assassin};
+      assassin.gainLevel(noOtherMonsters);
+      assassin.gainLevel(noOtherMonsters);
+      assassin.loseHitPointsOutsideOfFight(assassin.getHitPoints() - 1, noOtherMonsters);
+      AssertThat(heuristics::checkMeleeOnly(assassin, {MonsterType::MeatMan, Level{2}}), IsTrue());
     });
   });
   describe("Regen fight prediction", [] {
@@ -228,6 +256,52 @@ void testHeuristics()
                  Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
       AssertThat(heuristics::checkRegenFight(guard, thirdHitKills),
                  Equals(RegenFightResult{.numAttacks = 3u, .numSquaresUncovered = 0u}));
+    });
+    it("shall heal a wounded hero before attacking when needed", [] {
+      Hero rogue{HeroClass::Rogue, HeroRace::Gnome};
+
+      AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::Wraith, Level{1}}),
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+      AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{1}}),
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 0u}));
+
+      rogue.loseHitPointsOutsideOfFight(4, noOtherMonsters);
+      AssertThat(rogue.getHitPoints(), Equals(1u));
+      AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::Wraith, Level{1}}),
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+      AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{1}}),
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
+      AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
+
+      rogue.gainLevel(noOtherMonsters);
+      auto meatMan = Monster{MonsterType::MeatMan, Level{3}};
+      AssertThat(heuristics::checkRegenFight(rogue, meatMan),
+                 Equals(RegenFightResult{.numAttacks = 8u, .numSquaresUncovered = 20u}));
+      rogue.loseHitPointsOutsideOfFight(4, noOtherMonsters);
+      AssertThat(heuristics::checkRegenFight(rogue, meatMan),
+                 Equals(RegenFightResult{.numAttacks = 8u, .numSquaresUncovered = 22u}));
+      meatMan.takeDamage(10, DamageType::Physical);
+      AssertThat(heuristics::checkRegenFight(rogue, meatMan),
+                 Equals(RegenFightResult{.numAttacks = 8u, .numSquaresUncovered = 22u}));
+      meatMan.takeDamage(1, DamageType::Physical);
+      AssertThat(heuristics::checkRegenFight(rogue, meatMan),
+                 Equals(RegenFightResult{.numAttacks = 7u, .numSquaresUncovered = 19u}));
+
+      meatMan.takeDamage(16, DamageType::Physical);
+      rogue.recover(1, noOtherMonsters);
+      AssertThat(meatMan.getHitPoints(), Equals(25u));
+      AssertThat(rogue.getDamageOutputVersus(meatMan), Equals(14u));
+      AssertThat(rogue.getHitPoints(), Equals(8u));
+      AssertThat(meatMan.getDamage(), Equals(7u));
+
+      AssertThat(heuristics::checkRegenFight(rogue, meatMan),
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 0u}));
+      rogue.loseHitPointsOutsideOfFight(2, noOtherMonsters);
+      AssertThat(heuristics::checkRegenFight(rogue, meatMan),
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
+      rogue.loseHitPointsOutsideOfFight(2, noOtherMonsters);
+      AssertThat(heuristics::checkRegenFight(rogue, meatMan),
+                 Equals(RegenFightResult{.numAttacks = 4u, .numSquaresUncovered = 9u}));
     });
   });
 }

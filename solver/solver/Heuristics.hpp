@@ -34,6 +34,9 @@ namespace heuristics
    **/
   bool checkLevelCatapult(const Hero& hero, const Monsters& monsters);
 
+  //! Return true if hero can defeat monster by attacking (repeatedly)
+  bool checkMeleeOnly(Hero hero, Monster monster);
+
   struct RegenFightResult
   {
     unsigned numAttacks{0};

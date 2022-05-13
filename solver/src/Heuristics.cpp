@@ -76,6 +76,26 @@ namespace heuristics
     thread_local SimpleResources ignoreResources;
   } // namespace
 
+  bool checkMeleeOnly(Hero hero, Monster monster)
+  {
+    // Deny dodging
+    hero.add(HeroStatus::Pessimist);
+
+    while (!hero.isDefeated())
+    {
+      Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+      if (monster.isDefeated())
+        return true;
+    }
+    return false;
+  }
+
+  bool canRecover(const Hero& hero)
+  {
+    return hero.getHitPoints() < hero.getHitPointsMax() && !hero.has(HeroDebuff::Poisoned) &&
+           !hero.has(HeroStatus::Manaform) && (!hero.has(HeroTrait::Herbivore) || hero.getFoodCount() > 0);
+  }
+
   std::optional<RegenFightResult> checkRegenFight(Hero hero, Monster monster)
   {
     RegenFightResult result;
@@ -85,14 +105,18 @@ namespace heuristics
     if (monster.isDefeated())
       return {std::move(result)};
 
-    auto recoveryAvailable = [&] {
-      if (hero.getHitPoints() >= hero.getHitPointsMax())
-        return false;
+    // Deny dodging
+    hero.add(HeroStatus::Pessimist);
+
+    auto recoverOne = [&] {
       monster.recover(1u);
       hero.recover(1u, ignoreMonsters);
       ++result.numSquaresUncovered;
-      return true;
     };
+
+    // If recovery is needed to win the fight, it is always(?) better to do it first
+    while (canRecover(hero) && !checkMeleeOnly(hero, monster))
+      recoverOne();
 
     std::optional<uint16_t> lowestMonsterHpOnAttack;
 
@@ -121,8 +145,9 @@ namespace heuristics
         return {std::move(result)};
       case OneShotType::VictoryGetindareOnly:
       case OneShotType::Danger:
-        if (!recoveryAvailable())
+        if (!canRecover(hero))
           return {};
+        recoverOne();
       }
     } while (result.numSquaresUncovered < 400u);
     return {};
