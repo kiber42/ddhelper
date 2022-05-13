@@ -42,16 +42,16 @@ namespace snowhouse
       {
       case heuristics::OneShotType::None:
         return "None";
-      case heuristics::OneShotType::Flawless:
-        return "Flawless";
-      case heuristics::OneShotType::Damaged:
-        return "Damaged";
-      case heuristics::OneShotType::DeathProtectionLost:
-        return "DeathProtectionLost";
-      case heuristics::OneShotType::GetindareOnly:
-        return "GetindareOnly";
       case heuristics::OneShotType::Danger:
         return "Danger";
+      case heuristics::OneShotType::VictoryFlawless:
+        return "Flawless";
+      case heuristics::OneShotType::VictoryDamaged:
+        return "Damaged";
+      case heuristics::OneShotType::VictoryDeathProtectionLost:
+        return "DeathProtectionLost";
+      case heuristics::OneShotType::VictoryGetindareOnly:
+        return "GetindareOnly";
       }
       return "[unsupported value]";
     }
@@ -106,8 +106,8 @@ void testGeneticSolver()
 
 void testHeuristics()
 {
-  describe("Solver tools", [] {
-    it("strongest monster shall be found correctly", [] {
+  describe("Generic solver tools", [] {
+    it("shall find the strongest monster correctly", [] {
       Monsters monsters;
       monsters.emplace_back(MonsterType::Generic, Level{6});
       monsters.emplace_back(MonsterType::Generic, Level{9});
@@ -120,22 +120,22 @@ void testHeuristics()
       AssertThat(monsters_sorted[2], Equals(&monsters[3]));
       AssertThat(monsters_sorted[3], Equals(&monsters[0]));
     });
-    it("one shot availability shall be assessed correctly", [] {
+    it("shall correctly assess one shot availability", [] {
       Hero hero;
       const auto weak = Monster{MonsterType::Generic, Level{1}};
       AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotType::None));
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
       AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::Danger));
       AssertThat(hero.receive(Spell::Getindare), IsTrue());
-      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::GetindareOnly));
+      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::VictoryGetindareOnly));
       hero.gainLevel(noOtherMonsters);
-      AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotType::Flawless));
+      AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotType::VictoryFlawless));
       auto goblin = Monster{MonsterType::Goblin, Level{1}};
-      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotType::Damaged));
+      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotType::VictoryDamaged));
       goblin.slow();
-      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotType::Flawless));
+      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotType::VictoryFlawless));
     });
-    it("level catapult availability shall be assessed correctly", [] {
+    it("shall correctly assess level catapult availability", [] {
       auto hero = Hero{HeroClass::Assassin, HeroRace::Goblin};
       Monsters monsters;
       hero.gainLevel(monsters);
@@ -149,7 +149,9 @@ void testHeuristics()
       monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
       AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
     });
-    it("regen fighting shall be simulated correctly for simple cases (1)", [] {
+  });
+  describe("Regen fight prediction", [] {
+    it("shall be correct for simple cases (1)", [] {
       Hero guard;
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{1}}), !Equals(std::nullopt));
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{2}}), Equals(std::nullopt));
@@ -160,7 +162,7 @@ void testHeuristics()
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}),
                  Equals(RegenFightResult{.numAttacks = 5u, .numSquaresUncovered = 1u}));
     });
-    it("regen fighting shall be simulated correctly for simple cases (2)", [] {
+    it("shall be correct for simple cases (2)", [] {
       Hero guard;
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
@@ -176,7 +178,7 @@ void testHeuristics()
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
                  Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
     });
-    it("regen fighting heuristics shall handle basic status effects correctly", [] {
+    it("shall handle basic status effects correctly", [] {
       Hero guard;
       Monster slowMonster{{Level{1}, 9_HP, 5_damage}, {}, {}};
       const auto expected = RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u};
@@ -214,7 +216,7 @@ void testHeuristics()
                    Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 9u}));
       }
     });
-    it("regen fighting heuristics shall permit losing death protection on the final strike", [] {
+    it("shall permit losing death protection on the final strike", [] {
       Hero guard;
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
       const Monster thirdHitKills{{Level{1}, 12_HP, 4_damage}, {}, {}};

@@ -10,22 +10,28 @@
 
 namespace heuristics
 {
-  enum class OneShotType
-  {
-    None,
-    Flawless,
-    Damaged,
-    DeathProtectionLost,
-    GetindareOnly,
-    Danger,
-  };
-
+  //! Return reference to highest-level monster from the list provided
   const Monster& strongest(const Monsters& monsters);
 
+  //! Return pointer to monsters, stable-sorted by level, highest level first
   std::vector<const Monster*> sorted_by_level(const Monsters& monsters);
 
+  enum class OneShotType
+  {
+    None, // Hero safe, but monster not defeated
+    Danger, // Hero dead or loses death protection
+    VictoryFlawless,
+    VictoryDamaged,
+    VictoryDeathProtectionLost,
+    VictoryGetindareOnly,
+  };
+
+  //! Check if the monster can be defeated with a single hit
   OneShotType checkOneShot(const Hero& hero, const Monster& monster);
 
+  /** Return true if there are enough one-shottable monsters to level up.
+   *  Will not use death protection to achieve the level up.
+   **/
   bool checkLevelCatapult(const Hero& hero, const Monsters& monsters);
 
   struct RegenFightResult

@@ -36,18 +36,18 @@ namespace heuristics
     if (willDefeatMonster)
     {
       if (hero.hasInitiativeVersus(monster))
-        return OneShotType::Flawless;
+        return OneShotType::VictoryFlawless;
       if (isSafeToAttack(hero, monster))
-        return OneShotType::Damaged;
+        return OneShotType::VictoryDamaged;
       if (hero.has(HeroStatus::DeathProtection))
-        return OneShotType::DeathProtectionLost;
+        return OneShotType::VictoryDeathProtectionLost;
       const bool firstStrikeHero =
           hero.has(HeroStatus::FirstStrikePermanent) || hero.has(HeroStatus::FirstStrikeTemporary);
       const bool canCast = !firstStrikeHero && hero.has(Spell::Getindare) &&
                            hero.getManaPoints() >= Magic::spellCosts(Spell::Getindare, hero);
       const bool firstStrikeMonster = monster.has(MonsterTrait::FirstStrike) && !monster.isSlowed();
       if (canCast && !firstStrikeMonster)
-        return OneShotType::GetindareOnly;
+        return OneShotType::VictoryGetindareOnly;
     }
     if (!isSafeToAttack(hero, monster))
       return OneShotType::Danger;
@@ -61,9 +61,9 @@ namespace heuristics
     for (const auto& monster : monsters)
     {
       const auto oneShot = checkOneShot(hero, monster);
-      if (oneShot == OneShotType::Flawless)
+      if (oneShot == OneShotType::VictoryFlawless)
         oneShotXp += ExperiencePoints{hero.predictExperienceForKill(monster.getLevel(), monster.isSlowed())};
-      else if (oneShot == OneShotType::Damaged || oneShot == OneShotType::GetindareOnly)
+      else if (oneShot == OneShotType::VictoryDamaged || oneShot == OneShotType::VictoryGetindareOnly)
         oneShotFinalXp = std::max(
             oneShotFinalXp, ExperiencePoints{hero.predictExperienceForKill(monster.getLevel(), monster.isSlowed())});
     }
@@ -114,12 +114,12 @@ namespace heuristics
           return {std::move(result)};
         break;
       }
-      case OneShotType::Flawless:
-      case OneShotType::Damaged:
-      case OneShotType::DeathProtectionLost:
+      case OneShotType::VictoryFlawless:
+      case OneShotType::VictoryDamaged:
+      case OneShotType::VictoryDeathProtectionLost:
         ++result.numAttacks;
         return {std::move(result)};
-      case OneShotType::GetindareOnly:
+      case OneShotType::VictoryGetindareOnly:
       case OneShotType::Danger:
         if (!recoveryAvailable())
           return {};
