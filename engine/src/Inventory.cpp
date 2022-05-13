@@ -37,7 +37,7 @@ Inventory::Inventory(const DungeonSetup& setup)
 
   if (hasStartingTrait(setup.heroClass, HeroTrait::Herbivore))
   {
-    allItemsFit &= add(MiscItem::Food);
+    allItemsFit &= add(FoodItem);
     numFood = 90;
   }
 

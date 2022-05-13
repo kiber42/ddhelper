@@ -93,7 +93,8 @@ public:
     int conversionPoints;
   };
 
-  // List all items and spell entries in inventory without any modification
+  // List all items and spell entries in inventory without any modification.
+  // Note: At most one food item is included, use `getFoodCount` to get the correct amount.
   const std::vector<Entry>& getItemsAndSpells() const;
   // Return list of all items in inventory, group items that can be grouped
   std::vector<std::pair<Entry, unsigned>> getItemsGrouped() const;
