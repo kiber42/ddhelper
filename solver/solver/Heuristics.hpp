@@ -40,7 +40,7 @@ namespace heuristics
   struct RegenFightResult
   {
     unsigned numAttacks{0};
-    unsigned numSquaresUncovered{0};
+    unsigned numSquares{0};
     auto operator<=>(const RegenFightResult&) const = default;
   };
 

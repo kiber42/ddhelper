@@ -62,18 +62,17 @@ namespace snowhouse
   {
     static std::string ToString(const RegenFightResult& result)
     {
-      return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquaresUncovered) +
-             " square(s)";
+      return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquares) + " square(s)";
     }
   };
 
-  template <>
-  struct Stringizer<std::optional<RegenFightResult>>
+  template <class T>
+  struct Stringizer<std::optional<T>>
   {
-    static std::string ToString(const std::optional<RegenFightResult>& result)
+    static std::string ToString(const std::optional<T>& result)
     {
       if (result)
-        return Stringizer<RegenFightResult>::ToString(*result);
+        return Stringizer<T>::ToString(*result);
       else
         return "nullopt";
     }
@@ -188,7 +187,7 @@ void testHeuristics()
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
       AssertThat(guard.receive(BlacksmithItem::Shield), IsTrue());
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}),
-                 Equals(RegenFightResult{.numAttacks = 5u, .numSquaresUncovered = 1u}));
+                 Equals(RegenFightResult{.numAttacks = 5u, .numSquares = 1u}));
     });
     it("shall be correct for simple cases (2)", [] {
       Hero guard;
@@ -200,16 +199,16 @@ void testHeuristics()
       guard.setHitPointsMax(101);
       guard.healHitPoints(1);
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
-                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquares = 0u}));
       guard.setHitPointsMax(10);
       guard.gainLevel(noOtherMonsters);
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
-                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquares = 0u}));
     });
     it("shall handle basic status effects correctly", [] {
       Hero guard;
       Monster slowMonster{{Level{1}, 9_HP, 5_damage}, {}, {}};
-      const auto expected = RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u};
+      const auto expected = RegenFightResult{.numAttacks = 2u, .numSquares = 1u};
       AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(expected));
       slowMonster.slow();
       AssertThat(heuristics::checkRegenFight(guard, slowMonster), Equals(expected));
@@ -217,10 +216,10 @@ void testHeuristics()
         Monster burningMonster{{Level{1}, 7_HP, 5_damage}, {}, {}};
         burningMonster.burn(2);
         AssertThat(heuristics::checkRegenFight(guard, burningMonster),
-                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 1u}));
         burningMonster.burn(2);
         AssertThat(heuristics::checkRegenFight(guard, burningMonster),
-                   Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+                   Equals(RegenFightResult{.numAttacks = 1u, .numSquares = 0u}));
       }
       {
         Monster burningMonster{{Level{1}, 11_HP, 5_damage}, {}, {}};
@@ -229,7 +228,7 @@ void testHeuristics()
         AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(std::nullopt));
         burningMonster.burn(2);
         AssertThat(heuristics::checkRegenFight(guard, burningMonster),
-                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 1u}));
       }
       {
         Monster poisonedMonster{{Level{1}, 10_HP, 9_damage}, {}, {}};
@@ -238,10 +237,10 @@ void testHeuristics()
         AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(std::nullopt));
         AssertThat(poisonedMonster.poison(1), IsTrue());
         AssertThat(heuristics::checkRegenFight(guard, poisonedMonster),
-                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 9u}));
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 9u}));
         AssertThat(poisonedMonster.poison(10), IsTrue());
         AssertThat(heuristics::checkRegenFight(guard, poisonedMonster),
-                   Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 9u}));
+                   Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 9u}));
       }
     });
     it("shall permit losing death protection on the final strike", [] {
@@ -250,42 +249,42 @@ void testHeuristics()
       const Monster thirdHitKills{{Level{1}, 12_HP, 4_damage}, {}, {}};
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
       AssertThat(heuristics::checkRegenFight(guard, thirdHitKills),
-                 Equals(RegenFightResult{.numAttacks = 3u, .numSquaresUncovered = 3u}));
+                 Equals(RegenFightResult{.numAttacks = 3u, .numSquares = 3u}));
       guard.add(HeroStatus::DeathProtection);
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
-                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquares = 0u}));
       AssertThat(heuristics::checkRegenFight(guard, thirdHitKills),
-                 Equals(RegenFightResult{.numAttacks = 3u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 3u, .numSquares = 0u}));
     });
     it("shall heal a wounded hero before attacking when needed", [] {
       Hero rogue{HeroClass::Rogue, HeroRace::Gnome};
 
       AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::Wraith, Level{1}}),
-                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquares = 0u}));
       AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{1}}),
-                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 0u}));
 
       rogue.loseHitPointsOutsideOfFight(4, noOtherMonsters);
       AssertThat(rogue.getHitPoints(), Equals(1u));
       AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::Wraith, Level{1}}),
-                 Equals(RegenFightResult{.numAttacks = 1u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 1u, .numSquares = 0u}));
       AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{1}}),
-                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 1u}));
       AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
 
       rogue.gainLevel(noOtherMonsters);
       auto meatMan = Monster{MonsterType::MeatMan, Level{3}};
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
-                 Equals(RegenFightResult{.numAttacks = 8u, .numSquaresUncovered = 20u}));
+                 Equals(RegenFightResult{.numAttacks = 8u, .numSquares = 20u}));
       rogue.loseHitPointsOutsideOfFight(4, noOtherMonsters);
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
-                 Equals(RegenFightResult{.numAttacks = 8u, .numSquaresUncovered = 22u}));
+                 Equals(RegenFightResult{.numAttacks = 8u, .numSquares = 22u}));
       meatMan.takeDamage(10, DamageType::Physical);
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
-                 Equals(RegenFightResult{.numAttacks = 8u, .numSquaresUncovered = 22u}));
+                 Equals(RegenFightResult{.numAttacks = 8u, .numSquares = 22u}));
       meatMan.takeDamage(1, DamageType::Physical);
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
-                 Equals(RegenFightResult{.numAttacks = 7u, .numSquaresUncovered = 19u}));
+                 Equals(RegenFightResult{.numAttacks = 7u, .numSquares = 19u}));
 
       meatMan.takeDamage(16, DamageType::Physical);
       rogue.recover(1, noOtherMonsters);
@@ -295,13 +294,13 @@ void testHeuristics()
       AssertThat(meatMan.getDamage(), Equals(7u));
 
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
-                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 0u}));
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 0u}));
       rogue.loseHitPointsOutsideOfFight(2, noOtherMonsters);
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
-                 Equals(RegenFightResult{.numAttacks = 2u, .numSquaresUncovered = 1u}));
+                 Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 1u}));
       rogue.loseHitPointsOutsideOfFight(2, noOtherMonsters);
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
-                 Equals(RegenFightResult{.numAttacks = 4u, .numSquaresUncovered = 9u}));
+                 Equals(RegenFightResult{.numAttacks = 4u, .numSquares = 9u}));
     });
   });
 }

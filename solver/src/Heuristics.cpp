@@ -90,11 +90,18 @@ namespace heuristics
     return false;
   }
 
-  bool canRecover(const Hero& hero)
+  inline bool canRecover(const Hero& hero)
   {
     return hero.getHitPoints() < hero.getHitPointsMax() && !hero.has(HeroDebuff::Poisoned) &&
            !hero.has(HeroStatus::Manaform) && (!hero.has(HeroTrait::Herbivore) || hero.getFoodCount() > 0);
   }
+
+  inline void doRecovery(Hero& hero, Monster& monster, RegenFightResult& result)
+  {
+    hero.recover(1u, ignoreMonsters);
+    monster.recover(1u);
+    ++result.numSquares;
+  };
 
   std::optional<RegenFightResult> checkRegenFight(Hero hero, Monster monster)
   {
@@ -108,15 +115,9 @@ namespace heuristics
     // Deny dodging
     hero.add(HeroStatus::Pessimist);
 
-    auto recoverOne = [&] {
-      monster.recover(1u);
-      hero.recover(1u, ignoreMonsters);
-      ++result.numSquaresUncovered;
-    };
-
     // If recovery is needed to win the fight, it is always(?) better to do it first
     while (canRecover(hero) && !checkMeleeOnly(hero, monster))
-      recoverOne();
+      doRecovery(hero, monster, result);
 
     std::optional<uint16_t> lowestMonsterHpOnAttack;
 
@@ -147,9 +148,9 @@ namespace heuristics
       case OneShotType::Danger:
         if (!canRecover(hero))
           return {};
-        recoverOne();
+        doRecovery(hero, monster, result);
       }
-    } while (result.numSquaresUncovered < 400u);
+    } while (result.numSquares < 400u);
     return {};
   }
 
@@ -220,8 +221,8 @@ namespace heuristics
     {
       if (heroHitPoints <= heroHpLossPerAttack)
       {
-        result.numSquaresUncovered += recover();
-        if (result.numSquaresUncovered > 400u)
+        result.numSquares += recover();
+        if (result.numSquares > 400u)
           return {};
       }
       heroHitPoints -= heroHpLossPerAttack;
