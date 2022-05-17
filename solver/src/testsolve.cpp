@@ -66,6 +66,16 @@ namespace snowhouse
     }
   };
 
+  template <>
+  struct Stringizer<CatapultRegenFightResult>
+  {
+    static std::string ToString(const CatapultRegenFightResult& result)
+    {
+      return "before: " + Stringizer<RegenFightResult>::ToString(result.beforeCatapult) +
+             ", after: " + Stringizer<RegenFightResult>::ToString(result.afterCatapult);
+    }
+  };
+
   template <class T>
   struct Stringizer<std::optional<T>>
   {
@@ -301,6 +311,22 @@ void testHeuristics()
       rogue.loseHitPointsOutsideOfFight(2, noOtherMonsters);
       AssertThat(heuristics::checkRegenFight(rogue, meatMan),
                  Equals(RegenFightResult{.numAttacks = 4u, .numSquares = 9u}));
+    });
+  });
+  describe("Regen fight with level catapult prediction", [] {
+    it("shall assess basic cases correctly", [] {
+      auto monk = Hero{HeroClass::Monk};
+      AssertThat(heuristics::checkRegenFightWithCatapult(monk, {MonsterType::MeatMan, Level{3}}),
+                 Equals(CatapultRegenFightResult{.beforeCatapult{.numAttacks = 2u},
+                                                 .afterCatapult{.numAttacks = 36u, .numSquares = 32u}}));
+
+      auto berserker = Hero{HeroClass::Berserker};
+      berserker.gainExperienceNoBonuses(30, noOtherMonsters);
+      AssertThat(berserker.getLevel(), Equals(4u));
+      AssertThat(berserker.getHitPoints(), Equals(40u));
+      AssertThat(heuristics::checkRegenFightWithCatapult(berserker, {MonsterType::FrozenTroll, Level{7}}),
+                 Equals(CatapultRegenFightResult{.beforeCatapult{.numAttacks = 3u, .numSquares = 1u},
+                                                 .afterCatapult{.numAttacks = 4u, .numSquares = 2u}}));
     });
   });
 }

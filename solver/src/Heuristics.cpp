@@ -230,6 +230,55 @@ namespace heuristics
     } while (monsterTotalHpLoss < monster.getHitPoints());
     return {std::move(result)};
   }
+
+  std::optional<CatapultRegenFightResult> checkRegenFightWithCatapult(Hero hero, Monster monster)
+  {
+/*    auto printstats = [&] {
+      std::cout << hero.getHitPoints() << "/" << hero.getHitPointsMax() << ":" << monster.getHitPoints() << "/"
+                << monster.getHitPointsMax() << ", ";
+    };
+    */
+    RegenFightResult before;
+    while (isSafeToAttack(hero, monster))
+    {
+      [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+      assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+      before.numAttacks++;
+      if (monster.isDefeated())
+        return {{.beforeCatapult = std::move(before)}};
+    }
+
+    // It may be worthwhile to recover just enough to get one more hit in before levelling
+    const auto optionA = [&, hero, monster, before]() mutable -> std::optional<CatapultRegenFightResult> {
+      const auto monsterHpBeforeRecovery = monster.getHitPoints();
+      while (!isSafeToAttack(hero, monster))
+        doRecovery(hero, monster, before);
+      [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+      assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+      if (monster.getHitPoints() >= monsterHpBeforeRecovery)
+        return {};
+      before.numAttacks++;
+      if (monster.isDefeated())
+        return {{.beforeCatapult = std::move(before)}};
+      hero.gainLevel(ignoreMonsters);
+      if (const auto after = checkRegenFight(std::move(hero), std::move(monster)))
+        return {{.beforeCatapult = std::move(before), .afterCatapult = std::move(*after)}};
+      else
+        return {};
+    }();
+
+    const auto optionB = [&, hero, monster]() mutable -> std::optional<CatapultRegenFightResult> {
+      hero.gainLevel(ignoreMonsters);
+      if (const auto after = checkRegenFight(std::move(hero), std::move(monster)))
+        return {{.beforeCatapult = std::move(before), .afterCatapult = std::move(*after)}};
+      else
+        return {};
+    }();
+
+    if (optionA && (!optionB || optionA->numSquares() < optionB->numSquares()))
+      return optionA;
+    return optionB;
+  }
 } // namespace heuristics
 
 std::optional<Solution> runHeuristics(GameState)

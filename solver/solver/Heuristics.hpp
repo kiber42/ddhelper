@@ -56,6 +56,21 @@ namespace heuristics
    *  @returns Number of attacks and squares to uncover, or nullopt if the monster cannot be defeated this way.
    **/
   std::optional<RegenFightResult> checkRegenFightFast(const Hero& hero, const Monster& monster);
+
+  struct CatapultRegenFightResult
+  {
+    RegenFightResult beforeCatapult;
+    RegenFightResult afterCatapult;
+    unsigned numSquares() const { return beforeCatapult.numSquares + afterCatapult.numSquares; }
+    unsigned numAttacks() const { return beforeCatapult.numAttacks + afterCatapult.numAttacks; }
+    auto operator<=>(const CatapultRegenFightResult&) const = default;
+  };
+
+  /** @brief Evaluate if a monster can be defeated using regen fighting and a level catapult
+   *  Note: The function assumes that a level catapult is available at any time without checking.
+   *  @returns information on how the number of attacks and squares to uncover if the fight can be one, or nullopt.
+   **/
+  std::optional<CatapultRegenFightResult> checkRegenFightWithCatapult(Hero hero, Monster monster);
 } // namespace heuristics
 
 std::optional<Solution> runHeuristics(GameState state);
