@@ -57,32 +57,23 @@ namespace heuristics
   };
 
   /** @brief Evaluate whether a melee + recovery strategy can be used to defeat the monster.
-   *  No simplifying assumptions are made.
-   *  @returns Number of attacks and squares to uncover, or nullopt if the monster cannot be defeated this way.
-   **/
-  std::optional<RegenFightResult> checkRegenFight(Hero hero, Monster monster);
-
-  /** @brief Evaluate whether a melee + recovery strategy can be used to defeat the monster.
    *  Makes a number of simplifications, e.g. death protection is ignored, and the traits stabber, determined, and
    *  berserking are not considered correctly.  Does not take any resources except black space into account.
    *  @returns Number of attacks and squares to uncover, or nullopt if the monster cannot be defeated this way.
    **/
   std::optional<RegenFightResult> checkRegenFightFast(const Hero& hero, const Monster& monster);
 
-  struct CatapultRegenFightResult
-  {
-    RegenFightResult beforeCatapult;
-    RegenFightResult afterCatapult;
-    unsigned numSquares() const { return beforeCatapult.numSquares + afterCatapult.numSquares; }
-    unsigned numAttacks() const { return beforeCatapult.numAttacks + afterCatapult.numAttacks; }
-    auto operator<=>(const CatapultRegenFightResult&) const = default;
-  };
+  /** @brief Evaluate whether a melee + recovery strategy can be used to defeat the monster.
+   *  No simplifying assumptions are made.
+   *  @returns Solution consisting of Attack and Uncover steps; empty solution if none found.
+   **/
+  Solution checkRegenFight(Hero hero, Monster monster);
 
   /** @brief Evaluate if a monster can be defeated using regen fighting and a level catapult
-   *  Note: The function assumes that a level catapult is available at any time without checking.
-   *  @returns information on how the number of attacks and squares to uncover if the fight can be one, or nullopt.
+   *  Note: The function assumes that a level catapult is available at any time without checking this.
+   *  @returns Solution with a placeholder NoOp step where the level catapult should go; empty solution if none found.
    **/
-  std::optional<CatapultRegenFightResult> checkRegenFightWithCatapult(Hero hero, Monster monster);
+  Solution checkRegenFightWithCatapult(Hero hero, Monster monster);
 } // namespace heuristics
 
 std::optional<Solution> runHeuristics(GameState state);

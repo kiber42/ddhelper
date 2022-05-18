@@ -112,31 +112,37 @@ namespace heuristics
            !hero.has(HeroStatus::Manaform) && (!hero.has(HeroTrait::Herbivore) || hero.getFoodCount() > 0);
   }
 
-  inline void doRecovery(Hero& hero, Monster& monster, RegenFightResult& result)
+  inline void doRecovery(Hero& hero, Monster& monster, Solution& solution)
   {
     hero.recover(1u, ignoreMonsters);
     monster.recover(1u);
-    ++result.numSquares;
+    if (!solution.empty())
+    {
+      if (auto uncover = std::get_if<Uncover>(&solution.back()))
+      {
+        ++(uncover->numTiles);
+        return;
+      }
+    }
+    solution.emplace_back(Uncover{1});
   };
 
-  std::optional<RegenFightResult> checkRegenFight(Hero hero, Monster monster)
+  Solution checkRegenFight(Hero hero, Monster monster)
   {
-    RegenFightResult result;
-
-    if (hero.isDefeated())
+    if (hero.isDefeated() || monster.isDefeated())
       return {};
-    if (monster.isDefeated())
-      return {std::move(result)};
 
     // Deny dodging
     hero.add(HeroStatus::Pessimist);
 
     // If recovery is needed to win the fight, it is always(?) better to do it first
+    Solution solution;
     while (canRecover(hero) && !checkMeleeOnly(hero, monster))
-      doRecovery(hero, monster, result);
+      doRecovery(hero, monster, solution);
 
     std::optional<uint16_t> lowestMonsterHpOnAttack;
 
+    auto maxIterations = 200;
     do
     {
       switch (checkOneShot(hero, monster))
@@ -150,23 +156,23 @@ namespace heuristics
         lowestMonsterHpOnAttack = monsterHitPoints;
         [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
         assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
-        ++result.numAttacks;
+        solution.emplace_back(Attack{});
         if (monster.isDefeated())
-          return {std::move(result)};
+          return solution;
         break;
       }
       case OneShotResult::VictoryFlawless:
       case OneShotResult::VictoryDamaged:
       case OneShotResult::VictoryDeathProtectionLost:
-        ++result.numAttacks;
-        return {std::move(result)};
+        solution.emplace_back(Attack{});
+        return solution;
       case OneShotResult::VictoryGetindareOnly:
       case OneShotResult::Danger:
         if (!canRecover(hero))
           return {};
-        doRecovery(hero, monster, result);
+        doRecovery(hero, monster, solution);
       }
-    } while (result.numSquares < 400u);
+    } while (--maxIterations);
     return {};
   }
 
@@ -247,53 +253,58 @@ namespace heuristics
     return {std::move(result)};
   }
 
-  std::optional<CatapultRegenFightResult> checkRegenFightWithCatapult(Hero hero, Monster monster)
+  Solution checkRegenFightWithCatapult(Hero hero, Monster monster)
   {
-/*    auto printstats = [&] {
-      std::cout << hero.getHitPoints() << "/" << hero.getHitPointsMax() << ":" << monster.getHitPoints() << "/"
-                << monster.getHitPointsMax() << ", ";
-    };
-    */
-    RegenFightResult before;
+    Solution solution;
     while (isSafeToAttack(hero, monster))
     {
       [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
       assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
-      before.numAttacks++;
+      solution.emplace_back(Attack{});
       if (monster.isDefeated())
-        return {{.beforeCatapult = std::move(before)}};
+        return solution;
     }
 
+    const auto levelUpAndFight = [](Hero hero, Monster monster, Solution initialSolution) {
+      hero.gainLevel(ignoreMonsters);
+      if (const auto regenSolution = checkRegenFight(std::move(hero), std::move(monster)); !regenSolution.empty())
+      {
+        auto& combinedSolution = initialSolution;
+        combinedSolution.emplace_back(NoOp{});
+        combinedSolution.insert(end(combinedSolution), begin(regenSolution), end(regenSolution));
+        return combinedSolution;
+      }
+      return Solution{};
+    };
+
     // It may be worthwhile to recover just enough to get one more hit in before levelling
-    const auto optionA = [&, hero, monster, before]() mutable -> std::optional<CatapultRegenFightResult> {
+    const auto solutionA = [&, hero, monster, solution]() mutable -> Solution {
       const auto monsterHpBeforeRecovery = monster.getHitPoints();
       while (!isSafeToAttack(hero, monster))
-        doRecovery(hero, monster, before);
+        doRecovery(hero, monster, solution);
       [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
       assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
       if (monster.getHitPoints() >= monsterHpBeforeRecovery)
         return {};
-      before.numAttacks++;
+      solution.emplace_back(Attack{});
       if (monster.isDefeated())
-        return {{.beforeCatapult = std::move(before)}};
-      hero.gainLevel(ignoreMonsters);
-      if (const auto after = checkRegenFight(std::move(hero), std::move(monster)))
-        return {{.beforeCatapult = std::move(before), .afterCatapult = std::move(*after)}};
-      else
-        return {};
+        return solution;
+      return levelUpAndFight(std::move(hero), std::move(monster), std::move(solution));
     }();
 
-    const auto optionB = [&, hero, monster]() mutable -> std::optional<CatapultRegenFightResult> {
-      hero.gainLevel(ignoreMonsters);
-      if (const auto after = checkRegenFight(std::move(hero), std::move(monster)))
-        return {{.beforeCatapult = std::move(before), .afterCatapult = std::move(*after)}};
-      else
-        return {};
-    }();
+    const auto solutionB = levelUpAndFight(std::move(hero), std::move(monster), std::move(solution));
 
-    if (optionA && (!optionB || optionA->numSquares() < optionB->numSquares()))
-      return optionA;
-    return optionB;
+    const auto countTiles = [](const Solution& solution) {
+      return std::transform_reduce(begin(solution), end(solution), 0u, std::plus<unsigned>(), [](const Step& step) {
+        if (const auto uncover = std::get_if<Uncover>(&step))
+          return uncover->numTiles;
+        return 0u;
+      });
+    };
+
+    if (!solutionA.empty() && (solutionB.empty() || countTiles(solutionA) < countTiles(solutionB)))
+      return solutionA;
+    return solutionB;
   }
 } // namespace heuristics
 

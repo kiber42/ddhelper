@@ -31,6 +31,25 @@ std::ostream& operator<<(std::ostream& out, const Monster& monster)
   return out;
 }
 
+RegenFightResult toRegenFightResult(const Solution& solution)
+{
+  unsigned numSquares{0};
+  unsigned numAttacks{0};
+  for (const auto& step : solution)
+  {
+    if (const auto uncover = std::get_if<Uncover>(&step))
+      numSquares += uncover->numTiles;
+    else if (std::get_if<Attack>(&step))
+      ++numAttacks;
+  }
+  return {.numAttacks = numAttacks, .numSquares = numSquares};
+}
+
+bool operator==(const RegenFightResult& result, const Solution& solution)
+{
+  return result == toRegenFightResult(solution);
+}
+
 namespace snowhouse
 {
   template <>
@@ -89,12 +108,12 @@ namespace snowhouse
   };
 
   template <>
-  struct Stringizer<CatapultRegenFightResult>
+  struct Stringizer<Solution>
   {
-    static std::string ToString(const CatapultRegenFightResult& result)
+    static std::string ToString(const Solution& solution)
     {
-      return "before: " + Stringizer<RegenFightResult>::ToString(result.beforeCatapult) +
-             ", after: " + Stringizer<RegenFightResult>::ToString(result.afterCatapult);
+      auto result = toRegenFightResult(solution);
+      return Stringizer<RegenFightResult>::ToString(result);
     }
   };
 
@@ -218,11 +237,11 @@ void testHeuristics()
   describe("Regen fight prediction", [] {
     it("shall be correct for simple cases (1)", [] {
       Hero guard;
-      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{1}}), !Equals(std::nullopt));
-      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{2}}), Equals(std::nullopt));
-      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{1}}), !IsEmpty());
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::GooBlob, Level{2}}), IsEmpty());
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), IsEmpty());
       AssertThat(guard.receive(BlacksmithItem::Sword), IsTrue());
-      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}), IsEmpty());
       AssertThat(guard.receive(BlacksmithItem::Shield), IsTrue());
       AssertThat(heuristics::checkRegenFight(guard, {MonsterType::MeatMan, Level{2}}),
                  Equals(RegenFightResult{.numAttacks = 5u, .numSquares = 1u}));
@@ -230,10 +249,10 @@ void testHeuristics()
     it("shall be correct for simple cases (2)", [] {
       Hero guard;
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
-      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), IsEmpty());
       guard.setHitPointsMax(100);
       guard.healHitPoints(100);
-      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), IsEmpty());
       guard.setHitPointsMax(101);
       guard.healHitPoints(1);
       AssertThat(heuristics::checkRegenFight(guard, hitAndRun),
@@ -261,18 +280,18 @@ void testHeuristics()
       }
       {
         Monster burningMonster{{Level{1}, 11_HP, 5_damage}, {}, {}};
-        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(std::nullopt));
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster), IsEmpty());
         burningMonster.burn(2);
-        AssertThat(heuristics::checkRegenFight(guard, burningMonster), Equals(std::nullopt));
+        AssertThat(heuristics::checkRegenFight(guard, burningMonster), IsEmpty());
         burningMonster.burn(2);
         AssertThat(heuristics::checkRegenFight(guard, burningMonster),
                    Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 1u}));
       }
       {
         Monster poisonedMonster{{Level{1}, 10_HP, 9_damage}, {}, {}};
-        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(std::nullopt));
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), IsEmpty());
         AssertThat(poisonedMonster.poison(8), IsTrue());
-        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), Equals(std::nullopt));
+        AssertThat(heuristics::checkRegenFight(guard, poisonedMonster), IsEmpty());
         AssertThat(poisonedMonster.poison(1), IsTrue());
         AssertThat(heuristics::checkRegenFight(guard, poisonedMonster),
                    Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 9u}));
@@ -285,7 +304,7 @@ void testHeuristics()
       Hero guard;
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
       const Monster thirdHitKills{{Level{1}, 12_HP, 4_damage}, {}, {}};
-      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(guard, hitAndRun), IsEmpty());
       AssertThat(heuristics::checkRegenFight(guard, thirdHitKills),
                  Equals(RegenFightResult{.numAttacks = 3u, .numSquares = 3u}));
       guard.add(HeroStatus::DeathProtection);
@@ -308,7 +327,7 @@ void testHeuristics()
                  Equals(RegenFightResult{.numAttacks = 1u, .numSquares = 0u}));
       AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{1}}),
                  Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 1u}));
-      AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{2}}), Equals(std::nullopt));
+      AssertThat(heuristics::checkRegenFight(rogue, {MonsterType::MeatMan, Level{2}}), IsEmpty());
 
       rogue.gainLevel(noOtherMonsters);
       auto meatMan = Monster{MonsterType::MeatMan, Level{3}};
@@ -343,18 +362,22 @@ void testHeuristics()
   });
   describe("Regen fight with level catapult prediction", [] {
     it("shall assess basic cases correctly", [] {
+      const auto findNoOp = [] (const auto& step) { return std::get_if<NoOp>(&step) != nullptr; };
+
       auto monk = Hero{HeroClass::Monk};
-      AssertThat(heuristics::checkRegenFightWithCatapult(monk, {MonsterType::MeatMan, Level{3}}),
-                 Equals(CatapultRegenFightResult{.beforeCatapult{.numAttacks = 2u},
-                                                 .afterCatapult{.numAttacks = 36u, .numSquares = 32u}}));
+      auto solution = heuristics::checkRegenFightWithCatapult(monk, {MonsterType::MeatMan, Level{3}});
+      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 38u, .numSquares = 32u}));
+      solution.erase(std::find_if(begin(solution), end(solution), findNoOp), end(solution));
+      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 2u, .numSquares = 0u}));
 
       auto berserker = Hero{HeroClass::Berserker};
       berserker.gainExperienceNoBonuses(30, noOtherMonsters);
       AssertThat(berserker.getLevel(), Equals(4u));
       AssertThat(berserker.getHitPoints(), Equals(40u));
-      AssertThat(heuristics::checkRegenFightWithCatapult(berserker, {MonsterType::FrozenTroll, Level{7}}),
-                 Equals(CatapultRegenFightResult{.beforeCatapult{.numAttacks = 3u, .numSquares = 1u},
-                                                 .afterCatapult{.numAttacks = 4u, .numSquares = 2u}}));
+      solution = heuristics::checkRegenFightWithCatapult(berserker, {MonsterType::FrozenTroll, Level{7}});
+      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 7u, .numSquares = 3u}));
+      solution.erase(std::find_if(begin(solution), end(solution), findNoOp), end(solution));
+      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 3u, .numSquares = 1u}));
     });
   });
 }
