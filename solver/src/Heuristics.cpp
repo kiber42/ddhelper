@@ -54,20 +54,36 @@ namespace heuristics
     return OneShotResult::None;
   }
 
-  bool checkLevelCatapult(const Hero& hero, const Monsters& monsters)
+  CatapultResult checkLevelCatapult(const Hero& hero, const Monsters& monsters)
   {
-    auto oneShotXp = 0_xp;
-    auto oneShotFinalXp = 0_xp;
+    auto totalXp = 0_xp;
+    auto xpTakingDamage = 0_xp;
+    auto xpBarelyWin = 0_xp;
     for (const auto& monster : monsters)
     {
       const auto oneShot = checkOneShot(hero, monster);
+      if (oneShot == OneShotResult::None || oneShot == OneShotResult::Danger)
+        continue;
+      const auto xpGain = ExperiencePoints{hero.predictExperienceForKill(monster.getLevel(), monster.isSlowed())};
       if (oneShot == OneShotResult::VictoryFlawless)
-        oneShotXp += ExperiencePoints{hero.predictExperienceForKill(monster.getLevel(), monster.isSlowed())};
-      else if (oneShot == OneShotResult::VictoryDamaged || oneShot == OneShotResult::VictoryGetindareOnly)
-        oneShotFinalXp = std::max(
-            oneShotFinalXp, ExperiencePoints{hero.predictExperienceForKill(monster.getLevel(), monster.isSlowed())});
+        totalXp += xpGain;
+      else if (oneShot == OneShotResult::VictoryDamaged)
+        xpTakingDamage = std::max(xpTakingDamage, xpGain);
+      else if (oneShot == OneShotResult::VictoryDeathProtectionLost || oneShot == OneShotResult::VictoryGetindareOnly)
+        xpBarelyWin = std::max(xpBarelyWin, xpGain);
     }
-    return hero.getXP() + (oneShotXp + oneShotFinalXp).get() >= hero.getXPforNextLevel();
+    const auto xpNeeded = ExperiencePoints{hero.getXPforNextLevel() - hero.getXP()};
+    if (totalXp >= xpNeeded)
+      return CatapultResult::Flawless;
+    if (totalXp + xpTakingDamage >= xpNeeded)
+      return CatapultResult::Damaged;
+    if (totalXp + xpTakingDamage + xpBarelyWin >= xpNeeded && hero.has(HeroStatus::DeathProtection))
+    {
+      if (totalXp + xpBarelyWin >= xpNeeded)
+        return CatapultResult::DeathProtectionLost;
+      return CatapultResult::DamagedAndDeathProtectionLost;
+    }
+    return CatapultResult::None;
   }
 
   namespace

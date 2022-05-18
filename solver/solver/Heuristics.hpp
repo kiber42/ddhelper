@@ -18,7 +18,7 @@ namespace heuristics
 
   enum class OneShotResult
   {
-    None, // Hero safe, but monster not defeated
+    None,   // Hero safe, but monster not defeated
     Danger, // Hero dead or loses death protection
     VictoryFlawless,
     VictoryDamaged,
@@ -29,10 +29,22 @@ namespace heuristics
   //! Check if the monster can be defeated with a single hit
   OneShotResult checkOneShot(const Hero& hero, const Monster& monster);
 
-  /** Return true if there are enough one-shottable monsters to level up.
-   *  Will not use death protection to achieve the level up.
+  enum class CatapultResult
+  {
+    None,                          // no "simple" way to achieve a level up
+    Flawless,                      // there are sufficient one-shottable monsters to level up
+    Damaged,                       // hero takes damage on final attack before levelling
+    DeathProtectionLost,           // hero loses death protection on final attack
+    DamagedAndDeathProtectionLost, // hero takes damage on semi-final attack and loses death protection on final attack
+  };
+
+  /** Evaluate whether there are enough one-shottable monsters to level up.
+   *  Will largely ignore monsters that cannot be killed flawlessly, except in the final attack.
+   *  If the hero has death protection, considers sacrificing it in the final attack and permits taking damage in the
+   *  attack before that.
+   *  @returns appropriate enum value
    **/
-  bool checkLevelCatapult(const Hero& hero, const Monsters& monsters);
+  CatapultResult checkLevelCatapult(const Hero& hero, const Monsters& monsters);
 
   //! Return true if hero can defeat monster by attacking (repeatedly)
   bool checkMeleeOnly(Hero hero, Monster monster);

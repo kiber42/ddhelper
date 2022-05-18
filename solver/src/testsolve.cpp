@@ -58,6 +58,28 @@ namespace snowhouse
   };
 
   template <>
+  struct Stringizer<heuristics::CatapultResult>
+  {
+    static std::string ToString(const heuristics::CatapultResult& catapultResult)
+    {
+      switch (catapultResult)
+      {
+      case CatapultResult::None:
+        return "None";
+      case CatapultResult::Flawless:
+        return "Flawless";
+      case CatapultResult::Damaged:
+        return "Damaged";
+      case CatapultResult::DeathProtectionLost:
+        return "DeathProtectionLost";
+      case CatapultResult::DamagedAndDeathProtectionLost:
+        return "DamagedAndDeathProtectionLost";
+      }
+      return "[unsupported value]";
+    }
+  };
+
+  template <>
   struct Stringizer<RegenFightResult>
   {
     static std::string ToString(const RegenFightResult& result)
@@ -148,19 +170,25 @@ void testHeuristics()
       auto hero = Hero{HeroClass::Assassin, HeroRace::Goblin};
       Monsters monsters;
       hero.gainLevel(monsters);
-      for (int i = 0; i < 10; ++i)
-        monsters.emplace_back(MonsterType::GooBlob, Level{1});
-      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
+      monsters.resize(10, {MonsterType::GooBlob, Level{1}});
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), Equals(CatapultResult::Flawless));
       monsters.pop_back();
-      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), Equals(CatapultResult::None));
       monsters.emplace_back(MonsterType::GooBlob, Level{2});
-      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), Equals(CatapultResult::None));
       monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
-      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsTrue());
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), Equals(CatapultResult::Damaged));
       monsters.pop_back();
-      monsters.emplace_back(MonsterStats{Level{10}, 1_HP, 100_damage});
+      monsters.pop_back();
+
+      monsters.emplace_back(MonsterStats{Level{2}, 1_HP, 100_damage});
       hero.add(HeroStatus::DeathProtection);
-      AssertThat(heuristics::checkLevelCatapult(hero, monsters), IsFalse());
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), Equals(CatapultResult::DeathProtectionLost));
+
+      monsters.resize(6, {MonsterType::GooBlob, Level{1}});
+      monsters.emplace_back(MonsterStats{Level{2}, 5_HP, 1_damage});
+      monsters.emplace_back(MonsterStats{Level{2}, 1_HP, 100_damage});
+      AssertThat(heuristics::checkLevelCatapult(hero, monsters), Equals(CatapultResult::DamagedAndDeathProtectionLost));
     });
     it("shall correctly assess the winner of a melee-only battle", [] {
       AssertThat(heuristics::checkMeleeOnly({HeroClass::Guard}, {MonsterType::Warlock, Level{2}}), IsFalse());
