@@ -34,23 +34,23 @@ std::ostream& operator<<(std::ostream& out, const Monster& monster)
 namespace snowhouse
 {
   template <>
-  struct Stringizer<heuristics::OneShotType>
+  struct Stringizer<heuristics::OneShotResult>
   {
-    static std::string ToString(const heuristics::OneShotType& oneShotType)
+    static std::string ToString(const heuristics::OneShotResult& oneShotResult)
     {
-      switch (oneShotType)
+      switch (oneShotResult)
       {
-      case heuristics::OneShotType::None:
+      case heuristics::OneShotResult::None:
         return "None";
-      case heuristics::OneShotType::Danger:
+      case heuristics::OneShotResult::Danger:
         return "Danger";
-      case heuristics::OneShotType::VictoryFlawless:
+      case heuristics::OneShotResult::VictoryFlawless:
         return "Flawless";
-      case heuristics::OneShotType::VictoryDamaged:
+      case heuristics::OneShotResult::VictoryDamaged:
         return "Damaged";
-      case heuristics::OneShotType::VictoryDeathProtectionLost:
+      case heuristics::OneShotResult::VictoryDeathProtectionLost:
         return "DeathProtectionLost";
-      case heuristics::OneShotType::VictoryGetindareOnly:
+      case heuristics::OneShotResult::VictoryGetindareOnly:
         return "GetindareOnly";
       }
       return "[unsupported value]";
@@ -132,17 +132,17 @@ void testHeuristics()
     it("shall correctly assess one shot availability", [] {
       Hero hero;
       const auto weak = Monster{MonsterType::Generic, Level{1}};
-      AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotType::None));
+      AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotResult::None));
       const Monster hitAndRun{{Level{1}, 1_HP, 100_damage}, {}, {}};
-      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::Danger));
+      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotResult::Danger));
       AssertThat(hero.receive(Spell::Getindare), IsTrue());
-      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotType::VictoryGetindareOnly));
+      AssertThat(heuristics::checkOneShot(hero, hitAndRun), Equals(heuristics::OneShotResult::VictoryGetindareOnly));
       hero.gainLevel(noOtherMonsters);
-      AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotType::VictoryFlawless));
+      AssertThat(heuristics::checkOneShot(hero, weak), Equals(heuristics::OneShotResult::VictoryFlawless));
       auto goblin = Monster{MonsterType::Goblin, Level{1}};
-      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotType::VictoryDamaged));
+      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotResult::VictoryDamaged));
       goblin.slow();
-      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotType::VictoryFlawless));
+      AssertThat(heuristics::checkOneShot(hero, goblin), Equals(heuristics::OneShotResult::VictoryFlawless));
     });
     it("shall correctly assess level catapult availability", [] {
       auto hero = Hero{HeroClass::Assassin, HeroRace::Goblin};

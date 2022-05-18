@@ -29,29 +29,29 @@ namespace heuristics
     return !deadly;
   }
 
-  OneShotType checkOneShot(const Hero& hero, const Monster& monster)
+  OneShotResult checkOneShot(const Hero& hero, const Monster& monster)
   {
     const auto monsterDamageTaken = monster.predictDamageTaken(hero.getDamageOutputVersus(monster), hero.damageType());
     const bool willDefeatMonster = monsterDamageTaken >= monster.getHitPoints();
     if (willDefeatMonster)
     {
       if (hero.hasInitiativeVersus(monster))
-        return OneShotType::VictoryFlawless;
+        return OneShotResult::VictoryFlawless;
       if (isSafeToAttack(hero, monster))
-        return OneShotType::VictoryDamaged;
+        return OneShotResult::VictoryDamaged;
       if (hero.has(HeroStatus::DeathProtection))
-        return OneShotType::VictoryDeathProtectionLost;
+        return OneShotResult::VictoryDeathProtectionLost;
       const bool firstStrikeHero =
           hero.has(HeroStatus::FirstStrikePermanent) || hero.has(HeroStatus::FirstStrikeTemporary);
       const bool canCast = !firstStrikeHero && hero.has(Spell::Getindare) &&
                            hero.getManaPoints() >= Magic::spellCosts(Spell::Getindare, hero);
       const bool firstStrikeMonster = monster.has(MonsterTrait::FirstStrike) && !monster.isSlowed();
       if (canCast && !firstStrikeMonster)
-        return OneShotType::VictoryGetindareOnly;
+        return OneShotResult::VictoryGetindareOnly;
     }
     if (!isSafeToAttack(hero, monster))
-      return OneShotType::Danger;
-    return OneShotType::None;
+      return OneShotResult::Danger;
+    return OneShotResult::None;
   }
 
   bool checkLevelCatapult(const Hero& hero, const Monsters& monsters)
@@ -61,9 +61,9 @@ namespace heuristics
     for (const auto& monster : monsters)
     {
       const auto oneShot = checkOneShot(hero, monster);
-      if (oneShot == OneShotType::VictoryFlawless)
+      if (oneShot == OneShotResult::VictoryFlawless)
         oneShotXp += ExperiencePoints{hero.predictExperienceForKill(monster.getLevel(), monster.isSlowed())};
-      else if (oneShot == OneShotType::VictoryDamaged || oneShot == OneShotType::VictoryGetindareOnly)
+      else if (oneShot == OneShotResult::VictoryDamaged || oneShot == OneShotResult::VictoryGetindareOnly)
         oneShotFinalXp = std::max(
             oneShotFinalXp, ExperiencePoints{hero.predictExperienceForKill(monster.getLevel(), monster.isSlowed())});
     }
@@ -125,7 +125,7 @@ namespace heuristics
     {
       switch (checkOneShot(hero, monster))
       {
-      case OneShotType::None:
+      case OneShotResult::None:
       {
         // confirm that we're making progress
         const auto monsterHitPoints = monster.getHitPoints();
@@ -139,13 +139,13 @@ namespace heuristics
           return {std::move(result)};
         break;
       }
-      case OneShotType::VictoryFlawless:
-      case OneShotType::VictoryDamaged:
-      case OneShotType::VictoryDeathProtectionLost:
+      case OneShotResult::VictoryFlawless:
+      case OneShotResult::VictoryDamaged:
+      case OneShotResult::VictoryDeathProtectionLost:
         ++result.numAttacks;
         return {std::move(result)};
-      case OneShotType::VictoryGetindareOnly:
-      case OneShotType::Danger:
+      case OneShotResult::VictoryGetindareOnly:
+      case OneShotResult::Danger:
         if (!canRecover(hero))
           return {};
         doRecovery(hero, monster, result);

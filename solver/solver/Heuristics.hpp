@@ -16,7 +16,7 @@ namespace heuristics
   //! Return pointer to monsters, stable-sorted by level, highest level first
   std::vector<const Monster*> sorted_by_level(const Monsters& monsters);
 
-  enum class OneShotType
+  enum class OneShotResult
   {
     None, // Hero safe, but monster not defeated
     Danger, // Hero dead or loses death protection
@@ -27,7 +27,7 @@ namespace heuristics
   };
 
   //! Check if the monster can be defeated with a single hit
-  OneShotType checkOneShot(const Hero& hero, const Monster& monster);
+  OneShotResult checkOneShot(const Hero& hero, const Monster& monster);
 
   /** Return true if there are enough one-shottable monsters to level up.
    *  Will not use death protection to achieve the level up.
