@@ -1,4 +1,4 @@
-project(ddhelperengine)
+project(ddhelperengine VERSION 0.3.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
