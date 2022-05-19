@@ -25,7 +25,7 @@ namespace ui
     virtual void populateFrame() {}
 
   private:
-    class Data;
+    struct Data;
     std::unique_ptr<Data> data;
   };
 } // namespace ui

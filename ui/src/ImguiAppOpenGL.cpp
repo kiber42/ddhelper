@@ -9,37 +9,21 @@
 #include <optional>
 #include <stdexcept>
 
-// About Desktop OpenGL function loaders:
-//  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
-//  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
-//  You may use another loader/header of your choice (glext, glLoadGen, etc.), or chose to manually implement your own.
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h> // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h> // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h> // Initialize with gladLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
-#include <glad/gl.h> // Initialize with gladLoadGL(...) or gladLoaderLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
-#define GLFW_INCLUDE_NONE      // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/Binding.h> // Initialize with glbinding::Binding::initialize()
-#include <glbinding/gl/gl.h>
-using namespace gl;
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+#include <SDL_opengles2.h>
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
 #define GLFW_INCLUDE_NONE // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
 #include <glbinding/gl/gl.h>
 #include <glbinding/glbinding.h> // Initialize with glbinding::initialize()
 using namespace gl;
 #else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+#include <SDL_opengl.h>
 #endif
 
 namespace ui
 {
-  class ImguiApp::Data
+  struct ImguiApp::Data
   {
-  public:
     SDL_GLContext gl_context;
     SDL_Window* window;
   };
@@ -59,7 +43,14 @@ namespace ui
     }
 
     // Decide GL+GLSL versions
-#if __APPLE__
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+    // GL ES 2.0 + GLSL 100
+    const char* glsl_version = "#version 100";
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#elif defined(__APPLE__)
     // GL 3.2 Core + GLSL 150
     const char* glsl_version = "#version 150";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
@@ -86,32 +77,6 @@ namespace ui
     data->gl_context = SDL_GL_CreateContext(data->window);
     SDL_GL_MakeCurrent(data->window, data->gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
-
-    // Initialize OpenGL loader
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-    bool err = gl3wInit() != 0;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-    bool err = glewInit() != GLEW_OK;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-    bool err = gladLoadGL() == 0;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
-    bool err = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress) ==
-               0; // glad2 recommend using the windowing library loader instead of the (optionally) bundled one.
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
-    bool err = false;
-    glbinding::Binding::initialize();
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
-    bool err = false;
-    glbinding::initialize([](const char* name) { return (glbinding::ProcAddress)SDL_GL_GetProcAddress(name); });
-#else
-    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of
-                      // initialization.
-#endif
-    if (err)
-    {
-      fprintf(stderr, "Failed to initialize OpenGL loader!\n");
-      throw std::runtime_error(SDL_GetError());
-    }
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -172,10 +137,11 @@ namespace ui
       // Poll and handle events (inputs, window resize, etc.)
       // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your
       // inputs.
-      // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
-      // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
-      // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two
-      // flags.
+      // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or
+      // clear/overwrite your copy of the mouse data.
+      // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or
+      // clear/overwrite your copy of the keyboard data. Generally you may always pass all inputs to dear imgui, and
+      // hide them from your application based on those two flags.
       SDL_Event event;
       while (SDL_PollEvent(&event))
       {
@@ -192,7 +158,7 @@ namespace ui
 
       // Start the Dear ImGui frame
       ImGui_ImplOpenGL3_NewFrame();
-      ImGui_ImplSDL2_NewFrame(data->window);
+      ImGui_ImplSDL2_NewFrame();
       ImGui::NewFrame();
 
       // Custom UI code
@@ -201,7 +167,8 @@ namespace ui
       // Rendering
       ImGui::Render();
       glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-      glClearColor(background_color.x, background_color.y, background_color.z, background_color.w);
+      glClearColor(background_color.x * background_color.w, background_color.y * background_color.w,
+                   background_color.z * background_color.w, background_color.w);
       glClear(GL_COLOR_BUFFER_BIT);
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
       SDL_GL_SwapWindow(data->window);

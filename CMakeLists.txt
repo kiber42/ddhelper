@@ -35,6 +35,7 @@ add_library(
   dearimgui STATIC
   imgui/imgui.cpp
   imgui/imgui_draw.cpp
+  imgui/imgui_tables.cpp
   imgui/imgui_widgets.cpp
   imgui/backends/imgui_impl_sdl.cpp)
 target_include_directories(dearimgui PUBLIC imgui ${SDL_INCLUDE_PATH}
@@ -43,12 +44,14 @@ target_link_libraries(dearimgui "-lSDL2" "-lSDL2main")
 if(USE_VULKAN)
   target_sources(dearimgui PRIVATE imgui/backends/imgui_impl_vulkan.cpp)
 else()
+  target_link_libraries(dearimgui ${CMAKE_DL_LIBS})
   target_sources(dearimgui PRIVATE imgui/backends/imgui_impl_opengl3.cpp)
 endif()
 
 add_executable(imguidemo imgui/imgui_demo.cpp)
 target_link_libraries(imguidemo imguiapp)
 if(USE_VULKAN)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
   target_sources(imguidemo PRIVATE imgui/examples/example_sdl_vulkan/main.cpp)
 else()
   target_sources(imguidemo PRIVATE imgui/examples/example_sdl_opengl3/main.cpp)
