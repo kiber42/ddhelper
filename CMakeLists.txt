@@ -10,17 +10,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # compile with warnings
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wconversion -Wno-implicit-int-float-conversion")  
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wconversion -Wno-implicit-int-float-conversion")
+  # Numerous conversion warnings from GCC in imgui; no flag to only disable int-to-float conversion warnings
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-conversion -Wno-return-type")
 endif()
 
 set(USE_VULKAN OFF)
 
 if(NOT WIN32)
-  set(SDL_INCLUDE_PATH /usr/include/SDL2)
+  set(SDL_INCLUDE_PATH "/usr/include/SDL2")
 else()
   # Windows: Assume that SDL has been unpacked directly into project directory
-  set(SDL_INCLUDE_PATH SDL/include)
+  set(SDL_INCLUDE_PATH "SDL/include")
   link_directories(SDL/lib/x64)
   # Use gl3w libary shipped with imgui
   get_filename_component(GL3W_INCLUDE_PATH imgui/examples/libs/gl3w ABSOLUTE .)

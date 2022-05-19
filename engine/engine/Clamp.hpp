@@ -35,10 +35,11 @@ constexpr Short clampedTo(Long unclamped)
     }
     else
     {
-      return unclamped > std::numeric_limits<Short>::max()
+      return static_cast<float>(unclamped) > std::numeric_limits<Short>::max()
                  ? std::numeric_limits<Short>::max()
-                 : (unclamped < std::numeric_limits<Short>::min() ? std::numeric_limits<Short>::min()
-                                                                  : static_cast<Short>(unclamped));
+                 : (static_cast<float>(unclamped) < std::numeric_limits<Short>::min()
+                        ? std::numeric_limits<Short>::min()
+                        : static_cast<Short>(unclamped));
     }
   }
 }

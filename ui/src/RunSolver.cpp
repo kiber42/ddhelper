@@ -15,7 +15,7 @@ namespace ui
         .hero{state.hero},
         .visibleMonsters{state.monsterPool},
         .activeMonster = state.activeMonster.value_or(0u),
-        .resources{state.resources.visible},
+        .resources{SimpleResources{state.resources.visible}},
     };
     solverState.resources.numHiddenTiles = state.resources.numHiddenTiles;
     solverState.resources.numRevealedTiles = state.resources.numRevealedTiles;

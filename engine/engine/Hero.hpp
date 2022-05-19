@@ -227,7 +227,7 @@ private:
   void drinkManaPotion();
   // Change health bonus, but not retroactively
   void modifyFutureHealthBonus(int amount);
-  unsigned nagaCauldronBonus() const;
+  uint8_t nagaCauldronBonus() const;
   void loseHitPoints(unsigned amountPointsLost, Monsters& allMonsters);
   void setStatusIntensity(HeroStatus status, unsigned newIntensity);
   void levelGainedUpdate(unsigned newLevel, Monsters& allMonsters);

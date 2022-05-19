@@ -98,7 +98,7 @@ uint8_t Conversion::getThreshold() const
 
 bool Conversion::addPoints(unsigned pointsAdded)
 {
-  points += pointsAdded;
+  points = clampedTo<uint8_t>(points + pointsAdded);
   return points >= getThreshold();
 }
 

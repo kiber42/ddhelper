@@ -292,11 +292,10 @@ void Hero::drinkManaPotion()
   }
 }
 
-unsigned Hero::nagaCauldronBonus() const
+uint8_t Hero::nagaCauldronBonus() const
 {
-  return 5u * (static_cast<unsigned>(has(HeroDebuff::Poisoned)) + static_cast<unsigned>(has(HeroDebuff::ManaBurned)) +
-               static_cast<unsigned>(has(HeroDebuff::Corroded)) + static_cast<unsigned>(has(HeroDebuff::Weakened)) +
-               static_cast<unsigned>(has(HeroDebuff::Cursed)));
+  return static_cast<uint8_t>(5u * (has(HeroDebuff::Poisoned) + has(HeroDebuff::ManaBurned) +
+                                    has(HeroDebuff::Corroded) + has(HeroDebuff::Weakened) + has(HeroDebuff::Cursed)));
 }
 
 uint16_t Hero::getBaseDamage() const
@@ -330,7 +329,7 @@ void Hero::changeBaseDamage(int deltaDamagePoints)
 
 int Hero::getDamageBonusPercent() const
 {
-  auto bonus = stats.getDamageBonus().in_percent();
+  auto bonus = static_cast<int>(stats.getDamageBonus().in_percent());
   bonus += 30 * getIntensity(HeroStatus::Might);
   if (has(HeroTrait::Determined) && stats.getHitPoints() * 2 < stats.getHitPointsMax())
     bonus += 30;
@@ -346,14 +345,14 @@ uint16_t Hero::getDamageVersusStandard() const
 {
   const int multiplier = 100 + getDamageBonusPercent();
   if (multiplier > 0)
-    return getBaseDamage() * static_cast<uint16_t>(multiplier) / 100u;
+    return getBaseDamage() * static_cast<uint16_t>(multiplier / 100);
   else
     return 0;
 }
 
 uint16_t Hero::getDamageOutputVersus(const Monster& monster) const
 {
-  const auto standardDamage = getDamageVersusStandard();
+  const auto standardDamage = static_cast<unsigned>(getDamageVersusStandard());
   auto damage = standardDamage;
   if (has(HeroTrait::Bloodlust) && monster.getLevel() > getLevel())
     damage += standardDamage * 2 / 10;
@@ -364,8 +363,8 @@ uint16_t Hero::getDamageOutputVersus(const Monster& monster) const
   if (has(HeroTrait::GoodGolly) && monster.has(MonsterTrait::Undead))
     damage += getBaseDamage();
   if (has(HeroTrait::SwiftHand) && getLevel() > monster.getLevel())
-    damage = clampedTo<uint16_t>(10 * monster.getHitPoints());
-  return damage;
+    damage = 10 * monster.getHitPoints();
+  return clampedTo<uint16_t>(damage);
 }
 
 void Hero::addAttackBonus()
