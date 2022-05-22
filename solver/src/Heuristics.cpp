@@ -25,7 +25,7 @@ namespace heuristics
   inline bool isSafeToAttack(const Hero& hero, const Monster& monster)
   {
     const bool willPetrify = !monster.isSlowed() && !hero.has(HeroStatus::DeathGazeImmune) &&
-                             (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
+                             (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100u);
     const bool deadly =
         (willPetrify || hero.predictDamageTaken(monster.getDamage(), monster.damageType()) >= hero.getHitPoints());
     return !deadly;

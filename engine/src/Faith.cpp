@@ -44,17 +44,24 @@ void Faith::selectNextDeityForGoatperson()
   assert(altarsForGoatperson);
   if (altarsForGoatperson->empty())
     return;
-  if (followedDeity && altarsForGoatperson->size() == 1)
-  {
-    assert(*followedDeity == (*altarsForGoatperson)[0]);
-    return;
-  }
-  std::uniform_int_distribution<size_t> randomIndex(0u, altarsForGoatperson->size());
-  God lastDeity = *followedDeity;
-  do
-  {
+  std::uniform_int_distribution<size_t> randomIndex(0u, altarsForGoatperson->size() - 1);
+  if (!followedDeity)
     followedDeity = (*altarsForGoatperson)[randomIndex(generator)];
-  } while (lastDeity == *followedDeity);
+  else
+  {
+    if (altarsForGoatperson->size() == 1)
+    {
+      assert(*followedDeity == (*altarsForGoatperson)[0]);
+    }
+    else
+    {
+      const God lastDeity = *followedDeity;
+      do
+      {
+        followedDeity = (*altarsForGoatperson)[randomIndex(generator)];
+      } while (lastDeity == *followedDeity);
+    }
+  }
 }
 
 bool Faith::canFollow(God god, const Hero& hero) const

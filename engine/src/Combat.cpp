@@ -152,7 +152,7 @@ namespace Combat
     const bool heroUsesDeathGaze =
         hero.getIntensity(HeroStatus::DeathGaze) * monster.getHitPointsMax() > monster.getHitPoints() * 100;
     const bool willPetrify = !monster.isSlowed() && !hero.has(HeroStatus::DeathGazeImmune) &&
-                             (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100);
+                             (monster.getDeathGazePercent() * hero.getHitPointsMax() > hero.getHitPoints() * 100u);
 
     auto heroAttacks = [&] {
       const auto monsterHPBefore = monster.getHitPoints();

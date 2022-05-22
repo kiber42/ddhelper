@@ -6,6 +6,8 @@
 
 #include "imgui.h"
 
+#include <cstdio>
+
 namespace ui
 {
   MonsterSelection::MonsterSelection()
@@ -165,7 +167,7 @@ namespace ui
       {
         auto dungeon = static_cast<Dungeon>(n);
         char buffer[30];
-        sprintf(buffer, "%s (%.0f%%)", toString(dungeon), dungeonMultiplier(dungeon).get() * 100);
+        snprintf(buffer, 30, "%s (%.0f%%)", toString(dungeon), dungeonMultiplier(dungeon).get() * 100);
         if (ImGui::Selectable(buffer, selected == dungeon))
           selected = dungeon;
       }

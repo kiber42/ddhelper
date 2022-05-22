@@ -206,7 +206,7 @@ void MapResources::revealTile()
                      }};
   };
   auto countAndRevealVector = [&](auto group) {
-    return std::pair{(hidden.*group).size(), [&from = hidden.*group, &to = visible.*group]() {
+    return std::pair{static_cast<unsigned>((hidden.*group).size()), [&from = hidden.*group, &to = visible.*group]() {
                        assert(!from.empty());
                        auto resource = begin(from);
                        to.emplace_back(std::move(*resource));
