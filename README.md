@@ -56,20 +56,21 @@ The executable for the helper UI is `ui/ddhelper`.
 
 ## Windows
 
-I only build on Windows once in a while, it is likely that not everything works out of the box.  The importer package currently uses X11 and I've not found the time to port it to Windows.
+I only build on Windows once in a while, it is possible that not everything works out of the box.  The importer package currently uses X11 and I've not found the time to port it to Windows.
 
-The Windows build uses SDL and OpenGL to create the UI.  You can either build using Visual Studio (with Clang or the MSVC compiler) or using Cygwin (with Clang or the GCC compiler).  If you don't have a build setup on Windows yet, installing Visual Studio is probably the easiest option.  Select the "Desktop Development with C++" workload and its optional "C++ Clang tools for Windows" component.
+The Windows build uses SDL and OpenGL to create the UI.  You can either build using Visual Studio or Cygwin (with Clang or the GCC compiler).  In both cases, you need to download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) for Windows.
 
-In any case you also need to download and install [cmake](https://cmake.org/download/) and [git](https://git-scm.com/download/win).
-For convenience, you can use the GIT bash and acquire the required repositories using the same set of commands as for Linux (see above).
+### Visual Studio
+If you don't have a build setup on Windows yet, installing Visual Studio is probably the easiest option.  Select the "Desktop Development with C++" workload and its optional "C++ Clang tools for Windows" component.  Obtain the same git repositories as for Linux and make the same adjustment for Bandit/Snowhouse (mv the snowhouse include folder into bandit/assertion_frameworks, see above).  Unpack the SDL zip file into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.  Open the `ddhelper` in Visual Studio to create and build a Studio solution.
 
-Download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) for Windows and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.
+### Cygwin with Clang
+If you're not using Visual Studio, you probably want to install [Cygwin](https://www.cygwin.com/setup-x86_64.exe), select git, clang, cmake, and ninja from the Cygwin installer (or separately, if you wish).  Open a Cygwin terminal to run the same commands as for Linux to obtain the packages and move everything into place.  Unpack the SDL zip file into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.
 
-As for Linux, use CMake to create Makefiles or a Visual Studio solution.  When not using VS, you might want to use the [Ninja build system](https://github.com/ninja-build/ninja/releases).  It is a single .exe file that you can just copy to `ddhelper` (or anywhere else as long as you add to your PATH environment variable).
+Use CMake to create a Ninja Makefile and build the project:
 
 ```
 mkdir build
 cd build
-cmake .. -G "Ninja Multi-Config"
+cmake .. -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=clang.exe -DCMAKE_CXX_COMPILER=clang++.exe
 ninja
 ```
