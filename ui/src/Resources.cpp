@@ -4,6 +4,8 @@
 
 #include "imgui.h"
 
+#include <numeric>
+
 namespace ui
 {
   using namespace std::string_literals;

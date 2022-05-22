@@ -3,6 +3,8 @@
 #include "engine/Combat.hpp"
 #include "engine/Magic.hpp"
 
+#include <numeric>
+
 namespace heuristics
 {
   const Monster& strongest(const Monsters& monsters)

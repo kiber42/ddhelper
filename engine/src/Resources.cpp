@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 
 ResourceSet::ResourceSet(const DungeonSetup& setup)
   : numWalls{setup.mapSize * setup.mapSize * 4 * (setup.altar == GodOrPactmaker{God::BinlorIronshield} ? 7u : 10u) /

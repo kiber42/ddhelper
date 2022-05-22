@@ -1,4 +1,6 @@
 #include "solver/Fitness.hpp"
+
+#include <numeric>
 #include <sstream>
 
 namespace fitness1
