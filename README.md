@@ -1,6 +1,6 @@
 # About
 
-This repository holds library and application code for **DDHelper**, a set of tools to help solve challenges in the excellent game [Desktop Dungeons](http://www.desktopdungeons.net/).  To learn more about the game an its mechanics, also consider the [DDWiki](http://www.qcfdesign.com/wiki/DesktopDungeons/index.php?title=Desktop_Dungeons), a resource that I used often during development.
+This repository holds library and application code for **DDHelper**, a set of tools to help solve challenges in the brilliant puzzle game [Desktop Dungeons](http://www.desktopdungeons.net/).  For in-depth information about the game and its mechanics, also have a look at the [DDWiki](http://www.qcfdesign.com/wiki/DesktopDungeons/index.php?title=Desktop_Dungeons), a resource that I used often during development.
 
 There are four main components to DDHelper:
 
@@ -31,6 +31,8 @@ For the OpenGL build:
 For the Vulkan build:
 `sudo apt install libvulkan-dev`
 
+Once you have installed these packages, acquire the source code and move some files into place using the following commands:
+
 ```
 git clone https://github.com/kiber42/ddhelper.git
 cd ddhelper
@@ -49,34 +51,25 @@ cd build
 cmake ..
 make -j
 ```
-The most important executables are `ui/ddhelper`, `engine/testengine` and `solver/testsolve`.
+
+The executable for the helper UI is `ui/ddhelper`.
 
 ## Windows
 
-The Windows build is not currently maintained and is probably broken.  Sorry!
+I only build on Windows once in a while, it is likely that not everything works out of the box.  The importer package currently uses X11 and I've not found the time to port it to Windows.
 
-The Windows build uses SDL + OpenGL.  The instructions are for a fresh clang build setup in Visual Studio Code.  Alternatively, you could use Visual Studio.
+The Windows build uses SDL and OpenGL to create the UI.  You can either build using Visual Studio (with Clang or the MSVC compiler) or using Cygwin (with Clang or the GCC compiler).  If you don't have a build setup on Windows yet, installing Visual Studio is probably the easiest option.  Select the "Desktop Development with C++" workload and its optional "C++ Clang tools for Windows" component.
 
-Download and install [git](https://git-scm.com/download/win), [Visual Studio Code](https://code.visualstudio.com/download), [clang](https://github.com/llvm/llvm-project/releases/tag/llvmorg-14.0.0), and [cmake](https://cmake.org/download/).
+In any case you also need to download and install [cmake](https://cmake.org/download/) and [git](https://git-scm.com/download/win).
+For convenience, you can use the GIT bash and acquire the required repositories using the same set of commands as for Linux (see above).
 
-Also download the [development SDL package](https://www.libsdl.org/download-2.0.php) for Windows.
+Download the appropriate [development SDL package](https://www.libsdl.org/download-2.0.php) for Windows (VC or MinGW) and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.
 
-Start GIT bash and acquire the required repositories (same commands as for Linux).
-Additionally, you need to unpack SDL into a sub-directory called `SDL` inside `ddhelper`.
+As for Linux, use CMake to create Makefiles or a Visual Studio solution.  When not using VS, you might want to use the [Ninja build system](https://github.com/ninja-build/ninja/releases).  It is a single .exe file that you can just copy to `ddhelper` (or anywhere else as long as you add to your PATH environment variable).
 
-Open VS Code.  Open and trust the `ddhelper` directory, then open any C++ source file (e.g. from `engine/src`).  VS Code will prompt you to install the C/C++ Extension Pack.  Run "CMake: Configure" and then "CMake: Build" (use `Ctrl+Shift+P` to bring up the relevant prompt).
-
-## Random Visual Studio Code notes
-
-Useful extensions:
-
-- C/C++ Extension
-- CMake Tools Extension
-- clangd
-- Clang-Format Extension
-- CMake-Format Extension
-- `pip install cmake-format`
-
-`Ctrl+Shift+P` CMake: Configure
-
-`Ctrl+Shift+P` CMake: Build
+```
+mkdir build
+cd build
+cmake .. -G "Ninja Multi-Config"
+ninja
+```
