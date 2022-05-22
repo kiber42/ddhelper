@@ -1,0 +1,12 @@
+Example boss stats obtained for Shifting Passages (HARD)
+
+Super Meat Man
+--------------
+Attack 63, HP 1236
+
+Medusa
+------
+First Strike
+Mana Burn
+Death Gaze 100%
+Attack 97, HP 247
