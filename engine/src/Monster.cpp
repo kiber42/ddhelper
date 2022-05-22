@@ -338,6 +338,11 @@ unsigned Monster::getBerserkPercent() const
   return traits.berserk().in_percent();
 }
 
+unsigned Monster::getKnockbackPercent() const
+{
+  return traits.knockback().in_percent();
+}
+
 bool Monster::isEnraged() const
 {
   const auto berserkLimit = getHitPointsMax() * getBerserkPercent() / 100;
@@ -391,6 +396,9 @@ std::vector<std::string> describe(const Monster& monster)
     checkTrait(MonsterTrait::FirstStrike);
     checkTrait(MonsterTrait::Retaliate, "Retaliate: Fireball");
   }
+  const auto knockbackPercent = monster.getKnockbackPercent();
+  if (knockbackPercent > 0)
+    description.emplace_back(std::to_string(knockbackPercent) + "% knockback");
   const auto berserkPercent = monster.getBerserkPercent();
   if (berserkPercent > 0)
   {

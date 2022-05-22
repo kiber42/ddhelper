@@ -69,6 +69,7 @@ public:
   unsigned getDeathGazePercent() const;
   unsigned getLifeStealPercent() const;
   unsigned getBerserkPercent() const;
+  unsigned getKnockbackPercent() const;
   bool isEnraged() const;
 
   DamageType damageType() const;
