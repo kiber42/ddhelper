@@ -1,6 +1,12 @@
 #include "ui/RunImporter.hpp"
 
+#if !defined(_WIN64)
+
 #include "engine/Boss.hpp"
+
+#include "importer/GameWindow.hpp"
+#include "importer/ImageCapture.hpp"
+#include "importer/ImageProcessor.hpp"
 
 #include "ui/MonsterSelection.hpp"
 #include "ui/State.hpp"
@@ -86,3 +92,5 @@ namespace ui
     return result;
   }
 } // namespace ui
+
+#endif

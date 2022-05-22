@@ -35,5 +35,8 @@ add_executable(
   src/RunSolver.cpp
   src/State.cpp
   src/Utils.cpp)
-target_link_libraries(ddhelper ddhelperengine ddsolver ddimporter imguiapp)
+target_link_libraries(ddhelper ddhelperengine ddsolver imguiapp)
+if(NOT WIN32)
+  target_link_libraries(ddhelper ddimporter)
+endif()
 target_include_directories(ddhelper PUBLIC imgui)

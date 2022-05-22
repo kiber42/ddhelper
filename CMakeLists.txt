@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(ddhelper VERSION 0.3.5)
 
+set(OpenGL_GL_PREFERENCE GLVND)
+find_package(OpenGL REQUIRED)
+
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -11,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wconversion -Wno-implicit-int-float-conversion")  
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wconversion -Wno-implicit-int-float-conversion -Wno-sign-conversion")
 else()
   # Numerous conversion warnings from GCC in imgui; no flag to only disable int-to-float conversion warnings
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-conversion -Wno-return-type")
@@ -20,11 +23,11 @@ endif()
 set(USE_VULKAN OFF)
 
 if(NOT WIN32)
-  set(SDL_INCLUDE_PATH "/usr/include/SDL2")
+  find_package(SDL2 REQUIRED)
 else()
   # Windows: Assume that SDL has been unpacked directly into project directory
-  set(SDL_INCLUDE_PATH "SDL/include")
-  link_directories(SDL/lib/x64)
+  set(SDL2_INCLUDE_DIRS "SDL/include")
+  set(SDL2_LIBRARIES "SDL/lib/x64")
   # Use gl3w libary shipped with imgui
   get_filename_component(GL3W_INCLUDE_PATH imgui/examples/libs/gl3w ABSOLUTE .)
   # No Vulkan build for Windows
@@ -38,9 +41,8 @@ add_library(
   imgui/imgui_tables.cpp
   imgui/imgui_widgets.cpp
   imgui/backends/imgui_impl_sdl.cpp)
-target_include_directories(dearimgui PUBLIC imgui ${SDL_INCLUDE_PATH}
-                                            ${GL3W_INCLUDE_PATH})
-target_link_libraries(dearimgui "-lSDL2" "-lSDL2main")
+target_include_directories(dearimgui PUBLIC imgui "${SDL2_INCLUDE_DIRS}" "${GL3W_INCLUDE_PATH}")
+target_link_libraries(dearimgui ${OPENGL_gl_LIBRARY} "${SDL2_LIBRARIES}")
 if(USE_VULKAN)
   target_sources(dearimgui PRIVATE imgui/backends/imgui_impl_vulkan.cpp)
 else()
@@ -60,4 +62,6 @@ endif()
 add_subdirectory(engine)
 add_subdirectory(ui)
 add_subdirectory(solver)
-add_subdirectory(importer)
+if (NOT WIN32)
+  add_subdirectory(importer)
+endif()
