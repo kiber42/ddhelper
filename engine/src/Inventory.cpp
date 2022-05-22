@@ -50,8 +50,8 @@ Inventory::Inventory(const DungeonSetup& setup)
 
   if (hasStartingTrait(setup.heroClass, HeroTrait::Macguyver))
   {
-    allItemsFit &= addFree(AlchemistSeal::CompressionSeal) & addFree(AlchemistSeal::CompressionSeal) &
-                   addFree(AlchemistSeal::TransmutationSeal) & addFree(AlchemistSeal::TransmutationSeal) &
+    allItemsFit &= addFree(AlchemistSeal::CompressionSeal) && addFree(AlchemistSeal::CompressionSeal) &&
+                   addFree(AlchemistSeal::TransmutationSeal) && addFree(AlchemistSeal::TransmutationSeal) &&
                    addFree(AlchemistSeal::TranslocationSeal);
   }
 

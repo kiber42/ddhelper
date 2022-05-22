@@ -144,7 +144,7 @@ namespace solver
       const auto numMonsters = state.visibleMonsters.size();
       if (numMonsters > 1)
       {
-        auto newTargetIndex = std::uniform_int_distribution<unsigned long>(0u, numMonsters - 2)(generator);
+        auto newTargetIndex = std::uniform_int_distribution<std::size_t>(0u, numMonsters - 2)(generator);
         if (newTargetIndex == state.activeMonster)
           newTargetIndex = (newTargetIndex + 1) % numMonsters;
         return ChangeTarget{newTargetIndex};
