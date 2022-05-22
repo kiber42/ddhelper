@@ -63,7 +63,7 @@ The Windows build uses SDL and OpenGL to create the UI.  You can either build us
 In any case you also need to download and install [cmake](https://cmake.org/download/) and [git](https://git-scm.com/download/win).
 For convenience, you can use the GIT bash and acquire the required repositories using the same set of commands as for Linux (see above).
 
-Download the appropriate [development SDL package](https://www.libsdl.org/download-2.0.php) for Windows (VC or MinGW) and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.
+Download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) for Windows and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.
 
 As for Linux, use CMake to create Makefiles or a Visual Studio solution.  When not using VS, you might want to use the [Ninja build system](https://github.com/ninja-build/ninja/releases).  It is a single .exe file that you can just copy to `ddhelper` (or anywhere else as long as you add to your PATH environment variable).
 
