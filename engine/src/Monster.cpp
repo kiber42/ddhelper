@@ -474,7 +474,9 @@ Monster HiddenMonster::reveal(std::mt19937& generator)
     return revealedMonster;
   }
   const auto& description = std::get<MonsterDescription>(monster);
-  const auto type = MonsterType(std::uniform_int_distribution<unsigned char>(
-      0, (unsigned char)(description.includeAdvanced ? MonsterType::Last : MonsterType::LastBasic))(generator));
-  return Monster(type, description.level, description.dungeonMultiplier);
+  // MSVC does not permit uint8_t for random numbers
+  const auto typeIndex = std::uniform_int_distribution<unsigned short>(
+      0, static_cast<unsigned short>(description.includeAdvanced ? MonsterType::Last : MonsterType::LastBasic))(generator);
+  const auto type = MonsterType{static_cast<unsigned char>(typeIndex)};
+  return {type, description.level, description.dungeonMultiplier};
 }
