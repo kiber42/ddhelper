@@ -345,7 +345,7 @@ uint16_t Hero::getDamageVersusStandard() const
 {
   const int multiplier = 100 + getDamageBonusPercent();
   if (multiplier > 0)
-    return getBaseDamage() * static_cast<uint16_t>(multiplier / 100);
+    return getBaseDamage() * static_cast<uint16_t>(multiplier) / 100u;
   else
     return 0;
 }
