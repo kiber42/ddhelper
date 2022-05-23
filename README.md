@@ -43,34 +43,34 @@ cp -r snowhouse/include/snowhouse/* bandit/bandit/assertion_frameworks/snowhouse
 rm -rf snowhouse
 ```
 
-Configure and execute the CMake build from an IDE of your choice, or from the command line:
+Configure and execute the CMake build from an IDE of your choice, or from the command line (assuming clang):
 
 ```
-mkdir build
-cd build
-cmake ..
-make -j
+cmake -S . -B build -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+make -j -C build
 ```
 
-The executable for the helper UI is `ui/ddhelper`.
+The executable for the helper UI is `build/ui/ddhelper`.  It is still work in progress, but perhaps you'll find useful already.  Have fun!
 
 ## Windows
 
-I only build on Windows once in a while, it is possible that not everything works out of the box.  The importer package currently uses X11 and I've not found the time to port it to Windows.
+I only build on Windows once in a while, it is possible that not everything works out of the box.  The importer package currently uses X11 and I've not found the time to port this package to Windows.  The Windows build uses SDL and OpenGL to create the UI.  SDL is often not available, see the instructions below how to obtain the development and runtime libraries.
 
-The Windows build uses SDL and OpenGL to create the UI.  You can either build using Visual Studio or Cygwin (with Clang or the GCC compiler).  In both cases, you need to download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) for Windows.
-
-### Visual Studio
-If you don't have a build setup on Windows yet, installing Visual Studio is probably the easiest option.  Select the "Desktop Development with C++" workload and its optional "C++ Clang tools for Windows" component.  Obtain the same git repositories as for Linux and make the same adjustment for Bandit/Snowhouse (mv the snowhouse include folder into bandit/assertion_frameworks, see above).  Unpack the SDL zip file into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.  Open the `ddhelper` in Visual Studio to create and build a Studio solution.
-
-### Cygwin with Clang
-If you're not using Visual Studio, you probably want to install [Cygwin](https://www.cygwin.com/setup-x86_64.exe), select git, clang, cmake, and ninja from the Cygwin installer (or separately, if you wish).  Open a Cygwin terminal to run the same commands as for Linux to obtain the packages and move everything into place.  Unpack the SDL zip file into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.
-
-Use CMake to create a Ninja Makefile and build the project:
+### Prepare Visual Studio and sources
+Install any edition of Visual Studio.  In the Visual Studio Installer, select the "Desktop Development with C++" workload.  Obtain the same git repositories as for Linux and make the same adjustment for Bandit/Snowhouse (mv the snowhouse include folder into bandit/assertion_frameworks).  If you have a Unix Terminal available (e.g. GIT Bash or Cygwin), you can simplify this step and just run the same commands as above:
 
 ```
-mkdir build
-cd build
-cmake .. -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=clang.exe -DCMAKE_CXX_COMPILER=clang++.exe
-ninja
+git clone https://github.com/kiber42/ddhelper.git
+cd ddhelper
+git clone https://github.com/ocornut/imgui.git
+git clone https://github.com/banditcpp/bandit.git
+git clone https://github.com/banditcpp/snowhouse.git
+cp -r snowhouse/include/snowhouse/* bandit/bandit/assertion_frameworks/snowhouse
+rm -rf snowhouse
 ```
+
+### Prepare SDL
+Download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.  Copy the file `SDL/lib/x64/SDL2.dll` to a suitable location for libraries, such as `C:\Windows\system32` (any directory on the Path will do).
+
+### Build and run
+Now everything is in place.  Open the `ddhelper` directory with Visual Studio to create a CMake based solution.  Build and run `ddhelper.exe`.  I hope you'll find it useful.  Happy dungeoneering!
