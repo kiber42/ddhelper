@@ -22,9 +22,6 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-conversion -Wno-return-type")
 endif()
 
-# Edit this flag to select Vulkan or OpenGL build (Linux only)
-set(USE_VULKAN OFF)
-
 if(NOT WIN32)
   find_package(SDL2 REQUIRED)
 else()
@@ -32,8 +29,6 @@ else()
   get_filename_component(SDL2_PATH "SDL" ABSOLUTE .)
   set(SDL2_INCLUDE_DIRS "${SDL2_PATH}/include")
   set(SDL2_LIBRARIES "${SDL2_PATH}/lib/x64/SDL2.lib")
-  # No Vulkan build for Windows
-  set(USE_VULKAN OFF)
 endif()
 
 add_library(
@@ -42,28 +37,10 @@ add_library(
   imgui/imgui_draw.cpp
   imgui/imgui_tables.cpp
   imgui/imgui_widgets.cpp
-  imgui/backends/imgui_impl_sdl.cpp)
+  imgui/backends/imgui_impl_sdl.cpp
+  imgui/backends/imgui_impl_opengl3.cpp)
 target_include_directories(dearimgui PUBLIC imgui "${SDL2_INCLUDE_DIRS}")
-target_link_libraries(dearimgui ${OPENGL_gl_LIBRARY} "${SDL2_LIBRARIES}")
-if(USE_VULKAN)
-  target_sources(dearimgui PRIVATE imgui/backends/imgui_impl_vulkan.cpp)
-else()
-  target_link_libraries(dearimgui ${CMAKE_DL_LIBS})
-  target_sources(dearimgui PRIVATE imgui/backends/imgui_impl_opengl3.cpp)
-endif()
-
-# The imgui demo program for SDL+OpenGL3 does not link properly on Windows.
-# It is not a mandatory part of this package.
-if(NOT WIN32)
-  add_executable(imguidemo imgui/imgui_demo.cpp)
-  target_link_libraries(imguidemo imguiapp)
-  if(USE_VULKAN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
-    target_sources(imguidemo PRIVATE imgui/examples/example_sdl_vulkan/main.cpp)
-  else()
-    target_sources(imguidemo PRIVATE imgui/examples/example_sdl_opengl3/main.cpp)
-  endif()
-endif()
+target_link_libraries(dearimgui ${OPENGL_gl_LIBRARY} "${SDL2_LIBRARIES}" ${CMAKE_DL_LIBS})
 
 add_subdirectory(engine)
 add_subdirectory(ui)

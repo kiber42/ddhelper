@@ -11,7 +11,7 @@ There are four main components to DDHelper:
 
 # Prerequisites
 
-The ddhelper UI is built using imgui with an OpenGL or Vulkan backend.  The solver uses multi-threading, built on the Intel Threading Building Blocks (Linux build only).  Screenshot acquisition is done using OpenCV.  The engine and solver package both come with a set of unit tests (`testengine` and `testsolver`, respectively), implemented using the bandit/snowhouse testing framework.
+The ddhelper UI is built using imgui with an OpenGL + SDL backend.  The solver uses multi-threading, built on the Intel Threading Building Blocks (Linux build only).  Screenshot acquisition is done using OpenCV.  The engine and solver package both come with a set of unit tests (`testengine` and `testsolver`, respectively), implemented using the bandit/snowhouse testing framework.
 
 ## Linux
 
@@ -20,16 +20,11 @@ A recent version of clang (>=11) or gcc (>=10) is required.  CMake is used as a 
 ```
 sudo apt install clang
 sudo apt install cmake
+sudo apt install libglew-dev
 sudo apt install libsdl2-dev
 sudo apt install libtbb-dev
 sudo apt install libopencv2-dev
 ```
-
-For the OpenGL build:
-`sudo apt install libglew-dev`
-
-For the Vulkan build:
-`sudo apt install libvulkan-dev`
 
 Once you have installed these packages, acquire the source code and move some files into place using the following commands:
 
