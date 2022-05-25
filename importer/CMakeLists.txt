@@ -3,6 +3,9 @@ project(ddimporter VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if (WIN32)
+  get_filename_component(OpenCV_DIR "../opencv" ABSOLUTE .)
+endif()
 find_package(OpenCV REQUIRED)
 
 # OpenCV has several conversion issues

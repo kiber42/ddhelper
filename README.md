@@ -64,8 +64,10 @@ cp -r snowhouse/include/snowhouse/* bandit/bandit/assertion_frameworks/snowhouse
 rm -rf snowhouse
 ```
 
-### Prepare SDL
+### Prepare SDL and OpenCV
 Download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.  Copy the file `SDL/lib/x64/SDL2.dll` to a suitable location for libraries, such as `C:\Windows\system32` (any directory on the Path will do).
+
+Download a [Windows build of OpenCV](https://opencv.org/releases/).  Unpack it and rename the contained `build` directory to `opencv`.  Move that directory into `ddhelper`.
 
 ### Build and run
 Now everything is in place.  Open the `ddhelper` directory with Visual Studio to create a CMake based solution.  Build and run `ddhelper.exe`.  I hope you'll find it useful.  Happy dungeoneering!

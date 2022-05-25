@@ -4,6 +4,7 @@ CMakeSettings.json
 bandit
 build
 imgui
+opencv
 res
 imgui.ini
 SDL

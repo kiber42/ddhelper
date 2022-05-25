@@ -1,7 +1,5 @@
 #pragma once
 
-// TODO: Include OpenCV in Windows build
-#if !defined(_WIN32)
 #include "engine/StrongTypes.hpp"
 
 #include <opencv2/opencv.hpp>
@@ -34,7 +32,7 @@ namespace importer
   struct PixelARGB
   {
     PixelARGB(const cv::Mat& image, Column col, Row row)
-      : _v(image.at<uint32_t>(row.get(), col.get()) & 0xFFFFFF)
+      : _v(static_cast<uint32_t>(image.at<int32_t>(row.get(), col.get())) & 0xFFFFFF)
     {
     }
     constexpr uint8_t r() const { return (_v & 0xFF0000) >> 16; }
@@ -47,5 +45,3 @@ namespace importer
     uint32_t _v;
   };
 } // namespace importer
-
-#endif

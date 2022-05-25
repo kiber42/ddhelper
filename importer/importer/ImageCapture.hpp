@@ -9,6 +9,9 @@ typedef struct _XImage XImage;
 struct XImage
 {
   // TODO: Implement image capture on Windows
+  int width;
+  int height;
+  char* data;
 };
 #endif
 
