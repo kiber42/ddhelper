@@ -3,6 +3,8 @@ project(ddimporter VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(OpenCV REQUIRED)
+
 # OpenCV has several conversion issues
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   add_compile_options(-Wno-sign-conversion)
@@ -20,15 +22,13 @@ add_library(
   src/GameWindow.cpp
   src/Mouse.cpp
 )
-target_include_directories(ddimporter PUBLIC .)
-target_link_libraries(ddimporter PUBLIC ddhelperengine)
+target_include_directories(ddimporter PUBLIC . ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(ddimporter PUBLIC ddhelperengine opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs)
 if(NOT WIN32)
-  target_include_directories(ddimporter PUBLIC /usr/include/opencv4)
-  target_link_libraries(ddimporter PUBLIC opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs X11 Xext)
+  target_link_libraries(ddimporter PUBLIC X11 Xext)
 endif()
 
 add_executable(
   importer
   src/importer.cpp)
-target_include_directories(importer PUBLIC .)
 target_link_libraries(importer ddimporter)
