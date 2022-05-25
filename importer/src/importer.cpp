@@ -106,7 +106,7 @@ namespace
     return numFrames > 0;
   }
 
-  bool processImageFromFile(std::filesystem::path path, DungeonMultiplier multiplier)
+  bool processImageFromFile(std::string path, DungeonMultiplier multiplier)
   {
     auto monsterInfos = importer::ImageProcessor::findMonstersInScreenshot(path);
     describe({std::move(monsterInfos)}, multiplier);
@@ -121,7 +121,7 @@ bool processImagesFromGameWindow(DungeonMultiplier, bool)
   return false;
 }
 
-bool processImageFromFile(std::filesystem::path path, DungeonMultiplier)
+bool processImageFromFile(std::string path, DungeonMultiplier)
 {
   return false;
 }

@@ -34,7 +34,7 @@ namespace importer
 
     [[nodiscard]] const ImportedState& get() const & { return state; }
 
-    static std::vector<MonsterInfo> findMonstersInScreenshot(std::filesystem::path screenshot);
+    static std::vector<MonsterInfo> findMonstersInScreenshot(std::string screenshotPath);
 
   private:
     ImageCapture& capture;

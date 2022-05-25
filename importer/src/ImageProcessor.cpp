@@ -11,8 +11,6 @@
 #include "X11/Xlib.h"
 #endif
 
-#include <fstream>
-#include <sstream>
 #include <map>
 #include <thread>
 
@@ -286,16 +284,11 @@ namespace importer
 #endif
   }
 
-  std::vector<MonsterInfo> ImageProcessor::findMonstersInScreenshot(std::filesystem::path path)
+  std::vector<MonsterInfo> ImageProcessor::findMonstersInScreenshot(std::string path)
   {
-    auto input = std::ifstream(path, std::ios::in | std::ios::binary);
-    const auto size = input.tellg();
-    std::vector<unsigned char> buffer(size);
-    input.read(reinterpret_cast<char*>(&buffer[0]), size);
-
-    cv::Mat_<cv::Vec3b> image = static_cast<cv::Mat_<cv::Vec3b>>(cv::imdecode(buffer, cv::IMREAD_COLOR));
+    cv::Mat_<cv::Vec3b> image = static_cast<cv::Mat_<cv::Vec3b>>(cv::imread(path, cv::IMREAD_COLOR));
     if (image.empty())
-      throw std::runtime_error("Could not read image data from " + path.string());
+      throw std::runtime_error("Could not read image data from " + path);
     if (image.size[1] != required_screen_size_x || image.size[0] != required_screen_size_y)
     {
       throw std::runtime_error("Wrong image size " + std::to_string(image.size[1]) + "x" +
