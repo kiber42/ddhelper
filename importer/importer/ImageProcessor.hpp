@@ -16,12 +16,14 @@ namespace importer
 
     // Take screenshot and try to identify monsters on map; optionally attempt multiple times if any monster was not identified
     // Returns true if no unidentified / generic monsters remain.
+    // Throws std::runtime_error if there was a problem with screenshot acquisition.
     bool findMonsters(int numRetries = 0, int retryDelayInMilliseconds = 100);
 
     // Take screenshot and try to update information about previously unidentied monsters.
     // This might help if a monster could not previously be identified due to an animation (monster is slowed, or
     // there's a piety token on the same square).
     // Returns true if no unidentified / generic monsters remain.
+    // Throws std::runtime_error if there was a problem with screenshot acquisition.
     bool retryFindMonsters();
 
     // Move mouse over monster tiles and extract HP information from sidebar.

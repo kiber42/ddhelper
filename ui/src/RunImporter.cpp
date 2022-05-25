@@ -41,7 +41,14 @@ namespace ui
       {
         importer::ImageCapture capture(gameWindow);
         importer::ImageProcessor processor(capture);
-        processor.findMonsters(3);
+        try
+        {
+          processor.findMonsters(3);
+        }
+        catch (const std::runtime_error& e)
+        {
+          status = "Screenshot acquisition failed: " + std::string(e.what());
+        }
         status = "Imported " + std::to_string(processor.get().monsterInfos.size()) + " monsters.";
         std::vector<Monster> monsters;
         const auto multiplier = dungeonMultiplier(selectedDungeon);
