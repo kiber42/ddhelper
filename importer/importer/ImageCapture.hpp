@@ -2,8 +2,15 @@
 
 #include <memory>
 
+#if !defined(_WIN32)
 struct _XImage;
 typedef struct _XImage XImage;
+#else
+struct XImage
+{
+  // TODO: Implement image capture on Windows
+};
+#endif
 
 namespace importer
 {

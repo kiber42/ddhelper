@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Include OpenCV in Windows build
+#if !defined(_WIN32)
 #include "engine/StrongTypes.hpp"
 
 #include <opencv2/opencv.hpp>
@@ -45,3 +47,5 @@ namespace importer
     uint32_t _v;
   };
 } // namespace importer
+
+#endif

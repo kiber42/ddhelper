@@ -1,5 +1,7 @@
 #include "importer/GameWindow.hpp"
 
+#if !defined(_WIN32)
+
 #include <X11/Xlib.h>
 
 #include <string>
@@ -47,10 +49,7 @@ namespace importer
   {
   }
 
-  GameWindow::~GameWindow()
-  {
-    XCloseDisplay(display);
-  }
+  GameWindow::~GameWindow() { XCloseDisplay(display); }
 
   bool GameWindow::valid() const
   {
@@ -58,3 +57,4 @@ namespace importer
     return display && window && XGetWindowAttributes(display, *window, &updated);
   }
 } // namespace importer
+#endif

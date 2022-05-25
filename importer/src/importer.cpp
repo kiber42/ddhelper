@@ -1,5 +1,8 @@
+#if !defined(_WIN32)
 // Include OpenCV before any X11 headers
+// TODO: Include OpenCV in Windows build
 #include <opencv2/opencv.hpp>
+#endif
 
 #include "importer/GameWindow.hpp"
 #include "importer/ImageCapture.hpp"
@@ -13,6 +16,7 @@
 #include <tuple>
 #include <utility>
 
+#if !defined(_WIN32)
 namespace
 {
   std::string to_hex(int value)
@@ -41,7 +45,8 @@ namespace
       if (referenceHitPoints != static_cast<unsigned>(info.health->second))
         hitpoints += " (unexpected! reference value is " + std::to_string(referenceMonster.getHitPointsMax()) + ')';
     }
-    else {
+    else
+    {
       if (!isGeneric)
         hitpoints = "\treference HP: " + std::to_string(referenceMonster.getHitPointsMax());
       if (info.hasHealthBar)
@@ -108,6 +113,20 @@ namespace
     return true;
   }
 } // namespace
+#else
+
+// TODO: Stubs for Windows build
+bool processImagesFromGameWindow(DungeonMultiplier, bool)
+{
+  return false;
+}
+
+bool processImageFromFile(std::filesystem::path path, DungeonMultiplier)
+{
+  return false;
+}
+
+#endif
 
 auto parseArgs(int argc, char** argv)
 {

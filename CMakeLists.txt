@@ -45,6 +45,4 @@ target_link_libraries(dearimgui ${OPENGL_gl_LIBRARY} "${SDL2_LIBRARIES}" ${CMAKE
 add_subdirectory(engine)
 add_subdirectory(ui)
 add_subdirectory(solver)
-if (NOT WIN32)
-  add_subdirectory(importer)
-endif()
+add_subdirectory(importer)

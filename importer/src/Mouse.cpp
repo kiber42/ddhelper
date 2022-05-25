@@ -1,5 +1,6 @@
 #include "importer/Mouse.hpp"
 
+#if !defined(_WIN32)
 #include "importer/GameWindow.hpp"
 
 #include <cstdio>
@@ -48,3 +49,4 @@ namespace importer
       moveMouseTo(display, 0, initialMousePosition->first, initialMousePosition->second);
   }
 } // namespace importer
+#endif

@@ -2,11 +2,13 @@
 
 #include "importer/GameWindow.hpp"
 
+#if !defined(_WIN32)
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XShm.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#endif
 
 namespace importer
 {
@@ -14,14 +16,19 @@ namespace importer
   {
   public:
     Impl(GameWindow&);
-    bool init();
-    void clear();
+
     bool acquire();
-    bool isInitialized() const;
     const XImage* getImage() const;
     GameWindow& getGameWindow() const;
 
   private:
+    GameWindow& gameWindow;
+
+#if !defined(_WIN32)
+    bool init();
+    bool isInitialized() const;
+    void clear();
+
     struct ximage_cleanup
     {
       void operator()(XImage* ximage) { XDestroyImage(ximage); }
@@ -36,11 +43,11 @@ namespace importer
       }
     };
 
-    GameWindow& gameWindow;
     Display* attachedDisplay;
     std::unique_ptr<XImage, ximage_cleanup> ximage;
     std::unique_ptr<XShmSegmentInfo, shm_cleanup> shminfo;
     XWindowAttributes attributes;
+#endif
   };
 
   ImageCapture::Impl::Impl(GameWindow& gameWindow)
@@ -48,6 +55,7 @@ namespace importer
   {
   }
 
+#if !defined(_WIN32)
   bool ImageCapture::Impl::init()
   {
     if (!gameWindow.valid())
@@ -93,6 +101,12 @@ namespace importer
     return true;
   }
 
+  bool ImageCapture::Impl::isInitialized() const
+  {
+    // shminfo is initialized last and can therefore to check whether initialization is complete
+    return shminfo != nullptr;
+  }
+
   void ImageCapture::Impl::clear()
   {
     if (attachedDisplay && shminfo)
@@ -108,14 +122,16 @@ namespace importer
   }
 
   const XImage* ImageCapture::Impl::getImage() const { return ximage.get(); }
+#else
+  // TODO: Stubs for Windows build
+
+  bool ImageCapture::Impl::acquire() { return false; }
+
+  const XImage* ImageCapture::Impl::getImage() const { return nullptr; }
+
+#endif
 
   GameWindow& ImageCapture::Impl::getGameWindow() const { return gameWindow; }
-
-  bool ImageCapture::Impl::isInitialized() const
-  {
-    // shminfo is initialized last and can therefore to check whether initialization is complete
-    return shminfo != nullptr;
-  }
 
   ImageCapture::ImageCapture(GameWindow& gameWindow)
     : impl(new Impl(gameWindow))

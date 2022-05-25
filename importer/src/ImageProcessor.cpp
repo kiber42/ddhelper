@@ -3,14 +3,19 @@
 #include "importer/ImageCapture.hpp"
 #include "importer/PixelAdapters.hpp"
 
+#if !defined(_WIN32)
+// TODO: Include OpenCV in Windows build
 #include <opencv2/opencv.hpp>
 
 #include "importer/Mouse.hpp"
+#endif
 
+#include <map>
 #include <thread>
 
 namespace importer
 {
+#if !defined(_WIN32)
   namespace
   {
     // On Linux/X11, the window contents are shifted one pixel up: the topmost row is missing, and a black row of pixels
@@ -216,6 +221,7 @@ namespace importer
       return false;
     }
   } // namespace
+#endif
 
   ImageProcessor::ImageProcessor(ImageCapture& capture)
     : capture(capture)
@@ -224,9 +230,13 @@ namespace importer
 
   bool ImageProcessor::findMonsters(int numRetries, int retryDelayInMilliseconds)
   {
+#if !defined(_WIN32)
     auto image = acquireValidScreenshot(capture);
     auto [infos, complete] = findMonstersImpl<PixelARGB>(image);
     state.monsterInfos = std::move(infos);
+ #else
+    bool complete = false;
+ #endif
     while (!complete && numRetries-- > 0)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds{retryDelayInMilliseconds});
@@ -241,7 +251,9 @@ namespace importer
   // Returns true if no unidentified / generic monsters remain.
   bool ImageProcessor::retryFindMonsters()
   {
+#if !defined(_WIN32)
     auto image = acquireValidScreenshot(capture);
+#endif
 
     bool complete = true;
     auto isGenericMonster = [](const auto& monster) { return monster.type == MonsterType::Generic; };
@@ -249,10 +261,12 @@ namespace importer
     while (nextUnknown != end(state.monsterInfos))
     {
       const auto& pos = nextUnknown->position;
+#if !defined(_WIN32)
       const auto hash = getTileHash<PixelARGB>(image, pos.x, pos.y);
       if (const auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
         nextUnknown->type = detected->second;
       else
+#endif
         complete = false;
       nextUnknown = std::find_if(nextUnknown + 1, end(state.monsterInfos), isGenericMonster);
     };
@@ -262,6 +276,7 @@ namespace importer
   bool ImageProcessor::extractMonsterInfos(bool smart)
   {
     auto& gameWindow = capture.getGameWindow();
+#if !defined(_WIN32)
     AutoRestoreMousePosition restoreMouse(gameWindow);
     bool success = true;
     for (auto& info : state.monsterInfos)
@@ -271,10 +286,14 @@ namespace importer
     }
     moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 750, 100);
     return success;
+#else
+    return false;
+#endif
   }
 
   std::vector<MonsterInfo> ImageProcessor::findMonstersInScreenshot(std::filesystem::path path)
   {
+#if !defined(_WIN32)
     cv::Mat_<cv::Vec3b> image = static_cast<cv::Mat_<cv::Vec3b>>(cv::imread(path.c_str(), cv::IMREAD_COLOR));
     if (image.empty())
       throw std::runtime_error("Could not read image data from " + path.string());
@@ -286,6 +305,9 @@ namespace importer
     }
     auto [infos, complete] = findMonstersImpl<PixelBGR>(image);
     return infos;
+#else
+    return {};
+#endif
   }
 
 } // namespace importer

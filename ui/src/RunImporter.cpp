@@ -1,7 +1,5 @@
 #include "ui/RunImporter.hpp"
 
-#if !defined(_WIN64)
-
 #include "engine/Boss.hpp"
 
 #include "importer/GameWindow.hpp"
@@ -21,6 +19,7 @@ namespace ui
   {
     ActionResultUI result;
     ImGui::Begin("Importer");
+    // TODO: Update initial layout to also accomodate importer window
     //    ImGui::SetWindowPos(ImVec2{5, 545}, ImGuiCond_FirstUseEver);
     //    ImGui::SetWindowSize(ImVec2{250, 170}, ImGuiCond_FirstUseEver);
     MonsterSelection::runDungeonSelection(selectedDungeon);
@@ -74,5 +73,3 @@ namespace ui
     return result;
   }
 } // namespace ui
-
-#endif

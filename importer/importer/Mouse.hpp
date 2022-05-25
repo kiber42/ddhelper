@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Implement mouse positioning on Windows
+#if !defined(_WIN32)
 #include "X11/Xlib.h"
 
 #include <optional>
@@ -27,3 +29,4 @@ namespace importer
     std::optional<MousePosition> initialMousePosition;
   };
 } // namespace importer
+#endif

@@ -3,16 +3,19 @@
 #include <memory>
 #include <optional>
 
+#if !defined(_WIN32)
 struct _XDisplay;
 typedef struct _XDisplay Display;
 
 typedef unsigned long XID;
 typedef XID Window;
+#endif
 
 namespace importer
 {
   class GameWindow
   {
+#if !defined(_WIN32)
   public:
     GameWindow();
     ~GameWindow();
@@ -26,5 +29,10 @@ namespace importer
   private:
     Display* display;
     std::optional<Window> window;
+#else
+  public:
+    // TODO: Stub for Windows
+    bool valid() const { return true; }
+#endif
   };
 } // namespace importer
