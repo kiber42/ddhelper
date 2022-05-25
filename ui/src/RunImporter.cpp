@@ -15,24 +15,6 @@
 
 namespace ui
 {
-  namespace
-  {
-    Monster create(const importer::MonsterInfo& info, DungeonMultiplier multiplier)
-    {
-      if (info.health)
-      {
-        auto [hp, hpMax] = *info.health;
-        auto stats = MonsterStats{info.type, info.level, multiplier};
-        stats.setHitPointsMax(HitPoints{hpMax});
-        stats.setHitPoints(HitPoints{hp});
-        return {Monster::makeName(info.type, info.level), std::move(stats), Defence{info.type},
-                MonsterTraits{info.type}};
-      }
-      else
-        return {info.type, info.level, multiplier};
-    }
-  } // namespace
-
   static constexpr std::array<const char*, 3> acquireHitPointModes = {"Never", "Always", "Smart"};
 
   ActionResultUI RunImporter::operator()()
@@ -78,7 +60,7 @@ namespace ui
             monsters.emplace_back(create(*bossType, hp));
           }
           else
-            monsters.emplace_back(create(monsterInfo, multiplier));
+            monsters.emplace_back(monsterInfo.toMonster(multiplier));
         }
         result = {"Import State", [monsters = std::move(monsters)](State& state) {
                     state.monsterPool = monsters;

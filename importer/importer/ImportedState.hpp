@@ -31,6 +31,8 @@ namespace importer
     std::optional<HealthInfo> health;
 
     std::uint32_t hash;
+
+    Monster toMonster(DungeonMultiplier multiplier) const;
   };
 
   struct ImportedState

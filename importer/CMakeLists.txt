@@ -14,6 +14,7 @@ add_library(
   ddimporter STATIC
   src/ImageCapture.cpp
   src/ImageProcessor.cpp
+  src/ImportedState.cpp
   src/GameWindow.cpp
   src/Mouse.cpp
 )
