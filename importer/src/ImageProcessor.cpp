@@ -7,6 +7,10 @@
 
 #include <opencv2/opencv.hpp>
 
+#if !defined(WIN32)
+#include "X11/Xlib.h"
+#endif
+
 #include <fstream>
 #include <sstream>
 #include <map>

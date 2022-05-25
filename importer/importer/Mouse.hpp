@@ -2,10 +2,14 @@
 
 // TODO: Implement mouse positioning on Windows
 #if !defined(_WIN32)
-#include "X11/Xlib.h"
-
 #include <optional>
 #include <utility>
+
+struct _XDisplay;
+typedef struct _XDisplay Display;
+
+typedef unsigned long XID;
+typedef XID Window;
 
 namespace importer
 {
