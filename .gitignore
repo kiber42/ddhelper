@@ -1,5 +1,6 @@
 .vscode
 .vs
+CMakeSettings.json
 bandit
 build
 imgui
