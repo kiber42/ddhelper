@@ -15,6 +15,49 @@ namespace ui
 {
   static constexpr std::array<const char*, 3> acquireHitPointModes = {"Never", "Always", "Smart"};
 
+  std::pair<std::string, ActionResultUI> runImportHelper(Dungeon selectedDungeon, unsigned int acquireHitPointsMode)
+  {
+    importer::GameWindow gameWindow;
+    if (!gameWindow.valid())
+      return {"Game window not found.", {}};
+    importer::ImageCapture capture(gameWindow);
+    importer::ImageProcessor processor(capture);
+    try
+    {
+      processor.findMonsters(3);
+    }
+    catch (const std::runtime_error& e)
+    {
+      return {"Screenshot acquisition failed: " + std::string(e.what()), {}};
+    }
+    if (acquireHitPointsMode > 0)
+    {
+      const bool smart = acquireHitPointsMode == 2;
+      processor.extractMonsterInfos(smart);
+    }
+    std::vector<Monster> monsters;
+    const auto multiplier = dungeonMultiplier(selectedDungeon);
+    const auto& monsterInfos = processor.get().monsterInfos;
+    for (const auto& monsterInfo : monsterInfos)
+    {
+      auto bossType = getBossInfo(selectedDungeon, monsterInfo.type, monsterInfo.level);
+      if (bossType)
+      {
+        std::optional hp = monsterInfo.health ? std::optional<HitPoints>{monsterInfo.health->first} : std::nullopt;
+        monsters.emplace_back(create(*bossType, hp));
+      }
+      else
+        monsters.emplace_back(monsterInfo.toMonster(multiplier));
+    }
+    std::string statusMessage = "Imported " + std::to_string(monsterInfos.size()) + " monsters.";
+    auto action = [monsters = std::move(monsters)](State& state) {
+      state.monsterPool = monsters;
+      state.activeMonster = state.monsterPool.empty() ? std::nullopt : std::optional{0};
+      return Summary::None;
+    };
+    return {std::move(statusMessage), {{"Import State", std::move(action)}}};
+  }
+
   ActionResultUI RunImporter::operator()()
   {
     ActionResultUI result;
@@ -34,46 +77,9 @@ namespace ui
     }
     if (ImGui::Button("Run"))
     {
-      importer::GameWindow gameWindow;
-      if (!gameWindow.valid())
-        status = "Game window not found.";
-      else
-      {
-        importer::ImageCapture capture(gameWindow);
-        importer::ImageProcessor processor(capture);
-        try
-        {
-          processor.findMonsters(3);
-        }
-        catch (const std::runtime_error& e)
-        {
-          status = "Screenshot acquisition failed: " + std::string(e.what());
-        }
-        status = "Imported " + std::to_string(processor.get().monsterInfos.size()) + " monsters.";
-        std::vector<Monster> monsters;
-        const auto multiplier = dungeonMultiplier(selectedDungeon);
-        if (acquireHitPointsMode > 0)
-        {
-          const bool smart = acquireHitPointsMode == 2;
-          processor.extractMonsterInfos(smart);
-        }
-        for (const auto& monsterInfo : processor.get().monsterInfos)
-        {
-          auto bossType = getBossInfo(selectedDungeon, monsterInfo.type, monsterInfo.level);
-          if (bossType)
-          {
-            std::optional hp = monsterInfo.health ? std::optional<HitPoints>{monsterInfo.health->first} : std::nullopt;
-            monsters.emplace_back(create(*bossType, hp));
-          }
-          else
-            monsters.emplace_back(monsterInfo.toMonster(multiplier));
-        }
-        result = {"Import State", [monsters = std::move(monsters)](State& state) {
-                    state.monsterPool = monsters;
-                    state.activeMonster = state.monsterPool.empty() ? std::nullopt : std::optional{0};
-                    return Summary::None;
-                  }};
-      }
+      auto helper = runImportHelper(selectedDungeon, acquireHitPointsMode);
+      status = std::move(helper.first);
+      result = std::move(helper.second);
     }
     ImGui::TextUnformatted(status.c_str());
     ImGui::End();
