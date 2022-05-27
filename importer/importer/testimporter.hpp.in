@@ -1,0 +1,5 @@
+// Automatically generated with correct path by CMake
+
+#include <string>
+
+const std::string resourceDir = R"(@resourceDir@)";

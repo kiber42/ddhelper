@@ -35,3 +35,13 @@ add_executable(
   importer
   src/importer.cpp)
 target_link_libraries(importer ddimporter)
+
+get_filename_component(resourceDirUnix ${CMAKE_CURRENT_SOURCE_DIR}/testimages ABSOLUTE)
+file(TO_NATIVE_PATH ${resourceDirUnix}/ resourceDir)
+configure_file(importer/testimporter.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/importer/testimporter.hpp)
+
+add_executable(
+  testimporter
+  src/testimporter.cpp)
+target_include_directories(testimporter PRIVATE ../bandit)
+target_link_libraries(testimporter ddimporter)
