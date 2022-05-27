@@ -1,9 +1,3 @@
-#if !defined(_WIN32)
-// Include OpenCV before any X11 headers
-// TODO: Include OpenCV in Windows build
-#include <opencv2/opencv.hpp>
-#endif
-
 #include "importer/GameWindow.hpp"
 #include "importer/ImageCapture.hpp"
 #include "importer/ImageProcessor.hpp"
@@ -11,12 +5,13 @@
 #include "engine/Monster.hpp"
 #include "engine/MonsterTypes.hpp"
 
+#include <opencv2/opencv.hpp>
+
 #include <iomanip>
 #include <string>
 #include <tuple>
 #include <utility>
 
-#if !defined(_WIN32)
 namespace
 {
   std::string to_hex(int value)
@@ -113,20 +108,6 @@ namespace
     return true;
   }
 } // namespace
-#else
-
-// TODO: Stubs for Windows build
-bool processImagesFromGameWindow(DungeonMultiplier, bool)
-{
-  return false;
-}
-
-bool processImageFromFile(std::string path, DungeonMultiplier)
-{
-  return false;
-}
-
-#endif
 
 auto parseArgs(int argc, char** argv)
 {
