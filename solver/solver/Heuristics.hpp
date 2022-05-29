@@ -53,6 +53,7 @@ namespace heuristics
   {
     unsigned numAttacks{0};
     unsigned numSquares{0};
+    unsigned numAttacksBeforeCatapult{0};
     auto operator<=>(const RegenFightResult&) const = default;
   };
 
@@ -69,6 +70,11 @@ namespace heuristics
    **/
   Solution checkRegenFight(Hero hero, Monster monster);
 
+  /** @brief Convert full solution into summary
+   *  Counts the number of attack and uncover steps in solution to fill result
+   **/
+  RegenFightResult toRegenFightResult(const Solution& solution);
+
   /** @brief Evaluate if a monster can be defeated using regen fighting and a level catapult
    *  Note: The function assumes that a level catapult is available at any time without checking this.
    *  @returns Solution with a placeholder NoOp step where the level catapult should go; empty solution if none found.
@@ -77,3 +83,47 @@ namespace heuristics
 } // namespace heuristics
 
 std::optional<Solution> runHeuristics(GameState state);
+
+constexpr const char* toString(heuristics::OneShotResult result)
+{
+  switch (result)
+  {
+  case heuristics::OneShotResult::None:
+    return "None";
+  case heuristics::OneShotResult::Danger:
+    return "Danger";
+  case heuristics::OneShotResult::VictoryFlawless:
+    return "Flawless";
+  case heuristics::OneShotResult::VictoryDamaged:
+    return "Damaged";
+  case heuristics::OneShotResult::VictoryDeathProtectionLost:
+    return "Death Protection Lost";
+  case heuristics::OneShotResult::VictoryGetindareOnly:
+    return "Getindare Only";
+  }
+}
+
+constexpr const char* toString(heuristics::CatapultResult result)
+{
+  switch (result)
+  {
+  case heuristics::CatapultResult::None:
+    return "None";
+  case heuristics::CatapultResult::Flawless:
+    return "Flawless";
+  case heuristics::CatapultResult::Damaged:
+    return "Damaged";
+  case heuristics::CatapultResult::DeathProtectionLost:
+    return "Death Protection Lost";
+  case heuristics::CatapultResult::DamagedAndDeathProtectionLost:
+    return "Damaged and Death Protection Lost";
+  }
+}
+
+inline std::string toString(const heuristics::RegenFightResult& result)
+{
+  if (result.numAttacksBeforeCatapult >= result.numAttacks)
+    return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquares) + " square(s)";
+  return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquares) +
+         " square(s); level catapult after " + std::to_string(result.numAttacksBeforeCatapult) + " attack(s)";
+}

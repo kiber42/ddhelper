@@ -178,6 +178,28 @@ namespace heuristics
     return {};
   }
 
+  RegenFightResult toRegenFightResult(const Solution& solution)
+  {
+    unsigned numSquares{0};
+    unsigned numAttacks{0};
+    unsigned numAttacksBeforeCatapult{0};
+    bool beforeCatapult{true};
+    for (const auto& step : solution)
+    {
+      if (const auto uncover = std::get_if<Uncover>(&step))
+        numSquares += uncover->numTiles;
+      else if (std::get_if<Attack>(&step))
+      {
+        ++numAttacks;
+        if (beforeCatapult)
+          ++numAttacksBeforeCatapult;
+      }
+      else if (std::get_if<NoOp>(&step))
+        beforeCatapult = false;
+    }
+    return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = numAttacksBeforeCatapult};
+  }
+
   std::optional<RegenFightResult> checkRegenFightFast(const Hero& hero, const Monster& monster)
   {
     const auto heroHpLossPerAttack = hero.predictDamageTaken(monster.getDamage(), monster.damageType());

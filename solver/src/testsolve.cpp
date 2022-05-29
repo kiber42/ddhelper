@@ -31,20 +31,6 @@ std::ostream& operator<<(std::ostream& out, const Monster& monster)
   return out;
 }
 
-RegenFightResult toRegenFightResult(const Solution& solution)
-{
-  unsigned numSquares{0};
-  unsigned numAttacks{0};
-  for (const auto& step : solution)
-  {
-    if (const auto uncover = std::get_if<Uncover>(&step))
-      numSquares += uncover->numTiles;
-    else if (std::get_if<Attack>(&step))
-      ++numAttacks;
-  }
-  return {.numAttacks = numAttacks, .numSquares = numSquares};
-}
-
 bool operator==(const RegenFightResult& result, const Solution& solution)
 {
   return result == toRegenFightResult(solution);
@@ -53,58 +39,21 @@ bool operator==(const RegenFightResult& result, const Solution& solution)
 namespace snowhouse
 {
   template <>
-  struct Stringizer<heuristics::OneShotResult>
+  struct Stringizer<OneShotResult>
   {
-    static std::string ToString(const heuristics::OneShotResult& oneShotResult)
-    {
-      switch (oneShotResult)
-      {
-      case heuristics::OneShotResult::None:
-        return "None";
-      case heuristics::OneShotResult::Danger:
-        return "Danger";
-      case heuristics::OneShotResult::VictoryFlawless:
-        return "Flawless";
-      case heuristics::OneShotResult::VictoryDamaged:
-        return "Damaged";
-      case heuristics::OneShotResult::VictoryDeathProtectionLost:
-        return "DeathProtectionLost";
-      case heuristics::OneShotResult::VictoryGetindareOnly:
-        return "GetindareOnly";
-      }
-      return "[unsupported value]";
-    }
+    static std::string ToString(const OneShotResult& result) { return toString(result); }
   };
 
   template <>
-  struct Stringizer<heuristics::CatapultResult>
+  struct Stringizer<CatapultResult>
   {
-    static std::string ToString(const heuristics::CatapultResult& catapultResult)
-    {
-      switch (catapultResult)
-      {
-      case CatapultResult::None:
-        return "None";
-      case CatapultResult::Flawless:
-        return "Flawless";
-      case CatapultResult::Damaged:
-        return "Damaged";
-      case CatapultResult::DeathProtectionLost:
-        return "DeathProtectionLost";
-      case CatapultResult::DamagedAndDeathProtectionLost:
-        return "DamagedAndDeathProtectionLost";
-      }
-      return "[unsupported value]";
-    }
+    static std::string ToString(const CatapultResult& result) { return toString(result); }
   };
 
   template <>
   struct Stringizer<RegenFightResult>
   {
-    static std::string ToString(const RegenFightResult& result)
-    {
-      return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquares) + " square(s)";
-    }
+    static std::string ToString(const RegenFightResult& result) { return toString(result); }
   };
 
   template <>
@@ -113,7 +62,7 @@ namespace snowhouse
     static std::string ToString(const Solution& solution)
     {
       auto result = toRegenFightResult(solution);
-      return Stringizer<RegenFightResult>::ToString(result);
+      return toString(result);
     }
   };
 
@@ -362,7 +311,7 @@ void testHeuristics()
   });
   describe("Regen fight with level catapult prediction", [] {
     it("shall assess basic cases correctly", [] {
-      const auto findNoOp = [] (const auto& step) { return std::get_if<NoOp>(&step) != nullptr; };
+      const auto findNoOp = [](const auto& step) { return std::get_if<NoOp>(&step) != nullptr; };
 
       auto monk = Hero{HeroClass::Monk};
       auto solution = heuristics::checkRegenFightWithCatapult(monk, {MonsterType::MeatMan, Level{3}});
