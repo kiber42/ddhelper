@@ -22,6 +22,7 @@ add_executable(
   src/MonsterPool.cpp
   src/MonsterSelection.cpp
   src/Resources.cpp
+  src/RunHeuristics.cpp
   src/RunImporter.cpp
   src/RunSolver.cpp
   src/State.cpp

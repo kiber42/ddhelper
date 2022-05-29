@@ -7,6 +7,7 @@
 #include "ui/MonsterPool.hpp"
 #include "ui/MonsterSelection.hpp"
 #include "ui/Resources.hpp"
+#include "ui/RunHeuristics.hpp"
 #include "ui/RunImporter.hpp"
 #include "ui/RunSolver.hpp"
 #include "ui/State.hpp"
@@ -33,6 +34,7 @@ namespace ui
     Arena arena;
     RunSolver runSolver;
     RunImporter runImporter;
+    RunHeuristics heuristics;
   };
 
   DDHelperApp::DDHelperApp()
@@ -83,12 +85,15 @@ namespace ui
 
   void DDHelperApp::populateFrame()
   {
+    bool stateModified = false;
+
     using namespace std::string_literals;
 
     auto applyUndoable = [&](std::string title, GameAction stateUpdate) {
       auto [newState, outcome] = applyAction(state, stateUpdate, false);
       history.add(std::move(state), {std::move(title), std::move(stateUpdate), std::move(outcome)});
       state = std::move(newState);
+      stateModified = true;
     };
 
     auto applyResultUndoable = [&](ActionResultUI result) {
@@ -158,18 +163,25 @@ namespace ui
     applyResultUndoable(arena.run(state));
 
     if (history.run())
+    {
       state = history.undo();
+      stateModified = true;
+    }
 
     auto scenario = runScenarioSelection();
     if (scenario)
     {
       history.reset();
       state = prepareScenario(*scenario);
+      stateModified = true;
     }
 
     applyResultUndoable(runSolver(state));
-
     applyResultUndoable(runImporter());
+
+    if (stateModified)
+      heuristics.update(state);
+    heuristics.show();
   }
 } // namespace ui
 
