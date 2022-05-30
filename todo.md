@@ -1,0 +1,41 @@
+# To-Do's and Ideas
+
+- Importer:
+  - Better support for Windows
+  - Import hero class and level
+  - Import remaining hero stats
+  - Import hero statuses
+  - Import hero's' inventory
+  - Recognize slowed, burning, and poisoned monster statuses
+  - Could use monster portraits for more robust identification
+  - Import spells and items from map?
+  - Import map (walls, blocked tiles, etc.)?
+- Solver:
+  - Keep improving! Keep looking for alternative approaches.
+  - Genetic algorithm: Instead of one long chain of steps, break solution into steps per monster and optimize those?
+  - Combine algorithms
+  - Find good way to test genetic solver (deal with randomness)
+- UI:
+  - Make more compact. Some ideas:
+    - Have more foldable elements
+    - Merge standard and custom hero builder
+    - Merge standard and custom monster builder
+    - Use other UI elements for ease of use and compactness
+    - Consider using icons (for hero, monsters, items, spells, altars; but also for action buttons)?
+  - Keep improving heuristics window (could add buttons to apply suggested actions?)
+  - Allow removing a monster from the pool
+  - Allow editing a monster in the pool (or to move it to the monster builder?)
+  - Allow saving/loading scenarios?
+  - Allow starting equipment for hero
+- Engine:
+  - Support for actual maps (rather than a list of resources and monsters)
+  - Support for dungeons with subdungeons?
+  - Also see numerous TODO items in code
+- Build:
+  - Use Conan for packages?
+  - Separate CMake file for imgui
+  - Make all dependencies optional.  For example, the engine package can built without any of the imgui, OpenGL, SDL, OpenCV dependencies.
+  - Try to get cygwin build to work again?
+- General:
+  - Tag known good versions once in a while
+  - Create a dev branch and merge to main. Squash related commits.
