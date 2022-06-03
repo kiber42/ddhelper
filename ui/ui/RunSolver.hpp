@@ -4,6 +4,7 @@
 #include "ui/Utils.hpp"
 
 #include "solver/Solution.hpp"
+#include "solver/Solver.hpp"
 
 #include <optional>
 #include <vector>
@@ -19,5 +20,6 @@ namespace ui
     std::optional<std::vector<Step>> solverSteps;
     int solutionIndex{0};
     bool noSolutionFound{false};
+    Solver selectedSolver{Solver::GeneticAlgorithm};
   };
 } // namespace ui

@@ -80,15 +80,39 @@ namespace ui
         step);
   }
 
+  template <class ScopedEnum>
+  void enumLoop(auto func)
+  {
+    for (int n = 0; n <= static_cast<int>(ScopedEnum::Last); ++n)
+    {
+      const auto item = static_cast<ScopedEnum>(n);
+      func(item);
+    }
+  }
+
+  template <class ScopedEnum>
+  void enumCombo(const char* title, ScopedEnum& selected)
+  {
+    if (ImGui::BeginCombo(title, toString(selected)))
+    {
+      enumLoop<ScopedEnum>([&] (auto item) {
+        if (ImGui::Selectable(toString(item), item == selected))
+          selected = item;
+      });
+      ImGui::EndCombo();
+    }
+  }
+
   ActionResultUI RunSolver::operator()(const State& state)
   {
     ActionResultUI result;
     ImGui::Begin("Solver");
     ImGui::SetWindowPos(ImVec2{5, 545}, ImGuiCond_FirstUseEver);
     ImGui::SetWindowSize(ImVec2{250, 170}, ImGuiCond_FirstUseEver);
-    if (ImGui::SmallButton("Run"))
+    enumCombo("Solver", selectedSolver);
+    if (ImGui::SmallButton("Run Solver"))
     {
-      solverSteps = run(Solver::GeneticAlgorithm, solverStateFromUIState(state));
+      solverSteps = run(selectedSolver, solverStateFromUIState(state));
       solutionIndex = 0;
       noSolutionFound = !solverSteps;
     }
