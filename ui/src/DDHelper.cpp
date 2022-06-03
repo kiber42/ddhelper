@@ -162,7 +162,10 @@ namespace ui
     applyResultUndoable(resourcesUI.run(state));
     applyResultUndoable(arena.run(state));
 
-    if (history.run())
+    auto [solverResult, undoRequested] = runSolver(state);
+    applyResultUndoable(solverResult);
+
+    if (history.run() || undoRequested)
     {
       state = history.undo();
       stateModified = true;
@@ -176,7 +179,6 @@ namespace ui
       stateModified = true;
     }
 
-    applyResultUndoable(runSolver(state));
     applyResultUndoable(runImporter());
 
     if (stateModified)

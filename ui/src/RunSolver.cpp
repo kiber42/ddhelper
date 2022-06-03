@@ -83,7 +83,7 @@ namespace ui
   template <class ScopedEnum>
   void enumLoop(auto func)
   {
-    for (int n = 0; n <= static_cast<int>(ScopedEnum::Last); ++n)
+    for (size_t n = 0; n <= static_cast<size_t>(ScopedEnum::Last); ++n)
     {
       const auto item = static_cast<ScopedEnum>(n);
       func(item);
@@ -95,7 +95,7 @@ namespace ui
   {
     if (ImGui::BeginCombo(title, toString(selected)))
     {
-      enumLoop<ScopedEnum>([&] (auto item) {
+      enumLoop<ScopedEnum>([&](auto item) {
         if (ImGui::Selectable(toString(item), item == selected))
           selected = item;
       });
@@ -103,14 +103,14 @@ namespace ui
     }
   }
 
-  ActionResultUI RunSolver::operator()(const State& state)
+  std::pair<ActionResultUI, bool> RunSolver::operator()(const State& state)
   {
-    ActionResultUI result;
+    std::pair<ActionResultUI, bool> result;
     ImGui::Begin("Solver");
     ImGui::SetWindowPos(ImVec2{5, 545}, ImGuiCond_FirstUseEver);
     ImGui::SetWindowSize(ImVec2{250, 170}, ImGuiCond_FirstUseEver);
     enumCombo("Solver", selectedSolver);
-    if (ImGui::SmallButton("Run Solver"))
+    if (ImGui::SmallButton("Solve"))
     {
       solverSteps = run(selectedSolver, solverStateFromUIState(state));
       solutionIndex = 0;
@@ -120,22 +120,38 @@ namespace ui
       ImGui::TextUnformatted("No solution found.");
     else if (solverSteps)
     {
+      ImGui::SameLine();
+      const bool atStart = solutionIndex == 0;
+      const bool atEnd = solutionIndex == solverSteps->size();
+      bool play = !atEnd && ImGui::SmallButton("Play");
+      if (atEnd)
+        disabledSmallButton("Play", "No more steps");
+      ImGui::SameLine();
+      const bool undo = !atStart && ImGui::SmallButton("Undo");
+      if (atStart)
+        disabledSmallButton("Undo");
+      if (undo)
+      {
+        --solutionIndex;
+        result.second = true;
+      }
       for (size_t i = 0; i < solverSteps->size(); ++i)
       {
-        const bool isActive = static_cast<int>(i) == solutionIndex;
+        const bool isActive = i == solutionIndex;
         const auto marker = std::string{isActive ? '>' : ' '};
         const auto step = (*solverSteps)[i];
         const auto stepLabel = toString(step);
         const auto text = marker + stepLabel;
         if (!isActive)
           ImGui::TextUnformatted(text.c_str());
-        else if (ImGui::Selectable(text.c_str()))
+        else if (ImGui::Selectable(text.c_str()) || play)
         {
-          result = std::pair{stepLabel, [step](auto& state) {
-                               applyStepToUIState(step, state);
-                               return Summary::None;
-                             }};
+          result.first = std::pair{stepLabel, [step](auto& state) {
+                                     applyStepToUIState(step, state);
+                                     return Summary::None;
+                                   }};
           ++solutionIndex;
+          play = false;
         }
       }
     }

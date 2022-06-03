@@ -56,6 +56,15 @@ namespace ui
       createToolTip([&] { ImGui::TextUnformatted(tooltip); });
   }
 
+  void disabledSmallButton(const char* label, const char* tooltip)
+  {
+    ImGui::PushStyleColor(0, colorUnavailable);
+    ImGui::SmallButton(label);
+    ImGui::PopStyleColor();
+    if (strlen(tooltip) && ImGui::IsItemHovered())
+      createToolTip([&] { ImGui::TextUnformatted(tooltip); });
+  }
+
   void showStatus(const std::vector<std::string>& description)
   {
     bool first = true;

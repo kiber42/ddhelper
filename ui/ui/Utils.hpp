@@ -30,6 +30,7 @@ namespace ui
 
   void createToolTip(std::function<void()> createToolTipContents);
   void disabledButton(const char* label, const char* tooltip = "");
+  void disabledSmallButton(const char* label, const char* tooltip = "");
 
   void showStatus(const Hero&);
   void showStatus(const Monster&);
