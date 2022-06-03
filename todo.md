@@ -12,6 +12,7 @@
   - Import map (walls, blocked tiles, etc.)?
 - Solver:
   - Keep improving! Keep looking for alternative approaches.
+  - Add most commonly used resources to heuristics (Burndayraz, Potions)
   - Genetic algorithm: Instead of one long chain of steps, break solution into steps per monster and optimize those?
   - Combine algorithms
   - Find good way to test genetic solver (deal with randomness)
@@ -22,11 +23,13 @@
     - Merge standard and custom monster builder
     - Use other UI elements for ease of use and compactness
     - Consider using icons (for hero, monsters, items, spells, altars; but also for action buttons)?
+    - Update default layout
   - Keep improving heuristics window (could add buttons to apply suggested actions?)
   - Allow removing a monster from the pool
   - Allow editing a monster in the pool (or to move it to the monster builder?)
   - Allow saving/loading scenarios?
   - Allow starting equipment for hero
+  - Don't block UI thread when running solver
 - Engine:
   - Support for actual maps (rather than a list of resources and monsters)
   - Support for dungeons with subdungeons?
@@ -36,6 +39,7 @@
   - Separate CMake file for imgui
   - Make all dependencies optional.  For example, the engine package can built without any of the imgui, OpenGL, SDL, OpenCV dependencies.
   - Try to get cygwin build to work again?
+  - Windows: Automatically deploy dlls to build folder?
 - General:
   - Tag known good versions once in a while
   - Create a dev branch and merge to main. Squash related commits.
