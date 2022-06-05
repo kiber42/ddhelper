@@ -46,6 +46,11 @@ namespace heuristics
    **/
   CatapultResult checkLevelCatapult(const Hero& hero, const Monsters& monsters);
 
+  /** Select suitable actions to level up hero using one-shot melee attacks
+   *  @returns selected steps, or an empty solution if no catapult was found
+   **/
+  Solution buildLevelCatapult(GameState state);
+
   //! Return true if hero can defeat monster by attacking (repeatedly)
   bool checkMeleeOnly(Hero hero, Monster monster);
 

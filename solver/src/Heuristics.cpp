@@ -1,5 +1,7 @@
 #include "solver/Heuristics.hpp"
 
+#include "solver/SolverTools.hpp"
+
 #include "engine/Combat.hpp"
 #include "engine/Magic.hpp"
 
@@ -63,6 +65,8 @@ namespace heuristics
     auto xpBarelyWin = 0_xp;
     for (const auto& monster : monsters)
     {
+      if (!monster.grantsXP() || monster.isDefeated())
+        continue;
       const auto oneShot = checkOneShot(hero, monster);
       if (oneShot == OneShotResult::None || oneShot == OneShotResult::Danger)
         continue;
@@ -86,6 +90,55 @@ namespace heuristics
       return CatapultResult::DamagedAndDeathProtectionLost;
     }
     return CatapultResult::None;
+  }
+
+  Solution buildLevelCatapult(GameState state)
+  {
+    Solution solution;
+    const auto initialLevel = state.hero.getLevel();
+
+    auto emplace_apply = [&](Step step) {
+      solution.emplace_back(step);
+      state = solver::apply(std::move(step), std::move(state));
+    };
+
+    auto applyAttack = [&](size_t targetIndex) {
+      emplace_apply(ChangeTarget{targetIndex});
+      emplace_apply(Attack{});
+      assert(!state.hero.isDefeated());
+      return state.hero.getLevel() > initialLevel;
+    };
+
+    auto loopMonsters = [&](auto evalOneShotResult) {
+      for (size_t n = 0; n < state.visibleMonsters.size();)
+      {
+        auto& monster = state.visibleMonsters[n];
+        if (monster.grantsXP() && !monster.isDefeated())
+        {
+          const auto oneShotResult = checkOneShot(state.hero, monster);
+          if (evalOneShotResult(oneShotResult))
+          {
+            if (oneShotResult == OneShotResult::VictoryGetindareOnly)
+              emplace_apply(Cast{Spell::Getindare});
+            if (applyAttack(n))
+              return true;
+          }
+        }
+        else
+          ++n;
+      }
+      return false;
+    };
+
+    // Try flawless level catapult first
+    if (loopMonsters([](auto result) { return result == OneShotResult::VictoryFlawless; }))
+      return solution;
+
+    // Allow taking damage / losing death protection
+    if (loopMonsters([](auto result) { return result != OneShotResult::None && result != OneShotResult::Danger; }))
+      return solution;
+
+    return {};
   }
 
   namespace
