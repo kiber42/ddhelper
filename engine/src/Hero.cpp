@@ -465,7 +465,7 @@ bool Hero::hasInitiativeVersusIgnoreMonsterSlowed(const Monster& monster) const
 
 unsigned Hero::predictDamageTaken(unsigned attackerDamageOutput, DamageType damageType) const
 {
-  const auto reduction = getIntensity(HeroStatus::DamageReduction);
+  const auto reduction = has(HeroDebuff::Cursed) ? 0u : getIntensity(HeroStatus::DamageReduction);
   if (reduction < attackerDamageOutput)
     return defence.predictDamageTaken(DamagePoints{attackerDamageOutput - reduction}, damageType, 0_burn).get();
   else

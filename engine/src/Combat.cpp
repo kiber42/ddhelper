@@ -183,8 +183,6 @@ namespace Combat
     auto monsterAttacks = [&] {
       if (!hero.tryDodge(allMonsters))
       {
-        if (monster.has(MonsterTrait::CurseBearer))
-          hero.add(HeroDebuff::Cursed, allMonsters);
         if (willPetrify)
         {
           // Hero either dies or death protection is triggered
@@ -194,6 +192,8 @@ namespace Combat
         else
         {
           heroReceivedHit = hero.takeDamage(monsterDamageInitial, monster.damageType(), allMonsters);
+          if (heroReceivedHit && monster.has(MonsterTrait::CurseBearer))
+            hero.add(HeroDebuff::Cursed, allMonsters);
         }
         if (hero.has(HeroTrait::ManaShield) && heroReceivedHit && !hero.isDefeated())
           monster.takeManaShieldDamage(hero.getLevel());

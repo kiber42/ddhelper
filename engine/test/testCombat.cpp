@@ -86,7 +86,7 @@ void testMelee()
       AssertThat(attack(hero, monster), Equals(Summary::Win));
       {
         AssertThat(hero.has(HeroDebuff::Corroded), IsFalse());
-        AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(2u));
+        AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(1u));
         AssertThat(hero.has(HeroDebuff::ManaBurned), IsFalse());
         AssertThat(hero.has(HeroDebuff::Poisoned), IsFalse());
         AssertThat(hero.has(HeroDebuff::Weakened), IsFalse());

@@ -104,12 +104,32 @@ void testStatusEffects()
         hero.takeDamage(4, DamageType::Physical, noOtherMonsters);
         AssertThat(hero.getHitPoints(), Equals(10u - 4u / 2u - 4u));
       });
-      it("should be added when cursed monster is defeated", [] {
+      it("should negate damage reduction", [] {
+        Hero hero;
+        hero.add(HeroStatus::DamageReduction, 2);
+        hero.takeDamage(2, DamageType::Physical, noOtherMonsters);
+        AssertThat(hero.getHitPoints(), Equals(10u));
+        hero.add(HeroDebuff::Cursed, noOtherMonsters);
+        hero.takeDamage(2, DamageType::Physical, noOtherMonsters);
+        AssertThat(hero.getHitPoints(), Equals(8u));
+      });
+      it("should be added when taking a hit from a cursed monster", [] {
+        Hero hero;
+        auto monster = Monster{{Level{1}, 20_HP, 1_damage}, {}, {MonsterTrait::CurseBearer}};
+        attack(hero, monster);
+        AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(1u));
+      });
+      it("should be added when a cursed monster is defeated", [] {
         Hero hero;
         auto monster = Monster{{Level{1}, 1_HP, 3_damage}, {}, {MonsterTrait::CurseBearer}};
-        attack(hero, monster);
+        auto monster2 = monster;
         // One curse from hit, one from killing
+        attack(hero, monster);
         AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(2u));
+        // Hero hits first, only one additional curse received
+        hero.gainLevel(noOtherMonsters);
+        attack(hero, monster2);
+        AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(3u));
       });
       it("should be removed when non-cursed monster is defeated", [] {
         Hero hero;
@@ -118,15 +138,20 @@ void testStatusEffects()
         attack(hero, monster);
         AssertThat(hero.getIntensity(HeroDebuff::Cursed), Equals(1u));
       });
-      it("should take effect immediately after hero's attack", [] {
+      it("should take effect only after the monster's attack", [] {
         Hero hero;
         hero.gainLevel(noOtherMonsters);
         const auto health = hero.getHitPoints();
         hero.setPhysicalResistPercent(50);
         auto monster = Monster{{Level{1}, 100_HP, 10_damage}, {}, {MonsterTrait::CurseBearer}};
+        Hero heroFirst = hero;
+        attack(heroFirst, monster);
+        AssertThat(heroFirst.has(HeroDebuff::Cursed), IsTrue());
+        AssertThat(heroFirst.getHitPoints(), Equals(health - 5u));
+        hero.add(HeroStatus::SlowStrike);
         attack(hero, monster);
         AssertThat(hero.has(HeroDebuff::Cursed), IsTrue());
-        AssertThat(hero.getHitPoints(), Equals(health - 10u));
+        AssertThat(hero.getHitPoints(), Equals(health - 5u));
       });
     });
     describe("Curse Immune", [] {
