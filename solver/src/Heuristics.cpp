@@ -92,6 +92,12 @@ namespace heuristics
   {
     thread_local Monsters ignoreMonsters;
     thread_local SimpleResources ignoreResources;
+
+    inline void safeAttack(Hero& hero, Monster& monster)
+    {
+      [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+      assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+    }
   } // namespace
 
   bool checkMeleeOnly(Hero hero, Monster monster)
@@ -156,8 +162,7 @@ namespace heuristics
         if (lowestMonsterHpOnAttack && monsterHitPoints >= *lowestMonsterHpOnAttack)
           return {};
         lowestMonsterHpOnAttack = monsterHitPoints;
-        [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
-        assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+        safeAttack(hero, monster);
         solution.emplace_back(Attack{});
         if (monster.isDefeated())
           return solution;
@@ -285,8 +290,7 @@ namespace heuristics
     Solution solution;
     while (isSafeToAttack(hero, monster))
     {
-      [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
-      assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+      safeAttack(hero, monster);
       solution.emplace_back(Attack{});
       if (monster.isDefeated())
         return solution;
@@ -309,8 +313,7 @@ namespace heuristics
       const auto monsterHpBeforeRecovery = monster.getHitPoints();
       while (!isSafeToAttack(hero, monster))
         doRecovery(hero, monster, solution);
-      [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
-      assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
+      safeAttack(hero, monster);
       if (monster.getHitPoints() >= monsterHpBeforeRecovery)
         return {};
       solution.emplace_back(Attack{});
