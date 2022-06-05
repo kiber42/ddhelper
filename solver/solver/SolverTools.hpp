@@ -9,8 +9,8 @@ namespace solver
 
   bool isValid(Step step, const GameState& state);
 
-  GameState apply(const Step& step, GameState state);
-  GameState apply(const Solution& solution, GameState state);
+  [[nodiscard]] GameState apply(const Step& step, GameState state);
+  [[nodiscard]] GameState apply(const Solution& solution, GameState state);
 
   void print(const Solution& solution, GameState state);
 } // namespace solver
