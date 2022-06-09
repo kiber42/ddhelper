@@ -197,7 +197,10 @@ namespace heuristics
       else if (std::get_if<NoOp>(&step))
         beforeCatapult = false;
     }
-    return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = numAttacksBeforeCatapult};
+    if (beforeCatapult) // Solution has no catapult
+      return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = 0u};
+    else
+      return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = numAttacksBeforeCatapult};
   }
 
   std::optional<RegenFightResult> checkRegenFightFast(const Hero& hero, const Monster& monster)
