@@ -5,6 +5,7 @@
 #include "engine/Combat.hpp"
 #include "engine/Magic.hpp"
 
+#include <iostream>
 #include <numeric>
 
 namespace heuristics
@@ -20,7 +21,18 @@ namespace heuristics
   {
     std::vector<const Monster*> sorted(monsters.size());
     std::transform(begin(monsters), end(monsters), begin(sorted), [](const auto& monster) { return &monster; });
-    std::sort(begin(sorted), end(sorted), [](auto left, auto right) { return left->getLevel() > right->getLevel(); });
+    std::stable_sort(begin(sorted), end(sorted),
+                     [](auto left, auto right) { return left->getLevel() > right->getLevel(); });
+    return sorted;
+  }
+
+  std::vector<size_t> sorted_by_level_index(const Monsters& monsters)
+  {
+    std::vector<size_t> sorted(monsters.size());
+    std::iota(begin(sorted), end(sorted), 0u);
+    std::stable_sort(begin(sorted), end(sorted), [&monsters](auto left, auto right) {
+      return monsters[left].getLevel() > monsters[right].getLevel();
+    });
     return sorted;
   }
 
@@ -92,19 +104,74 @@ namespace heuristics
     return CatapultResult::None;
   }
 
+  namespace
+  {
+    thread_local Monsters ignoreMonsters;
+    thread_local SimpleResources ignoreResources;
+
+    void print_description(const std::vector<std::string>& description)
+    {
+      std::string s = std::accumulate(begin(description), end(description), std::string{},
+                                      [](std::string a, std::string b) { return a + ", " + b; });
+      if (!s.empty())
+        std::cout << s.substr(2) << '\n';
+    }
+
+    void assertSafeToAttack(Hero hero, Monster monster)
+    {
+      const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+      if (summary == Summary::Death || summary == Summary::Petrified || summary == Summary::NotPossible)
+      {
+        std::cout << "Attack outcome: " << toString(summary) << std::endl;
+        print_description(describe(hero));
+        print_description(describe(monster));
+        assert(false && "SafeToAttack");
+      }
+    }
+
+    inline void safeAttack(Hero& hero, Monster& monster)
+    {
+      [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
+      assert(!(summary == Summary::Death || summary == Summary::Petrified || summary == Summary::NotPossible));
+    }
+
+    inline void emplace_apply(Uncover uncover, Solution& solution, GameState& state)
+    {
+      if (!solution.empty())
+      {
+        if (auto existingUncover = std::get_if<Uncover>(&solution.back()))
+        {
+          existingUncover->numTiles += uncover.numTiles;
+          solver::apply(uncover, state);
+          return;
+        }
+      }
+      solver::apply(uncover, state);
+      solution.emplace_back(std::move(uncover));
+    }
+
+    inline void emplace_apply(Step step, Solution& solution, GameState& state)
+    {
+      solver::apply(step, state);
+      solution.emplace_back(std::move(step));
+    }
+
+    inline void extendSolution(Solution nextSteps, Solution& solution, GameState& state)
+    {
+      solver::apply(nextSteps, state);
+      solution.reserve(solution.size() + nextSteps.size());
+      std::move(begin(nextSteps), end(nextSteps), std::back_inserter(solution));
+    }
+  } // namespace
+
   Solution buildLevelCatapult(GameState state)
   {
     Solution solution;
     const auto initialLevel = state.hero.getLevel();
 
-    auto emplace_apply = [&](Step step) {
-      solution.emplace_back(step);
-      solver::apply(std::move(step), state);
-    };
-
     auto applyAttack = [&](size_t targetIndex) {
-      emplace_apply(ChangeTarget{targetIndex});
-      emplace_apply(Attack{});
+      emplace_apply(ChangeTarget{targetIndex}, solution, state);
+      emplace_apply(Attack{}, solution, state);
       assert(!state.hero.isDefeated());
       return state.hero.getLevel() > initialLevel;
     };
@@ -119,13 +186,13 @@ namespace heuristics
           if (evalOneShotResult(oneShotResult))
           {
             if (oneShotResult == OneShotResult::VictoryGetindareOnly)
-              emplace_apply(Cast{Spell::Getindare});
+              emplace_apply(Cast{Spell::Getindare}, solution, state);
             if (applyAttack(n))
               return true;
+            continue;
           }
         }
-        else
-          ++n;
+        ++n;
       }
       return false;
     };
@@ -140,18 +207,6 @@ namespace heuristics
 
     return {};
   }
-
-  namespace
-  {
-    thread_local Monsters ignoreMonsters;
-    thread_local SimpleResources ignoreResources;
-
-    inline void safeAttack(Hero& hero, Monster& monster)
-    {
-      [[maybe_unused]] const auto summary = Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
-      assert(summary != Summary::Death && summary != Summary::Petrified && summary != Summary::NotPossible);
-    }
-  } // namespace
 
   bool checkMeleeOnly(Hero hero, Monster monster)
   {
@@ -256,7 +311,7 @@ namespace heuristics
         beforeCatapult = false;
     }
     if (beforeCatapult) // Solution has no catapult
-      return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = 0u};
+      return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = -1u};
     else
       return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = numAttacksBeforeCatapult};
   }
@@ -365,7 +420,11 @@ namespace heuristics
     const auto solutionA = [&, hero, monster, solution]() mutable -> Solution {
       const auto monsterHpBeforeRecovery = monster.getHitPoints();
       while (!isSafeToAttack(hero, monster))
+      {
+        if (!canRecover(hero))
+          return {};
         doRecovery(hero, monster, solution);
+      }
       safeAttack(hero, monster);
       if (monster.getHitPoints() >= monsterHpBeforeRecovery)
         return {};
@@ -389,9 +448,109 @@ namespace heuristics
       return solutionA;
     return solutionB;
   }
+
+  Solution checkRegenFightWithCatapult(GameState state)
+  {
+    Solution solution;
+
+    // If recovery is needed to win the fight, it is always(?) better to do it first
+    while (canRecover(state.hero) && !checkMeleeOnly(state.hero, state.visibleMonsters[state.activeMonster]))
+      emplace_apply(Uncover{1}, solution, state);
+
+    while (isSafeToAttack(state.hero, state.visibleMonsters[state.activeMonster]))
+    {
+      emplace_apply(Attack{}, solution, state);
+      if (state.visibleMonsters[state.activeMonster].isDefeated())
+        return solution;
+    }
+
+    auto levelUpAndFight = [](GameState state, Solution solution) -> Solution {
+      const auto activeMonsterID = state.visibleMonsters[state.activeMonster].getID();
+      auto catapultSolution = buildLevelCatapult(state);
+      if (catapultSolution.empty())
+        return {};
+      extendSolution(std::move(catapultSolution), solution, state);
+      auto activeMonster =
+          std::find_if(begin(state.visibleMonsters), end(state.visibleMonsters),
+                       [activeMonsterID](const auto& monster) { return monster.getID() == activeMonsterID; });
+      assert(activeMonster != end(state.visibleMonsters));
+      if (const auto regenSolution = checkRegenFight(std::move(state.hero), std::move(*activeMonster));
+          !regenSolution.empty())
+      {
+        solution.reserve(solution.size() + regenSolution.size() + 1);
+        solution.emplace_back(
+            ChangeTarget{static_cast<size_t>(std::distance(begin(state.visibleMonsters), activeMonster))});
+        std::move(begin(regenSolution), end(regenSolution), std::back_inserter(solution));
+        return solution;
+      }
+      return {};
+    };
+
+    // It may be worthwhile to recover just enough to get one more hit in before levelling
+    const auto solutionA = [&levelUpAndFight](GameState state, Solution solution) mutable -> Solution {
+      auto& activeMonster = state.visibleMonsters[state.activeMonster];
+      const auto monsterHpBeforeRecovery = activeMonster.getHitPoints();
+      while (!isSafeToAttack(state.hero, activeMonster))
+      {
+        if (!canRecover(state.hero))
+          return {};
+        emplace_apply(Uncover{1}, solution, state);
+      }
+      assertSafeToAttack(state.hero, activeMonster);
+      emplace_apply(Attack{}, solution, state);
+      assert(!state.hero.isDefeated());
+      if (activeMonster.getHitPoints() >= monsterHpBeforeRecovery)
+        return {};
+      if (activeMonster.isDefeated())
+        return solution;
+      return levelUpAndFight(std::move(state), std::move(solution));
+    }(state, solution);
+
+    const auto solutionB = levelUpAndFight(std::move(state), std::move(solution));
+
+    const auto countTiles = [](const Solution& solution) {
+      return std::transform_reduce(begin(solution), end(solution), 0u, std::plus<unsigned>(), [](const Step& step) {
+        if (const auto uncover = std::get_if<Uncover>(&step))
+          return uncover->numTiles;
+        return 0u;
+      });
+    };
+
+    if (!solutionA.empty() && (solutionB.empty() || countTiles(solutionA) < countTiles(solutionB)))
+      return solutionA;
+    return solutionB;
+  }
 } // namespace heuristics
 
-std::optional<Solution> runHeuristics(GameState)
+std::optional<Solution> runHeuristics(GameState state)
 {
-  return {{Attack{}}};
+  using namespace heuristics;
+  Solution solution;
+
+  bool progress = true;
+  while (progress)
+  {
+    progress = false;
+    for (auto monsterIndex : sorted_by_level_index(state.visibleMonsters))
+    {
+      const auto& monster = state.visibleMonsters[monsterIndex];
+      state.activeMonster = monsterIndex;
+      std::cout << "Trying to defeat " << monster.getName() << " ... ";
+
+      auto regenFightResult = checkRegenFightWithCatapult(state);
+      if (!regenFightResult.empty())
+      {
+        solution.emplace_back(ChangeTarget{monsterIndex});
+        extendSolution(regenFightResult, solution, state);
+        std::cout << "SUCCESS" << std::endl;
+        progress = true;
+        break;
+      }
+      else
+      {
+        std::cout << "FAILED" << std::endl;
+      }
+    }
+  }
+  return solution;
 }

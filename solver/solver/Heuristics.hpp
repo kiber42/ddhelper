@@ -16,6 +16,9 @@ namespace heuristics
   //! Return pointer to monsters, stable-sorted by level, highest level first
   std::vector<const Monster*> sorted_by_level(const Monsters& monsters);
 
+  //! Return indices to monsters, stable-sorted by level, highest level first
+  std::vector<size_t> sorted_by_level_index(const Monsters& monsters);
+
   enum class OneShotResult
   {
     None,   // Hero safe, but monster not defeated
@@ -58,7 +61,8 @@ namespace heuristics
   {
     unsigned numAttacks{0};
     unsigned numSquares{0};
-    unsigned numAttacksBeforeCatapult{0};
+    // Use invalid value to indicate no catapult was used
+    unsigned numAttacksBeforeCatapult{-1u};
     auto operator<=>(const RegenFightResult&) const = default;
   };
 
@@ -86,6 +90,12 @@ namespace heuristics
    *  @returns Solution with a placeholder NoOp step where the level catapult should go; empty solution if none found.
    **/
   Solution checkRegenFightWithCatapult(Hero hero, Monster monster);
+
+  /** @brief Evaluate if the currently active monster can be defeated using regen fighting and a level catapult
+   *  Will automatically attempt to find suitable catapult if needed
+   *  @returns list of winning steps (empty if none found).
+   **/
+  Solution checkRegenFightWithCatapult(GameState state);
 } // namespace heuristics
 
 std::optional<Solution> runHeuristics(GameState state);

@@ -43,7 +43,8 @@ namespace ui
         if (!regenFightCatapultSolution.empty())
         {
           const auto regenFightWithCatapultResult = toRegenFightResult(regenFightCatapultSolution);
-          output.emplace_back("Regen-fight possible: "s + toString(regenFightWithCatapultResult));
+          output.emplace_back("Regen-fight possible (with catapult):");
+          output.emplace_back("  "s + toString(regenFightWithCatapultResult));
         }
         else
         {
