@@ -132,7 +132,9 @@ namespace
     {
       auto ratedSolutions = std::vector<RatedSolution>(steps.size());
       std::transform(std::execution::par_unseq, begin(steps), end(steps), begin(ratedSolutions), [&](Step step) {
-        auto [solution, score] = search(solver::apply(step, std::move(state)), fitnessRating, maxDepth - 1, false);
+        auto updated = state;
+        solver::apply(step, updated);
+        auto [solution, score] = search(updated, fitnessRating, maxDepth - 1, false);
         solution.push_back(step);
         return std::pair{std::move(solution), score};
       });
@@ -158,7 +160,8 @@ namespace
     Solution bestSolution;
     for (auto& [step, _] : scoredSteps)
     {
-      auto updated = solver::apply(step, state);
+      auto updated = state;
+      solver::apply(step, updated);
       auto [solution, score] = search(updated, fitnessRating, maxDepth - 1, false);
       if (score > bestScore)
       {
@@ -188,7 +191,7 @@ std::optional<Solution> runTreeSearch(GameState state)
     solver::print(partialSolution, state);
     std::cout << "SCORE SO FAR: " << score << std::endl;
     std::cout << "------------------------------------------" << std::endl;
-    state = solver::apply(partialSolution, std::move(state));
+    solver::apply(partialSolution, state);
     std::copy(begin(partialSolution), end(partialSolution), std::back_inserter(solution));
     assert(!state.hero.isDefeated());
   }

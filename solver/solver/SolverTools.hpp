@@ -7,10 +7,10 @@ namespace solver
   Step generateRandomValidStep(const GameState& state, bool allowTargetChange);
   std::vector<Step> generateAllValidSteps(const GameState& state, bool allowTargetChange);
 
-  bool isValid(Step step, const GameState& state);
+  bool isValid(const Step& step, const GameState& state);
 
-  [[nodiscard]] GameState apply(const Step& step, GameState state);
-  [[nodiscard]] GameState apply(const Solution& solution, GameState state);
+  void apply(const Step& step, GameState& state);
+  void apply(const Solution& solution, GameState& state);
 
   void print(const Solution& solution, GameState state);
 } // namespace solver

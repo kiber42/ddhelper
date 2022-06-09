@@ -76,6 +76,7 @@ namespace heuristics
   Solution checkRegenFight(Hero hero, Monster monster);
 
   /** @brief Convert full solution into summary
+   *  Currently only used for tests
    *  Counts the number of attack and uncover steps in solution to fill result
    **/
   RegenFightResult toRegenFightResult(const Solution& solution);

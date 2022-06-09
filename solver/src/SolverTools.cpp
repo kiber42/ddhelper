@@ -255,7 +255,7 @@ namespace solver
     return steps;
   }
 
-  bool isValid(Step step, const GameState& state)
+  bool isValid(const Step& step, const GameState& state)
   {
     const auto& hero = state.hero;
     const auto& monsters = state.visibleMonsters;
@@ -303,11 +303,11 @@ namespace solver
         step);
   }
 
-  GameState apply(const Step& step, GameState state)
+  void apply(const Step& step, GameState& state)
   {
     auto& monsters = state.visibleMonsters;
     if (state.activeMonster >= monsters.size())
-      return state;
+      return;
     auto& hero = state.hero;
     auto& monster = monsters[state.activeMonster];
     std::visit(overloaded{[&](Attack) { Combat::attack(hero, monster, monsters, state.resources); },
@@ -347,14 +347,12 @@ namespace solver
         end(monsters));
     if (state.activeMonster > monsters.size())
       state.activeMonster = 0u;
-    return state;
   }
 
-  GameState apply(const Solution& solution, GameState state)
+  void apply(const Solution& solution, GameState& state)
   {
     for (const auto& step : solution)
-      state = apply(step, std::move(state));
-    return state;
+      apply(step, state);
   }
 
   namespace
@@ -380,7 +378,7 @@ namespace solver
       const auto heroBefore = state.hero;
       const auto monsterBefore =
           state.activeMonster < monsters.size() ? std::optional{monsters[state.activeMonster].getID()} : std::nullopt;
-      state = apply(step, std::move(state));
+      apply(step, state);
       print_description(describe_diff(heroBefore, state.hero));
       if (isCombat(step))
       {

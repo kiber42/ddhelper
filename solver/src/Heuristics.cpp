@@ -99,7 +99,7 @@ namespace heuristics
 
     auto emplace_apply = [&](Step step) {
       solution.emplace_back(step);
-      state = solver::apply(std::move(step), std::move(state));
+      solver::apply(std::move(step), state);
     };
 
     auto applyAttack = [&](size_t targetIndex) {

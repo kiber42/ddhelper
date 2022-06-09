@@ -29,7 +29,7 @@ namespace
     {
       Step step = generateRandomValidStep(state, false);
       assert(isValid(step, state));
-      state = solver::apply(step, std::move(state));
+      solver::apply(step, state);
       if (state.hero.isDefeated())
         break;
       initial.emplace_back(std::move(step));
@@ -45,7 +45,7 @@ namespace
   OptionalStepResult makeRandomStep(GameState state, bool allowTargetChange)
   {
     auto randomStep = generateRandomValidStep(state, allowTargetChange);
-    state = solver::apply(randomStep, std::move(state));
+    solver::apply(randomStep, state);
     if (!state.hero.isDefeated())
       return std::pair{std::move(randomStep), std::move(state)};
     return std::nullopt;
@@ -123,7 +123,7 @@ namespace
     {
       if (!isValid(step, state))
         continue;
-      state = solver::apply(step, std::move(state));
+      solver::apply(step, state);
       if (state.hero.isDefeated())
         break;
       cleanedSolution.emplace_back(std::move(step));
@@ -176,7 +176,8 @@ std::optional<Solution> runGeneticAlgorithm(GameState state)
     {
       std::generate(std::execution::par_unseq, begin(population), end(population), [&state] {
         auto candidate = initialSolution(state);
-        const auto finalState = solver::apply(candidate, state);
+        auto finalState = state;
+        solver::apply(candidate, finalState);
         return std::pair{std::move(candidate), fitnessRating(finalState)};
       });
       initialized = true;
@@ -193,7 +194,9 @@ std::optional<Solution> runGeneticAlgorithm(GameState state)
     std::cout << "  Lowest retained fitness score: " << population[num_keep - 1].second << std::endl;
     std::cout << "  Current temperature: " << static_cast<int>(temperature * 100) << std::endl;
     std::cout << "  Best candidate: " << std::endl << "  " << toString(bestSolution) << std::endl;
-    fitnessRating.explain(apply(bestSolution, state));
+    auto finalState = state;
+    apply(bestSolution, finalState);
+    fitnessRating.explain(finalState);
     std::cout << std::string(80, '-') << std::endl;
     if (bestScore == fitnessRating.GAME_WON)
       return bestSolution;
@@ -246,7 +249,8 @@ std::optional<Solution> runGeneticAlgorithm(GameState state)
     // C) Clean up solutions and update scores
     std::for_each(std::execution::par_unseq, begin(population) + 1, end(population), [&](auto& entry) {
       auto cleaned = mutateAndClean(std::move(entry.first), state, temperature);
-      const auto finalState = solver::apply(cleaned, state);
+      auto finalState = state;
+      solver::apply(cleaned, finalState);
       entry = {std::move(cleaned), fitnessRating(finalState)};
     });
   }
@@ -254,7 +258,8 @@ std::optional<Solution> runGeneticAlgorithm(GameState state)
   auto& best = std::max_element(begin(population), end(population), [](const auto& a, const auto& b) {
                  return a.second < b.second;
                })->first;
-  const auto finalState = solver::apply(best, state);
+  auto finalState = state;
+  solver::apply(best, finalState);
   fitnessRating.explain(finalState);
   return std::move(best);
 }
