@@ -49,7 +49,7 @@ The executable for the helper UI is `build/ui/ddhelper`.  It is still work in pr
 
 ## Windows
 
-I only build on Windows once in a while, it is possible that not everything works out of the box.  The importer package currently uses X11 and I've not found the time to port this package to Windows.  The Windows build uses SDL and OpenGL to create the UI.  SDL is often not available, see the instructions below how to obtain the development and runtime libraries.
+I only build on Windows once in a while, it is possible that not everything works out of the box.  I'm still working on porting the importer package to Windows, the feature to automatically extract monster hitpoints is missing at the moment.  The Windows build uses SDL and OpenGL to create the UI.  SDL is not available on a fresh Windows install, see the instructions below how to obtain the development and runtime libraries.
 
 ### Prepare Visual Studio and sources
 Install any edition of Visual Studio.  In the Visual Studio Installer, select the "Desktop Development with C++" workload.  Obtain the same git repositories as for Linux and make the same adjustment for Bandit/Snowhouse (mv the snowhouse include folder into bandit/assertion_frameworks).  If you have a Unix Terminal available (e.g. GIT Bash or Cygwin), you can simplify this step and just run the same commands as above:
