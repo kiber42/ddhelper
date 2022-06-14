@@ -2,12 +2,14 @@
 
 This repository holds library and application code for **DDHelper**, a set of tools to help solve challenges in the brilliant puzzle game [Desktop Dungeons](http://www.desktopdungeons.net/).  For in-depth information about the game and its mechanics, also have a look at the [DDWiki](http://www.qcfdesign.com/wiki/DesktopDungeons/index.php?title=Desktop_Dungeons), a resource that I used often during development.
 
+https://user-images.githubusercontent.com/62874576/173595133-8cbf1f80-f9c5-44ef-972b-b66e2c74989a.mp4
+
 There are four main components to DDHelper:
 
 - The **engine** package, that holds all the game logic.  It currently covers the essentials needed to simulate heroes and monsters, melee and magic, the faith system and items.  It does not provide functionality yet to represent actual dungeon (or sub-dungeon) maps, it simply assumes that every monster, every shop etc. is accessible, and that there is always a suitable wall available for a Pisorf cast, et cetera.
 - The **solver** package is in an early stage.  It provides functionality to automatically find winning sequences of actions for a given set of monsters and resources.
 - The **importer** package provides functionality to grab the current game state from the game window.  Currently, it only imports monsters and their stats.  It will move the mouse cursor to hover over monsters when they are not at full health, to determine the exact amount of HP they have.  It currently only works on Linux.
-- Finally, the **ui** package provides a graphical frontend to access most of the features of the engine, solver, and importer libraries.  It provides the **dhelper** executable.
+- Finally, the **ui** package provides a graphical frontend to access most of the features of the engine, solver, and importer libraries.  It provides the **ddhelper** executable that you see in action in the video above.
 
 # Prerequisites
 
