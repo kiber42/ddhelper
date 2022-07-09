@@ -28,43 +28,27 @@ sudo apt install libtbb-dev
 sudo apt install libopencv2-dev
 ```
 
-Once you have installed these packages, acquire the source code and move some files into place using the following commands:
+Once you have installed these packages, acquire the source code for this repository and the required git submodules:
 
 ```
-git clone https://github.com/kiber42/ddhelper.git
-cd ddhelper
-git clone https://github.com/ocornut/imgui.git
-git clone https://github.com/banditcpp/bandit.git
-git clone https://github.com/banditcpp/snowhouse.git
-cp -r snowhouse/include/snowhouse/* bandit/bandit/assertion_frameworks/snowhouse
-rm -rf snowhouse
+git clone --recursive https://github.com/kiber42/ddhelper.git
 ```
 
 Configure and execute the CMake build from an IDE of your choice, or from the command line (assuming clang):
 
 ```
-cmake -S . -B build -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
-make -j -C build
+cmake -S ddhelper -B ddhelper/build -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+make -j -C ddhelper/build
 ```
 
-The executable for the helper UI is `build/ui/ddhelper`.  It is still work in progress, but perhaps you'll find useful already.  Have fun!
+The executable for the helper UI is `ddhelper/build/ui/ddhelper`.  It is still work in progress, but perhaps you'll find useful already.  Have fun!
 
 ## Windows
 
 I only build on Windows once in a while, it is possible that not everything works out of the box.  I'm still working on porting the importer package to Windows, the feature to automatically extract monster hitpoints is missing at the moment.  The Windows build uses SDL and OpenGL to create the UI.  SDL is not available on a fresh Windows install, see the instructions below how to obtain the development and runtime libraries.
 
 ### Prepare Visual Studio and sources
-Install any edition of Visual Studio.  In the Visual Studio Installer, select the "Desktop Development with C++" workload.  Obtain the same git repositories as for Linux and make the same adjustment for Bandit/Snowhouse (mv the snowhouse include folder into bandit/assertion_frameworks).  If you have a Unix Terminal available (e.g. GIT Bash or Cygwin), you can simplify this step and just run the same commands as above:
-
-```
-git clone https://github.com/kiber42/ddhelper.git
-cd ddhelper
-git clone https://github.com/ocornut/imgui.git
-git clone https://github.com/banditcpp/bandit.git
-git clone https://github.com/banditcpp/snowhouse.git
-cp -r snowhouse/include/snowhouse/* bandit/bandit/assertion_frameworks/snowhouse
-rm -rf snowhouse
-```
+Install any edition of Visual Studio.  In the Visual Studio Installer, select the "Desktop Development with C++" workload.  Make sure to do a recursive git clone  of this repository, so that the git submodules are cloned as well.
 
 ### Prepare SDL and OpenCV
 Download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.  Copy the file `SDL/lib/x64/SDL2.dll` to a suitable location for libraries, such as `C:\Windows\system32` (any directory on the Path will do).

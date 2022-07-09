@@ -1,0 +1,6 @@
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "bandit"]
+	path = bandit
+	url = https://github.com/banditcpp/bandit.git

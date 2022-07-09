@@ -1,9 +1,7 @@
 .vscode
 .vs
 CMakeSettings.json
-bandit
 build
-imgui
 opencv
 res
 imgui.ini
