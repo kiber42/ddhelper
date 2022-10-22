@@ -17,18 +17,13 @@ The ddhelper UI is built using imgui with an OpenGL + SDL backend.  The solver u
 
 ## Linux
 
-A recent version of clang (>=11) or gcc (>=10) is required.  CMake is used as a build tool.
+A recent version of clang (>=11) or gcc (>=10) is required.  CMake is used as a build tool.  Install the following dependencies to get started:
 
 ```
-sudo apt install clang
-sudo apt install cmake
-sudo apt install libglew-dev
-sudo apt install libsdl2-dev
-sudo apt install libtbb-dev
-sudo apt install libopencv2-dev
+sudo apt install clang cmake libglew-dev libsdl2-dev libtbb-dev libopencv-dev
 ```
 
-Once you have installed these packages, acquire the source code for this repository and the required git submodules:
+Next, acquire the source code for this repository and the required git submodules:
 
 ```
 git clone --recursive https://github.com/kiber42/ddhelper.git
