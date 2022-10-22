@@ -165,7 +165,13 @@ namespace ui
     auto [solverResult, undoRequested] = runSolver(state);
     applyResultUndoable(solverResult);
 
-    if (history.run() || undoRequested)
+    if (history.run())
+    {
+      undoRequested = true;
+      runSolver.historyUndo();
+    }
+
+    if (undoRequested)
     {
       state = history.undo();
       stateModified = true;

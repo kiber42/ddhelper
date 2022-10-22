@@ -158,4 +158,10 @@ namespace ui
     ImGui::End();
     return result;
   }
+
+  void RunSolver::historyUndo()
+  {
+    if (solutionIndex > 0)
+      --solutionIndex;
+  }
 } // namespace ui

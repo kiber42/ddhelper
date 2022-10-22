@@ -19,6 +19,9 @@ namespace ui
      **/
     std::pair<ActionResultUI, bool> operator()(const State& state);
 
+    // Call this to keep in sync with the history window when the history undo button was pressed.
+    void historyUndo();
+
   private:
     std::optional<std::vector<Step>> solverSteps;
     size_t solutionIndex{0};

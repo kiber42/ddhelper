@@ -215,9 +215,9 @@ namespace heuristics
 
     while (!hero.isDefeated())
     {
-      Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
       if (monster.isDefeated())
         return true;
+      Combat::attack(hero, monster, ignoreMonsters, ignoreResources);
     }
     return false;
   }
@@ -478,8 +478,10 @@ namespace heuristics
           !regenSolution.empty())
       {
         solution.reserve(solution.size() + regenSolution.size() + 1);
-        solution.emplace_back(
-            ChangeTarget{static_cast<size_t>(std::distance(begin(state.visibleMonsters), activeMonster))});
+        const auto targetIndex = static_cast<size_t>(std::distance(begin(state.visibleMonsters), activeMonster));
+        // For readability, skip change target instruction if we're just attacking monsters at index 0
+        if (!(targetIndex == 0 && state.activeMonster == 0))
+          solution.emplace_back(ChangeTarget{targetIndex});
         std::move(begin(regenSolution), end(regenSolution), std::back_inserter(solution));
         return solution;
       }

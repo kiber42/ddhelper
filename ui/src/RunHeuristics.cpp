@@ -20,7 +20,7 @@ namespace ui
     if (const auto& monsters = state.monsterPool; !monsters.empty())
       levelCatapultResult.emplace(checkLevelCatapult(hero, monsters));
 
-    if (const auto* monster = state.monster())
+    if (const auto* monster = state.monster(); monster && !monster->isDefeated())
     {
       if (checkOneShot(hero, *monster) == OneShotResult::VictoryFlawless)
       {
