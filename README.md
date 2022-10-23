@@ -37,7 +37,7 @@ cmake -S ddhelper -B ddhelper/build -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CX
 make -j -C ddhelper/build
 ```
 
-The executable for the helper UI is `ddhelper/build/ui/ddhelper`.  It is still work in progress, but perhaps you'll find useful already.  Have fun!
+The executable for the helper UI is `ddhelper/build/ui/ddhelper`.  It is still work in progress, but perhaps you'll find it useful already.  Have fun!
 
 ## Windows
 
@@ -47,9 +47,9 @@ I only build on Windows once in a while, it is possible that not everything work
 Install any edition of Visual Studio.  In the Visual Studio Installer, select the "Desktop Development with C++" workload.  Make sure to do a recursive git clone  of this repository, so that the git submodules are cloned as well.
 
 ### Prepare SDL and OpenCV
-Download the [development SDL package](https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip) and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.0.x` to just `SDL`.  Copy the file `SDL/lib/x64/SDL2.dll` to a suitable location for libraries, such as `C:\Windows\system32` (any directory on the Path will do).
+Download a recent [development SDL package for VC](https://www.libsdl.org/release/SDL2-devel-2.24.1-VC.zip) from [here](https://www.libsdl.org/release/?C=M;O=D) and unpack it into `ddhelper`.  Rename the directory from `SDL2-2.x.y` to just `SDL`.  Copy the file `SDL\lib\x64\SDL2.dll` to a directory that Windows will search in for libraries, such as `C:\Windows\System32` (any directory on the PATH will do).
 
-Download a [Windows build of OpenCV](https://opencv.org/releases/).  Unpack it and rename the contained `build` directory to `opencv`.  Move that directory into `ddhelper`.  Copy `opencv/x64/vc15/bin/opencv_world455.dll` and `opencv_world455d.dll` to a library folder such as `C:\Windows\system32`.
+Download a [Windows build of OpenCV](https://opencv.org/releases/).  Unpack it and rename the contained `build` directory to `opencv`.  Move that directory into `ddhelper`.  Copy `opencv\build\x64\vc15\bin\opencv_world4*.dll` (2 files) to a library folder such as `C:\Windows\System32`.
 
 ### Build and run
 Now everything is in place.  Open the `ddhelper` directory with Visual Studio to create a CMake based solution.  Build and run `ddhelper.exe`.  I hope you'll find it useful.  Happy dungeoneering!
