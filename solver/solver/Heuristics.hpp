@@ -61,8 +61,7 @@ namespace heuristics
   {
     unsigned numAttacks{0};
     unsigned numSquares{0};
-    // Use invalid value to indicate no catapult was used
-    unsigned numAttacksBeforeCatapult{-1u};
+    std::optional<unsigned> catapultUsedAfter;
     auto operator<=>(const RegenFightResult&) const = default;
   };
 
@@ -138,8 +137,8 @@ constexpr const char* toString(heuristics::CatapultResult result)
 
 inline std::string toString(const heuristics::RegenFightResult& result)
 {
-  if (result.numAttacksBeforeCatapult >= result.numAttacks)
-    return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquares) + " square(s)";
-  return std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquares) +
-         " square(s); level catapult after " + std::to_string(result.numAttacksBeforeCatapult) + " attack(s)";
+  auto str = std::to_string(result.numAttacks) + " attack(s) + " + std::to_string(result.numSquares) + " square(s)";
+  if (result.catapultUsedAfter)
+    str += "; level catapult after " + std::to_string(*result.catapultUsedAfter) + " attack(s)";
+  return str;
 }

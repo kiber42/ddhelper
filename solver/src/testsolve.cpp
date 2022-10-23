@@ -315,14 +315,14 @@ void testHeuristics()
 
       auto monk = Hero{HeroClass::Monk};
       auto solution = heuristics::checkRegenFightWithCatapult(monk, {MonsterType::MeatMan, Level{3}});
-      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 38u, .numSquares = 32u, .numAttacksBeforeCatapult = 2u}));
+      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 38u, .numSquares = 32u, .catapultUsedAfter = 2u}));
 
       auto berserker = Hero{HeroClass::Berserker};
       berserker.gainExperienceNoBonuses(30, noOtherMonsters);
       AssertThat(berserker.getLevel(), Equals(4u));
       AssertThat(berserker.getHitPoints(), Equals(40u));
       solution = heuristics::checkRegenFightWithCatapult(berserker, {MonsterType::FrozenTroll, Level{7}});
-      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 7u, .numSquares = 3u, .numAttacksBeforeCatapult = 3u}));
+      AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 7u, .numSquares = 3u, .catapultUsedAfter = 3u}));
       solution.erase(std::find_if(begin(solution), end(solution), findNoOp), end(solution));
       AssertThat(toRegenFightResult(solution), Equals(RegenFightResult{.numAttacks = 3u, .numSquares = 1u}));
     });

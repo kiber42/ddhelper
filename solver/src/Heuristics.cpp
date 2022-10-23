@@ -293,27 +293,18 @@ namespace heuristics
 
   RegenFightResult toRegenFightResult(const Solution& solution)
   {
-    unsigned numSquares{0};
-    unsigned numAttacks{0};
-    unsigned numAttacksBeforeCatapult{0};
-    bool beforeCatapult{true};
+    RegenFightResult result;
     for (const auto& step : solution)
     {
       if (const auto uncover = std::get_if<Uncover>(&step))
-        numSquares += uncover->numTiles;
+        result.numSquares += uncover->numTiles;
       else if (std::get_if<Attack>(&step))
-      {
-        ++numAttacks;
-        if (beforeCatapult)
-          ++numAttacksBeforeCatapult;
-      }
+        ++result.numAttacks;
       else if (std::get_if<NoOp>(&step))
-        beforeCatapult = false;
+        // NoOp is used internally to indicate a level-catapult
+        result.catapultUsedAfter = result.numAttacks;
     }
-    if (beforeCatapult) // Solution has no catapult
-      return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = -1u};
-    else
-      return {.numAttacks = numAttacks, .numSquares = numSquares, .numAttacksBeforeCatapult = numAttacksBeforeCatapult};
+    return result;
   }
 
   std::optional<RegenFightResult> checkRegenFightFast(const Hero& hero, const Monster& monster)
@@ -339,10 +330,10 @@ namespace heuristics
       monsterTotalHpLoss += monsterHpLossPerAttack;
     if (monsterTotalHpLoss >= monster.getHitPoints())
       return {{.numAttacks = numAttacksBeforeRecovery}};
+
+    // Next, evaluate the possibility of regen fighting
     if (hero.has(HeroDebuff::Poisoned) || hero.has(HeroStatus::Manaform))
       return {};
-
-    // Setup regen fighting evaluation
     const auto heroRecoveryRate = hero.recoveryMultiplier();
     const auto monsterRecoveryRate = monster.getLevel() * (monster.has(MonsterTrait::FastRegen) ? 2u : 1u);
     auto monsterPoison = monster.getPoisonAmount();
