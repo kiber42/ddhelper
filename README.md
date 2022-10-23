@@ -17,10 +17,11 @@ The ddhelper UI is built using imgui with an OpenGL + SDL backend.  The solver u
 
 ## Linux
 
-A recent version of clang (>=11) or gcc (>=10) is required.  CMake is used as a build tool.  Install the following dependencies to get started:
+A recent version of clang or gcc is required.  CMake is used as a build tool.  Install the following dependencies to get started (second line is optional, but useful):
 
 ```
 sudo apt install clang cmake libglew-dev libsdl2-dev libtbb-dev libopencv-dev
+sudo apt install ninja-build clang-format
 ```
 
 Next, acquire the source code for this repository and the required git submodules:
