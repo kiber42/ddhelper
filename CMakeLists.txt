@@ -39,8 +39,15 @@ add_library(
   imgui/imgui_widgets.cpp
   imgui/backends/imgui_impl_sdl.cpp
   imgui/backends/imgui_impl_opengl3.cpp)
-target_include_directories(dearimgui PUBLIC imgui "${SDL2_INCLUDE_DIRS}")
-target_link_libraries(dearimgui ${OPENGL_gl_LIBRARY} "${SDL2_LIBRARIES}" ${CMAKE_DL_LIBS})
+target_include_directories(dearimgui PUBLIC imgui imgui/backends "${SDL2_INCLUDE_DIRS}")
+target_link_libraries(dearimgui PUBLIC ${OPENGL_gl_LIBRARY} "${SDL2_LIBRARIES}" ${CMAKE_DL_LIBS})
+if (NOT WIN32)
+target_link_libraries(dearimgui PUBLIC "-lGL" "-lGLEW")
+endif()
+
+add_executable(imguidemo imgui/examples/example_sdl_opengl3/main.cpp imgui/imgui_demo.cpp)
+target_compile_options(imguidemo PUBLIC "-DSDL_MAIN_HANDLED")
+target_link_libraries(imguidemo dearimgui)
 
 add_subdirectory(engine)
 add_subdirectory(ui)
