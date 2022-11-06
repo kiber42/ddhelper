@@ -1,19 +1,6 @@
 #pragma once
 
-#include <memory>
-
-#if !defined(_WIN32)
-struct _XImage;
-typedef struct _XImage XImage;
-#else
-struct XImage
-{
-  // TODO: Implement image capture on Windows
-  int width;
-  int height;
-  char* data;
-};
-#endif
+#include <opencv2/opencv.hpp>
 
 namespace importer
 {
@@ -22,16 +9,25 @@ namespace importer
   class ImageCapture
   {
   public:
-    ImageCapture(GameWindow& gameWindow);
-    ~ImageCapture();
+    ImageCapture(GameWindow& gameWindow)
+      : gameWindow(gameWindow)
+      , lastCaptureSuccessful(false)
+    {
+    }
 
-    GameWindow& getGameWindow() const;
+    /** @brief Capture game window content as OpenCV Matrix
+     *  Throws std::runtime_error if the image cannot be acquired
+     *  Note: Delivers incorrect results if screen scaling is enabled (Windows)
+     **/
+    cv::Mat asMatrix();
 
-    const XImage* acquire();
-    [[nodiscard]] const XImage* current() const;
+    //! Returns whether the last capture was successful
+    bool success() const { return lastCaptureSuccessful; }
+
+    GameWindow& getGameWindow() const { return gameWindow; }
 
   private:
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    GameWindow& gameWindow;
+    bool lastCaptureSuccessful;
   };
 } // namespace importer

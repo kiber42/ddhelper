@@ -15,6 +15,7 @@ namespace importer
   {
     short x;
     short y;
+    auto operator<=>(const TilePosition&) const = default;
   };
 
   using HealthInfo = std::pair<short, short>;
@@ -33,11 +34,14 @@ namespace importer
     std::uint32_t hash;
 
     Monster toMonster(DungeonMultiplier multiplier) const;
+
+    auto operator<=>(const MonsterInfo&) const = default;
   };
 
   struct ImportedState
   {
     std::vector<MonsterInfo> monsterInfos;
+    auto operator<=>(const ImportedState&) const = default;
   };
 
 } // namespace importer

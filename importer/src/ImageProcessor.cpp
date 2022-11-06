@@ -18,31 +18,62 @@ namespace importer
 {
   namespace
   {
-    // On Linux/X11, the window contents are shifted one pixel up: the topmost row is missing, and a black row of pixels
-    // appears at the bottom of the window
-    constexpr int y_offset = -1;
-
     constexpr int required_screen_size_x = 800;
     constexpr int required_screen_size_y = 600;
 
     // Identify monster levels using the red and green components of 3 specific pixels on a tile.
-    // Pixel positions are (3, 18), (4, 22) (3, 24)
     static constexpr std::array<uint64_t, 10> levelFromPixels = {
         0x00FF00FF0000, 0x00FF000000FF, 0x000000FF0000, 0xFFFF0000FFFF, 0xFFFFFFFF0000,
         0xFFFFFFFFFFFF, 0x0000FF800000, 0xFF80FF80FF80, 0xFF80FF800000, 0xFF00FF000000,
     };
 
-    template <typename PixelFunc>
+    struct OffsetsLinux
+    {
+      // Pixel positions for level identification are (3, 18), (4, 22) (3, 24) on Linux.
+      static constexpr int level_pixel_x1 = 3;
+      static constexpr int level_pixel_y1 = 18;
+      static constexpr int level_pixel_x2 = 4;
+      static constexpr int level_pixel_y2 = 22;
+      static constexpr int level_pixel_x3 = 3;
+      static constexpr int level_pixel_y3 = 24;
+
+      // On Linux/X11, the window contents are shifted one pixel up: the topmost row is missing, and a black row of
+      // pixels appears at the bottom of the window.
+      static constexpr int window_y = -1;
+    };
+
+    struct OffsetsWindows
+    {
+      // The numbers are scaled and positioned a little differently on Windows.
+      static constexpr int level_pixel_x1 = 4;
+      static constexpr int level_pixel_y1 = 18;
+      static constexpr int level_pixel_x2 = 5;
+      static constexpr int level_pixel_y2 = 21;
+      static constexpr int level_pixel_x3 = 4;
+      static constexpr int level_pixel_y3 = 24;
+
+      static constexpr int window_y = 0;
+    };
+
+#if !defined(WIN32)
+    using DefaultOffsets = OffsetsLinux;
+#else
+    using DefaultOffsets = OffsetsWindows;
+#endif
+
+    template <typename PixelFunc, class Offsets>
     std::optional<Level> getMonsterLevel(const cv::Mat& dungeon, int x, int y)
     {
       // Level number (if any) is a 16x16 sprite overlayed in the lower left corner of a 30x30 tile.
       const int start_x = x * 30;
-      const int start_y = y * 30 + y_offset;
-      // Several suitable combinations of 3 pixels exist that suffice to tell them apart, we use (3, 18), (4, 22) (3,
-      // 24).
-      const auto pixel1 = PixelFunc(dungeon, Column{start_x + 3}, Row{start_y + 18});
-      const auto pixel2 = PixelFunc(dungeon, Column{start_x + 4}, Row{start_y + 22});
-      const auto pixel3 = PixelFunc(dungeon, Column{start_x + 3}, Row{start_y + 24});
+      const int start_y = y * 30 + Offsets::window_y;
+      // Use a suitable combination of 3 pixels to tell different numbers apart
+      const auto pixel1 =
+          PixelFunc(dungeon, Column{start_x + Offsets::level_pixel_x1}, Row{start_y + Offsets::level_pixel_y1});
+      const auto pixel2 =
+          PixelFunc(dungeon, Column{start_x + Offsets::level_pixel_x2}, Row{start_y + Offsets::level_pixel_y2});
+      const auto pixel3 =
+          PixelFunc(dungeon, Column{start_x + Offsets::level_pixel_x3}, Row{start_y + Offsets::level_pixel_y3});
       // Level labels have no blue component
       if (pixel1.b() == 0 && pixel2.b() == 0 && pixel3.b() == 0)
       {
@@ -93,36 +124,22 @@ namespace importer
         {0xBBD6D5, MonsterType::Vampire},
     };
 
-    template <typename PixelFunc>
+    template <typename PixelFunc, class Offsets>
     inline uint32_t getTileHash(const cv::Mat& tile, int x, int y)
     {
-      return PixelFunc(tile, Column{x * 30 + 12}, Row{y * 30 + y_offset + 5}).rgb();
+      return PixelFunc(tile, Column{x * 30 + 12}, Row{y * 30 + Offsets::window_y + 5}).rgb();
     }
 
-    template <typename PixelFunc>
+    template <typename PixelFunc, class Offsets>
     inline bool hasHealthBar(const cv::Mat& tile, int x, int y)
     {
-      const auto pixel = PixelFunc(tile, Column{x * 30 + 29}, Row{y * 30 + y_offset + 29}).rgb();
+      const auto pixel = PixelFunc(tile, Column{x * 30 + 29}, Row{y * 30 + Offsets::window_y + 29}).rgb();
       return pixel == 0xFF0000 || pixel == 0x00FF00;
-    }
-
-    cv::Mat acquireValidScreenshot(ImageCapture& capture)
-    {
-      auto ximage = capture.acquire();
-      if (!ximage)
-        throw std::runtime_error("Failed to acquire image.");
-      if (ximage->width != required_screen_size_x || ximage->height != required_screen_size_y)
-      {
-        throw std::runtime_error("Please resize game window to " + std::to_string(required_screen_size_x) + "x" +
-                                 std::to_string(required_screen_size_y) + " (current size: " +
-                                 std::to_string(ximage->width) + "x" + std::to_string(ximage->height) + ")");
-      }
-      return cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
     }
 
     // Find all monsters on map shown in the input image.
     // Returns info about monsters and a flag that indicates whether all monsters could be identified.
-    template <class PixelClass>
+    template <typename PixelFunc, class Offsets>
     std::pair<std::vector<MonsterInfo>, bool> findMonstersImpl(const cv::Mat& image)
     {
       std::pair<std::vector<MonsterInfo>, bool> result;
@@ -132,17 +149,17 @@ namespace importer
       {
         const unsigned char x = index % 20;
         const unsigned char y = static_cast<unsigned char>(index / 20);
-        const auto monsterLevel = getMonsterLevel<PixelClass>(image, x, y);
+        const auto monsterLevel = getMonsterLevel<PixelFunc, Offsets>(image, x, y);
         if (monsterLevel)
         {
-          const auto hash = getTileHash<PixelClass>(image, x, y);
+          const auto hash = getTileHash<PixelFunc, Offsets>(image, x, y);
           auto monsterType = MonsterType::Generic;
           if (auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
             monsterType = detected->second;
           else
             complete = false;
           monsters.emplace_back(MonsterInfo{
-              TilePosition{x, y}, monsterType, *monsterLevel, hasHealthBar<PixelClass>(image, x, y), {}, hash});
+              TilePosition{x, y}, monsterType, *monsterLevel, hasHealthBar<PixelFunc, Offsets>(image, x, y), {}, hash});
         }
       }
       return result;
@@ -155,7 +172,8 @@ namespace importer
     template <typename PixelFunc>
     std::optional<std::pair<int, int>> extract_hp_or_mp(const cv::Mat& imagePart)
     {
-      auto countBrightPixels = [&, height = imagePart.size[0]](int x) {
+      auto countBrightPixels = [&, height = imagePart.size[0]](int x)
+      {
         int count = 0;
         for (int y = 0; y < height; ++y)
         {
@@ -164,7 +182,8 @@ namespace importer
         }
         return count;
       };
-      auto parseNumbers = [&, x = 0, width = imagePart.size[1]]() mutable -> std::optional<int> {
+      auto parseNumbers = [&, x = 0, width = imagePart.size[1]]() mutable -> std::optional<int>
+      {
         int current = 0;
         while (x + 8 < width)
         {
@@ -204,23 +223,42 @@ namespace importer
     // Move mouse over given tile and extract additional information from sidebar
     bool extractMonsterInfoImpl(MonsterInfo& infoToUpdate, GameWindow& gameWindow, ImageCapture& capture)
     {
-#if !defined(WIN32)
-      moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 30 * infoToUpdate.position.x + 15,
-                  30 * infoToUpdate.position.y + 15);
+      moveMouseTo(gameWindow, {30 * infoToUpdate.position.x + 15, 30 * infoToUpdate.position.y + 15});
       using namespace std::chrono_literals;
       std::this_thread::sleep_for(100ms);
-      if (auto ximage = capture.acquire())
+      auto image = capture.asMatrix();
+      auto hitpoints = extract_hp_or_mp<PixelARGB>(image(cv::Rect(651, 430, 100, 10)));
+      if (hitpoints)
       {
-        auto image = cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data);
-        auto hitpoints = extract_hp_or_mp<PixelARGB>(image(cv::Rect(651, 430, 100, 10)));
-        if (hitpoints)
-        {
-          infoToUpdate.health = hitpoints;
-          return true;
-        }
+        infoToUpdate.health = hitpoints;
+        return true;
       }
-#endif
       return false;
+    }
+
+    /** Confirm that the image has the expected game window size
+     *  Throws std::runtime_error with appropriate message on problem
+     **/
+    void verifyImageSize(const cv::Mat& imageData)
+    {
+      if (imageData.dims < 2)
+        throw std::runtime_error("Invalid image data");
+      if (imageData.size[1] != required_screen_size_x || imageData.size[0] != required_screen_size_y)
+        throw std::runtime_error("Wrong image size " + std::to_string(imageData.size[1]) + "x" +
+                                 std::to_string(imageData.size[0]) +
+                                 " (required: " + std::to_string(required_screen_size_x) + "x" +
+                                 std::to_string(required_screen_size_y) + ")");
+    }
+
+    template <class Offsets>
+    std::vector<MonsterInfo> findMonstersInScreenshotImpl(std::string path)
+    {
+      cv::Mat_<cv::Vec3b> image = static_cast<cv::Mat_<cv::Vec3b>>(cv::imread(path, cv::IMREAD_COLOR));
+      if (image.empty())
+        throw std::runtime_error("Could not read image data from " + path);
+      verifyImageSize(image);
+      auto [infos, complete] = findMonstersImpl<PixelBGR, Offsets>(image);
+      return infos;
     }
   } // namespace
 
@@ -231,8 +269,9 @@ namespace importer
 
   bool ImageProcessor::findMonsters(int numRetries, int retryDelayInMilliseconds)
   {
-    auto image = acquireValidScreenshot(capture);
-    auto [infos, complete] = findMonstersImpl<PixelARGB>(image);
+    auto image = capture.asMatrix();
+    verifyImageSize(image);
+    auto [infos, complete] = findMonstersImpl<PixelARGB, DefaultOffsets>(image);
     state.monsterInfos = std::move(infos);
     while (!complete && numRetries-- > 0)
     {
@@ -242,21 +281,17 @@ namespace importer
     return complete;
   }
 
-  // Take screenshot and try to update information about previously unidentied monsters.
-  // This might help if a monster could not previously be identified due to an animation (monster is slowed, or
-  // there's a piety token on the same square).
-  // Returns true if no unidentified / generic monsters remain.
   bool ImageProcessor::retryFindMonsters()
   {
-    auto image = acquireValidScreenshot(capture);
-
+    auto image = capture.asMatrix();
+    verifyImageSize(image);
     bool complete = true;
     auto isGenericMonster = [](const auto& monster) { return monster.type == MonsterType::Generic; };
     auto nextUnknown = std::find_if(begin(state.monsterInfos), end(state.monsterInfos), isGenericMonster);
     while (nextUnknown != end(state.monsterInfos))
     {
       const auto& pos = nextUnknown->position;
-      const auto hash = getTileHash<PixelARGB>(image, pos.x, pos.y);
+      const auto hash = getTileHash<PixelARGB, DefaultOffsets>(image, pos.x, pos.y);
       if (const auto detected = monsterFromPixel.find(hash); detected != end(monsterFromPixel))
         nextUnknown->type = detected->second;
       else
@@ -268,7 +303,6 @@ namespace importer
 
   bool ImageProcessor::extractMonsterInfos(bool smart)
   {
-#if !defined(WIN32)
     auto& gameWindow = capture.getGameWindow();
     AutoRestoreMousePosition restoreMouse(gameWindow);
     bool success = true;
@@ -277,26 +311,23 @@ namespace importer
       if (info.hasHealthBar || !smart)
         success &= extractMonsterInfoImpl(info, gameWindow, capture);
     }
-    moveMouseTo(gameWindow.getDisplay(), gameWindow.getWindow(), 750, 100);
+    moveMouseTo(gameWindow, {750, 100});
     return success;
-#else
-    return false;
-#endif
   }
 
   std::vector<MonsterInfo> ImageProcessor::findMonstersInScreenshot(std::string path)
   {
-    cv::Mat_<cv::Vec3b> image = static_cast<cv::Mat_<cv::Vec3b>>(cv::imread(path, cv::IMREAD_COLOR));
-    if (image.empty())
-      throw std::runtime_error("Could not read image data from " + path);
-    if (image.size[1] != required_screen_size_x || image.size[0] != required_screen_size_y)
-    {
-      throw std::runtime_error("Wrong image size " + std::to_string(image.size[1]) + "x" +
-                               std::to_string(image.size[0]) + " (required: " + std::to_string(required_screen_size_x) +
-                               "x" + std::to_string(required_screen_size_y) + ")");
-    }
-    auto [infos, complete] = findMonstersImpl<PixelBGR>(image);
-    return infos;
+    return findMonstersInScreenshotImpl<DefaultOffsets>(std::move(path));
+  }
+
+  std::vector<MonsterInfo> ImageProcessor::findMonstersInScreenshotLinux(std::string path)
+  {
+    return findMonstersInScreenshotImpl<OffsetsLinux>(std::move(path));
+  }
+
+  std::vector<MonsterInfo> ImageProcessor::findMonstersInScreenshotWindows(std::string path)
+  {
+    return findMonstersInScreenshotImpl<OffsetsWindows>(std::move(path));
   }
 
 } // namespace importer

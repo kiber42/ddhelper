@@ -32,16 +32,20 @@ namespace importer
   struct PixelARGB
   {
     PixelARGB(const cv::Mat& image, Column col, Row row)
-      : _v(static_cast<uint32_t>(image.at<int32_t>(row.get(), col.get())) & 0xFFFFFF)
+      : _v(image.at<cv::Vec4b>(row.get(), col.get()))
     {
     }
-    constexpr uint8_t r() const { return (_v & 0xFF0000) >> 16; }
-    constexpr uint8_t g() const { return (_v & 0xFF00) >> 8; }
-    constexpr uint8_t b() const { return _v & 0xFF; }
-    constexpr uint32_t rgb() const { return _v; }
-    constexpr uint32_t rg() const { return _v >> 8; }
+    constexpr uint8_t r() const { return _v.val[2]; }
+    constexpr uint8_t g() const { return _v.val[1]; }
+    constexpr uint8_t b() const { return _v.val[0]; }
+    constexpr uint32_t rgb() const
+    {
+      return (static_cast<uint32_t>(_v.val[2]) << 16) + (static_cast<uint32_t>(_v.val[1]) << 8) +
+             static_cast<uint32_t>(_v.val[0]);
+    }
+    constexpr uint32_t rg() const { return (static_cast<uint32_t>(_v.val[2]) << 8) + static_cast<uint32_t>(_v.val[1]); }
 
   private:
-    uint32_t _v;
+    cv::Vec4b _v;
   };
 } // namespace importer

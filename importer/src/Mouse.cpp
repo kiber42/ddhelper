@@ -1,18 +1,20 @@
 #include "importer/Mouse.hpp"
 
 #if !defined(_WIN32)
-#include "importer/GameWindow.hpp"
-
-#include <cstdio>
-
 #include "X11/X.h"
 #include "X11/Xlib.h"
 #include "X11/Xutil.h"
+#else
+#include <WinUser.h>
+#endif
 
 namespace importer
 {
-  std::optional<std::pair<int, int>> getMousePosition(Display* display, Window window)
+#if !defined(_WIN32)
+  std::optional<MousePosition> getMousePosition(GameWindow& gameWindow)
   {
+    auto display = gameWindow.getDisplay();
+    auto window = gameWindow.getHandle();
     if (window == 0)
       window = DefaultRootWindow(display);
     Window root, child;
@@ -24,29 +26,44 @@ namespace importer
     return {};
   }
 
-  void moveMouseTo(Display* display, Window window, int x, int y)
+  void moveMouseTo(GameWindow& gameWindow, MousePosition position)
   {
+    auto display = gameWindow.getDisplay();
+    auto window = gameWindow.getHandle();
     if (window == 0)
       window = DefaultRootWindow(display);
-    XWarpPointer(display, None, window, 0, 0, 0, 0, x, y);
+    XWarpPointer(display, None, window, 0, 0, 0, 0, position.first, position.second);
     XFlush(display);
   }
-
-  AutoRestoreMousePosition::AutoRestoreMousePosition(Display* display)
-    : display(display)
-    , initialMousePosition(getMousePosition(display, 0))
+#else
+  std::optional<MousePosition> getMousePosition(GameWindow& gameWindow)
   {
+    POINT p;
+    if (!gameWindow.valid() || !GetCursorPos(&p))
+      return {};
+    ScreenToClient(gameWindow.getHandle(), &p);
+    return std::pair{static_cast<int>(p.x), static_cast<int>(p.y)};
   }
 
-  AutoRestoreMousePosition::AutoRestoreMousePosition(GameWindow& gameWindow)
-    : AutoRestoreMousePosition(gameWindow.getDisplay())
+  void moveMouseTo(GameWindow& gameWindow, MousePosition pos)
+  {
+    if (!gameWindow.valid())
+      return;
+    POINT p {.x = pos.first, .y = pos.second };
+    ClientToScreen(gameWindow.getHandle(), &p);
+    SetCursorPos(p.x, p.y);
+  }
+#endif
+
+  AutoRestoreMousePosition::AutoRestoreMousePosition(GameWindow gameWindow_)
+    : gameWindow(std::move(gameWindow_))
+    , initialMousePosition(getMousePosition(gameWindow))
   {
   }
 
   AutoRestoreMousePosition::~AutoRestoreMousePosition()
   {
     if (initialMousePosition)
-      moveMouseTo(display, 0, initialMousePosition->first, initialMousePosition->second);
+      moveMouseTo(gameWindow, *initialMousePosition);
   }
 } // namespace importer
-#endif

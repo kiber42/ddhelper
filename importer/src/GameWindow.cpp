@@ -4,11 +4,12 @@
 
 #include <X11/Xlib.h>
 
+#include <memory>
 #include <string>
 
 namespace
 {
-  std::optional<Window> findWindowByName(Display* display, Window top, const std::string& name)
+  Window findWindowByName(Display* display, Window top, const std::string& name)
   {
     char* window_name;
     if (XFetchName(display, top, &window_name) && name == window_name)
@@ -18,7 +19,7 @@ namespace
     Window* children;
     unsigned int numChildren;
     if (!XQueryTree(display, top, &dummy, &dummy, &children, &numChildren))
-      return {};
+      return 0;
 
     auto cleaner = [](Window* children) { XFree(children); };
     std::unique_ptr<Window, decltype(cleaner)> cleanup(children);
@@ -27,17 +28,17 @@ namespace
       if (auto window = findWindowByName(display, children[i], name))
         return window;
     }
-    return {};
+    return 0;
   }
 
-  std::optional<Window> findWindowByName(Display* display, const std::string& name)
+  Window findWindowByName(Display* display, const std::string& name)
   {
     for (int i = 0; i < ScreenCount(display); ++i)
     {
       if (auto window = findWindowByName(display, RootWindow(display, i), name))
         return window;
     }
-    return {};
+    return 0;
   }
 } // namespace
 
@@ -54,7 +55,20 @@ namespace importer
   bool GameWindow::valid() const
   {
     thread_local XWindowAttributes updated;
-    return display && window && XGetWindowAttributes(display, *window, &updated);
+    return display && window && XGetWindowAttributes(display, window, &updated);
   }
 } // namespace importer
+
+#else
+
+namespace importer
+{
+  GameWindow::GameWindow()
+    : window(FindWindow(NULL, TEXT("Desktop Dungeons")))
+  {
+  }
+
+  bool GameWindow::valid() const { return IsWindow(window); }
+} // namespace importer
+
 #endif

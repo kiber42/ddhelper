@@ -2,155 +2,156 @@
 
 #include "importer/GameWindow.hpp"
 
+#include <opencv2/opencv.hpp>
+
 #if !defined(_WIN32)
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XShm.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#endif
 
-namespace importer
+namespace
 {
-  class ImageCapture::Impl
+  struct XImageCaptureHelper
   {
-  public:
-    Impl(GameWindow&);
+    XImageCaptureHelper(const importer::GameWindow& gameWindow)
+    {
+      if (!gameWindow.valid())
+        return;
 
-    bool acquire();
-    const XImage* getImage() const;
-    GameWindow& getGameWindow() const;
+      auto display = gameWindow.getDisplay();
+      XGetWindowAttributes(display, gameWindow.getHandle(), &attributes);
+      ximage =
+          XShmCreateImage(display, DefaultVisualOfScreen(attributes.screen), DefaultDepthOfScreen(attributes.screen),
+                          ZPixmap, nullptr, &shminfo, attributes.width, attributes.height);
+      if (!ximage)
+        return;
+
+      shminfo.shmid = shmget(IPC_PRIVATE, ximage->bytes_per_line * ximage->height, IPC_CREAT | 0777);
+      if (shminfo.shmid < 0)
+        return;
+      shminfo.shmaddr = ximage->data = static_cast<char*>(shmat(shminfo.shmid, 0, 0));
+      shminfo.readOnly = 0;
+
+      if (!XShmAttach(display, &shminfo))
+        return;
+      attachedDisplay = display;
+
+      valid = XShmGetImage(display, gameWindow.getHandle(), ximage, 0, 0, 0x00ffffff) != 0;
+    }
+
+    ~XImageCaptureHelper()
+    {
+      if (ximage)
+        XDestroyImage(ximage);
+      if (attachedDisplay)
+        XShmDetach(attachedDisplay, &shminfo);
+      if (shminfo.shmaddr)
+        shmdt(shminfo.shmaddr);
+    }
+
+    XImage* acquire()
+    {
+      if (!valid)
+        return nullptr;
+      return ximage;
+    }
 
   private:
-    GameWindow& gameWindow;
+    bool valid{};
+    Display* attachedDisplay{};
+    XImage* ximage{};
+    XShmSegmentInfo shminfo{};
+    XWindowAttributes attributes{};
+  };
+} // namespace
 
-#if !defined(_WIN32)
-    bool init();
-    bool isInitialized() const;
-    void clear();
+cv::Mat importer::ImageCapture::asMatrix()
+{
+  XImageCaptureHelper helper(gameWindow);
+  auto ximage = helper.acquire();
+  lastCaptureSuccessful = ximage != nullptr;
+  // Need to clone the image data, since the shared memory handle will be released.  This copy could be avoided by
+  // keeping the XImageCaptureHelper alive for longer, but this doesn't seem worth the effort.  The copy also reduces
+  // the risk of use after free if the game window is closed or resized.
+  if (lastCaptureSuccessful)
+    return cv::Mat(ximage->height, ximage->width, CV_8UC4, ximage->data).clone();
+  else
+    return cv::Mat();
+}
 
-    struct ximage_cleanup
+#else
+
+namespace
+{
+  template <class Value>
+  struct WithCleanup
+  {
+    WithCleanup(Value&& value, std::function<void(Value)>&& cleanup)
+      : value(std::move(value))
+      , cleanup(std::move(cleanup))
     {
-      void operator()(XImage* ximage) { XDestroyImage(ximage); }
-    };
+    }
 
-    struct shm_cleanup
+    ~WithCleanup()
     {
-      void operator()(XShmSegmentInfo* shminfo)
-      {
-        if (shminfo->shmaddr)
-          shmdt(shminfo->shmaddr);
-      }
-    };
+      if (value)
+        cleanup(value);
+    }
 
-    Display* attachedDisplay;
-    std::unique_ptr<XImage, ximage_cleanup> ximage;
-    std::unique_ptr<XShmSegmentInfo, shm_cleanup> shminfo;
-    XWindowAttributes attributes;
-#endif
+    const Value& operator*() const { return value; }
+
+    WithCleanup(const WithCleanup&) = delete;
+    WithCleanup& operator=(const WithCleanup&) = delete;
+
+  private:
+    Value value;
+    std::function<void(Value)> cleanup;
   };
 
-  ImageCapture::Impl::Impl(GameWindow& gameWindow)
-    : gameWindow(gameWindow)
-  {
-  }
+  template <class Value, typename Any>
+  WithCleanup(Value, Any) -> WithCleanup<Value>;
+} // namespace
 
-#if !defined(_WIN32)
-  bool ImageCapture::Impl::init()
-  {
-    if (!gameWindow.valid())
-      return false;
+cv::Mat importer::ImageCapture::asMatrix()
+{
+  lastCaptureSuccessful = false;
 
-    if (isInitialized())
-    {
-      XWindowAttributes updated;
-      if (!XGetWindowAttributes(gameWindow.getDisplay(), gameWindow.getWindow(), &updated) ||
-          attributes.screen != updated.screen || attributes.width != updated.width ||
-          attributes.height != updated.height)
-      {
-        clear();
-        return init();
-      }
-      return true;
-    }
+  auto handle = gameWindow.getHandle();
 
-    XGetWindowAttributes(gameWindow.getDisplay(), gameWindow.getWindow(), &attributes);
-    shminfo.reset(new XShmSegmentInfo);
-    ximage.reset(XShmCreateImage(gameWindow.getDisplay(), DefaultVisualOfScreen(attributes.screen),
-                                 DefaultDepthOfScreen(attributes.screen), ZPixmap, nullptr, shminfo.get(),
-                                 attributes.width, attributes.height));
-    if (!ximage)
-      return false;
+  RECT windowRect;
+  GetClientRect(handle, &windowRect);
+  const auto width = windowRect.right;
+  const auto height = windowRect.bottom;
 
-    shminfo->shmid = shmget(IPC_PRIVATE, ximage->bytes_per_line * ximage->height, IPC_CREAT | 0777);
-    if (shminfo->shmid < 0)
-    {
-      shminfo.reset();
-      return false;
-    }
-    shminfo->shmaddr = ximage->data = static_cast<char*>(shmat(shminfo->shmid, 0, 0));
-    shminfo->readOnly = 0;
+  auto info = BITMAPINFO{.bmiHeader = BITMAPINFOHEADER{.biSize = sizeof(BITMAPINFOHEADER),
+                                                       .biWidth = width,
+                                                       .biHeight = -height,
+                                                       .biPlanes = 1,
+                                                       .biBitCount = 32,
+                                                       .biCompression = BI_RGB, // uncompressed RGB
+                                                       .biSizeImage = 0,        // not used for uncompressed RGB
+                                                       .biXPelsPerMeter = 1,
+                                                       .biYPelsPerMeter = 1,
+                                                       .biClrUsed = 0,
+                                                       .biClrImportant = 0}};
 
-    attachedDisplay = gameWindow.getDisplay();
-    if (!XShmAttach(attachedDisplay, shminfo.get()))
-    {
-      shminfo.reset();
-      return false;
-    }
+  auto deviceContext = WithCleanup(GetDC(handle), [handle](auto dc) { ReleaseDC(handle, dc); });
+  auto memoryDeviceContext = WithCleanup(CreateCompatibleDC(*deviceContext), DeleteDC);
+  auto bitmap = WithCleanup(CreateCompatibleBitmap(*deviceContext, width, height), DeleteObject);
 
-    return true;
-  }
+  // Blit to memory
+  SelectObject(*memoryDeviceContext, *bitmap);
+  BitBlt(*memoryDeviceContext, 0, 0, width, height, *deviceContext, 0, 0, SRCCOPY);
 
-  bool ImageCapture::Impl::isInitialized() const
-  {
-    // shminfo is initialized last and can therefore to check whether initialization is complete
-    return shminfo != nullptr;
-  }
+  // Create and fill matrix
+  cv::Mat mat = cv::Mat(height, width, CV_8UC4);
+  GetDIBits(*memoryDeviceContext, *bitmap, 0, height, mat.data, &info, DIB_RGB_COLORS);
 
-  void ImageCapture::Impl::clear()
-  {
-    if (attachedDisplay && shminfo)
-      XShmDetach(attachedDisplay, shminfo.get());
-    attachedDisplay = nullptr;
-    shminfo.reset();
-    ximage.reset();
-  }
+  lastCaptureSuccessful = true;
 
-  bool ImageCapture::Impl::acquire()
-  {
-    return init() && XShmGetImage(gameWindow.getDisplay(), gameWindow.getWindow(), ximage.get(), 0, 0, 0x00ffffff);
-  }
-
-  const XImage* ImageCapture::Impl::getImage() const { return ximage.get(); }
-#else
-  // TODO: Stubs for Windows build
-
-  bool ImageCapture::Impl::acquire() { return false; }
-
-  const XImage* ImageCapture::Impl::getImage() const { return nullptr; }
+  return mat;
+}
 
 #endif
-
-  GameWindow& ImageCapture::Impl::getGameWindow() const { return gameWindow; }
-
-  ImageCapture::ImageCapture(GameWindow& gameWindow)
-    : impl(new Impl(gameWindow))
-  {
-  }
-
-  ImageCapture::~ImageCapture()
-  {
-    // needs to be defined here, where Impl is a complete type
-  }
-
-  GameWindow& ImageCapture::getGameWindow() const { return impl->getGameWindow(); }
-
-  const XImage* ImageCapture::acquire()
-  {
-    if (impl->acquire())
-      return impl->getImage();
-    return nullptr;
-  }
-
-  const XImage* ImageCapture::current() const { return impl->getImage(); }
-} // namespace importer

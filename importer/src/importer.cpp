@@ -69,7 +69,8 @@ namespace
     }
     importer::ImageCapture capture(gameWindow);
     unsigned numFrames = 0;
-    std::size_t size = 0;
+    auto lastState = importer::ImportedState{};
+    bool wasDifferent = true;
     while (true)
     {
       importer::ImageProcessor processor(capture);
@@ -80,18 +81,21 @@ namespace
       catch (const std::runtime_error& e)
       {
         std::cerr << e.what() << std::endl;
-        if (!capture.current())
+        if (!capture.success())
           break;
+        // If the capture was successful, but the image could not be used (e.g. wrong window size), keep trying
         cv::waitKey(500);
+        continue;
       }
       if (runcheck)
-        processor.extractMonsterInfos(false);
+        processor.extractMonsterInfos(!wasDifferent);
       const auto& state = processor.get();
-      if (runcheck || state.monsterInfos.size() != size)
+      wasDifferent = state != lastState;
+      if (wasDifferent)
       {
         std::cout << std::string(80, '*') << std::endl;
         describe(state, multiplier);
-        size = state.monsterInfos.size();
+        lastState = state;
         cv::waitKey(2000);
       }
       else
