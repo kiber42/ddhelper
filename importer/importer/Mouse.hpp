@@ -1,12 +1,12 @@
 #pragma once
 
-#include "importer/GameWindow.hpp"
-
 #include <optional>
 #include <utility>
 
 namespace importer
 {
+  class GameWindow;
+
   using MousePosition = std::pair<int, int>;
 
   std::optional<MousePosition> getMousePosition(GameWindow&);
@@ -15,11 +15,11 @@ namespace importer
   class AutoRestoreMousePosition
   {
   public:
-    AutoRestoreMousePosition(GameWindow);
+    AutoRestoreMousePosition(GameWindow&);
     ~AutoRestoreMousePosition();
 
   private:
-    GameWindow gameWindow;
+    GameWindow& gameWindow;
     std::optional<MousePosition> initialMousePosition;
   };
 } // namespace importer
