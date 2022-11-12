@@ -17,6 +17,10 @@ namespace importer
   public:
     //! Create GameWindow object, look for Desktop Dungeons window
     GameWindow();
+    GameWindow(const GameWindow&) = delete;
+    GameWindow& operator()(const GameWindow&) = delete;
+    GameWindow(GameWindow&&) = delete;
+    GameWindow& operator()(GameWindow&&) = delete;
 
     //! Return window handle (platform-specific)
     Window getHandle() const { return window; }
@@ -25,7 +29,6 @@ namespace importer
     bool valid() const;
 
 #if !defined(_WIN32)
-  public:
     ~GameWindow();
 
     //! Return ID of display on which the window was found

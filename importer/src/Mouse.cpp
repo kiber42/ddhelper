@@ -1,5 +1,7 @@
 #include "importer/Mouse.hpp"
 
+#include "importer/GameWindow.hpp"
+
 #if !defined(_WIN32)
 #include "X11/X.h"
 #include "X11/Xlib.h"
@@ -55,8 +57,8 @@ namespace importer
   }
 #endif
 
-  AutoRestoreMousePosition::AutoRestoreMousePosition(GameWindow gameWindow_)
-    : gameWindow(std::move(gameWindow_))
+  AutoRestoreMousePosition::AutoRestoreMousePosition(GameWindow& gameWindow)
+    : gameWindow(gameWindow)
     , initialMousePosition(getMousePosition(gameWindow))
   {
   }
