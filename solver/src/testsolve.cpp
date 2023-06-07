@@ -8,6 +8,7 @@
 #include "solver/SolverTools.hpp"
 
 #include <iostream>
+#include <iterator>
 
 using namespace bandit;
 using namespace snowhouse;

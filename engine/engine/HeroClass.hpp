@@ -2,6 +2,7 @@
 
 #include "engine/HeroTraits.hpp"
 
+#include <algorithm>
 #include <array>
 #include <stdexcept>
 #include <vector>
