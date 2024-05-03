@@ -37,6 +37,25 @@ namespace importer
     XWarpPointer(display, None, window, 0, 0, 0, 0, position.first, position.second);
     XFlush(display);
   }
+
+  void moveAndClick(GameWindow& gameWindow, MousePosition position)
+  {
+    // Not clear which fields are set by XSendEvent
+    XButtonEvent event;
+    event.button = 1;
+    event.type = ButtonPress;
+    event.display = gameWindow.getDisplay();
+    event.root = gameWindow.getHandle(); // ?
+    event.window = gameWindow.getHandle(); // ?
+    event.subwindow = 0; // ?
+    event.x = position.first;
+    event.y = position.second;
+    // int x_root, y_root;     /* coordinates relative to root */
+    event.state = 0; // ?
+    event.same_screen = true; // ?
+    XSendEvent(gameWindow.getDisplay(), gameWindow.getHandle(), false, ButtonPress | Button1Mask, new XEvent {.xbutton=event});
+  }
+
 #else
   std::optional<MousePosition> getMousePosition(GameWindow& gameWindow)
   {

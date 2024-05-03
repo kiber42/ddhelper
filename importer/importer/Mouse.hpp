@@ -12,6 +12,9 @@ namespace importer
   std::optional<MousePosition> getMousePosition(GameWindow&);
   void moveMouseTo(GameWindow&, MousePosition);
 
+  // Only left button click implemented
+  void moveAndClick(GameWindow&, MousePosition);
+
   class AutoRestoreMousePosition
   {
   public:
