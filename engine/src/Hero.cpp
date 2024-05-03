@@ -789,7 +789,9 @@ void Hero::monsterKilled(
     auto boss = std::find_if(rbegin(allMonsters), rend(allMonsters),
                              [](const auto& monster) { return monster.getLevel() == 10; });
     if (boss != rend(allMonsters))
+    {
       boss->corrode();
+    }
     const auto reward = [rewardIndex = std::uniform_int_distribution<>(0, 3)(generator),
                          corrodeReward = !monster.has(MonsterTrait::Bloodless)]() -> Item {
       switch (rewardIndex)
@@ -807,6 +809,30 @@ void Hero::monsterKilled(
       }
     }();
     resources().onGround.emplace_back(reward);
+  }
+  else if (resources.uses(Ruleset::MonsterMachine2))
+  {
+      if (monster.getName().ends_with("Spider Totem"))
+      {
+        if (monster.getName().starts_with("Curse"))
+        {
+          add(HeroStatus::CurseImmune);
+        }
+        else if (monster.getName().starts_with("Poison"))
+        {
+          add(HeroStatus::PoisonImmune);
+        }
+        else if (monster.getName().starts_with("Mana"))
+        {
+          add(HeroStatus::ManaBurnImmune);
+        }
+        auto boss = std::find_if(rbegin(allMonsters), rend(allMonsters),
+                                 [](const auto& monster) { return monster.getLevel() == 10; });
+        if (boss != rend(allMonsters))
+        {
+          boss->takeDamage(1000, DamageType::Typeless);
+        }
+      }
   }
 }
 

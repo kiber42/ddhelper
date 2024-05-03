@@ -46,7 +46,8 @@ private:
 enum class Ruleset
 {
   Default,
-  MonsterMachine1
+  MonsterMachine1,
+  MonsterMachine2,
 };
 
 struct Resources

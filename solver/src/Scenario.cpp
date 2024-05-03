@@ -8,24 +8,50 @@
 #include "engine/MonsterTypes.hpp"
 #include "engine/Spells.hpp"
 
-DungeonSetup getSetupForScenario(Scenario scenario)
+namespace
 {
-  if (scenario == Scenario::TheMonsterMachine1)
+  DungeonSetup getSetupForScenario(Scenario scenario)
   {
-    return {HeroClass::Monk,
-            HeroRace::Human,
-            BlacksmithItem::Sword,
-            AlchemistSeal::CompressionSeal,
-            BossReward::DragonShield,
-            std::set{Potion::HealthPotion, Potion::ManaPotion, Potion::BurnSalve, Potion::CanOfWhupaz},
-            {},
-            MageModifier::ExtraHealthBoosters,
-            BazaarModifier::Apothecary,
-            {}};
+    if (scenario == Scenario::TheMonsterMachine1)
+    {
+      return {HeroClass::Monk,
+              HeroRace::Human,
+              BlacksmithItem::Sword,
+              AlchemistSeal::CompressionSeal,
+              BossReward::DragonShield,
+              std::set{Potion::HealthPotion, Potion::ManaPotion, Potion::BurnSalve, Potion::CanOfWhupaz},
+              {},
+              MageModifier::ExtraHealthBoosters,
+              BazaarModifier::Apothecary,
+              {}};
+    }
+    assert(false);
+    return DungeonSetup{};
   }
-  assert(false);
-  return DungeonSetup{};
-}
+
+  auto basicMonsterMix(DungeonMultiplier multiplier, Defence defence = {}, MonsterTraits traits = {})
+  {
+    constexpr std::array types = {
+        MonsterType::Bandit,  MonsterType::DragonSpawn, MonsterType::Goat,    MonsterType::Goblin, MonsterType::Golem,
+        MonsterType::GooBlob, MonsterType::Gorgon,      MonsterType::MeatMan, MonsterType::Naga,   MonsterType::Serpent,
+        MonsterType::Warlock, MonsterType::Wraith,      MonsterType::Zombie};
+    auto typeIndex = std::uniform_int_distribution<size_t>{0u, types.size() - 1u};
+    auto generator = std::mt19937{std::random_device{}()};
+    auto level = Level{1};
+    Monsters monsters;
+    for (auto countPerLevel : {10, 5, 4, 4, 4, 3, 3, 3, 2})
+    {
+      for (int i = 0; i < countPerLevel; ++i)
+      {
+        const auto type = types[typeIndex(generator)];
+        const auto stats = MonsterStats{type, level, multiplier};
+        monsters.emplace_back(Monster::makeName(type, level), stats, defence, traits);
+      }
+      level.increase();
+    }
+    return monsters;
+  }
+} // namespace
 
 Hero getHeroForScenario(Scenario scenario)
 {
@@ -73,6 +99,12 @@ Hero getHeroForScenario(Scenario scenario)
     auto accoLite = Hero{getSetupForScenario(scenario), {}};
     accoLite.setName("Acco Lite");
     return accoLite;
+  }
+  case Scenario::TheMonsterMachine2:
+  {
+    auto harmSway = Hero{HeroClass::Berserker, HeroRace::Gnome};
+    harmSway.setName("Harm Sway");
+    return harmSway;
   }
   case Scenario::TrueGrit:
   {
@@ -123,26 +155,23 @@ std::vector<Monster> getMonstersForScenario(Scenario scenario)
     break;
   case Scenario::TheMonsterMachine1:
   {
-    constexpr std::array types = {
-        MonsterType::Bandit,  MonsterType::DragonSpawn, MonsterType::Goat,    MonsterType::Goblin, MonsterType::Golem,
-        MonsterType::GooBlob, MonsterType::Gorgon,      MonsterType::MeatMan, MonsterType::Naga,   MonsterType::Serpent,
-        MonsterType::Warlock, MonsterType::Wraith,      MonsterType::Zombie};
-    auto typeIndex = std::uniform_int_distribution<size_t>{0u, types.size() - 1u};
-    auto generator = std::mt19937{std::random_device{}()};
-    auto level = Level{1};
-    for (auto count : {10, 5, 4, 4, 4, 3, 3, 3, 2})
-    {
-      for (int i = 0; i < count; ++i)
-      {
-        auto monster = Monster{types[typeIndex(generator)], level, DungeonMultiplier{1.299f}};
-        monster.makeCorrosive();
-        monsters.emplace_back(std::move(monster));
-      }
-      level.increase();
-    }
-
+    monsters = basicMonsterMix(DungeonMultiplier{1.299f}, {}, {MonsterTrait::Corrosive});
     monsters.emplace_back(create(BossType::Chzar));
     // Level also has 44 Mysterious Murkshades (Corrosive!)
+    break;
+  }
+  case Scenario::TheMonsterMachine2:
+  {
+    monsters = basicMonsterMix(DungeonMultiplier{1.299f}, {},
+                               {MonsterTrait::Poisonous, MonsterTrait::ManaBurn, MonsterTrait::CurseBearer});
+    for (std::string name : {"Curse", "Poison", "Mana Burn"})
+    {
+      monsters.emplace_back(name + " Spider Totem", MonsterStats{Level{1}, 1_HP, 1_damage}, Defence{},
+                            MonsterTraits{MonsterTrait::Poisonous, MonsterTrait::ManaBurn, MonsterTrait::CurseBearer,
+                                          MonsterTrait::Bloodless /*, MonsterTrait::NoXP*/});
+    }
+    monsters.emplace_back(create(BossType::Hesss));
+
     break;
   }
   case Scenario::TrueGrit:
@@ -174,15 +203,25 @@ SimpleResources getResourcesForScenario(Scenario scenario)
     // Ensure Wonafyt is present and is found early
     auto& spells = resources().spells;
     assert(spells.size() >= 2);
-    if (auto spellIter = std::find(begin(spells), end(spells), Spell::Wonafyt); spellIter != end(spells))
+    if (auto wonafyt = std::find(begin(spells), end(spells), Spell::Wonafyt); wonafyt != end(spells))
     {
-      // Swap Wonafyt to front
-      *spellIter = spells.front();
+      std::swap(*wonafyt, spells.front());
     }
-    else if (spells.front() == Spell::Burndayraz)
-      // Overwrite first spell that is not Burndayraz
-      spells[1] = Spell::Burndayraz;
-    spells.front() = Spell::Wonafyt;
+    else
+    {
+      // Not found, overwrite first spell; make sure not to lose Burndayraz
+      if (spells.front() == Spell::Burndayraz)
+      {
+        spells[1] = Spell::Burndayraz;
+      }
+      spells.front() = Spell::Wonafyt;
+    }
+    return resources;
+  }
+  else if (scenario == Scenario::TheMonsterMachine2)
+  {
+    SimpleResources resources{ResourceSet{DungeonSetup{}}, 20};
+    resources.ruleset = Ruleset::MonsterMachine2;
     return resources;
   }
   else if (scenario == Scenario::TrueGrit)
