@@ -64,6 +64,9 @@ namespace ui
     ImGui::SameLine(140);
     if (ImGui::SmallButton("2.1"))
       selection = Scenario::TheMonsterMachine1;
+    ImGui::SameLine(170);
+    if (ImGui::SmallButton("2.2"))
+      selection = Scenario::TheMonsterMachine2;
     ImGui::TextUnformatted("The Divine Forge");
     ImGui::SameLine(140);
     if (ImGui::SmallButton("True Grit"))

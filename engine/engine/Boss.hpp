@@ -9,7 +9,8 @@ enum class BossType
 {
   LordGobb,
   Chzar,
-  Last = Chzar
+  Hesss,
+  Last = Hesss
 };
 
 Monster create(BossType BossType);
@@ -23,5 +24,7 @@ constexpr const char* toString(BossType type)
     return "Lord Gobb";
   case BossType::Chzar:
     return "Chzar";
+  case BossType::Hesss:
+    return "Hesss";
   }
 }

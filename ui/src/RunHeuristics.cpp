@@ -22,7 +22,11 @@ namespace ui
 
     if (const auto* monster = state.monster(); monster && !monster->isDefeated())
     {
-      if (checkOneShot(hero, *monster) == OneShotResult::VictoryFlawless)
+      if (monster->isDefeated())
+      {
+        // Nothing to do
+      }
+      else if (checkOneShot(hero, *monster) == OneShotResult::VictoryFlawless)
       {
         output.emplace_back("One-shottable");
       }
